@@ -1,0 +1,54 @@
+<?php
+
+SG::loadClass('SG_DB_Schema_Reader');
+SG::loadClass('SG_DB_Schema');
+
+class SG_DB_Replace {
+
+    function replace($from, $to) {
+
+        $fields = $this->getFields();
+        $schema = new SG_DB_Schema();
+        $db =& SG_DB::singleton();
+
+        foreach ($fields as $field) {
+
+            if (!$schema->checkTable($field[0])) {
+                continue;
+            }
+
+            $reader = new SG_DB_Schema_Reader($field[0]);
+            $dbFields = $reader->getFields();
+
+            if (!in_array($field[1], array_keys($dbFields))) {
+                continue;
+            }
+
+            $sql = "UPDATE {$field[0]} SET {$field[1]} = REPLACE({$field[1]}, '$from', '$to')";
+            $db->query($sql, true);
+
+        }
+
+    }
+
+    function getFields() {
+
+        $fields = array();
+        $fields[] = array('pages', 'content');
+        $fields[] = array('pages', 'summary');
+        $fields[] = array('forms', 'success');
+        $fields[] = array('forms', 'introduction');
+        $fields[] = array('forms', 'confirmation');
+        $fields[] = array('news_category', 'description');
+        $fields[] = array('news', 'description');
+        $fields[] = array('news', 'content');
+        $fields[] = array('news', 'foo');
+        $fields[] = array('foo', 'bar');
+
+        return $fields;
+
+    }
+
+}
+
+?>
