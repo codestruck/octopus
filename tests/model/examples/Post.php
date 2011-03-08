@@ -12,7 +12,14 @@ class Post extends SG_Model {
     public $body;
     public $author_id; // unnecessary?
 
+    public $created; // always present?
+    public $updated;
+
     // belongs to an author
+    public function __construct() {
+        $this->_belongsTo('author');
+    }
+
 }
 
 class Author extends SG_Model {
@@ -22,11 +29,25 @@ class Author extends SG_Model {
     public $website;
 
     // has many posts
+    public function __construct() {
+        $this->_hasMany('posts');
+    }
+    // or
+    public function relations() {
+        $this->_hasMany('posts');
+    }
+
 
 }
 
 // possible methods:
 /*
+
+save
+exists
+delete
+
+
 beforeSave
 afterSave
 beforeValidate

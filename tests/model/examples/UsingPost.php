@@ -3,11 +3,17 @@
 
 // fetching
 $post = new Post();
-$post->all();
+$somePosts = $post->all();
 
-$post->find('title', 'Blog Post Title');
+$somePosts = $post->find('title', 'Blog Post Title');
 // or
-$post->find(array('title' => 'Blog post title'));
+$somePosts = $post->find(array('title' => 'Blog post title'));
+
+$aPost = $post = new Post($id); // ?
+
+// find returns array, while ID in constructor returns item ?
+
+
 
 // creating
 $post = new Post();
@@ -23,13 +29,13 @@ $post->delete();
 
 // find by author
 $post = new Post();
-$post->find('author_id', 2);
+$somePosts = $post->find('author_id', 2);
 
 
 // Author
 
 $author = new Author();
-$author->posts->all();
-$author->posts->find('title', 'Third blog post');
+$somePosts = $author->posts->all();
+$somePosts = $author->posts->find('title', 'Third blog post');
 
 ?>

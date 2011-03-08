@@ -12,7 +12,6 @@ class Post extends SG_Model {
     public $title;
     public $body;
 
-    // has an author
 }
 
 $post = new Post();
