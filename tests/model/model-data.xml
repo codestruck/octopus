@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<dataset>
+  <posts
+    post_id="1"
+    title="My Title"
+    body="My Body."
+  />
+  <posts
+    post_id="2"
+    title="My Other Title"
+    body="My Other Body."
+  />
+</dataset>
