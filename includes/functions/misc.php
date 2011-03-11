@@ -2,54 +2,44 @@
 
 // try to alphabetize?
 
-/*
- * Define something only if it's not already
- */
-function define_unless($constant, $value) {
-    if (!defined($constant)) {
-        define($constant, $value);
+    /**
+     * Define something only if it's not already
+     */
+    function define_unless($constant, $value) {
+        if (!defined($constant)) {
+            define($constant, $value);
+            return true;
+        }
+        return false;
     }
-}
-
-/*
- * dump_r($a) - wrapper for print_r that prints <pre> tags
- */
-function dump_r($obj) {
-    if (isset($_SERVER['HTTP_USER_AGENT'])) {
-        print '<pre style="text-align: left;clear: both;background-color: white;color:black;border: 1em solid grey; padding: 2em; margin: 2em;z-index:100000000;positi
-on: relative;">';
-    }
-    print_r($obj);
-    if (isset($_SERVER['HTTP_USER_AGENT'])) {
-        print '</pre>';
-    } else {
-        print "\n";
-    }
-}
-
-function end_in($end, $str) {
-
-    $len = strlen($str);
-
-    if ($len > 0 && substr($str, $len) != $end) {
-        $str .= $end;
+    
+    
+    /**
+     * Helper for reading $_GET.
+     * @return mixed The value of $_GET[$arg] if present, $default otherwise, 
+     * or, if called w/o args, whether or not there's anything in $_GET.
+     */
+    function get($arg = null, $default = null) {
+        
+        if ($arg === null && $default === null) {
+            return count($_GET);
+        }
+        
+        return isset($_GET[$arg]) ? $_GET[$arg] : $default;
     }
 
-    return $str;
-
-}
-
-function start_in($start, $str) {
-
-    $len = strlen($str);
-
-    if ($len > 0 && substr($str, 0, $len) != $start) {
-        $str = $start . $str;
+    /**
+     * Helper for reading $_POST.
+     * @return mixed The value of $_POST[$arg] if present, $default otherwise, 
+     * or, if called w/o args, whether or not there's anything in $_POST.
+     */        
+    function post($arg = null, $default = null) {
+        
+        if ($arg === null && $default === null) {
+            return count($_POST);
+        }
+        
+        return isset($_POST[$arg]) ? $_POST[$arg] : $default;
     }
-
-    return $str;
-
-}
-
 
 ?>
