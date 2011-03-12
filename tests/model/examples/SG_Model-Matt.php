@@ -3,8 +3,8 @@
     class SG_Model {
         
         // $fields, $hasOne, $belongsTo, $hasMany all get parsed into these
-        static $_table = null;
-        static $_primaryKey = null;
+        static $table = null;
+        static $primaryKey = null;
         static $_titleField = null;
         static $_fields = null;
         
@@ -85,7 +85,7 @@
         }
         
         /** 
-         * @return Array Set of fields defined on this model. 
+         * @return Array Set of fields defined for this model. 
          */
         function getFields() {
             
@@ -117,15 +117,15 @@
             }
         }
         
+        /**
+         * @return string Table used by this model.
+         */
         function getTable() {
             
-            if (isset($this->_table)) {
-                return $this->_table;
-            } else if (isset(static::$table)) {
+            if (isset(static::$table)) {
                 return static::$table;
             } else {
-                $this->_table = underscore(pluralize(get_class($this)));
-                return $this->_table;
+                return static::$table = underscore(pluralize(get_class($this)));
             }
             
         }
@@ -137,8 +137,8 @@
             }
             
             foreach($this->getFields() as $f) {
-                if ($f->isPrimary) {
-                    static::$_primaryKey = $f;
+                if ($f->isPrimary()) {
+                    return static::$_primaryKey = $f;
                 }
             }
             
@@ -222,8 +222,8 @@
             
             $result = array();
             
-            foreach(this->getFields() as $field) {
-                $result[$field['name']] = $field->sanitize($this);
+            foreach($this->getFields() as $field) {
+                $result[$field->name] = $field->sanitize($this);
             }
             
             return $result;

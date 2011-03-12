@@ -39,6 +39,9 @@
         
     }
     
+    // modify where clause after initial find call
+    $posts = Post::findByAuthor(42)->where(array('title LIKE' => '*keyword*'));
+    
     // some aggregate functions 
     $totalLikes = Post::findByAuthor(42)->sum('facebook_likes');
     
