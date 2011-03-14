@@ -17,8 +17,8 @@
     
     require_once('../site/config.php');
     
-    define_unless('DEV', (defined('STAGING') && STAGING) || (defined('LIVE') && LIVE) ? 0 : 1);
-    define_unless('STAGING', (defined('DEV') && DEV) || (defined('LIVE') && LIVE) ? 0 : 1);
-    define_unless('LIVE', (defined('DEV') && DEV) || (defined('STAGING') && STAGING) ? 0 : 1);
+    define_unless('DEV', !((defined('STAGING') && STAGING) || (defined('LIVE') && LIVE)));
+    define_unless('STAGING', !((defined('DEV') && DEV) || (defined('LIVE') && LIVE)));
+    define_unless('LIVE', !((defined('DEV') && DEV) || (defined('STAGING') && STAGING)));
 
 ?>

@@ -5,13 +5,20 @@
      */
     function dump_r() {
         
-        $_SESSION['_sg_no_redirect'] = 1;
-        
+        if ((defined('LIVE') && LIVE) || defined('STAGING') && STAGING) {
+            // TODO: Log?
+            return;
+        }
+
         $er = error_reporting();
         
         if (($er & E_NOTICE) !== E_NOTICE) {
             // Only dump stuff when we are supposed to
             return;
+        }
+
+        if (function_exists('cancel_redirects')) {
+            cancel_redirects();
         }
         
         $args = func_get_args();

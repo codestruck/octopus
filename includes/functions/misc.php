@@ -29,6 +29,18 @@
     }
 
     /**
+     * Helper for reading $_GET.
+     * @return number Value of the given argument, if present and numeric. Otherwise false.
+     */
+    function get_numeric($arg) {
+        if (isset($_GET[$arg])) {
+            $value = $_GET[$arg];
+            if (is_numeric($value)) return $value;
+        }
+        return false;
+    }
+    
+    /**
      * Helper for reading $_POST.
      * @return mixed The value of $_POST[$arg] if present, $default otherwise, 
      * or, if called w/o args, whether or not there's anything in $_POST.
