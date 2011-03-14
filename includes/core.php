@@ -9,6 +9,7 @@
     require_once('functions/misc.php');
     require_once('functions/strings.php');
     require_once('functions/files.php');
+    require_once('functions/http.php');
     
     if (!is_file('../site/config.php')) {
         echo "Configuration file not found.";
