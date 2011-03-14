@@ -3,7 +3,7 @@
     error_reporting(E_ALL | E_STRICT);
 
     require_once(dirname(__FILE__) . '/../includes/core.php');
-    bootstrap(false);
+    bootstrap(array('use_site_config' => false));
 
     $hostname = trim(`hostname`);
     

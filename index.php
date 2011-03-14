@@ -2,7 +2,7 @@
 
     require_once('includes/core.php');
 
-    bootstrap(true);
+    bootstrap();
     
     echo "Congrats! You've got Project Octopus Running!";
     

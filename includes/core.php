@@ -4,30 +4,55 @@
      * All core app functionality comes from here. Any page served up by the
      * app should include this file first.
      */
+
+    $GLOBALS['ROOT_DIR'] = dirname(dirname(__FILE__)) . '/';
+    $GLOBALS['INCLUDES_DIR'] = dirname(__FILE__) . '/';
+    $GLOBALS['FUNCTIONS_DIR'] = $GLOBALS['INCLUDES_DIR'] . 'functions/';
+    $GLOBALS['CLASSES_DIR'] = $GLOBALS['INCLUDES_DIR'] . 'classes/';
+    $GLOBALS['THEMES_DIR'] = $GLOBALS['ROOT_DIR'] . 'themes/';
+    $GLOBALS['SITE_DIR'] = $GLOBALS['ROOT_DIR'] . 'site/'; 
+    $GLOBALS['SITE_THEMES_DIR'] = $GLOBALS['SITE_DIR'] . 'themes/';
          
     /**
      * Spins up a new instance of the application.
      *
-     * @param $useSiteConfig bool Whether or not to include the site-specific config file.
+     * @param $options array Bootstrapping options for the app.
      */
-    function bootstrap($useSiteConfig = true) {
-     
+    function bootstrap($options = null) {
+
         global $URL_BASE;
         global $ROOT_DIR, $INCLUDES_DIR, $FUNCTIONS_DIR, $CLASSES_DIR, $THEMES_DIR;
         global $SITE_DIR, $SITE_THEMES_DIR;
+        global $NAV;
+        
+        $defaults = array(
+            
+            'ROOT_DIR' =>           $ROOT_DIR,
+            'INCLUDES_DIR' =>       $INCLUDES_DIR,
+            'FUNCTIONS_DIR' =>      $FUNCTIONS_DIR,
+            'CLASSES_DIR' =>        $CLASSES_DIR,
+            'THEMES_DIR' =>         $THEMES_DIR,
+            'SITE_DIR' =>           $SITE_DIR,
+            'SITE_THEMES_DIR' =>    $SITE_THEMES_DIR,
+            
+            /**
+             * Whether or not to load site-specific configuration files. 
+             */
+            'use_site_config' =>    true
+        );
+        $options = $options ? array_merge($defaults, $options) : $defaults;
         
         ////////////////////////////////////////////////////////////////////////
         // Directory Configuration
         ////////////////////////////////////////////////////////////////////////
         
-        define('ROOT_DIR', $ROOT_DIR = dirname(dirname(__FILE__)) . '/');
-        define('INCLUDES_DIR', $INCLUDES_DIR = $ROOT_DIR . '/includes/');
-        define('FUNCTIONS_DIR', $FUNCTIONS_DIR = $INCLUDES_DIR . '/functions/');
-        define('CLASSES_DIR', $CLASSES_DIR = $INCLUDES_DIR . '/classes/');
-        define('THEMES_DIR', $THEMES_DIR = $ROOT_DIR . '/themes/');
-        
-        define('SITE_DIR', $SITE_DIR = $ROOT_DIR . '/site/');
-        define('SITE_THEMES_DIR', $SITE_THEMES_DIR = SITE_DIR . '/themes/');
+        define('ROOT_DIR', $ROOT_DIR = $options['ROOT_DIR']);
+        define('INCLUDES_DIR', $INCLUDES_DIR = $options['INCLUDES_DIR']);
+        define('FUNCTIONS_DIR', $FUNCTIONS_DIR = $options['FUNCTIONS_DIR']);
+        define('CLASSES_DIR', $CLASSES_DIR = $options['CLASSES_DIR']);
+        define('THEMES_DIR', $THEMES_DIR = $options['THEMES_DIR']);
+        define('SITE_DIR', $SITE_DIR = $options['SITE_DIR']);
+        define('SITE_THEMES_DIR', $SITE_THEMES_DIR = $options['SITE_THEMES_DIR']);
         
         ////////////////////////////////////////////////////////////////////////
         // Core Includes
@@ -55,12 +80,24 @@
         define('URL_BASE', $URL_BASE);
         
         ////////////////////////////////////////////////////////////////////////
+        // Nav Setup
+        ////////////////////////////////////////////////////////////////////////
+        
+        $NAV = new StdClass();
+        
+        // Add some default routes
+        // $NAV->add('/', 'home.php');
+        
+        ////////////////////////////////////////////////////////////////////////
         // Site-Specific Configuration
         ////////////////////////////////////////////////////////////////////////
         
-        if ($useSiteConfig) {
+        if ($options['use_site_config']) {
             
             $configFile = SITE_DIR . 'config.php';
+            
+            $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : trim(`hostname`);
+            $hostConfigFile = SITE_DIR . "config.$host.php";
             
             if (!file_exists($configFile)) {
                 // TODO Friendlier message
@@ -68,7 +105,19 @@
                 exit();
             }
             
+            if (file_exists($hostConfigFile)) {
+                require_once($hostConfigFile);
+            }
+            
             require_once($configFile);
+            
+            // Nav Structure
+            $navFile = SITE_DIR . 'nav.php';
+            if (!file_exists($navFile)) {
+                error_log("No nav.php found.");
+            } else {
+                require_once($navFile);
+            }
         }
         
         ////////////////////////////////////////////////////////////////////////
