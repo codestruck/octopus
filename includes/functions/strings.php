@@ -1,6 +1,32 @@
 <?php
 
     /**
+     * Cleans up text from unknown sources (like ie from word).
+     */
+    function decruftify($s) {
+        
+        /*
+         * Things this could do:
+         *  - normalize whitespace characters
+         *  - Clean up curly quotes
+         *  - Return nice UTF8
+         */
+        
+    }
+
+    function end_in($end, $str) {
+    
+        $len = strlen($str);
+    
+        if ($len > 0 && substr($str, $len - strlen($end)) != $end) {
+            $str .= $end;
+        }
+    
+        return $str;
+    
+    }
+
+    /**
      * Alias for htmlspecialchars.
      * @param mixed Individual strings to escape and concatenate.
      * @return string All arguments, escaped and concatenated.
@@ -15,27 +41,6 @@
         
         return $result;
     }
-
-    function end_in($end, $str) {
-    
-        $len = strlen($str);
-    
-        if ($len > 0 && substr($str, $len - strlen($end)) != $end) {
-            $str .= $end;
-        }
-    
-        return $str;
-    
-    }
-    
-    function start_in($start, $str) {
-    
-        if (strncmp($start, $str, strlen($start)) != 0) {
-            return $start . $str;
-        } else {
-            return $str;
-        }
-    }
     
     /**
      * Turns URLs in $s into hyperlinks.
@@ -44,19 +49,6 @@
         // TODO implement
     }
     
-    /**
-     * Cleans up text from unknown sources (like ie from word).
-     */
-    function decruftify($s) {
-        
-        /*
-         * Things this could do:
-         *  - normalize whitespace characters
-         *  - Clean up curly quotes
-         *  - Return nice UTF8
-         */
-        
-    }
 
     /**
      * Pluralizes a singular noun. Doesn't try too hard.
@@ -68,16 +60,14 @@
         
         return $x . 's';
     }
+
+    function start_in($start, $str) {
     
-    /**
-     * Converts a camelCased string to an underscore_separated_string
-     */
-    function underscore($s) {
-        
-        $s = preg_replace('/([a-z])([A-Z]+)/', '$1_$2', $s);
-        $s = preg_replace('/\s+/', '_', $s);
-        return strtolower($s);
-        
+        if (strncmp($start, $str, strlen($start)) != 0) {
+            return $start . $str;
+        } else {
+            return $str;
+        }
     }
 
     /**
@@ -104,6 +94,17 @@
         $x = preg_replace('/[^a-z0-9-]/i', '-', $x);
         $x = preg_replace('/-{2,}/', '-', $x);
         return trim($x, '-');
+    }
+
+    /**
+     * Converts a camelCased string to an underscore_separated_string
+     */
+    function underscore($s) {
+        
+        $s = preg_replace('/([a-z])([A-Z]+)/', '$1_$2', $s);
+        $s = preg_replace('/\s+/', '_', $s);
+        return strtolower($s);
+        
     }
     
 
