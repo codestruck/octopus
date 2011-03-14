@@ -1,11 +1,12 @@
-<?php
+<?php /*:folding=explicit:collapseFolds=1:*/
 
     /**
      * Outputs the arguments passed to it along w/ debugging info.
+     * @param mixed Any arguments you want dumped.
      */
     function dump_r() {
         
-        if ((defined('LIVE') && LIVE) || defined('STAGING') && STAGING) {
+        if ((defined('LIVE') && LIVE) || (defined('STAGING') && STAGING)) {
             // TODO: Log?
             return;
         }
@@ -59,7 +60,8 @@
             'arrayTh' => array(
                 'font-weight' => 'bold',
                 'padding-right' => '10px',
-                'padding-bottom' => '4px'   
+                'padding-bottom' => '4px',
+                'text-align' => 'left'
             ),
             'arrayTd' => array(
             ),
@@ -165,11 +167,17 @@
         print '</div>';
     }
 
+    /**
+     * Calls dump_r and then exit().
+     * @param mixed Any values you want displayed.
+     */
     function dump_x() {
         $args = func_get_args();
         call_user_func_array('dump_r', $args);
         exit();
     }
+    
+    // Support Functions {{{ 
     
     function &_make_style_attr(&$styles) {
         $attr = '';
@@ -247,5 +255,7 @@
 
         return $flags;
     }
+    
+    // }}}
 
 ?>
