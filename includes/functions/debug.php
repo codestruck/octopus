@@ -5,6 +5,9 @@
      * @param mixed Any arguments you want dumped.
      */
     function dump_r() {
+
+        $args = func_get_args();
+        if (empty($args)) return;
         
         if ((defined('LIVE') && LIVE) || (defined('STAGING') && STAGING)) {
             // TODO: Log?
@@ -22,12 +25,17 @@
             cancel_redirects();
         }
         
-        $args = func_get_args();
         if (empty($_SERVER['HTTP_USER_AGENT'])) {
+            
             // Probably running on command line
+            echo("\n--------------------------------------------------------------------------------\n");
+            
             foreach($args as $arg) {
                 var_dump($arg);
             }
+            
+            echo("--------------------------------------------------------------------------------\n");
+            
             return;
         }
         

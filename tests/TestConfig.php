@@ -2,8 +2,8 @@
 
     error_reporting(E_ALL | E_STRICT);
 
-    require_once('../includes/core.php');
-
+    require_once(dirname(__FILE__) . '/../includes/core.php');
+    bootstrap(false);
 
     $hostname = trim(`hostname`);
     
@@ -18,6 +18,16 @@
     
             break;
     
+        case 'hinz-laptop.local':
+
+            define('DB_hostname', 'localhost');
+            define('DB_database', 'sole_octopus_test');
+            define('DB_username', 'sg');
+            define('DB_password', 'fruitl00ps');
+    
+            break;
+            
+            
     }
 
 ?>

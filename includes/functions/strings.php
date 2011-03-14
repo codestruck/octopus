@@ -4,7 +4,7 @@
     
         $len = strlen($str);
     
-        if ($len > 0 && substr($str, $len) != $end) {
+        if ($len > 0 && substr($str, $len - strlen($end)) != $end) {
             $str .= $end;
         }
     
@@ -14,14 +14,11 @@
     
     function start_in($start, $str) {
     
-        $len = strlen($str);
-    
-        if ($len > 0 && substr($str, 0, $len) != $start) {
-            $str = $start . $str;
+        if (strncmp($start, $str, strlen($start)) != 0) {
+            return $start . $str;
+        } else {
+            return $str;
         }
-    
-        return $str;
-    
     }
     
     /**
