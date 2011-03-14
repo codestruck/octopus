@@ -61,12 +61,15 @@
          * 
          * $documentRoot = /var/www/
          * $rootDir = /var/www/
+         * result = '/' 
          *
          * $documentRoot = /var/www/
          * $rootDir = /var/www/subdir/
+         * result = '/subdir/'
          *
          * $documentRoot = /var/www/
          * $rootDir = /some/weird/dir/
+         * result = false
          * 
          */
         

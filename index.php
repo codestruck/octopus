@@ -4,4 +4,6 @@
 
     bootstrap(true);
     
+    echo "Congrats! You've got Project Octopus Running!";
+    
 ?>

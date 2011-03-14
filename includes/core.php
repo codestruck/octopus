@@ -13,18 +13,22 @@
     function bootstrap($useSiteConfig = true) {
      
         global $URL_BASE;
-        global $ROOT_DIR, $SITE_DIR, $INCLUDES_DIR, $FUNCTIONS_DIR, $CLASSES_DIR;
+        global $ROOT_DIR, $INCLUDES_DIR, $FUNCTIONS_DIR, $CLASSES_DIR, $THEMES_DIR;
+        global $SITE_DIR, $SITE_THEMES_DIR;
         
         ////////////////////////////////////////////////////////////////////////
         // Directory Configuration
         ////////////////////////////////////////////////////////////////////////
         
         define('ROOT_DIR', $ROOT_DIR = dirname(dirname(__FILE__)) . '/');
-        define('SITE_DIR', $SITE_DIR = $ROOT_DIR . '/site/');
         define('INCLUDES_DIR', $INCLUDES_DIR = $ROOT_DIR . '/includes/');
         define('FUNCTIONS_DIR', $FUNCTIONS_DIR = $INCLUDES_DIR . '/functions/');
         define('CLASSES_DIR', $CLASSES_DIR = $INCLUDES_DIR . '/classes/');
-
+        define('THEMES_DIR', $THEMES_DIR = $ROOT_DIR . '/themes/');
+        
+        define('SITE_DIR', $SITE_DIR = $ROOT_DIR . '/site/');
+        define('SITE_THEMES_DIR', $SITE_THEMES_DIR = SITE_DIR . '/themes/');
+        
         ////////////////////////////////////////////////////////////////////////
         // Core Includes
         ////////////////////////////////////////////////////////////////////////
@@ -41,14 +45,30 @@
         // WHERE ARE WE?
         ////////////////////////////////////////////////////////////////////////
         
-        define('URL_BASE', $URL_BASE = find_url_base());
+        $URL_BASE = find_url_base();
+        
+        if ($URL_BASE === false) {
+            error_log('Could not determine URL_BASE. Assuming "/".');
+            $URL_BASE = '/';
+        }
+        
+        define('URL_BASE', $URL_BASE);
         
         ////////////////////////////////////////////////////////////////////////
         // Site-Specific Configuration
         ////////////////////////////////////////////////////////////////////////
         
         if ($useSiteConfig) {
-            require_once(SITE_DIR . 'config.php');
+            
+            $configFile = SITE_DIR . 'config.php';
+            
+            if (!file_exists($configFile)) {
+                // TODO Friendlier message
+                echo "No config file found.";
+                exit();
+            }
+            
+            require_once($configFile);
         }
         
         ////////////////////////////////////////////////////////////////////////
