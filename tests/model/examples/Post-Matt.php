@@ -39,29 +39,22 @@
                 // when sanitizing for display
                 'sanitizer' => 'mce_hook_cleaner', 
             ),
-        );
-        
-        static $hasOne = array(
-          
+            
             'author' => array(
-                // 'class' => 'Author' (implicit)
-                // 'column' => 'author_id',
-                'required' => true,
-                'cascade' => array('delete', 'update')
+                'type' => 'has_one',
+                'cascade' => array('save', 'delete')
             ),
             
-        );
-        
-        static $hasMany = array(
-          
             'categories' => array(
+                'type' => 'has_many',
                 // 'class' => 'Category',
                 // 'table' => 'post_categories',
+                // 'columns' => array('post_id', 'category_id'),
                 // 'columns' => array('Post' => 'post_id', 'Category' => 'category_id')
-                'cascade' => false
+                'cascade' => 'none'
             )
-            
         );
+        
         
         // SG_Model compiles each field into an SG_Model_Field instance, which
         // we can then interrogate for e.g. how to render in a form, how to 

@@ -12,7 +12,7 @@
     // save() implicitly calls validate(), returns post_id on success, false on failure
     if ($post->save()) {
         echo $post->slug; // "my-post"
-    } else {
+    } el    se {
         
         echo '<ul class="errors">';
         foreach($post->getErrors() as $err) {

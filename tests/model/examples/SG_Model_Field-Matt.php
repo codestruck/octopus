@@ -136,4 +136,7 @@
         
     }
 
+    SG_Model_Field::register('has_one', 'SG_Model_HasOne');
+    SG_Model_Field::register('has_many', 'SG_Model_HasMany');
+    
 ?>
