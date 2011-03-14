@@ -1,5 +1,7 @@
 <?php
 
+    $__SG_CANCEL_REDIRECT__ = false;
+
     /**
      * Assembles a URL, ensuring it is properly prefixed etc.
      * @param $url string URL to format.
@@ -35,7 +37,8 @@
      * Cancels any upcoming redirects.
      */
     function cancel_redirects($cancel = true) {
-        $_SESSION['_sg_cancel_redirect'] = $cancel;
+        global $__SG_CANCEL_REDIRECT__;
+        $__SG_CANCEL_REDIRECT__ =  $cancel;
     }
     
     /**
@@ -84,8 +87,8 @@
     /**
      * Verbose alias for u().
      */
-    function make_url($url) {
-        return u($url);
+    function make_url($url, $args = null, $options = null) {
+        return u($url, $args, $options);
     }
 
     /**
@@ -123,10 +126,8 @@
      * @return bool Whether you should process a redirect.
      */
     function should_redirect() {
-        if (!isset($_SESSION['_sg_cancel_redirect'])) {
-            return true;
-        }
-        return $_SESSION['_sg_cancel_redirect'];
+        global $__SG_CANCEL_REDIRECT__;
+        return $__SG_CANCEL_REDIRECT__;
     }
 
 ?>
