@@ -1,5 +1,21 @@
 <?php
 
+    /**
+     * Alias for htmlspecialchars.
+     * @param mixed Individual strings to escape and concatenate.
+     * @return string All arguments, escaped and concatenated.
+     */
+    function h(/* as many as you want! */) {
+        
+        $args = func_get_args();
+        $result = '';
+        foreach($args as $arg) {
+            $result .= htmlspecialchars($arg);
+        }
+        
+        return $result;
+    }
+
     function end_in($end, $str) {
     
         $len = strlen($str);

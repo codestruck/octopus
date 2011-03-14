@@ -35,7 +35,20 @@
                 'failed when not needing to prepend'
             );
             
-        }        
+        }   
+        
+        function testH() {
+            
+            $this->assertEquals(
+                '&lt;b&gt;Foo&lt;/b&gt;',
+                h('<b>Foo</b>')
+            );
+            
+            $this->assertEquals(
+                '&lt;b&gt;Foo&lt;/b&gt;',
+                h('<b>', 'Foo', '</b>')
+            );
+        }
         
     }
 

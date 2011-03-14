@@ -5,6 +5,11 @@
      * app should include this file first.
      */
          
+    /**
+     * Spins up a new instance of the application.
+     *
+     * @param $useSiteConfig bool Whether or not to include the site-specific config file.
+     */
     function bootstrap($useSiteConfig = true) {
      
         global $URL_BASE;
@@ -43,10 +48,7 @@
         ////////////////////////////////////////////////////////////////////////
         
         if ($useSiteConfig) {
-            
-            $config = 
-            
-            require_once('../site/config.php');
+            require_once(SITE_DIR . 'config.php');
         }
         
         ////////////////////////////////////////////////////////////////////////
