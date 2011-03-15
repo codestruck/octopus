@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <phpunit backupGlobals="false"
+     colors="true"
      bootstrap="tests/TestConfig.php">
   <php>
     <const name="PHPUNIT_TESTSUITE" value="true"/>
