@@ -27,7 +27,28 @@
 
     $somePosts = $post->all();
     $livePosts = Post::findByActive(1);
+
+
     Post::all()->active();
+
+    Post::findAll()->whereActive()->and('title' => 'foo')->orderBy('title');
+    Post::all()->whereActive()->and('title' => 'foo')
+
+    Post::all()->whereNotActive()->and('title' => '*foo*');
+
+    Post::all()->where('title' => 'foo')->or('blah')->and();
+
+    Post::all()->where('title' => 'foo')->whereActive()
+
+    $posts = Post::all()->whereActive()->dumpSql()->and('title' => 'foo')->dumpSql();
+
+    /* Automatically detect regular expressions and change LIKE to RLIKE
+     */
+    Post::find('title', '/^[a-z]\d+/i');
+
+
+    // '/whatever/i'
+
 
     // 'get' = returns at most 1 post
     $post = Post::get(1);

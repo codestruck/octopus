@@ -1,0 +1,62 @@
+<?php
+
+require_once('PHPUnit/Extensions/Database/TestCase.php');
+
+/**
+ * Abstract base for writing a testcase that uses DB data and the SG_DB_*
+ * infrastructure.
+ */
+abstract class SG_DB_TestCase extends PHPUnit_Extensions_Database_TestCase {
+
+    private var $_xmlFile;
+
+    /**
+     * @param $xmlFile string XML file to use to load data. Should reside in the
+     * fixtures directory.
+     */
+    function __construct($xmlFile = null)
+    {
+        $this->_xmlFile = $xmlFile;
+
+        $db =& SG_DB::singleton();
+        $this->dropTables($db);
+        $this->createTables($db);
+    }
+
+    function __destruct()
+    {
+        // Sometimes it might be nice to be able to inspect the DB after a failed test?
+        // $this->dropTables(SG_DB::singleton());
+    }
+
+    /**
+     * Override to actually create the tables required by the testcase.
+     * @param $db Object SG_DB instance to use.
+     */
+    abstract protected function createTables(&$db) { }
+
+    /**
+     * Override to drop any tables you create in createTables()
+     * @param $db Object SG_DB instance to use.
+     */
+    abstract protected function dropTables(&$db) { }
+
+    protected function getConnection()
+    {
+        $db = SG_DB::singleton();
+        $pdo = $db->driver->handle;
+        return $this->createDefaultDBConnection($pdo, $db->driver->database);
+    }
+
+    /**
+     *
+     */
+    function getDataSet()
+    {
+        return $this->createFlatXMLDataSet(TEST_FIXTURE_DIR . $this->_xmlFile);
+    }
+
+}
+
+
+?>
