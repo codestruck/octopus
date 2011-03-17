@@ -3,11 +3,15 @@
   <minposts
     minpost_id="1"
     title="My Title"
+    slug="my-title"
     body="My Body."
+    active="1"
   />
   <minposts
     minpost_id="2"
     title="My Other Title"
+    slug="my-other-title"
     body="My Other Body."
+    active="0"
   />
 </dataset>

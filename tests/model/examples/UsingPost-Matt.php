@@ -52,11 +52,13 @@
     $totalLikes = Post::findByAuthor(42)->sum('facebook_likes');
     $total = Post::findByAuthor(42)->count();
 
+    $post = Post::get(1);
+    $post = Post::get(array('title LIKE' => 'Show'))->orderBy('display_order');
+
+    $post = Post::find(array('post_id' => 1));
+    $post->delete();
 
     $post = new Post(1); // = stub post, no SELECT queries executed
     $post->delete();
-
-    Post::delete(1); // equivalent to above
-
 
 ?>

@@ -7,7 +7,10 @@ SG::loadClass('SG_DB_Delete');
 
 class SG_Model {
 
+    private $data = array();
+
     public function __construct($id = null) {
+
         if ($id) {
             $item = $this->findOne($this->getPrimaryKey(), $id);
             $this->setData($item);
@@ -15,7 +18,11 @@ class SG_Model {
     }
 
     public function __get($var) {
+        return isset($this->data[$var]) ? $this->data[$var] : null;
+    }
 
+    public function __set($var, $value) {
+        $this->data[$var] = $value;
     }
 
     protected function setData($data) {
@@ -24,6 +31,7 @@ class SG_Model {
         }
     }
 
+    // find functions only here to support constructor
     public function findOne() {
         $results = call_user_func_array(array($this, 'find'), func_get_args());
         return array_shift($results);
@@ -49,7 +57,7 @@ class SG_Model {
 
         $s = new SG_DB_Select();
         $s->table($this->getTableName());
-        
+
         foreach ($args as $key => $value) {
             $s->where("$key = ?", $value);
         }
@@ -69,18 +77,50 @@ class SG_Model {
 
     public function save() {
 
-        $i = new SG_DB_Insert();
+        $pk = $this->getPrimaryKey();
+
+        if ($this->$pk !== null) {
+            $i = new SG_DB_Update();
+            $i->where($pk . ' = ?', $this->$pk);
+        } else {
+            $i = new SG_DB_Insert();
+        }
+
         $i->table($this->getTableName());
 
-        foreach ($this as $var => $value) {
-            // TODO: check for underscore variables?
-            $i->set($var, $value);
+        foreach (static::$fields as $field => $attributes) {
+            if (isset($this->data[$field])) {
+                $i->set($field, $this->data[$field]);
+            }
         }
 
         $i->execute();
-        $pk = $this->getPrimaryKey();
-        $this->$pk = $i->getId();
+        if ($this->$pk === null) {
+            $this->data[$pk] = $i->getId();
+        }
 
+        return true; // ?
+    }
+
+    public function delete() {
+
+        $pk = $this->getPrimaryKey();
+        $item_id = $this->$pk;
+        $table = $this->getTableName();
+
+        $d = new SG_DB_Delete();
+        $d->table($table);
+        $d->where($pk . ' = ?', $item_id);
+        $d->execute();
+
+        return true; // ?
+    }
+
+    public function validate() {
+    }
+
+    public function getErrors() {
+        return array();
     }
 
     public function getPrimaryKey() {
