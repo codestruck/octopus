@@ -7,9 +7,34 @@ SG::loadClass('SG_Model');
 
 db_error_reporting(DB_PRINT_ERRORS);
 
-class Post extends SG_Model {
-    public $title;
-    public $body;
+class Minpost extends SG_Model {
+    static $fields = array(
+        'title' => array(
+            'required' => true,
+        ),
+        'slug' => array(
+            'type' => 'slug', // implies hidden input
+            //'onCreate' => 'to_unique_slug',
+            //'onSave' => 'to_slug',
+            'onEmpty' => 'to_unique_slug',
+            //'' => 'dealwith'
+        ),
+        'body' => array(
+            'type' => 'html',
+            'sanitize' => 'mce_cleanup',
+        ),
+        'author' => array(
+            'type' => 'has_one'
+        ),
+        'active' => array(
+            'type' => 'toggle',
+        ),
+        'display_order' => array(
+            'type' => 'order',
+        ),
+        'created',
+        'updated',
+    );
 }
 
 /**
@@ -26,18 +51,24 @@ class ModelCrudLoadTest extends PHPUnit_Extensions_Database_TestCase
 
     function getDataSet()
     {
-        return $this->createFlatXMLDataSet(dirname(__FILE__) . '/model-data.xml');
+        return $this->createFlatXMLDataSet(TEST_FIXTURE_DIR . '/model/crud-data.xml');
     }
 
     function __construct()
     {
         $db =& SG_DB::singleton();
-        $db->query('DROP TABLE IF EXISTS posts');
+        $db->query('DROP TABLE IF EXISTS minposts');
 
-        $sql = "CREATE TABLE posts (
-                `post_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        $sql = "CREATE TABLE minposts (
+                `minpost_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 `title` varchar ( 255 ) NOT NULL,
-                `body` text NOT NULL
+                `slug` varchar ( 255 ) NOT NULL,
+                `body` text NOT NULL,
+                `author_id` INT( 10 ) NOT NULL,
+                `active` TINYINT NOT NULL,
+                `display_order` INT( 10 ) NOT NULL,
+                `created` DATETIME NOT NULL,
+                `updated` DATETIME NOT NULL
                 )
                 ";
 
@@ -48,74 +79,74 @@ class ModelCrudLoadTest extends PHPUnit_Extensions_Database_TestCase
     function __destruct()
     {
         $db =& SG_DB::singleton();
-        $db->query('DROP TABLE IF EXISTS posts');
+        $db->query('DROP TABLE IF EXISTS minposts');
     }
 
     function testTableName()
     {
-        $post = new Post();
-        $this->assertEquals('posts', $post->getTableName());
+        $post = new Minpost();
+        $this->assertEquals('minposts', $post->getTableName());
     }
 
     function testPrimaryKeyName()
     {
-        $post = new Post();
-        $this->assertEquals('post_id', $post->getPrimaryKey());
+        $post = new Minpost();
+        $this->assertEquals('minpost_id', $post->getPrimaryKey());
     }
 
     function testCreate()
     {
-        $post = new Post();
-        $post->title = 'Test Post';
-        $post->body = 'Contents of Post.';
+        $post = new Minpost();
+        $post->title = 'Test Minpost';
+        $post->body = 'Contents of Minpost.';
         $post->save();
-        $this->assertTrue($post->post_id > 0);
+        $this->assertTrue($post->minpost_id > 0);
     }
 
     function testFindByTitle()
     {
-        $post = new Post();
-        $thePosts = $post->find('title', 'My Title');
+        $post = new Minpost();
+        $theMinposts = $post->find('title', 'My Title');
 
-        $this->assertEquals(1, count($thePosts));
+        $this->assertEquals(1, count($theMinposts));
     }
 
     function testFind()
     {
-        $post = new Post();
-        $thePosts = $post->find('post_id', 1);
+        $post = new Minpost();
+        $theMinposts = $post->find('minpost_id', 1);
 
-        $this->assertEquals(1, count($thePosts));
-        $thePost = array_shift($thePosts);
+        $this->assertEquals(1, count($theMinposts));
+        $theMinpost = array_shift($theMinposts);
 
-        $this->assertEquals('My Title', $thePost->title);
-        $this->assertEquals('My Body.', $thePost->body);
+        $this->assertEquals('My Title', $theMinpost->title);
+        $this->assertEquals('My Body.', $theMinpost->body);
     }
 
     function testFindArray()
     {
-        $post = new Post();
-        $thePosts = $post->find(array('post_id' => 1));
+        $post = new Minpost();
+        $theMinposts = $post->find(array('minpost_id' => 1));
 
-        $this->assertEquals(1, count($thePosts));
-        $thePost = array_shift($thePosts);
+        $this->assertEquals(1, count($theMinposts));
+        $theMinpost = array_shift($theMinposts);
 
-        $this->assertEquals('My Title', $thePost->title);
-        $this->assertEquals('My Body.', $thePost->body);
+        $this->assertEquals('My Title', $theMinpost->title);
+        $this->assertEquals('My Body.', $theMinpost->body);
     }
 
     function testFindOne()
     {
-        $post = new Post();
-        $thePost = $post->findOne('post_id', 1);
+        $post = new Minpost();
+        $theMinpost = $post->findOne('minpost_id', 1);
 
-        $this->assertEquals('My Title', $thePost->title);
-        $this->assertEquals('My Body.', $thePost->body);
+        $this->assertEquals('My Title', $theMinpost->title);
+        $this->assertEquals('My Body.', $theMinpost->body);
     }
 
     function testFindConstructor()
     {
-        $post = new Post(1);
+        $post = new Minpost(1);
 
         $this->assertEquals('My Title', $post->title);
         $this->assertEquals('My Body.', $post->body);
