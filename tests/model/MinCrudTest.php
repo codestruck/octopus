@@ -23,11 +23,11 @@ class Minpost extends SG_Model {
             'type' => 'html',
             'sanitize' => 'mce_cleanup',
         ),
-        'author' => array(
-            'type' => 'has_one'
-        ),
+        //'author' => array(
+        //    'type' => 'has_one'
+        //),
         'active' => array(
-            'type' => 'toggle',
+            'type' => 'boolean',
         ),
         'display_order' => array(
             'type' => 'order',
@@ -103,6 +103,16 @@ class ModelMinCrudLoadTest extends PHPUnit_Extensions_Database_TestCase
         $this->assertTrue($post->minpost_id > 0);
     }
 
+    function testIsSaved()
+    {
+        $post = new Minpost();
+        $post->title = 'Test post';
+        $post->body = 'Contents of post.';
+        $this->assertFalse($post->isSaved());
+        $post->save();
+        $this->assertTrue($post->isSaved());
+    }
+
     function testDelete()
     {
         $s = new SG_DB_Select();
@@ -156,7 +166,7 @@ class ModelMinCrudLoadTest extends PHPUnit_Extensions_Database_TestCase
         $created = strtotime($post->created);
 
         $this->assertTrue($created > $fiveminsago);
-        $this->assertTrue($created < $now);
+        $this->assertTrue($created <= $now);
 
     }
 
