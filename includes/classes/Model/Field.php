@@ -35,11 +35,17 @@ class SG_Model_Field {
         return $obj;
     }
 
-    function getValue($model) {
+    function accessValue($model) {
+        $value = isset($this->data) ? $this->data : '';
+        return $value;
+    }
+
+    function saveValue($model) {
         $value = isset($this->data) ? $this->data : '';
 
         if (!$value) {
             $value = $this->onEmpty($model);
+            $this->data = $value;
         }
 
         return $value;
@@ -53,15 +59,33 @@ class SG_Model_Field {
         return $this->field;
     }
 
+    function getOption($option, $default = null) {
+        if (isset($this->options[$option])) {
+            return $this->options[$option];
+        } else {
+            return $default;
+        }
+    }
+
+    function validate($model) {
+
+        if ($this->getOption('required')) {
+            $value = $this->accessValue($model);
+            if (!$value) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
 
     // handlers
     function onEmpty($model) {
 
-        if (isset($this->options['onEmpty'])) {
-            $fnc = $this->options['onEmpty'];
-            if (function_exists($fnc)) {
-                return $fnc($model);
-            }
+        $fnc = $this->getOption('onEmpty');
+        if ($fnc && function_exists($fnc)) {
+            return $fnc($model, $this);
         }
 
         return '';

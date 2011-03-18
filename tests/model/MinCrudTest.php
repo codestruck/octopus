@@ -140,7 +140,7 @@ class ModelMinCrudLoadTest extends PHPUnit_Extensions_Database_TestCase
         $post_id = $post->minpost_id;
         $count = table_count('minposts');
 
-        $post->title = 'Test post';
+        $post->title = 'Test Update';
         $post->body = 'Contents of post.';
         $post->save();
 
@@ -157,7 +157,7 @@ class ModelMinCrudLoadTest extends PHPUnit_Extensions_Database_TestCase
     function testCreateTimestamps()
     {
         $post = new Minpost();
-        $post->title = 'Test post';
+        $post->title = 'Create Timestamps';
         $post->body = 'Contents of post.';
         $post->save();
 
@@ -177,7 +177,6 @@ class ModelMinCrudLoadTest extends PHPUnit_Extensions_Database_TestCase
         $post->body = 'Contents of post.';
         $post->save();
         $this->assertEquals('test-post', $post->slug);
-
     }
 
     function testSlugUniqueness()
@@ -192,7 +191,7 @@ class ModelMinCrudLoadTest extends PHPUnit_Extensions_Database_TestCase
         $post->title = 'Duplicate Title';
         $post->body = 'Contents of post.';
         $post->save();
-        $this->assertEquals('duplicate-title2', $post->slug);
+        $this->assertEquals('duplicate-title-2', $post->slug);
     }
 
     function testSlugNotModified()
@@ -255,12 +254,13 @@ class ModelMinCrudLoadTest extends PHPUnit_Extensions_Database_TestCase
         $post->body = 'Just a body';
 
         $this->assertFalse($post->save());
-        $errors = $this->getErrors();
-        $error = array_pop($errors);
+
+        $errors = $post->getErrors();
         $this->assertEquals(1, count($errors));
 
+        $error = array_pop($errors);
         $this->assertEquals('title', $error['field']);
-        $this->assertEquals('Missing Title', $error['message'], 'What should the message be?');
+        $this->assertEquals('is Required', $error['message']);
     }
 
 }

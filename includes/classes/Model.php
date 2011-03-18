@@ -27,7 +27,7 @@ class SG_Model {
 
     public function __get($var) {
         if (isset($this->fieldHandles[$var])) {
-            return $this->fieldHandles[$var]->getValue($this);
+            return $this->fieldHandles[$var]->accessValue($this);
         } else {
             return null;
         }
@@ -93,6 +93,11 @@ class SG_Model {
 
     public function save() {
 
+        if (!$this->validate()) {
+            //errors?
+            return false;
+        }
+
         $pk = $this->getPrimaryKey();
 
         if ($this->$pk !== null) {
@@ -105,7 +110,7 @@ class SG_Model {
         $i->table($this->getTableName());
 
         foreach ($this->fieldHandles as $obj) {
-            $i->set($obj->getFieldName(), $obj->getValue($this));
+            $i->set($obj->getFieldName(), $obj->saveValue($this));
         }
 
         $i->execute();
@@ -113,7 +118,7 @@ class SG_Model {
             $this->$pk = $i->getId();
         }
 
-        return true; // ?
+        return true;
     }
 
     public function delete() {
@@ -131,10 +136,23 @@ class SG_Model {
     }
 
     public function validate() {
+
+        $pass = true;
+        $this->errors = array();
+
+        foreach ($this->fieldHandles as $obj) {
+            if (!$obj->validate($this)) {
+                $this->errors[] = array('field' => $obj->getFieldname(), 'message' => 'is Required');
+                $pass = false;
+            }
+        }
+
+        return $pass;
+
     }
 
     public function getErrors() {
-        return array();
+        return $this->errors;
     }
 
     public function isSaved() {
