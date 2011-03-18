@@ -1,6 +1,6 @@
 <?php
 
-require_once(TEST_DIR . 'SG_DB_TestCase.php');
+require_once(dirname(dirname(__FILE__)) . '/SG_DB_TestCase.php');
 
 class FindAuthor extends SG_Model {
 
@@ -40,12 +40,12 @@ class FindPost extends SG_Model {
 }
 
 /**
- * @group core
+ * @group find
  */
 class FindTest extends SG_DB_TestCase {
 
     function __construct() {
-        parent::__construct('find-data.xml');
+        parent::__construct('model/find-data.xml');
     }
 
     function createTables(&$db) {
@@ -55,11 +55,17 @@ class FindTest extends SG_DB_TestCase {
                 `title` varchar ( 255 ) NOT NULL,
                 `slug` varchar ( 255 ) NOT NULL,
                 `body` text NOT NULL,
-                `author_id` INT( 10 ) NOT NULL,
-                `active` TINYINT NOT NULL,
-                `display_order` INT( 10 ) NOT NULL,
+                `author_id` INT( 10 ) NULL,
+                `active` TINYINT NOT NULL DEFAULT 1,
+                `display_order` INT( 10 ) NOT NULL DEFAULT 0,
                 `created` DATETIME NOT NULL,
                 `updated` DATETIME NOT NULL
+                );
+
+                CREATE TABLE findauthors (
+                `findauthor_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                `name` varchar ( 255 ) NOT NULL,
+                `active` TINYINT NOT NULL DEFAULT 1
                 )
                 ";
 
@@ -68,7 +74,7 @@ class FindTest extends SG_DB_TestCase {
     }
 
     function dropTables(&$db) {
-        $db->execute("DROP TABLE IF EXISTS findposts");
+        $db->query("DROP TABLE IF EXISTS findposts");
     }
 
 
@@ -111,7 +117,7 @@ class FindTest extends SG_DB_TestCase {
 
     function testGet() {
 
-        $count = $this->getNumberOfTestPosts();
+        $count = $this->numberOfTestPosts();
 
         for($i = 1; $i <= $count; $i++) {
             $post = FindPost::get($i);
@@ -126,7 +132,7 @@ class FindTest extends SG_DB_TestCase {
 
         $test = 'Find w/o array, mixed case, no explicit LIKE';
         $posts = FindPost::find('title', 'Foo');
-        $this->assertCountEquals(2, $posts, $test)
+        $this->assertCountEquals(2, $posts, $test);
         $this->assertTitlesMatch($fooExpr, $posts, $test);
 
         $test = 'Find w/o array, mixed case, explicit LIKE';
@@ -203,7 +209,7 @@ class FindTest extends SG_DB_TestCase {
 
         $post = FindPost::getByAuthor("* Hinz");
         $this->assertTrueish($post, "getByAuthor did not return anything");
-        $this->assertEquals("Matt Hinz" $post->author->name, "wrong author on post returned by getByAuthor");
+        $this->assertEquals("Matt Hinz", $post->author->name, "wrong author on post returned by getByAuthor");
     }
 
     function testWhereActiveMagicMethods() {
@@ -232,7 +238,7 @@ class FindTest extends SG_DB_TestCase {
             $posts
         );
 
-        $filteredPosts = $posts->where(array('title' => 'test'))
+        $filteredPosts = $posts->where(array('title' => 'test'));
         $this->assertNotSame($posts, $filteredPosts, 'where() should return a new result set instance');
         $posts = $filteredPosts;
 
@@ -247,7 +253,7 @@ class FindTest extends SG_DB_TestCase {
             $posts
         );
 
-        $posts = $posts->and('created <' '2008-01-01');
+        $posts = $posts->and('created <', '2008-01-01');
         $this->assertSqlEquals(
             "SELECT * FROM `findposts` WHERE (`title` LIKE 'test') OR (`body` LIKE '%foo%') AND (`created` < '2008-01-01')",
             $post
@@ -283,7 +289,7 @@ class FindTest extends SG_DB_TestCase {
         $this->assertSqlEquals("SELECT * FROM `findposts` ORDER BY `title` ASC, `created` ASC, `updated` DESC", $posts, $test);
 
         $test = 'multi-item array, varying direction markers';
-        $posts = $allPosts->orderBy('title', 'created' => 'asc', 'updated' => 'desc');
+        $posts = $allPosts->orderBy(array('title', 'created' => 'asc', 'updated' => 'desc'));
         $this->assertSqlEquals("SELECT * FROM `findposts` ORDER BY `title` ASC, `created` ASC, `updated` DESC", $posts, $test);
     }
 
@@ -296,7 +302,7 @@ class FindTest extends SG_DB_TestCase {
 
         foreach($flags as $flag => $operator) {
 
-            $posts = FindPost::all()->where('title' => '/[a-z]\d+\s*\(in parens\)/' . $flag);
+            $posts = FindPost::all()->where(array('title' => '/[a-z]\d+\s*\(in parens\)/' . $flag));
             $this->assertSqlEquals(
                 "SELECT * FROM `findposts` WHERE `title` $operator '[a-z]\\d+\\s*[(]in parens[)]'",
                 $posts
@@ -313,7 +319,7 @@ class FindTest extends SG_DB_TestCase {
             array('created <' => '2008-01-01', 'OR', 'updated >' => '2009-01-01'),
             'OR',
             array(
-                array('title' => 'bar', 'OR' 'title' => 'baz')
+                array('title' => 'bar', 'OR', 'title' => 'baz')
             )
 
         ));
@@ -353,7 +359,7 @@ class FindTest extends SG_DB_TestCase {
         $operators = array('=', '!=', 'LIKE', 'NOT LIKE', '<', '<=', '>', '>=');
         foreach($operators as $op) {
 
-            $posts = FindPost::all()->where("title $op" => 'foo');
+            $posts = FindPost::all()->where(array("title $op" => 'foo'));
             $this->assertSqlEquals(
                 "SELECT * FROM `findposts` WHERE (`title` $op 'foo')",
                 $posts,
@@ -366,7 +372,7 @@ class FindTest extends SG_DB_TestCase {
 
     function testNotCriteria() {
 
-        $posts = FindPost::all()->where('title NOT' => 'foo');
+        $posts = FindPost::all()->where(array('title NOT' => 'foo'));
         $this->assertSqlEquals("SELECT * FROM `findposts` WHERE (NOT (`title` LIKE 'foo'))", $posts, 'NOT');
 
         $posts = FindPost::all()->where(array('display_order NOT' => 42));
@@ -376,7 +382,7 @@ class FindTest extends SG_DB_TestCase {
     function testInCriteria() {
 
         $ids = array(1,2,3,4);
-        $idSql = '(' . implode(',' $ids) . ')';
+        $idSql = '(' . implode(',', $ids) . ')';
 
         $posts = FindPost::all()->where('findpost_id', $ids);
         $this->assertSqlEquals("SELECT * FROM `findposts` WHERE (`findpost_id` IN $idSql)", $posts, 'implicit IN');

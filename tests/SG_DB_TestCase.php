@@ -8,13 +8,13 @@ require_once('PHPUnit/Extensions/Database/TestCase.php');
  */
 abstract class SG_DB_TestCase extends PHPUnit_Extensions_Database_TestCase {
 
-    private var $_xmlFile;
+    private $_xmlFile;
 
     /**
      * @param $xmlFile string XML file to use to load data. Should reside in the
      * fixtures directory.
      */
-    function __construct($xmlFile = null)
+    public function __construct($xmlFile = null)
     {
         $this->_xmlFile = $xmlFile;
 
@@ -23,23 +23,23 @@ abstract class SG_DB_TestCase extends PHPUnit_Extensions_Database_TestCase {
         $this->createTables($db);
     }
 
-    function __destruct()
+    public function __destruct()
     {
         // Sometimes it might be nice to be able to inspect the DB after a failed test?
-        // $this->dropTables(SG_DB::singleton());
+        $this->dropTables(SG_DB::singleton());
     }
 
     /**
      * Override to actually create the tables required by the testcase.
      * @param $db Object SG_DB instance to use.
      */
-    abstract protected function createTables(&$db) { }
+    abstract protected function createTables(&$db);
 
     /**
      * Override to drop any tables you create in createTables()
      * @param $db Object SG_DB instance to use.
      */
-    abstract protected function dropTables(&$db) { }
+    abstract protected function dropTables(&$db);
 
     protected function getConnection()
     {
@@ -51,12 +51,11 @@ abstract class SG_DB_TestCase extends PHPUnit_Extensions_Database_TestCase {
     /**
      *
      */
-    function getDataSet()
+    public function getDataSet()
     {
         return $this->createFlatXMLDataSet(TEST_FIXTURE_DIR . $this->_xmlFile);
     }
 
 }
-
 
 ?>

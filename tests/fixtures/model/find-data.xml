@@ -3,28 +3,42 @@
 
 <findauthors
     findauthor_id="1"
-    name="Matt Hinz" />
+    name="Matt Hinz"
+    active="1"
+    />
 
 <findposts
     findpost_id="1"
     title="Title for Post 1"
     slug="slug-for-post-1"
     body="Body for Post 1"
+    display_order="0"
+    active="1"
   />
   <findposts
     findpost_id="2"
     title="Title for Post 2"
     slug="slug-for-post-2"
     body="Body for Post 2"
+    display_order="0"
+    active="1"
   />
   <findposts
     findpost_id="5"
     title="Post 5 - Case Test - FOO"
-    slug="post-5-case-test-foo" />
+    slug="post-5-case-test-foo"
+    body=""
+    display_order="0"
+    active="1"
+  />
   <findposts
     findpost_id="6"
     title="Post 6 - Case Test - foo"
-    slug="post-5-case-test-foo-2" />
+    slug="post-5-case-test-foo-2"
+    body=""
+    display_order="0"
+    active="1"
+  />
 
   <findposts
     findpost_id="7"
@@ -34,6 +48,8 @@
     author_id="1"
     display_order="42"
     active="0"
+  />
+
   <findposts
     findpost_id="8"
     title="Second Magic Method Test Post"
@@ -41,7 +57,8 @@
     body="Second Magic Method Test Post Body"
     author_id="1"
     display_order="100"
-    active="1" />
+    active="1"
+  />
 
 
 </dataset>
