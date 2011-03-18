@@ -133,7 +133,7 @@
                 return false;
             }
 
-            $path = (is_array($path) ? implode('/', $path) : $path;
+            $path = (is_array($path) ? implode('/', $path) : $path);
 
             if (isset($this->_findCache[$path])) {
                 $item = $this->_findCache[$path];
