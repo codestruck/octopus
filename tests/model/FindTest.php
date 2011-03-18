@@ -405,10 +405,12 @@ class FindTest extends SG_DB_TestCase {
     }
 
     function assertTrueish($condition, $message = null) {
-        $this->assertTrue($expected == true, $message);
+        $this->assertTrue($condition == true, $message);
     }
 
     function assertSqlEquals($expected, $actual, $extraMessage = null) {
+
+        $this->assertTrueish($actual);
 
         if (!is_string($actual)) {
             $actual = $actual->getSql();

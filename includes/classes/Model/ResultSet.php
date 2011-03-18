@@ -5,6 +5,7 @@
  */
 class SG_Model_ResultSet implements Iterator {
 
+    private $_parent;
     private $_modelClass;
     private $_criteria;
     private $_orderBy;
@@ -24,18 +25,25 @@ class SG_Model_ResultSet implements Iterator {
     /**
      * Creates a new ResultSet for the given model class.
      */
-    public function __construct($modelClass, $criteria = null, $orderBy = null) {
+    public function __construct($parent, $criteria = null, $orderBy = null) {
 
-        $this->_modelClass = $modelClass;
+        if (is_string($parent)) {
+            $this->_parent = null;
+            $this->_modelClass = $parent;
+        } else {
+            $this->_parent = $parent;
+            $this->_modelClass = $parent->_modelClass;
+        }
+
         $this->_criteria = $criteria ? $criteria : array();
-        $this->_orderBy = $orderBy ? $orderBy : array()
+        $this->_orderBy = $orderBy ? $orderBy : array();
 
     }
 
     /**
      * @return Object A new ResultSet with extra constraints added via AND.
      */
-    public function &and(/* Variable */) {
+    public function &and_(/* Variable */) {
         $args = func_get_args();
         return $this->_restrict('AND', $args);
     }
@@ -47,9 +55,32 @@ class SG_Model_ResultSet implements Iterator {
     }
 
     /**
+     * Sends the SQL for the current query to dump_r().
+     * @return $this to continue the chain.
+     */
+    public function &dumpSql() {
+        dump_r($this->getSql());
+        return $this;
+    }
+
+    /**
+     * @return Mixed the first result matched, or false if none were matched.
+     */
+    public function &first() {
+
+    }
+
+    /**
+     * @return string The SQL for the current query.
+     */
+    public function getSql() {
+        return 'oh noes!';
+    }
+
+    /**
      * @return Object A new ResultSet with extra constraints added via OR.
      */
-    public function &or(/* Variable */) {
+    public function &or_(/* Variable */) {
         $args = func_get_args();
         return $this->_restrict('OR', $args);
     }
@@ -66,15 +97,21 @@ class SG_Model_ResultSet implements Iterator {
             $this->_processOrderByArg($arg, $newOrderBy);
         }
 
+        if (empty($newOrderBy) && empty($this->_orderBy)) {
+            // Don't create new objects when we don't have to
+            return $this;
+        }
+
         return new SG_Model_ResultSet($this->_modelClass, $this->_criteria, $newOrderBy);
     }
 
     /**
-     * Synonym for and().
+     * Adds additional criteria to the resultset, filtering whatever is
+     * presently in there.
      */
     public function &where(/* Variable */) {
         $args = func_get_args();
-        $rs = call_user_func_array(array($this, 'and'), $args);
+        $rs = $this->_restrict('AND', $args);
         return $rs;
     }
 
@@ -143,8 +180,18 @@ class SG_Model_ResultSet implements Iterator {
      */
     private function &_restrict($operator, $args) {
 
+        $criteria = array();
+        while(count($args)) {
 
+            $c = array_shift($args);
 
+        }
+
+        if (empty($criteria)) {
+            return $this;
+        }
+
+        return new SG_
 
     }
 
@@ -189,6 +236,35 @@ class SG_Model_ResultSet implements Iterator {
 
 
     // }}}
+
+    /**
+     * Takes a variable number of arguments and turns them into a standardized
+     * criteria array.
+     */
+    public static function &makeCriteriaArray(/* variable */) {
+
+        $args = func_get_args();
+        $lastField = null;
+        $criteria = array();
+
+        foreach($args as $arg) {
+
+            if (is_array($arg)) {
+                // array('field' => 'value')
+                $criteria[] = $arg;
+                $lastField = null;
+            } else if (is_string($arg) && !$lastField) {
+                $lastField = $arg;
+            } else if ($lastField) {
+                // handle 'field', 'value'
+                $criteria[$lastField] = $arg;
+            }
+
+        }
+
+
+        return $criteria;
+    }
 
 }
 

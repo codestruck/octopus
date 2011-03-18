@@ -6,8 +6,19 @@ SG::loadClass('SG_DB_Select');
 SG::loadClass('SG_DB_Delete');
 
 SG::loadClass('SG_Model_Field');
+SG::loadClass('SG_Model_ResultSet');
 
 class SG_Model {
+
+    // Map of magic method name patters to handler funcs
+    private static $_magicMethods = array(
+
+        '/^getBy(?P<field>[A-Z][a-zA-Z0-9_]*)$/' => '_getBy',
+
+        '/^findBy(?P<field>[A-Z][a-zA-Z0-9_]*)$/' => '_findBy'
+
+    );
+
 
     private $fieldHandles = array();
 
@@ -53,43 +64,6 @@ class SG_Model {
         return array_shift($results);
     }
 
-    public function find() {
-        $function_args = func_get_args();
-        $num = func_num_args();
-
-        if ($num > 1) {
-            // multiple args (hopefully even number)
-            $args = array();
-            for ($i = 0; $i < $num; $i += 2) {
-                $key = $function_args[$i];
-                $value = $function_args[$i + 1];
-                $args[$key] = $value;
-            }
-
-        } else {
-            // array of arguments
-            $args = $function_args[0];
-        }
-
-        $s = new SG_DB_Select();
-        $s->table($this->getTableName());
-
-        foreach ($args as $key => $value) {
-            $s->where("$key = ?", $value);
-        }
-
-        $query = $s->query();
-        $results = array();
-
-        while ($result = $query->fetchRow()) {
-            $item = new $this;
-            $item->setData($result);
-            $results[] = $item;
-        }
-
-        return $results;
-
-    }
 
     public function save() {
 
@@ -167,6 +141,116 @@ class SG_Model {
         // needs work...
         return $str . 's';
     }
+
+    /**
+     * @return Object An SG_Model_ResultSet containing all records.
+     */
+    public static function &all() {
+        return static::find();
+    }
+
+    /**
+     * @return Object an SG_Model_ResultSet
+     */
+    public static function &find(/* Variable */) {
+
+        $args = func_get_args();
+        $criteria = call_user_func_array(array('SG_Model_ResultSet', 'makeCriteriaArray'), $args);
+
+        $result = new SG_Model_ResultSet($criteria);
+        return $result;
+    }
+
+    /**
+     * @param $idOrName mixed Either a record id or the value of the display field (for LIKE comparison)
+     * @param $orderBy mixed Order stuff
+     * @return Mixed The first matching record found, or false if nothing is found.
+     */
+    public static function &get($idOrName, $orderBy = null) {
+
+        if (is_numeric($idOrName)) {
+
+            $keyField = static::getPrimaryKey();
+
+            $result = static::find(array($keyField => $idOrName));
+            if ($orderBy) $result = $result->orderBy($orderBy);
+
+            $result = $result->first();
+
+            if ($result) return $result;
+
+        }
+
+        $displayField = static::getDisplayField();
+
+        $result = static::find(array($displayField => $idOrName));
+        if ($orderBy) $result = $result->orderBy($orderBy);
+
+        return $result->first();
+    }
+
+
+    /**
+     * Handles findBy*() calls.
+     *
+     * @param $matches Array Matches from the regex run against the requested function name.
+     * @param $args Array Function args.
+     * @return Object An SG_Model_ResultSet containing all found things
+     *
+     * Signature for findBy*() is:
+     *
+     *  function findBy*($value, $orderBy = null)
+     *
+     */
+     private static function _findBy($matches, $args) {
+
+         $field = $matches['field'];
+         $value = $args[0];
+         $orderBy = isset($args[1]) ? $args[1] : null;
+
+         $result = static::find(array($field => $value));
+         if ($orderBy) $result = $result->orderBy($orderBy);
+         return $result;
+
+     }
+
+    /**
+     * Handles getBy*() calls.
+     *
+     * @param $matches Array Matches from the regex run against the requested function name.
+     * @param $args Array Arguments passed to the function.
+     * @return Object An SG_Model instance if one is found, otherwise false.
+     *
+     * getBy*() has the following signature:
+     *
+     *  function getBy*($idOrName, $orderBy = null)
+     */
+    private static function _getBy($matches, $args) {
+
+        $field = $matches['field'];
+        $value = $args[0];
+        $orderBy = isset($args[1]) ? $args[1] : null;
+
+        $result = static::find($field, $value);
+        if ($orderBy) $result = $result->orderBy($orderBy);
+
+        return $result->first();
+    }
+
+
+    // NB: This requires PHP 5.3.0
+    public static function __callStatic($name, $args) {
+
+        foreach(self::$_magicMethods as $pattern => $handler) {
+
+            if (preg_match($pattern, $name, $m)) {
+                return static::$handler($m, $args);
+            }
+
+        }
+
+    }
+
 
 }
 
