@@ -5,11 +5,19 @@ SG::loadClass('SG_DB_Update');
 SG::loadClass('SG_DB_Select');
 SG::loadClass('SG_DB_Delete');
 
+SG::loadClass('SG_Model_Field');
+
 class SG_Model {
 
-    private $data = array();
+    private $fieldHandles = array();
 
     public function __construct($id = null) {
+
+        foreach (static::$fields as $field => $options) {
+            $obj = SG_Model_Field::getField($field, $options);
+            $field = $obj->getFieldName();
+            $this->fieldHandles[$field] = $obj;
+        }
 
         if ($id) {
             $item = $this->findOne($this->getPrimaryKey(), $id);
@@ -18,11 +26,19 @@ class SG_Model {
     }
 
     public function __get($var) {
-        return isset($this->data[$var]) ? $this->data[$var] : null;
+        if (isset($this->fieldHandles[$var])) {
+            return $this->fieldHandles[$var]->getValue($this);
+        } else {
+            return null;
+        }
     }
 
     public function __set($var, $value) {
-        $this->data[$var] = $value;
+        if (isset($this->fieldHandles[$var])) {
+            $this->fieldHandles[$var]->setValue($this, $value);
+        } else {
+            $this->$var = $value;
+        }
     }
 
     protected function setData($data) {
@@ -88,15 +104,13 @@ class SG_Model {
 
         $i->table($this->getTableName());
 
-        foreach (static::$fields as $field => $attributes) {
-            if (isset($this->data[$field])) {
-                $i->set($field, $this->data[$field]);
-            }
+        foreach ($this->fieldHandles as $obj) {
+            $i->set($obj->getFieldName(), $obj->getValue($this));
         }
 
         $i->execute();
         if ($this->$pk === null) {
-            $this->data[$pk] = $i->getId();
+            $this->$pk = $i->getId();
         }
 
         return true; // ?
@@ -121,6 +135,20 @@ class SG_Model {
 
     public function getErrors() {
         return array();
+    }
+
+    public function isSaved() {
+        $pk = $this->getPrimaryKey();
+        return ($this->$pk !== null);
+    }
+
+    public function getDisplayField() {
+        return 'title';
+    }
+
+    public function getDisplayValue() {
+        $field = $this->getDisplayField();
+        return $this->$field;
     }
 
     public function getPrimaryKey() {
