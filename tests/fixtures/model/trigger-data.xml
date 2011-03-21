@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<dataset>
+  <triggers
+    trigger_id="1"
+    title="Test 1"
+    a="lorum"
+    b="lorum"
+    c="lorum"
+    d="lorum"
+  />
+</dataset>

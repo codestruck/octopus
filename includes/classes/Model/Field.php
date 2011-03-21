@@ -43,10 +43,18 @@ class SG_Model_Field {
     function saveValue($model) {
         $value = isset($this->data) ? $this->data : '';
 
-        if (!$value) {
-            $value = $this->onEmpty($model);
-            $this->data = $value;
+        $pk = $model->getPrimaryKey();
+        if ($model->$pk === null) {
+            $value = $this->handleTrigger('onCreate', $model);
+        } else {
+            $value = $this->handleTrigger('onUpdate', $model);
         }
+
+        if (!$value) {
+            $value = $this->handleTrigger('onEmpty', $model);
+        }
+
+        $value = $this->handleTrigger('onSave', $model);
 
         return $value;
     }
@@ -79,6 +87,24 @@ class SG_Model_Field {
         return true;
     }
 
+    protected function handleTrigger($type, $model) {
+
+        $fnc = $this->getOption($type);
+        if ($fnc && function_exists($fnc)) {
+            $newValue = $fnc($model, $this);
+            $this->data = $newValue;
+            return $newValue;
+        }
+
+        if ($fnc && method_exists($model, $fnc)) {
+            $newValue = $model->$fnc($model, $this);
+            $this->data = $newValue;
+            return $newValue;
+        }
+
+        return $this->accessValue($model);
+
+    }
 
     // handlers
     function onEmpty($model) {

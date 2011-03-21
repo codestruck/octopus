@@ -8,7 +8,7 @@
 
     $hostname = trim(`hostname`);
     define('TEST_FIXTURE_DIR', dirname(__FILE__) . '/fixtures/');
-
+    require_once('SG_DB_TestCase.php');
 
     // put testing helpers somewhere
     function table_count($table) {

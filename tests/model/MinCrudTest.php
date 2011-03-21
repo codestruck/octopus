@@ -1,7 +1,5 @@
 <?php
 
-require_once('PHPUnit/Extensions/Database/TestCase.php');
-
 SG::loadClass('SG_DB');
 SG::loadClass('SG_Model');
 
@@ -40,25 +38,16 @@ class Minpost extends SG_Model {
 /**
  * @group Model
  */
-class ModelMinCrudLoadTest extends PHPUnit_Extensions_Database_TestCase
+class ModelMinCrudLoadTest extends SG_DB_TestCase
 {
-    protected function getConnection()
-    {
-        $db = SG_DB::singleton();
-        $pdo = $db->driver->handle;
-        return $this->createDefaultDBConnection($pdo, $db->driver->database);
-    }
-
-    function getDataSet()
-    {
-        return $this->createFlatXMLDataSet(TEST_FIXTURE_DIR . '/model/crud-data.xml');
-    }
 
     function __construct()
     {
-        $db =& SG_DB::singleton();
-        $db->query('DROP TABLE IF EXISTS minposts');
+        parent::__construct('model/crud-data.xml');
+    }
 
+    function createTables(&$db)
+    {
         $sql = "CREATE TABLE minposts (
                 `minpost_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 `title` varchar ( 255 ) NOT NULL,
@@ -73,13 +62,12 @@ class ModelMinCrudLoadTest extends PHPUnit_Extensions_Database_TestCase
                 ";
 
         $db->query($sql);
-
     }
 
-    function __destruct()
+    function dropTables(&$db)
     {
         $db =& SG_DB::singleton();
-        //$db->query('DROP TABLE IF EXISTS minposts');
+        $db->query('DROP TABLE IF EXISTS minposts');
     }
 
     function testTableName()
@@ -146,6 +134,8 @@ class ModelMinCrudLoadTest extends PHPUnit_Extensions_Database_TestCase
 
         $this->assertEquals($count, table_count('minposts'));
         $this->assertEquals($post_id, $post->minpost_id);
+        $this->assertEquals('Test Update', $post->title);
+        $this->assertEquals('Contents of post.', $post->body);
     }
 
     function testAttribute()
