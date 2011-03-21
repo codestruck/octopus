@@ -43,6 +43,26 @@
     }
 
     /**
+     * Examines a string and tells you if it looks like a regular expression.
+     * For our purposes, regexes look like this:
+     *
+     * /whatever/i
+     *
+     * @param $s String You know, the one to check whether it's a regex
+     * @param $flags String Will be set to the flags for the regex.
+     *
+     */
+    function is_regex($s, &$flags = null) {
+
+        if (preg_match('/^([^a-z0-9\s])(.+)\1(i)$/i', $s, $m)) {
+            $flags = strtolower($m[3]);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Turns URLs in $s into hyperlinks.
      */
     function linkify($s) {

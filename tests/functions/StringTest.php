@@ -50,6 +50,13 @@
             );
         }
 
+        function testIsRegex() {
+
+            $this->assertTrue(is_regex('/whatever/i', $flags));
+            $this->assertFalse(is_regex('/whatever', $flags));
+
+        }
+
         function testNormalizeSql() {
 
             $this->assertEquals(
