@@ -49,14 +49,14 @@
      * /whatever/i
      *
      * @param $s String You know, the one to check whether it's a regex
-     * @param $flags String Will be set to the flags for the regex.
-     *
+     * @return Mixed if $s is a valid regex, returns an array with keys 'pattern' and 'flag'.
+     * Otherwise returns false.
      */
-    function is_regex($s, &$flags = null) {
+    function parse_regex($s) {
 
         if (preg_match('/^([^a-z0-9\s])(.+)\1(i)$/i', $s, $m)) {
-            $flags = strtolower($m[3]);
-            return true;
+            $result = array('pattern' => $m[2], 'flags' => strtolower($m[3]));
+            return $result;
         }
 
         return false;

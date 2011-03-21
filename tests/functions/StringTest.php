@@ -50,9 +50,12 @@
             );
         }
 
-        function testIsRegex() {
+        function testParseRegex() {
 
-            $this->assertTrue(is_regex('/whatever/i', $flags));
+            $r = parse_regex('/whatever/i');
+            $this->assertEquals('whatever', $r['pattern']);
+            $this->assertEquals('i', $r['flags']);
+
             $this->assertFalse(is_regex('/whatever', $flags));
 
         }
