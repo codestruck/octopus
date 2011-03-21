@@ -154,7 +154,7 @@ class ModelMinCrudLoadTest extends PHPUnit_Extensions_Database_TestCase
         $this->assertEquals(1, $post->active);
     }
 
-    function testCreateTimestamps()
+    function testCreateTimestampsOnCreate()
     {
         $post = new Minpost();
         $post->title = 'Create Timestamps';
@@ -167,7 +167,54 @@ class ModelMinCrudLoadTest extends PHPUnit_Extensions_Database_TestCase
 
         $this->assertTrue($created > $fiveminsago);
         $this->assertTrue($created <= $now);
+    }
 
+    function testCreateTimestampsOnUpdate()
+    {
+        $post = new Minpost(1);
+
+        $this->assertEquals('2000-03-20 04:20:11', $post->created);
+
+        $post->title = 'Create Timestamps';
+        $post->body = 'Contents of post.';
+        $post->save();
+
+        $savedPost = new Minpost(1);
+        $this->assertEquals('2000-03-20 04:20:11', $savedPost->created);
+
+    }
+
+    function testUpdateTimestampsOnCreate()
+    {
+        $post = new Minpost();
+        $post->title = 'Create Timestamps';
+        $post->body = 'Contents of post.';
+        $post->save();
+
+        $now = time();
+        $fiveminsago = $now - 300;
+        $updated = strtotime($post->updated);
+
+        $this->assertTrue($updated > $fiveminsago);
+        $this->assertTrue($updated <= $now);
+    }
+
+    function testUpdateTimestampsOnUpdate()
+    {
+        $post = new Minpost(1);
+
+        $this->assertEquals('2001-03-20 04:20:11', $post->updated);
+
+        $post->title = 'Create Timestamps';
+        $post->body = 'Contents of post.';
+        $post->save();
+
+        $now = time();
+        $fiveminsago = $now - 300;
+        $created = strtotime($post->updated);
+
+        $this->assertTrue($created > $fiveminsago);
+        $this->assertTrue($created <= $now);
     }
 
     function testSlugCreation()
@@ -219,7 +266,7 @@ class ModelMinCrudLoadTest extends PHPUnit_Extensions_Database_TestCase
         $this->assertFalse($post->validate());
     }
 
-       function testValidateSave()
+    function testValidateSave()
     {
         $count = table_count('minposts');
 

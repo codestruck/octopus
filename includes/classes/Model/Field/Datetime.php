@@ -17,7 +17,15 @@ class SG_Model_Field_Datetime extends SG_Model_Field {
             $this->data = date($this->format, time());
         }
 
+        if ($field == 'updated') {
+            $this->data = date($this->format, time());
+        }
+
         return isset($this->data) ? $this->data : '';
+    }
+
+    function setValue($model, $value) {
+        $this->data = $value;
     }
 
 }
