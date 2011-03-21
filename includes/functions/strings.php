@@ -53,12 +53,27 @@
      * Given an arbitrary SQL string, normalizes it (compacts whitespace,
      * removes newlines) so it can be compared, e.g. for testing.
      */
-    function normalize_sql($sql) {
+    function normalize_sql($sql, $params = null) {
 
         // TODO: move to a tests.php file that is only included w/ tests?
         // TODO: actually watch out for whitespace in fields
 
         $sql = preg_replace('/\s+/m', ' ', trim($sql));
+        if (empty($params)) return $sql;
+
+        //TODO: be smarter about ? characters in
+        $pos = 0;
+        while(count($params) && ($pos = strpos($sql, '?', $pos)) !== false) {
+
+            $p = array_shift($params);
+            if (!is_numeric($p)) {
+                $p = "'" . str_replace("'", "\\'", $p) . "'";
+            }
+
+            $sql = substr($sql,0,$pos) . $p . substr($sql,$pos + 1);
+            $pos += strlen($p);
+        }
+
 
         return $sql;
     }
