@@ -133,6 +133,12 @@
         define_unless('STAGING', !((defined('DEV') && DEV) || (defined('LIVE') && LIVE)));
         define_unless('LIVE', !((defined('DEV') && DEV) || (defined('STAGING') && STAGING)));
 
+        ////////////////////////////////////////////////////////////////////////
+        // Stuff to maybe move to config?
+        ////////////////////////////////////////////////////////////////////////
+        date_default_timezone_set('America/Los_Angeles');
+
+
     }
 
 ?>
