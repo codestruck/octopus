@@ -19,34 +19,29 @@ class SG_Model {
 
     );
 
-
-    private $fieldHandles = array();
+    protected static $_className = null;
+    protected static $fieldHandles = null;
 
     public function __construct($id = null) {
 
-        foreach (static::$fields as $field => $options) {
-            $obj = SG_Model_Field::getField($field, $options);
-            $field = $obj->getFieldName();
-            $this->fieldHandles[$field] = $obj;
-        }
-
         if ($id) {
-            $item = $this->findOne($this->getPrimaryKey(), $id);
-            $this->setData($item);
+            $this->setData(static::get($id));
         }
     }
 
     public function __get($var) {
-        if (isset($this->fieldHandles[$var])) {
-            return $this->fieldHandles[$var]->accessValue($this);
+        $field = static::getField($var);
+        if ($field) {
+            return $field->accessValue($this);
         } else {
             return null;
         }
     }
 
     public function __set($var, $value) {
-        if (isset($this->fieldHandles[$var])) {
-            $this->fieldHandles[$var]->setValue($this, $value);
+        $field = static::getField($var);
+        if ($field) {
+            $field->setValue($this, $value);
         } else {
             $this->$var = $value;
         }
@@ -72,7 +67,7 @@ class SG_Model {
             return false;
         }
 
-        $pk = $this->getPrimaryKey();
+        $pk = static::getPrimaryKey();
 
         if ($this->$pk !== null) {
             $i = new SG_DB_Update();
@@ -97,9 +92,9 @@ class SG_Model {
 
     public function delete() {
 
-        $pk = $this->getPrimaryKey();
+        $pk = static::getPrimaryKey();
         $item_id = $this->$pk;
-        $table = $this->getTableName();
+        $table = $static::getTableName();
 
         $d = new SG_DB_Delete();
         $d->table($table);
@@ -114,7 +109,7 @@ class SG_Model {
         $pass = true;
         $this->errors = array();
 
-        foreach ($this->fieldHandles as $obj) {
+        foreach (static::getFields() as $obj) {
             if (!$obj->validate($this)) {
                 $this->errors[] = array('field' => $obj->getFieldname(), 'message' => 'is Required');
                 $pass = false;
@@ -130,7 +125,7 @@ class SG_Model {
     }
 
     public function isSaved() {
-        $pk = $this->getPrimaryKey();
+        $pk = static::getPrimaryKey();
         return ($this->$pk !== null);
     }
 
@@ -139,25 +134,50 @@ class SG_Model {
     }
 
     public function getDisplayValue() {
-        $field = $this->getDisplayField();
+        $field = static::getDisplayField();
         return $this->$field;
     }
 
-    public function getPrimaryKey() {
-        return $this->getItemName() . '_id';
+    public static function getPrimaryKey() {
+        return static::getItemName() . '_id';
     }
 
-    public function getItemName() {
-        return strtolower(get_class($this));
+    public static function getItemName() {
+        return strtolower(static::_getClassName());
     }
 
-    public function getTableName() {
-        return strtolower($this->_pluralize(get_class($this)));
+    public static function getTableName() {
+        return strtolower(static::_pluralize(static::_getClassName()));
     }
 
-    private function _pluralize($str) {
+    private static function _getClassName() {
+        if (isset(static::$_className)) {
+            return static::$_className;
+        }
+        return static::$_className = get_called_class();
+    }
+
+    protected static function _pluralize($str) {
         // needs work...
         return $str . 's';
+    }
+
+    public static function &getFields() {
+
+        if (empty(static::$fieldHandles)) {
+            foreach (static::$fields as $field => $options) {
+                $obj = SG_Model_Field::getField($field, $options);
+                $field = $obj->getFieldName();
+                static::$fieldHandles[$field] = $obj;
+            }
+        }
+
+        return static::$fieldHandles;
+    }
+
+    public static function getField($name) {
+        $fields = static::getFields();
+        return isset($fields[$name]) ? $fields[$name] : null;
     }
 
     /**
@@ -175,7 +195,9 @@ class SG_Model {
         $args = func_get_args();
         $criteria = call_user_func_array(array('SG_Model_ResultSet', 'makeCriteriaArray'), $args);
 
-        $result = new SG_Model_ResultSet($criteria);
+        $class = get_called_class();
+
+        $result = new SG_Model_ResultSet($class, $criteria);
         return $result;
     }
 
