@@ -2,7 +2,7 @@
 
 class SG_Model_Field {
 
-    private $data;
+    protected $data;
     private $field;
     private $options;
 
