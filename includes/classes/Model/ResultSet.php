@@ -9,6 +9,9 @@ class SG_Model_ResultSet implements Iterator {
     private $_modelClass;
     private $_criteria;
     private $_orderBy;
+    private $_select;
+    private $_query;
+    private $_current = null;
 
     /**
      * Map of magic method name patterns to handler functions.
@@ -45,13 +48,15 @@ class SG_Model_ResultSet implements Iterator {
      */
     public function &and_(/* Variable */) {
         $args = func_get_args();
-        return $this->_restrict('AND', $args);
+        $derivedSet = $this->_restrict('AND', $args);
+        return $derivedSet;
     }
 
     /**
      * @return Number The # of records in this ResultSet.
      */
     public function count() {
+        return $this->_query()->numRows();
     }
 
     /**
@@ -68,13 +73,27 @@ class SG_Model_ResultSet implements Iterator {
      */
     public function &first() {
 
+        $q = $this->_query(true);
+        $row = $q->fetchRow();
+        if (!$row) return false;
+
+        return $this->_createModelInstance($row);
     }
 
     /**
+     * @param $params Array array into which to put the parameters.
      * @return string The SQL for the current query.
      */
-    public function getSql() {
-        return 'oh noes!';
+    public function getSql(&$params = null) {
+        $s = $this->_buildSelect();
+
+        if ($params) {
+            foreach($s->params as $p) {
+                $params[] = $p;
+            }
+        }
+
+        return $s->getSql();
     }
 
     /**
@@ -82,7 +101,8 @@ class SG_Model_ResultSet implements Iterator {
      */
     public function &or_(/* Variable */) {
         $args = func_get_args();
-        return $this->_restrict('OR', $args);
+        $derivedSet = $this->_restrict('OR', $args);
+        return $derivedSet;
     }
 
     /**
@@ -102,7 +122,8 @@ class SG_Model_ResultSet implements Iterator {
             return $this;
         }
 
-        return new SG_Model_ResultSet($this->_modelClass, $this->_criteria, $newOrderBy);
+        $derivedSet = new SG_Model_ResultSet($this, null, $newOrderBy);
+        return $derivedSet;
     }
 
     /**
@@ -115,12 +136,149 @@ class SG_Model_ResultSet implements Iterator {
         return $rs;
     }
 
+    private function _applyOrderByClause(&$s, &$orderBy) {
+
+        if (empty($orderBy)) {
+            return;
+        }
+
+        foreach($orderBy as $fieldName => $dir) {
+
+            if (!is_string($dir)) {
+                $dir = $dir ? 'ASC' : 'DESC';
+            } else {
+                $dir = strtoupper($dir);
+            }
+
+            $field = $this->_getField($fieldName);
+            $field->orderBy($s, $dir);
+        }
+
+    }
+
+    private function _applyCriteria(&$s, &$criteria, &$sql = null, &$params = null) {
+
+        if (!$sql) $sql = '';
+        if (!$params) $params = array();
+
+        foreach($criteria as $key => $value) {
+
+            if (is_numeric($key)) {
+
+                if (is_array($value)) {
+
+                    // Deep nesting
+                    $fakeSelect = null;
+                    $this->_applyCriteria($fakeSelect, $value, $sql, $params);
+                    continue;
+
+                } else if (is_string($value)) {
+
+                    // Could be 'AND' or 'OR'
+                    if (strcasecmp($value, 'or') == 0 || strcasecmp($value, 'and') == 0) {
+                        $value = strtoupper($value);
+                        $sql .= " $value ";
+                        continue;
+                    }
+                }
+            }
+
+            self::_readCriteriaKey($key, $fieldName, $operator);
+            $field = $this->_getField($fieldName);
+
+            if (!$field) {
+                dump_r($fieldName);
+                continue;
+            }
+
+
+            $fieldSql = $field->restrict($operator, $value, $s, $params);
+
+            if (!empty($fieldSql)) {
+                $sql .= " ($fieldSql)";
+            }
+        }
+
+        if ($s && $sql) {
+            $s->where($sql, $params);
+        }
+
+    }
+
+    private function &_getField($name) {
+        $modelClass = $this->_modelClass;
+        $field = $modelClass::getField($name);
+        return $field;
+    }
+
+    /**
+     * Takes a key from a criteria array and parses it out into field name
+     * and operator.
+     */
+    private function _readCriteriaKey($key, &$fieldName, &$operator) {
+
+        $fieldName = $operator = null;
+
+        $spacePos = strrpos($key, ' ');
+        if ($spacePos !== false) {
+            $fieldName = substr($key, 0, $spacePos);
+            $operator = substr($key, $spacePos + 1);
+        } else {
+            $fieldName = $key;
+        }
+
+    }
+
+    /**
+     * @return Object A new SG_DB_Select instance.
+     */
+    private function &_buildSelect($recreate = false) {
+
+        if (!$recreate && $this->_select) {
+            return $this->_select;
+        }
+
+        $modelClass = $this->_modelClass;
+
+        $s = new SG_DB_Select();
+        $s->table($modelClass::getTable());
+
+        $this->_applyCriteria($s, $this->_criteria);
+        $this->_applyOrderByClause($s, $this->_orderBy);
+
+        $this->_select = $s;
+        return $this->_select;
+    }
+
+    /**
+     * @return Object A new model instance from the given row.
+     */
+    private function &_createModelInstance(&$row) {
+        $class = $this->_modelClass;
+        return $class::create($row);
+    }
+
+    /**
+     * Runs the backing query and
+     */
+    private function &_query($new = false) {
+
+        if ($this->_query && !$new) {
+            return $this->_query;
+        }
+
+        $s = $this->_buildSelect();
+        $this->_query = $s->query();
+
+        return $this->_query;
+    }
+
     /**
      * Handles a single 'order by' argument. This could be a string (e.g.
      * 'whatever DESC') or an array (e.g. array('whatever' => 'DESC') ).
      * @return boolean TRUE if something is made of the argument, FALSE otherwise.
      */
-    private function &_processOrderByArg($arg, &$orderBy) {
+    private function _processOrderByArg($arg, &$orderBy) {
 
         if (is_string($arg)) {
 
@@ -181,18 +339,18 @@ class SG_Model_ResultSet implements Iterator {
     private function &_restrict($operator, $args) {
 
         $criteria = array();
+
         while(count($args)) {
-
             $c = array_shift($args);
-
+            $criteria[] = $c;
         }
 
         if (empty($criteria)) {
             return $this;
         }
 
-        return new SG_
-
+        $derivedSet = new SG_Model_ResultSet($this, $criteria, $this->_orderBy);
+        return $derivedSet;
     }
 
     /**
@@ -204,7 +362,8 @@ class SG_Model_ResultSet implements Iterator {
         $field = $matches['field'];
         $not = isset($matches['not']) ? (strcasecmp('not', $matches['not']) == 0) : false;
 
-        return $this->and($field, $not ? 0 : 1);
+        $derivedSet = $this->and_($field, $not ? 0 : 1);
+        return $derivedSet;
     }
 
     public function __call($name, $args) {
@@ -220,18 +379,36 @@ class SG_Model_ResultSet implements Iterator {
     // Iterator Implementation {{{
 
     public function current() {
+
+        if ($this->_current) {
+            return $this->_current;
+        }
+
+        $row = $this->_query()->fetchRow();
+        if (!$row) return false;
+
+        $this->_current = $this->_createModelInstance($row);
+        return $this->_current;
     }
 
     public function key() {
+        if (!$this->_current) {
+            return false;
+        }
+        return $this->_current->id;
     }
 
     public function next() {
+        $this->_current = null;
     }
 
     public function rewind() {
+        $this->_current = null;
+        $this->_query = null;
     }
 
     public function valid() {
+        return $this->_current !== null;
     }
 
 
