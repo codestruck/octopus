@@ -140,7 +140,7 @@ class ModelMinCrudLoadTest extends PHPUnit_Extensions_Database_TestCase
         $post_id = $post->minpost_id;
         $count = table_count('minposts');
 
-        $post->title = 'Test post';
+        $post->title = 'Test Update';
         $post->body = 'Contents of post.';
         $post->save();
 
@@ -154,10 +154,10 @@ class ModelMinCrudLoadTest extends PHPUnit_Extensions_Database_TestCase
         $this->assertEquals(1, $post->active);
     }
 
-    function testCreateTimestamps()
+    function testCreateTimestampsOnCreate()
     {
         $post = new Minpost();
-        $post->title = 'Test post';
+        $post->title = 'Create Timestamps';
         $post->body = 'Contents of post.';
         $post->save();
 
@@ -167,7 +167,54 @@ class ModelMinCrudLoadTest extends PHPUnit_Extensions_Database_TestCase
 
         $this->assertTrue($created > $fiveminsago);
         $this->assertTrue($created <= $now);
+    }
 
+    function testCreateTimestampsOnUpdate()
+    {
+        $post = new Minpost(1);
+
+        $this->assertEquals('2000-03-20 04:20:11', $post->created);
+
+        $post->title = 'Create Timestamps';
+        $post->body = 'Contents of post.';
+        $post->save();
+
+        $savedPost = new Minpost(1);
+        $this->assertEquals('2000-03-20 04:20:11', $savedPost->created);
+
+    }
+
+    function testUpdateTimestampsOnCreate()
+    {
+        $post = new Minpost();
+        $post->title = 'Create Timestamps';
+        $post->body = 'Contents of post.';
+        $post->save();
+
+        $now = time();
+        $fiveminsago = $now - 300;
+        $updated = strtotime($post->updated);
+
+        $this->assertTrue($updated > $fiveminsago);
+        $this->assertTrue($updated <= $now);
+    }
+
+    function testUpdateTimestampsOnUpdate()
+    {
+        $post = new Minpost(1);
+
+        $this->assertEquals('2001-03-20 04:20:11', $post->updated);
+
+        $post->title = 'Create Timestamps';
+        $post->body = 'Contents of post.';
+        $post->save();
+
+        $now = time();
+        $fiveminsago = $now - 300;
+        $created = strtotime($post->updated);
+
+        $this->assertTrue($created > $fiveminsago);
+        $this->assertTrue($created <= $now);
     }
 
     function testSlugCreation()
@@ -177,7 +224,6 @@ class ModelMinCrudLoadTest extends PHPUnit_Extensions_Database_TestCase
         $post->body = 'Contents of post.';
         $post->save();
         $this->assertEquals('test-post', $post->slug);
-
     }
 
     function testSlugUniqueness()
@@ -192,7 +238,7 @@ class ModelMinCrudLoadTest extends PHPUnit_Extensions_Database_TestCase
         $post->title = 'Duplicate Title';
         $post->body = 'Contents of post.';
         $post->save();
-        $this->assertEquals('duplicate-title2', $post->slug);
+        $this->assertEquals('duplicate-title-2', $post->slug);
     }
 
     function testSlugNotModified()
@@ -220,7 +266,7 @@ class ModelMinCrudLoadTest extends PHPUnit_Extensions_Database_TestCase
         $this->assertFalse($post->validate());
     }
 
-       function testValidateSave()
+    function testValidateSave()
     {
         $count = table_count('minposts');
 
@@ -255,12 +301,13 @@ class ModelMinCrudLoadTest extends PHPUnit_Extensions_Database_TestCase
         $post->body = 'Just a body';
 
         $this->assertFalse($post->save());
-        $errors = $this->getErrors();
-        $error = array_pop($errors);
+
+        $errors = $post->getErrors();
         $this->assertEquals(1, count($errors));
 
+        $error = array_pop($errors);
         $this->assertEquals('title', $error['field']);
-        $this->assertEquals('Missing Title', $error['message'], 'What should the message be?');
+        $this->assertEquals('is Required', $error['message']);
     }
 
 }

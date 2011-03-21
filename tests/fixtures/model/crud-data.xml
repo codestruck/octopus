@@ -6,6 +6,8 @@
     slug="my-title"
     body="My Body."
     active="1"
+    created="2000-03-20 04:20:11"
+    updated="2001-03-20 04:20:11"
   />
   <minposts
     minpost_id="2"
@@ -13,5 +15,7 @@
     slug="my-other-title"
     body="My Other Body."
     active="0"
+    created="2000-03-20 04:20:11"
+    updated="2001-03-20 04:20:11"
   />
 </dataset>
