@@ -22,6 +22,13 @@ class SG_Model {
      */
     public static $table = null;
 
+    /**
+     * Name of the field to use when displaying this model e.g. in a list.
+     * If an array, the first one that actually exists on the model will be
+     * used.
+     */
+    public static $displayField = array('name', 'title', 'text', 'summary', 'description');
+
     // Map of magic method name patterns to handler funcs
     private static $_magicMethods = array(
 
@@ -153,8 +160,28 @@ class SG_Model {
         return ($this->$pk !== null);
     }
 
-    public function getDisplayField() {
-        return 'title';
+    public static function getDisplayField() {
+
+        if (!static::$displayField) {
+            return;
+        }
+
+        if (is_string(static::$displayField)) {
+            return static::getField(static::$displayField);
+        } else if (is_array(static::$displayField)) {
+
+            $fields = static::getFields();
+            $candidates = static::$displayField;
+
+            foreach($candidates as $f) {
+                if (isset($fields[$f])) {
+                    static::$displayField = $f;
+                    return $fields[$f];
+                }
+            }
+        }
+
+        static::$displayField = null;
     }
 
     public function getDisplayValue() {
