@@ -10,7 +10,19 @@ SG::loadClass('SG_Model_ResultSet');
 
 class SG_Model {
 
-    // Map of magic method name patters to handler funcs
+    /**
+     * Name of column that stores the primary key. If not set in a subclass,
+     * it is inferred when you call getPrimaryKey().
+     */
+    public static $primaryKey = null;
+
+    /**
+     * Name of table this model uses. If not set in a subclass, it is inferred
+     * when you call getTableName()
+     */
+    public static $table = null;
+
+    // Map of magic method name patterns to handler funcs
     private static $_magicMethods = array(
 
         '/^getBy(?P<field>[A-Z][a-zA-Z0-9_]*)$/' => '_getBy',
@@ -20,16 +32,28 @@ class SG_Model {
     );
 
     protected static $_className = null;
-    protected static $fieldHandles = null;
+    protected static $_fieldHandles = null;
 
     public function __construct($id = null) {
 
-        if ($id) {
-            $this->setData(static::get($id));
+        if (is_array($id)) {
+            // We're receiving a row of data
+            $this->setData($id);
+        } else if ($id) {
+            if ($id) {
+                $this->setData(static::get($id));
+            }
         }
     }
 
     public function __get($var) {
+
+        if ($var == 'id') {
+            // special case for id
+            $pk = static::getPrimaryKey();
+            return $pk == 'id' ? null : $this->$pk;
+        }
+
         $field = static::getField($var);
         if ($field) {
             return $field->accessValue($this);
@@ -78,7 +102,7 @@ class SG_Model {
 
         $i->table($this->getTableName());
 
-        foreach ($this->fieldHandles as $obj) {
+        foreach ($this->_fieldHandles as $obj) {
             $i->set($obj->getFieldName(), $obj->saveValue($this));
         }
 
@@ -139,17 +163,26 @@ class SG_Model {
     }
 
     public static function getPrimaryKey() {
-        return static::getItemName() . '_id';
+
+        if (isset(static::$primaryKey)) {
+            return static::$primaryKey;
+        }
+
+        return static::$primaryKey = underscore(static::_getClassName()) . '_id';
     }
 
-    public static function getItemName() {
-        return strtolower(static::_getClassName());
-    }
 
     public static function getTableName() {
-        return strtolower(static::_pluralize(static::_getClassName()));
+        if (isset(static::$table)) {
+            return static::$table;
+        }
+        return static::$table = underscore(static::_pluralize(static::_getClassName()));
     }
 
+    /**
+     * @return String The actual name of the current class. Caches the
+     * result.
+     */
     private static function _getClassName() {
         if (isset(static::$_className)) {
             return static::$_className;
@@ -159,20 +192,20 @@ class SG_Model {
 
     protected static function _pluralize($str) {
         // needs work...
-        return $str . 's';
+        return pluralize($str);
     }
 
     public static function &getFields() {
 
-        if (empty(static::$fieldHandles)) {
+        if (empty(static::$_fieldHandles)) {
             foreach (static::$fields as $field => $options) {
                 $obj = SG_Model_Field::getField($field, $options);
                 $field = $obj->getFieldName();
-                static::$fieldHandles[$field] = $obj;
+                static::$_fieldHandles[$field] = $obj;
             }
         }
 
-        return static::$fieldHandles;
+        return static::$_fieldHandles;
     }
 
     public static function getField($name) {
@@ -192,10 +225,8 @@ class SG_Model {
      */
     public static function &find(/* Variable */) {
 
-        $args = func_get_args();
-        $criteria = call_user_func_array(array('SG_Model_ResultSet', 'makeCriteriaArray'), $args);
-
-        $class = get_called_class();
+        $criteria = func_get_args();
+        $class = static::_getClassName();
 
         $result = new SG_Model_ResultSet($class, $criteria);
         return $result;
@@ -218,7 +249,6 @@ class SG_Model {
             $result = $result->first();
 
             if ($result) return $result;
-
         }
 
         $displayField = static::getDisplayField();

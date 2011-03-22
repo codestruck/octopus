@@ -295,7 +295,7 @@ class SG_Model_ResultSet implements Iterator {
         $modelClass = $this->_modelClass;
 
         $s = new SG_DB_Select();
-        $s->table($modelClass::getTable());
+        $s->table($modelClass::getTableName());
 
         $sql = '';
         $params = array();
@@ -312,11 +312,14 @@ class SG_Model_ResultSet implements Iterator {
     }
 
     /**
+     * Factory method used to generate an instance of SG_Model from the given
+     * row of data.
      * @return Object A new model instance from the given row.
      */
-    private function &_createModelInstance(&$row) {
+    protected function &_createModelInstance(&$row) {
         $class = $this->_modelClass;
-        return $class::create($row);
+        $instance = new $class($row);
+        return $instance;
     }
 
     /**
@@ -470,15 +473,6 @@ class SG_Model_ResultSet implements Iterator {
 
     // }}}
 
-    /**
-     * Takes a variable number of arguments and turns them into a standardized
-     * criteria array.
-     */
-    public static function &makeCriteriaArray(/* variable */) {
-
-        $args = func_get_args();
-        return $args;
-    }
 
 }
 

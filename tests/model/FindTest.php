@@ -39,9 +39,6 @@ class FindPost extends SG_Model {
 
     );
 
-    public static function getTable() {
-        return "findposts";
-    }
 
     public static function &create($row) {
 
@@ -65,8 +62,8 @@ class FindTest extends SG_DB_TestCase {
 
     function createTables(&$db) {
 
-        $sql = "CREATE TABLE findposts (
-                `findpost_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        $sql = "CREATE TABLE find_posts (
+                `find_post_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 `title` varchar ( 255 ) NOT NULL,
                 `slug` varchar ( 255 ) NOT NULL,
                 `body` text NOT NULL,
@@ -89,13 +86,13 @@ class FindTest extends SG_DB_TestCase {
     }
 
     function dropTables(&$db) {
-        $db->query("DROP TABLE IF EXISTS findposts");
+        $db->query("DROP TABLE IF EXISTS find_posts");
     }
 
 
     function numberOfTestPosts() {
         $db = SG_DB::singleton();
-        return $db->getOne('SELECT COUNT(*) FROM findposts', true);
+        return $db->getOne('SELECT COUNT(*) FROM find_posts', true);
     }
 
     function testFindAll() {
@@ -137,8 +134,6 @@ class FindTest extends SG_DB_TestCase {
         for($i = 1; $i <= $count; $i++) {
             $post = FindPost::get($i);
             $this->assertTrueish($post, '::get() failed for ' . $i);
-
-            // TODO test when mike's stuff is integrated
             //$this->assertEquals($i, $post->id, '::get() returned the wrong result for ' . $i);
         }
     }
@@ -150,7 +145,7 @@ class FindTest extends SG_DB_TestCase {
         $test = 'Find w/o array, mixed case, no explicit LIKE';
         $posts = FindPost::find('title', 'Foo');
         $this->assertSqlEquals(
-            "SELECT * FROM findposts WHERE (`title` LIKE 'Foo')",
+            "SELECT * FROM find_posts WHERE (`title` LIKE 'Foo')",
             $posts,
             $test
         );
@@ -160,7 +155,7 @@ class FindTest extends SG_DB_TestCase {
         $test = 'Find w/o array, mixed case, explicit LIKE';
         $posts = FindPost::find('title LIKE', 'Foo');
         $this->assertSqlEquals(
-            "SELECT * FROM findposts WHERE (`title` LIKE 'Foo')",
+            "SELECT * FROM find_posts WHERE (`title` LIKE 'Foo')",
             $posts,
             $test
         );
@@ -170,7 +165,7 @@ class FindTest extends SG_DB_TestCase {
         $test = 'Find w/ array, mixed case, no explicit LIKE';
         $posts = FindPost::find(array('title' =>'Foo'));
         $this->assertSqlEquals(
-            "SELECT * FROM findposts WHERE (`title` LIKE 'Foo')",
+            "SELECT * FROM find_posts WHERE (`title` LIKE 'Foo')",
             $posts,
             $test
         );
@@ -180,7 +175,7 @@ class FindTest extends SG_DB_TestCase {
         $test = 'Find w/ array, mixed case, no explicit LIKE';
         $posts = FindPost::find(array('title LIKE' =>'Foo'));
         $this->assertSqlEquals(
-            "SELECT * FROM findposts WHERE (`title` LIKE 'Foo')",
+            "SELECT * FROM find_posts WHERE (`title` LIKE 'Foo')",
             $posts,
             $test
         );
@@ -222,7 +217,7 @@ class FindTest extends SG_DB_TestCase {
             $value = is_numeric($v) ? $v : "'$v'";
 
             $this->assertSqlEquals(
-                "SELECT * FROM findposts WHERE (`$col` $op $value)",
+                "SELECT * FROM find_posts WHERE (`$col` $op $value)",
                 $posts,
                 "column '$col' using method '$findMethod'"
             );
@@ -244,7 +239,7 @@ class FindTest extends SG_DB_TestCase {
         $posts = FindPost::findByAuthor('* Hinz');
 
         $this->assertSqlEquals(
-            "SELECT * FROM findposts, findauthors WHERE findauthors.findauthor_id = findposts.author_id AND findauthors.name LIKE '% Hinz'",
+            "SELECT * FROM find_posts, findauthors WHERE findauthors.findauthor_id = find_posts.author_id AND findauthors.name LIKE '% Hinz'",
             $posts
         );
 
@@ -265,13 +260,13 @@ class FindTest extends SG_DB_TestCase {
 
         $query = FindPost::all()->whereActive();
         $this->assertSqlEquals(
-            "SELECT * FROM findposts WHERE (`active` = 1)",
+            "SELECT * FROM find_posts WHERE (`active` = 1)",
             $query
         );
 
         $query = FindPost::all()->whereNotActive();
         $this->assertSqlEquals(
-            "SELECT * FROM findposts WHERE (`active` = 0)",
+            "SELECT * FROM find_posts WHERE (`active` = 0)",
             $query
         );
 
@@ -297,7 +292,7 @@ class FindTest extends SG_DB_TestCase {
         $posts = FindPost::all();
 
         $this->assertSqlEquals(
-            "SELECT * FROM findposts",
+            "SELECT * FROM find_posts",
             $posts
         );
 
@@ -306,21 +301,21 @@ class FindTest extends SG_DB_TestCase {
         $posts = $filteredPosts;
 
         $this->assertSqlEquals(
-            "SELECT * FROM findposts WHERE (`title` LIKE 'test')",
+            "SELECT * FROM find_posts WHERE (`title` LIKE 'test')",
             $posts,
             'simple key/value restriction w/ implicit operator'
         );
 
         $posts = $posts->or_('body', '*foo*');
         $this->assertSqlEquals(
-            "SELECT * FROM findposts WHERE (`title` LIKE 'test') OR (`body` LIKE '%foo%')",
+            "SELECT * FROM find_posts WHERE (`title` LIKE 'test') OR (`body` LIKE '%foo%')",
             $posts,
             'add or'
         );
 
         $posts = $posts->and_('created <', '2008-01-01');
         $this->assertSqlEquals(
-            "SELECT * FROM findposts WHERE (`title` LIKE 'test') OR (`body` LIKE '%foo%') AND (`created` < '2008-01-01')",
+            "SELECT * FROM find_posts WHERE (`title` LIKE 'test') OR (`body` LIKE '%foo%') AND (`created` < '2008-01-01')",
             $posts,
             'add and'
         );
@@ -340,23 +335,23 @@ class FindTest extends SG_DB_TestCase {
 
             $posts = $allPosts->orderBy("title $marker");
             $this->assertNotSame($posts, $allPosts, 'orderBy should return a new result set instance');
-            $this->assertSqlEquals("SELECT * FROM findposts ORDER BY `title` $marker", $posts, $test);
+            $this->assertSqlEquals("SELECT * FROM find_posts ORDER BY `title` $marker", $posts, $test);
 
             if ($marker) {
                 $test = "single item array, $marker";
                 $posts = $allPosts->orderBy(array('title' => $marker));
-                $this->assertSqlEquals("SELECT * FROM findposts ORDER BY `title` $marker", $posts, $test);
+                $this->assertSqlEquals("SELECT * FROM find_posts ORDER BY `title` $marker", $posts, $test);
             }
 
         }
 
         $test = 'multiple strings, varying direction markers';
         $posts = $allPosts->orderBy('title', 'created asc', 'updated desc');
-        $this->assertSqlEquals("SELECT * FROM findposts ORDER BY `title` ASC, `created` ASC, `updated` DESC", $posts, $test);
+        $this->assertSqlEquals("SELECT * FROM find_posts ORDER BY `title` ASC, `created` ASC, `updated` DESC", $posts, $test);
 
         $test = 'multi-item array, varying direction markers';
         $posts = $allPosts->orderBy(array('title', 'created' => 'asc', 'updated' => 'desc'));
-        $this->assertSqlEquals("SELECT * FROM findposts ORDER BY `title` ASC, `created` ASC, `updated` DESC", $posts, $test);
+        $this->assertSqlEquals("SELECT * FROM find_posts ORDER BY `title` ASC, `created` ASC, `updated` DESC", $posts, $test);
     }
 
     function testDetectRegex() {
@@ -370,7 +365,7 @@ class FindTest extends SG_DB_TestCase {
 
             $posts = FindPost::all()->where(array('title' => '/[a-z]\d+\s*\(in parens\)/' . $flag));
             $this->assertSqlEquals(
-                "SELECT * FROM findposts WHERE (`title` $operator '[a-z]\\d+\\s*[(]in parens[)]')",
+                "SELECT * FROM find_posts WHERE (`title` $operator '[a-z]\\d+\\s*[(]in parens[)]')",
                 $posts
             );
         }
@@ -394,7 +389,7 @@ class FindTest extends SG_DB_TestCase {
             "
             SELECT
                 *
-            FROM findposts
+            FROM find_posts
             WHERE
                     (`title` LIKE 'foo')
                     AND
@@ -419,14 +414,14 @@ class FindTest extends SG_DB_TestCase {
 
             $posts = FindPost::all()->where(array("title $op" => 'foo'));
             $this->assertSqlEquals(
-                "SELECT * FROM findposts WHERE (`title` $op 'foo')",
+                "SELECT * FROM find_posts WHERE (`title` $op 'foo')",
                 $posts,
                 "Operator: $op"
             );
 
             $posts = FindPost::all()->where(array("title not $op" => 'foo'));
             $this->assertSqlEquals(
-                "SELECT * FROM findposts WHERE (NOT (`title` $op 'foo'))",
+                "SELECT * FROM find_posts WHERE (NOT (`title` $op 'foo'))",
                 $posts,
                 "Operator: $op (NOT)"
             );
@@ -439,10 +434,10 @@ class FindTest extends SG_DB_TestCase {
     function testNotCriteria() {
 
         $posts = FindPost::all()->where(array('title NOT' => 'foo'));
-        $this->assertSqlEquals("SELECT * FROM findposts WHERE (NOT (`title` LIKE 'foo'))", $posts, 'NOT');
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE (NOT (`title` LIKE 'foo'))", $posts, 'NOT');
 
         $posts = FindPost::all()->where(array('display_order NOT' => 42));
-        $this->assertSqlEquals("SELECT * FROM findposts WHERE (NOT (`display_order` = 42))", $posts, 'NOT');
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE (NOT (`display_order` = 42))", $posts, 'NOT');
     }
 
     function testInCriteria() {
@@ -451,13 +446,13 @@ class FindTest extends SG_DB_TestCase {
         $idSql = '(' . implode(',', $ids) . ')';
 
         $posts = FindPost::all()->where('Id', $ids);
-        $this->assertSqlEquals("SELECT * FROM findposts WHERE (`findpost_id` IN $idSql)", $posts, 'implicit IN');
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE (`find_post_id` IN $idSql)", $posts, 'implicit IN');
 
         $posts = FindPost::all()->where('ID IN', $ids);
-        $this->assertSqlEquals("SELECT * FROM findposts WHERE (`findpost_id` IN $idSql)", $posts, 'explicit IN');
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE (`find_post_id` IN $idSql)", $posts, 'explicit IN');
 
         $posts = FindPost::all()->where('id NOT IN', $ids);
-        $this->assertSqlEquals("SELECT * FROM findposts WHERE (NOT (`findpost_id` IN $idSql))", $posts, 'NOT IN');
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE (NOT (`find_post_id` IN $idSql))", $posts, 'NOT IN');
     }
 
     function testRelatedCriteria() {
@@ -467,7 +462,7 @@ class FindTest extends SG_DB_TestCase {
 
         $posts = FindPost::all()->where('author.name', 'Matt Hinz');
         $this->assertSqlEquals(
-            "SELECT * FROM findposts, `findauthors` WHERE (`findauthors`.`findauthor_id` = `findpost`.`author_id`) AND `findauthor`.`name` LIKE 'Matt Hinz'",
+            "SELECT * FROM find_posts, `findauthors` WHERE (`findauthors`.`findauthor_id` = `findpost`.`author_id`) AND `findauthor`.`name` LIKE 'Matt Hinz'",
             $posts
         );
         */
