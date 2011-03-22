@@ -85,15 +85,17 @@ class SG_Model_ResultSet implements Iterator {
      * @return string The SQL for the current query.
      */
     public function getSql(&$params = null) {
-        $s = $this->_buildSelect();
 
-        if ($params) {
+        $s = $this->_buildSelect();
+        $sql = $s->getSql();
+
+        if ($params !== null) {
             foreach($s->params as $p) {
                 $params[] = $p;
             }
         }
 
-        return $s->getSql();
+        return $sql;
     }
 
     /**
@@ -156,53 +158,104 @@ class SG_Model_ResultSet implements Iterator {
 
     }
 
-    private function _applyCriteria(&$s, &$criteria, &$sql = null, &$params = null) {
+    /**
+     * Takes a big fat criteria array and generates a WHERE clause.
+     * @param $criteria Array Set of criteria to compile into a WHERE clause.
+     * @param $s Object SG_DB_Select being used.
+     * @param $sql String Variable to hold generated SQL.
+     * @param $params Array Set of parameters referenced by $sql.
+     */
+    private function _generateWhereClause(&$criteria, &$s, &$sql, &$params, $processParent = false) {
 
-        if (!$sql) $sql = '';
-        if (!$params) $params = array();
+        if ($processParent && $this->_parent) {
+            $this->_parent->_generateWhereClause($this->_parent->_criteria, $s, $sql, $params, true);
+        }
+
+        if (empty($criteria)) {
+            return;
+        }
+
+        $lastFieldName = null;
+        $conjunction = 'AND';
 
         foreach($criteria as $key => $value) {
 
+            $criteriaSql = '';
+
             if (is_numeric($key)) {
+
+                // This is probably something w/o an explicit key set.
 
                 if (is_array($value)) {
 
-                    // Deep nesting
-                    $fakeSelect = null;
-                    $this->_applyCriteria($fakeSelect, $value, $sql, $params);
-                    continue;
+                    // Handle ('Id In', array(1,2,3,4)
+                    if ($lastFieldName) {
+                        $c = array($lastFieldName => $value);
+                        $this->_generateWhereClause($c, $s, $criteriaSql, $params);
+                    } else {
+                        // Process as an array of criteria
+                        $this->_generateWhereClause($value, $s, $criteriaSql, $params);
+                    }
+
+                    $lastFieldName = null;
 
                 } else if (is_string($value)) {
 
                     // Could be 'AND' or 'OR'
                     if (strcasecmp($value, 'or') == 0 || strcasecmp($value, 'and') == 0) {
-                        $value = strtoupper($value);
-                        $sql .= " $value ";
-                        continue;
+                        $conjunction = strtoupper($value);
+                        $lastFieldName = null;
+                    } else {
+                        // Handle ('field name', 'value')
+                        if ($lastFieldName) {
+                            $c = array($lastFieldName => $value);
+                            $this->_generateWhereClause($c, $s, $criteriaSql, $params);
+                            $lastFieldName = null;
+                        } else {
+                            $lastFieldName = $value;
+                        }
                     }
                 }
+
+            } else {
+
+                // standard field = whatever syntax
+                self::_readCriteriaKey($key, $fieldName, $operator);
+
+
+                // HACK: special-case id?
+                if (strcasecmp($fieldName, 'id') == 0) {
+                    $mc = $this->_modelClass;
+                    $fieldName = $mc::getPrimaryKey();
+                    SG::loadClass('SG_Model_Field_Numeric');
+                    $field = new SG_Model_Field_Numeric($fieldName, array());
+                } else {
+                    $field = $this->_getField($fieldName);
+                }
+
+
+                if (!$field) {
+                    dump_r('Field not found', $fieldName);
+                    continue;
+                }
+
+                $criteriaSql = $field->restrict($operator, $value, $s, $params);
             }
 
-            self::_readCriteriaKey($key, $fieldName, $operator);
-            $field = $this->_getField($fieldName);
+            if (!empty($criteriaSql)) {
 
-            if (!$field) {
-                dump_r($fieldName);
-                continue;
-            }
+                if ($conjunction) {
 
+                    if (strlen($sql)) {
+                        $sql .= "$conjunction ";
+                    }
 
-            $fieldSql = $field->restrict($operator, $value, $s, $params);
+                    $conjunction = 'AND';
+                }
 
-            if (!empty($fieldSql)) {
-                $sql .= " ($fieldSql)";
+                $sql .= $criteriaSql . ' ';
             }
         }
-
-        if ($s && $sql) {
-            $s->where($sql, $params);
-        }
-
     }
 
     private function &_getField($name) {
@@ -243,7 +296,14 @@ class SG_Model_ResultSet implements Iterator {
         $s = new SG_DB_Select();
         $s->table($modelClass::getTable());
 
-        $this->_applyCriteria($s, $this->_criteria);
+        $sql = '';
+        $params = array();
+        $this->_generateWhereClause($this->_criteria, $s, $sql, $params, true);
+
+        if (strlen($sql) > 0) {
+            $s->where($sql, $params);
+        }
+
         $this->_applyOrderByClause($s, $this->_orderBy);
 
         $this->_select = $s;
@@ -338,18 +398,13 @@ class SG_Model_ResultSet implements Iterator {
      */
     private function &_restrict($operator, $args) {
 
-        $criteria = array();
-
-        while(count($args)) {
-            $c = array_shift($args);
-            $criteria[] = $c;
-        }
-
-        if (empty($criteria)) {
+        if (empty($args)) {
             return $this;
         }
 
-        $derivedSet = new SG_Model_ResultSet($this, $criteria, $this->_orderBy);
+        array_unshift($args, $operator);
+
+        $derivedSet = new SG_Model_ResultSet($this, $args, $this->_orderBy);
         return $derivedSet;
     }
 
@@ -359,10 +414,10 @@ class SG_Model_ResultSet implements Iterator {
      */
     private function &_whereBoolean($matches) {
 
-        $field = $matches['field'];
+        $field = underscore($matches['field']);
         $not = isset($matches['not']) ? (strcasecmp('not', $matches['not']) == 0) : false;
 
-        $derivedSet = $this->and_($field, $not ? 0 : 1);
+        $derivedSet = $this->_restrict('AND', array($field => $not ? 0 : 1));
         return $derivedSet;
     }
 
@@ -421,26 +476,7 @@ class SG_Model_ResultSet implements Iterator {
     public static function &makeCriteriaArray(/* variable */) {
 
         $args = func_get_args();
-        $lastField = null;
-        $criteria = array();
-
-        foreach($args as $arg) {
-
-            if (is_array($arg)) {
-                // array('field' => 'value')
-                $criteria[] = $arg;
-                $lastField = null;
-            } else if (is_string($arg) && !$lastField) {
-                $lastField = $arg;
-            } else if ($lastField) {
-                // handle 'field', 'value'
-                $criteria[$lastField] = $arg;
-            }
-
-        }
-
-
-        return $criteria;
+        return $args;
     }
 
 }

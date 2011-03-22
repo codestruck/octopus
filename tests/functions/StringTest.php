@@ -56,7 +56,7 @@
             $this->assertEquals('whatever', $r['pattern']);
             $this->assertEquals('i', $r['flags']);
 
-            $this->assertFalse(is_regex('/whatever', $flags));
+            $this->assertFalse(parse_regex('/whatever'));
 
         }
 

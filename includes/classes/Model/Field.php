@@ -104,10 +104,24 @@ class SG_Model_Field {
      */
     public function restrict($operator, $value, &$s, &$params) {
 
-        if (!$operator) $operator = '=';
+        $fieldName = $this->getFieldName();
+
+        if ((!$operator || strcasecmp($operator,'in') == 0) && is_array($value)) {
+
+            $operator = 'IN';
+            $expr = '';
+            foreach($value as $item) {
+                $params[] = $item;
+                $expr .= ($expr == '' ? '' : ',') . '?';
+            }
+
+            return "(`$fieldName` IN ($expr))";
+        }
+
+        if (!$operator) $operator = $this->getDefaultSearchOperator();
 
         $params[] = $value;
-        return '(' . $this->getFieldName() . ' ' . $operator . ' ?)';
+        return '(`' . $this->getFieldName() . '` ' . $operator . ' ?)';
     }
 
     /**
@@ -118,6 +132,14 @@ class SG_Model_Field {
     public function orderBy(&$s, $dir = 'ASC') {
         $n = $this->getFieldName();
         $s->orderBy("`$n` $dir");
+    }
+
+    /**
+     * @return String The default operator (e.g. '=' or 'LIKE') this field
+     * should use when none is specified.
+     */
+    public function getDefaultSearchOperator() {
+        return '=';
     }
 
 }

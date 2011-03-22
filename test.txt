@@ -1,0 +1,330 @@
+PHPUnit 3.5.11 by Sebastian Bergmann.
+
+EE
+--------------------------------------------------------------------------------
+array(1) {
+  ["title"]=>
+  string(3) "Foo"
+}
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+string(14) " ((title = ?))"
+--------------------------------------------------------------------------------
+FE
+--------------------------------------------------------------------------------
+array(1) {
+  [0]=>
+  array(1) {
+    ["Author"]=>
+    string(6) "* Hinz"
+  }
+}
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+string(15) " ((Author = ?))"
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+string(15) " ((Author = ?))"
+--------------------------------------------------------------------------------
+FE
+--------------------------------------------------------------------------------
+array(0) {
+}
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+string(0) ""
+--------------------------------------------------------------------------------
+EEEEEEEE
+
+Time: 1 second, Memory: 7.75Mb
+
+There were 12 errors:
+
+1) FindTest::testFindAll
+<b>DB Error:</b> <code>Table 'sole_octopus_test.posts' doesn't exist</code><br><b>Query:</b> <code>SELECT COUNT(*) FROM posts</code><br>
+
+/Users/matt/Sites/octopus/includes/classes/DB/Error.php:71
+/Users/matt/Sites/octopus/includes/classes/DB/Error.php:51
+/Users/matt/Sites/octopus/includes/classes/DB/Error.php:32
+/Users/matt/Sites/octopus/includes/classes/DB.php:79
+/Users/matt/Sites/octopus/includes/classes/DB.php:100
+/Users/matt/Sites/octopus/tests/model/FindTest.php:100
+/Users/matt/Sites/octopus/tests/model/FindTest.php:105
+/usr/lib/php/PHPUnit/Framework/TestCase.php:737
+/usr/lib/php/PHPUnit/Framework/TestCase.php:627
+/usr/lib/php/PHPUnit/Framework/TestResult.php:666
+/usr/lib/php/PHPUnit/Framework/TestCase.php:575
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:757
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:733
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:693
+/usr/lib/php/PHPUnit/TextUI/TestRunner.php:305
+/usr/lib/php/PHPUnit/TextUI/Command.php:188
+/usr/lib/php/PHPUnit/TextUI/Command.php:129
+/usr/bin/phpunit:53
+
+2) FindTest::testGet
+<b>DB Error:</b> <code>Table 'sole_octopus_test.posts' doesn't exist</code><br><b>Query:</b> <code>SELECT COUNT(*) FROM posts</code><br>
+
+/Users/matt/Sites/octopus/includes/classes/DB/Error.php:71
+/Users/matt/Sites/octopus/includes/classes/DB/Error.php:51
+/Users/matt/Sites/octopus/includes/classes/DB/Error.php:32
+/Users/matt/Sites/octopus/includes/classes/DB.php:79
+/Users/matt/Sites/octopus/includes/classes/DB.php:100
+/Users/matt/Sites/octopus/tests/model/FindTest.php:100
+/Users/matt/Sites/octopus/tests/model/FindTest.php:137
+/usr/lib/php/PHPUnit/Framework/TestCase.php:737
+/usr/lib/php/PHPUnit/Framework/TestCase.php:627
+/usr/lib/php/PHPUnit/Framework/TestResult.php:666
+/usr/lib/php/PHPUnit/Framework/TestCase.php:575
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:757
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:733
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:693
+/usr/lib/php/PHPUnit/TextUI/TestRunner.php:305
+/usr/lib/php/PHPUnit/TextUI/Command.php:188
+/usr/lib/php/PHPUnit/TextUI/Command.php:129
+/usr/bin/phpunit:53
+
+3) FindTest::testFindByAndGetByMagicMethods
+Undefined offset: 0
+
+/Users/matt/Sites/octopus/includes/classes/Model.php:210
+/Users/matt/Sites/octopus/includes/classes/Model.php:249
+/Users/matt/Sites/octopus/tests/model/FindTest.php:191
+/Users/matt/Sites/octopus/tests/model/FindTest.php:191
+/usr/lib/php/PHPUnit/Framework/TestCase.php:737
+/usr/lib/php/PHPUnit/Framework/TestCase.php:627
+/usr/lib/php/PHPUnit/Framework/TestResult.php:666
+/usr/lib/php/PHPUnit/Framework/TestCase.php:575
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:757
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:733
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:693
+/usr/lib/php/PHPUnit/TextUI/TestRunner.php:305
+/usr/lib/php/PHPUnit/TextUI/Command.php:188
+/usr/lib/php/PHPUnit/TextUI/Command.php:129
+/usr/bin/phpunit:53
+
+4) FindTest::testWhereActiveMagicMethods
+<b>DB Error:</b> <code>Table 'sole_octopus_test.posts' doesn't exist</code><br><b>Query:</b> <code>SELECT COUNT(*) FROM posts</code><br>
+
+/Users/matt/Sites/octopus/includes/classes/DB/Error.php:71
+/Users/matt/Sites/octopus/includes/classes/DB/Error.php:51
+/Users/matt/Sites/octopus/includes/classes/DB/Error.php:32
+/Users/matt/Sites/octopus/includes/classes/DB.php:79
+/Users/matt/Sites/octopus/includes/classes/DB.php:100
+/Users/matt/Sites/octopus/tests/model/FindTest.php:100
+/Users/matt/Sites/octopus/tests/model/FindTest.php:234
+/usr/lib/php/PHPUnit/Framework/TestCase.php:737
+/usr/lib/php/PHPUnit/Framework/TestCase.php:627
+/usr/lib/php/PHPUnit/Framework/TestResult.php:666
+/usr/lib/php/PHPUnit/Framework/TestCase.php:575
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:757
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:733
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:693
+/usr/lib/php/PHPUnit/TextUI/TestRunner.php:305
+/usr/lib/php/PHPUnit/TextUI/Command.php:188
+/usr/lib/php/PHPUnit/TextUI/Command.php:129
+/usr/bin/phpunit:53
+
+5) FindTest::testFluentWhereMethods
+Only variable references should be returned by reference
+
+/Users/matt/Sites/octopus/includes/classes/Model/ResultSet.php:341
+/Users/matt/Sites/octopus/includes/classes/Model/ResultSet.php:126
+/Users/matt/Sites/octopus/tests/model/FindTest.php:258
+/usr/lib/php/PHPUnit/Framework/TestCase.php:737
+/usr/lib/php/PHPUnit/Framework/TestCase.php:627
+/usr/lib/php/PHPUnit/Framework/TestResult.php:666
+/usr/lib/php/PHPUnit/Framework/TestCase.php:575
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:757
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:733
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:693
+/usr/lib/php/PHPUnit/TextUI/TestRunner.php:305
+/usr/lib/php/PHPUnit/TextUI/Command.php:188
+/usr/lib/php/PHPUnit/TextUI/Command.php:129
+/usr/bin/phpunit:53
+
+6) FindTest::testOrderBy
+Only variable references should be returned by reference
+
+/Users/matt/Sites/octopus/includes/classes/Model/ResultSet.php:281
+/Users/matt/Sites/octopus/includes/classes/Model/ResultSet.php:109
+/Users/matt/Sites/octopus/tests/model/FindTest.php:286
+/usr/lib/php/PHPUnit/Framework/TestCase.php:737
+/usr/lib/php/PHPUnit/Framework/TestCase.php:627
+/usr/lib/php/PHPUnit/Framework/TestResult.php:666
+/usr/lib/php/PHPUnit/Framework/TestCase.php:575
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:757
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:733
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:693
+/usr/lib/php/PHPUnit/TextUI/TestRunner.php:305
+/usr/lib/php/PHPUnit/TextUI/Command.php:188
+/usr/lib/php/PHPUnit/TextUI/Command.php:129
+/usr/bin/phpunit:53
+
+7) FindTest::testDetectRegex
+Only variable references should be returned by reference
+
+/Users/matt/Sites/octopus/includes/classes/Model/ResultSet.php:341
+/Users/matt/Sites/octopus/includes/classes/Model/ResultSet.php:126
+/Users/matt/Sites/octopus/tests/model/FindTest.php:322
+/usr/lib/php/PHPUnit/Framework/TestCase.php:737
+/usr/lib/php/PHPUnit/Framework/TestCase.php:627
+/usr/lib/php/PHPUnit/Framework/TestResult.php:666
+/usr/lib/php/PHPUnit/Framework/TestCase.php:575
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:757
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:733
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:693
+/usr/lib/php/PHPUnit/TextUI/TestRunner.php:305
+/usr/lib/php/PHPUnit/TextUI/Command.php:188
+/usr/lib/php/PHPUnit/TextUI/Command.php:129
+/usr/bin/phpunit:53
+
+8) FindTest::testComplexArrayCriteria
+Only variable references should be returned by reference
+
+/Users/matt/Sites/octopus/includes/classes/Model/ResultSet.php:341
+/Users/matt/Sites/octopus/includes/classes/Model/ResultSet.php:126
+/Users/matt/Sites/octopus/tests/model/FindTest.php:342
+/usr/lib/php/PHPUnit/Framework/TestCase.php:737
+/usr/lib/php/PHPUnit/Framework/TestCase.php:627
+/usr/lib/php/PHPUnit/Framework/TestResult.php:666
+/usr/lib/php/PHPUnit/Framework/TestCase.php:575
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:757
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:733
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:693
+/usr/lib/php/PHPUnit/TextUI/TestRunner.php:305
+/usr/lib/php/PHPUnit/TextUI/Command.php:188
+/usr/lib/php/PHPUnit/TextUI/Command.php:129
+/usr/bin/phpunit:53
+
+9) FindTest::testCustomOperators
+Only variable references should be returned by reference
+
+/Users/matt/Sites/octopus/includes/classes/Model/ResultSet.php:341
+/Users/matt/Sites/octopus/includes/classes/Model/ResultSet.php:126
+/Users/matt/Sites/octopus/tests/model/FindTest.php:379
+/usr/lib/php/PHPUnit/Framework/TestCase.php:737
+/usr/lib/php/PHPUnit/Framework/TestCase.php:627
+/usr/lib/php/PHPUnit/Framework/TestResult.php:666
+/usr/lib/php/PHPUnit/Framework/TestCase.php:575
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:757
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:733
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:693
+/usr/lib/php/PHPUnit/TextUI/TestRunner.php:305
+/usr/lib/php/PHPUnit/TextUI/Command.php:188
+/usr/lib/php/PHPUnit/TextUI/Command.php:129
+/usr/bin/phpunit:53
+
+10) FindTest::testNotCriteria
+Only variable references should be returned by reference
+
+/Users/matt/Sites/octopus/includes/classes/Model/ResultSet.php:341
+/Users/matt/Sites/octopus/includes/classes/Model/ResultSet.php:126
+/Users/matt/Sites/octopus/tests/model/FindTest.php:392
+/usr/lib/php/PHPUnit/Framework/TestCase.php:737
+/usr/lib/php/PHPUnit/Framework/TestCase.php:627
+/usr/lib/php/PHPUnit/Framework/TestResult.php:666
+/usr/lib/php/PHPUnit/Framework/TestCase.php:575
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:757
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:733
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:693
+/usr/lib/php/PHPUnit/TextUI/TestRunner.php:305
+/usr/lib/php/PHPUnit/TextUI/Command.php:188
+/usr/lib/php/PHPUnit/TextUI/Command.php:129
+/usr/bin/phpunit:53
+
+11) FindTest::testInCriteria
+Only variable references should be returned by reference
+
+/Users/matt/Sites/octopus/includes/classes/Model/ResultSet.php:341
+/Users/matt/Sites/octopus/includes/classes/Model/ResultSet.php:126
+/Users/matt/Sites/octopus/tests/model/FindTest.php:404
+/usr/lib/php/PHPUnit/Framework/TestCase.php:737
+/usr/lib/php/PHPUnit/Framework/TestCase.php:627
+/usr/lib/php/PHPUnit/Framework/TestResult.php:666
+/usr/lib/php/PHPUnit/Framework/TestCase.php:575
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:757
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:733
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:693
+/usr/lib/php/PHPUnit/TextUI/TestRunner.php:305
+/usr/lib/php/PHPUnit/TextUI/Command.php:188
+/usr/lib/php/PHPUnit/TextUI/Command.php:129
+/usr/bin/phpunit:53
+
+12) FindTest::testRelatedCriteria
+Only variable references should be returned by reference
+
+/Users/matt/Sites/octopus/includes/classes/Model/ResultSet.php:341
+/Users/matt/Sites/octopus/includes/classes/Model/ResultSet.php:126
+/Users/matt/Sites/octopus/tests/model/FindTest.php:416
+/usr/lib/php/PHPUnit/Framework/TestCase.php:737
+/usr/lib/php/PHPUnit/Framework/TestCase.php:627
+/usr/lib/php/PHPUnit/Framework/TestResult.php:666
+/usr/lib/php/PHPUnit/Framework/TestCase.php:575
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:757
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:733
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:693
+/usr/lib/php/PHPUnit/TextUI/TestRunner.php:305
+/usr/lib/php/PHPUnit/TextUI/Command.php:188
+/usr/lib/php/PHPUnit/TextUI/Command.php:129
+/usr/bin/phpunit:53
+
+--
+
+
+There were 2 failures:
+
+1) FindTest::testFindByStringField
+Wrong number of posts. (Find w/o array, mixed case, no explicit LIKE)
+Failed asserting that <integer:0> matches expected <integer:2>.
+
+/usr/lib/php/PHPUnit/Framework/Constraint/IsEqual.php:164
+/usr/lib/php/PHPUnit/Framework/Assert.php:2087
+/usr/lib/php/PHPUnit/Framework/Assert.php:343
+/Users/matt/Sites/octopus/tests/model/FindTest.php:450
+/Users/matt/Sites/octopus/tests/model/FindTest.php:152
+/usr/lib/php/PHPUnit/Framework/TestCase.php:737
+/usr/lib/php/PHPUnit/Framework/TestCase.php:627
+/usr/lib/php/PHPUnit/Framework/TestResult.php:666
+/usr/lib/php/PHPUnit/Framework/TestCase.php:575
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:757
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:733
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:693
+/usr/lib/php/PHPUnit/TextUI/TestRunner.php:305
+/usr/lib/php/PHPUnit/TextUI/Command.php:188
+/usr/lib/php/PHPUnit/TextUI/Command.php:129
+/usr/bin/phpunit:53
+
+2) FindTest::testFindByAndGetByMagicMethodsWithName
+SQL differs. 
+Failed asserting that two strings are equal.
+--- Expected
++++ Actual
+@@ @@
+-SELECT * FROM findposts, findauthors WHERE findauthors.findauthor_id = findposts.author_id AND findauthors.name LIKE '% Hinz'
++SELECT * FROM findposts WHERE ((Author = ?))
+
+/usr/lib/php/PHPUnit/Framework/Constraint/IsEqual.php:164
+/usr/lib/php/PHPUnit/Framework/Assert.php:2087
+/usr/lib/php/PHPUnit/Framework/Assert.php:343
+/Users/matt/Sites/octopus/tests/model/FindTest.php:440
+/Users/matt/Sites/octopus/tests/model/FindTest.php:218
+/usr/lib/php/PHPUnit/Framework/TestCase.php:737
+/usr/lib/php/PHPUnit/Framework/TestCase.php:627
+/usr/lib/php/PHPUnit/Framework/TestResult.php:666
+/usr/lib/php/PHPUnit/Framework/TestCase.php:575
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:757
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:733
+/usr/lib/php/PHPUnit/Framework/TestSuite.php:693
+/usr/lib/php/PHPUnit/TextUI/TestRunner.php:305
+/usr/lib/php/PHPUnit/TextUI/Command.php:188
+/usr/lib/php/PHPUnit/TextUI/Command.php:129
+/usr/bin/phpunit:53
+
+[37;41m[2KFAILURES!
+[0m[37;41m[2KTests: 14, Assertions: 5, Failures: 2, Errors: 12.
+[0m[2K

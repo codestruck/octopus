@@ -248,7 +248,7 @@ class SG_Model {
          $value = $args[0];
          $orderBy = isset($args[1]) ? $args[1] : null;
 
-         $result = static::find(array($field => $value));
+         $result = static::find(array(underscore($field) => $value));
          if ($orderBy) $result = $result->orderBy($orderBy);
          return $result;
 
@@ -271,7 +271,7 @@ class SG_Model {
         $value = $args[0];
         $orderBy = isset($args[1]) ? $args[1] : null;
 
-        $result = static::find($field, $value);
+        $result = static::find(underscore($field), $value);
         if ($orderBy) $result = $result->orderBy($orderBy);
 
         return $result->first();

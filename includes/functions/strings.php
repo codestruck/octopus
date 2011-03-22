@@ -52,9 +52,11 @@
      * @return Mixed if $s is a valid regex, returns an array with keys 'pattern' and 'flag'.
      * Otherwise returns false.
      */
-    function parse_regex($s) {
+    function parse_regex($s, $boundaryChars = '\/#-') {
 
-        if (preg_match('/^([^a-z0-9\s])(.+)\1(i)$/i', $s, $m)) {
+        $pattern = '/^([' . $boundaryChars . '])(.*)\1([i]*)/i';
+
+        if (preg_match($pattern, $s, $m)) {
             $result = array('pattern' => $m[2], 'flags' => strtolower($m[3]));
             return $result;
         }
@@ -129,6 +131,15 @@
         $x = preg_replace('/^([^a-z-])/i', '-$1', $x);
 
         return $x;
+    }
+
+    /**
+     * Takes a PHP regex pattern and converts it for use in mysql queries.
+     */
+    function to_mysql_regex($pattern) {
+        $pattern = str_replace('\\(', '[(]', $pattern);
+        $pattern = str_replace('\\)', '[)]', $pattern);
+        return $pattern;
     }
 
     /**
