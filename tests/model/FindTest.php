@@ -74,8 +74,8 @@ class FindTest extends SG_DB_TestCase {
                 `updated` DATETIME NOT NULL
                 );
                 ";
-        $db->query($sql);
 
+        $db->query($sql);
 
         $sql = "
                 CREATE TABLE findauthors (
@@ -84,12 +84,14 @@ class FindTest extends SG_DB_TestCase {
                 `active` TINYINT NOT NULL DEFAULT 1
                 )
                 ";
+
         $db->query($sql);
 
     }
 
     function dropTables(&$db) {
         $db->query("DROP TABLE IF EXISTS find_posts");
+        $db->query("DROP TABLE IF EXISTS findauthors");
     }
 
 
