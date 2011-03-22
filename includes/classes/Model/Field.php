@@ -106,22 +106,40 @@ class SG_Model_Field {
 
         $fieldName = $this->getFieldName();
 
-        if ((!$operator || strcasecmp($operator,'in') == 0) && is_array($value)) {
+        if (!$operator) {
+            $operator = is_array($value) ? 'IN' : $this->getDefaultSearchOperator();
+        } else {
+            $operator = trim($operator);
+        }
 
-            $operator = 'IN';
+        $not = false;
+        if (strncasecmp($operator, 'NOT', 3) == 0) {
+            $not = true;
+            $operator = trim(substr($operator,3));
+            if ($operator == '') $operator = $this->getDefaultSearchOperator(); // Handle NOT without an = or LIKE
+        }
+
+        // If no operator, and we get an array, then process it as an IN
+        if (strcasecmp($operator, 'IN') == 0) {
+
+            $value = is_array($value) ? $value : array($value);
             $expr = '';
             foreach($value as $item) {
                 $params[] = $item;
                 $expr .= ($expr == '' ? '' : ',') . '?';
             }
 
-            return "(`$fieldName` IN ($expr))";
+            $expr = "(`$fieldName` IN ($expr))";
+        } else {
+            $params[] = $value;
+            $expr = "(`$fieldName` $operator ?)";
         }
 
-        if (!$operator) $operator = $this->getDefaultSearchOperator();
+        if ($not) {
+            $expr = "(NOT $expr)";
+        }
 
-        $params[] = $value;
-        return '(`' . $this->getFieldName() . '` ' . $operator . ' ?)';
+        return $expr;
     }
 
     /**

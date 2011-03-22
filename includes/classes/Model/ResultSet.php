@@ -235,7 +235,7 @@ class SG_Model_ResultSet implements Iterator {
 
 
                 if (!$field) {
-                    dump_r('Field not found', $fieldName);
+                    //dump_r("Field not found: $fieldName");
                     continue;
                 }
 
@@ -272,7 +272,7 @@ class SG_Model_ResultSet implements Iterator {
 
         $fieldName = $operator = null;
 
-        $spacePos = strrpos($key, ' ');
+        $spacePos = strpos($key, ' ');
         if ($spacePos !== false) {
             $fieldName = substr($key, 0, $spacePos);
             $operator = substr($key, $spacePos + 1);
@@ -280,6 +280,7 @@ class SG_Model_ResultSet implements Iterator {
             $fieldName = $key;
         }
 
+        $fieldName = trim($fieldName, '`');
     }
 
     /**

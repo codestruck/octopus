@@ -414,7 +414,7 @@ class FindTest extends SG_DB_TestCase {
 
     function testCustomOperators() {
 
-        $operators = array('=', '!=', 'LIKE', 'NOT LIKE', '<', '<=', '>', '>=');
+        $operators = array('=', '!=', 'LIKE', 'LIKE', '<', '<=', '>', '>=');
         foreach($operators as $op) {
 
             $posts = FindPost::all()->where(array("title $op" => 'foo'));
@@ -423,6 +423,14 @@ class FindTest extends SG_DB_TestCase {
                 $posts,
                 "Operator: $op"
             );
+
+            $posts = FindPost::all()->where(array("title not $op" => 'foo'));
+            $this->assertSqlEquals(
+                "SELECT * FROM findposts WHERE (NOT (`title` $op 'foo'))",
+                $posts,
+                "Operator: $op (NOT)"
+            );
+
 
         }
 
@@ -434,7 +442,7 @@ class FindTest extends SG_DB_TestCase {
         $this->assertSqlEquals("SELECT * FROM findposts WHERE (NOT (`title` LIKE 'foo'))", $posts, 'NOT');
 
         $posts = FindPost::all()->where(array('display_order NOT' => 42));
-        $this->assertSqlEquals("SELECT * FROM findposts WHERE (NOT (`title` = 'foo'))", $posts, 'NOT');
+        $this->assertSqlEquals("SELECT * FROM findposts WHERE (NOT (`display_order` = 42))", $posts, 'NOT');
     }
 
     function testInCriteria() {
@@ -449,7 +457,7 @@ class FindTest extends SG_DB_TestCase {
         $this->assertSqlEquals("SELECT * FROM findposts WHERE (`findpost_id` IN $idSql)", $posts, 'explicit IN');
 
         $posts = FindPost::all()->where('id NOT IN', $ids);
-        $this->assertSqlEquals("SELECT * FROM findposts WHERE (`findpost_id` NOT IN $idSql)", $posts, 'NOT IN');
+        $this->assertSqlEquals("SELECT * FROM findposts WHERE (NOT (`findpost_id` IN $idSql))", $posts, 'NOT IN');
     }
 
     function testRelatedCriteria() {
