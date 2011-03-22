@@ -1,46 +1,63 @@
 <?php
 
-    SG::loadClass('SG_Nav_Item');
-    SG::loadClass('SG_Nav_Item_File');
+SG::loadClass('SG_Nav_Item');
+SG::loadClass('SG_Nav_Item_File');
 
-    class SG_Nav_Item_Directory : SG_Nav_Item {
+class SG_Nav_Item_Directory : SG_Nav_Item {
 
-        static $defaults = array(
+    static $defaults = array(
+        'filter' = '/\.(php|html?)$/i'
+    );
 
-            'filter' = '/\.(php|html?)$/i'
-        );
+    var $_directory = null;
+    var $_children = null;
 
-        var $_directory = null;
-        var $_children = array();
 
-        /**
-         * @return Array the children of this item (all the files in the directory
-         */
-        function &getChildren() {
+    protected function getDefaultText() {
 
-            $result = array();
+        $text = basename($this->_directory);
+        $text = preg_replace('/\..*?$/', '', $text);
+        $text = preg_replace('/[_-]/', ' ', $text);
+        $text = preg_replace('/\s{2,}/', ' ', $text);
+        $text = ucwords($text);
 
-            $filter = $this->_directory . '*';
-            foreach(glob($filter) as $file) {
+        return $text;
+    }
 
-                if (isset($this->_children[$file])) {
-                    $result[] = $this->_children[$file];
-                    continue;
-                }
 
-                if (!preg_match($this->options['filter'], $file)) {
-                    continue;
-                }
+    /**
+     * @return Array the children of this item (all the files in the
+     * directory).
+     */
+    public function &getChildren() {
 
-                $item = new SG_Nav_Item_File($this, $file);
-                $this->_children[$file] = $item;
-
-                $result[] = $item;
-            }
-
-            return $result;
+        if ($this->_children) {
+            return $this->_children;
         }
 
+        $this->_children = array();
+
+        $filter = $this->_directory . '*';
+        foreach(glob($filter) as $file) {
+
+            if (isset($this->_children[$file])) {
+                $result[] = $this->_children[$file];
+                continue;
+            }
+
+            if (!preg_match($this->options['filter'], $file)) {
+                continue;
+            }
+
+            $item = new SG_Nav_Item_File($this, $file);
+            $this->_children[$file] = $item;
+
+            $result[] = $item;
+        }
+
+        return $result;
     }
+
+}
 
 ?>

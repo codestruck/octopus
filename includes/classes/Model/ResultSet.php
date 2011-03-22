@@ -43,6 +43,12 @@ class SG_Model_ResultSet implements Iterator {
 
     }
 
+    public function __destruct() {
+        if ($this->_query) {
+
+        }
+    }
+
     /**
      * @return Object A new ResultSet with extra constraints added via AND.
      */
@@ -332,6 +338,9 @@ class SG_Model_ResultSet implements Iterator {
 
         if ($this->_query && !$new) {
             return $this->_query;
+        }
+
+        if ($this->_query) {
         }
 
         $s = $this->_buildSelect();

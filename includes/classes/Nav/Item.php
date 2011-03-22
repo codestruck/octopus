@@ -1,148 +1,287 @@
 <?php
 
+/**
+ * A single item in a nav hierarchy.
+ */
+class SG_Nav_Item {
+
+    public static $defaults = array();
+
+    private static $_registry = array();
+
+    protected $_parent = null;
+    protected $_nav = null;
+    protected $_findCache = null;
+    private $_children = array();
+
     /**
-     * A single item in a nav hierarchy.
+     * Creates a new nav item.
+     * @param $nav object The SG_Nav instance this item is working for.
+     * @param $parent object The SG_Nav_Item that is above this one in the
+     * hierarchy.
+     * @param $options array Custom options for this item.
      */
-    abstract class SG_Nav_Item {
+    public function __construct($options = null) {
 
-        static $_registry = array();
-
-        var $_parent;
-        var $_nav;
-        var $_findCache = null;
-
-        /**
-         * Creates a new nav item.
-         * @param $nav object The SG_Nav instance this item is working for.
-         * @param $options array Custom options for this item.
-         */
-        function __construct($nav, $parent, $options = null) {
-            $this->_nav = $nav;
+        $options = $options ? $options : array();
+        if (isset(static::$defaults)) {
+            $options = array_merge($options, static::$defaults);
         }
 
-        /**
-         * Factory method for creating an appropriate SG_Nav_Item instance
-         * based on the options passed in.
-         */
-        function create($options, $extra = null) {
+        $this->options = $options;
+    }
 
-            if (is_string($options)) {
-                $options = array('path' => $options);
-            }
+    /**
+     * Factory method for creating an appropriate SG_Nav_Item instance
+     * based on the options passed in.
+     */
+    public static function create($options, $extra = null) {
 
-            if (is_string($extra)) {
-                $options['text'] = $extra;
-            }
-
+        if (is_string($options)) {
+            $options = array('path' => $options);
         }
 
-        /**
-         * Registers an SG_Nav_Item subclass.
-         */
-        function register($class) {
-            self::$_registry[] = $class;
+        if (is_string($extra)) {
+            $options['text'] = $extra;
         }
 
+        if (!isset($options['type'])) {
 
-        /**
-         * Finds the first item under this one that matches the given path,
-         * or returns false if not found.
-         */
-        function &find($path, $options = null) {
-
-            if ($this->_checkFindResultCache($path, $options, $item)) {
-                return $item;
+            if (isset($options['directory'])) {
+                $options['type'] = 'SG_Nav_Item_Directory';
             }
-
-            if (is_string($path)) {
-                $path = explode('/', trim($path, '/'));
-            }
-
-            foreach($this->_children as $child) {
-
-                if ($child->matchesPath($path, $options)) {
-
-                    if ($options === null) {
-                        $this->_cacheFindResult($path, $options, $item);
-                    }
-
-                    return $child;
-                }
-
-            }
-
-            array_shift($path);
-
-            if (!empty($path)) {
-
-                foreach($this->_children as $child) {
-
-                    if ($grandchild = $child->find($path, $options)) {
-                        return $this->_cacheFindResult($path, $grandchild);
-                    }
-
-                }
-
-            }
-
-            return false;
 
         }
 
-        /**
-         * @return Array The children of this item.
-         */
-        function getChildren() {
-            return array();
+        if (isset($options['type'])) {
+            $class = self::$_registry[$options['type']];
+        } else {
+            $class = 'SG_Nav_Item';
         }
 
-        /**
-         * @return bool Whether this item should be used for $path.
-         */
-        function matchesPath($path) {
-            return false;
+        SG::loadClass($class);
+        return new $class($options);
+    }
+
+    /**
+     * Registers an SG_Nav_Item subclass.
+     */
+    public static function register($class) {
+        self::$_registry[] = $class;
+    }
+
+    /**
+     * Adds one or more items underneath this item.
+     */
+    public function &add($options, $extra = null) {
+
+        $path = '';
+
+        if (is_string($options)) {
+            $path = $options;
+        } else if (is_array($options)) {
+            $path = $options['path'];
         }
 
-        /**
-         * Stores the given item in the find cache.
-         * @return object $item
-         */
-        function &_cacheFindResult($path, &$item, &$options) {
+        $levels = explode('/', $path);
+        $parent = $this;
 
-            // For now, don't cache if any custom options were used for the lookup
-            if ($options !== null) {
-                return $item;
+        while(count($levels)) {
+
+            $path = array_shift($levels);
+
+            if (empty($levels)) {
+                $parent->add($options, $extra);
+                break;
             }
 
-            if (!$this->_findCache) {
-                $this->_findCache = array();
-            }
+            $child = $parent->find($path);
+            if (!$child) $child = $parent->add($path);
 
-            $this->_findCache[is_array($path) ? implode('/', $path) : $path] = $item;
+            $parent = $child;
+        }
+
+
+        $this->
+
+        return $item;
+    }
+
+    /**
+     * Adds a single item.
+     */
+    protected function internalAdd($options) {
+        $item = is_array($options) ? SG_Nav_Item::create($options) : $item;
+        $this->_children[] = $item;
+        return $item;
+    }
+
+    /**
+     * Finds the first item under this one that matches the given path,
+     * or returns false if not found.
+     */
+    public function &find($path, $options = null) {
+
+        $item = false;
+        $originalPath = $path;
+
+        if ($this->_checkFindResultCache($path, $options, $item)) {
             return $item;
         }
 
-        /**
-         * Checks to see if the given path has been looked up before, and
-         * returns the corresponding item if so.
-         */
-        function &_checkFindResultCache($path, &$options, &$item) {
+        $pathParts = is_array($path) ? $path : explode('/', trim($path, '/'));
 
-            if (empty($this->_findCache)) {
-                $item = null;
-                return false;
+        $firstPart = array_shift($pathParts);
+
+        foreach($this->getChildren() as $child) {
+
+            if ($child->matchesPath($firstPart, $options)) {
+                $this->_cacheFindResult($originalPath, $options, $child);
+                $item = $child;
+                break;
             }
 
-            $path = (is_array($path) ? implode('/', $path) : $path);
-
-            if (isset($this->_findCache[$path])) {
-                $item = $this->_findCache[$path];
-                return $item;
-            }
-
-            return false;
         }
 
+        if (!$item || empty($pathParts)) {
+            return $item;
+        }
+
+        $item = $child->find($pathParts, $options);
+        $this->_cacheFindResult($originalPath, $options, $item);
+
+
+        return $item;
+
     }
+
+    /**
+     * @return Array The children of this item.
+     */
+    public function getChildren() {
+        return $this->_children;
+    }
+
+    /**
+     * @return string The full path to the PHP file that should be included for
+     * this item.
+     */
+    public function getFile() {
+
+        if (isset($this->options['file'])) {
+            return $this->options['file'];
+        }
+
+        return false;
+    }
+
+    /**
+     * @return string Full path from the root.
+     */
+    public function getFullPath() {
+
+        $full = '';
+        $p = $this->getParent();
+        if ($p) $full = $p->getFullPath();
+
+        $full .= ($full == '' ? '' : '/') . $this->getPath();
+
+        return $full;
+    }
+
+    /**
+     * @return String Path to this item, relative to its parent.
+     */
+    public function getPath() {
+        return $this->options['path'];
+    }
+
+    /**
+     * @return String The text to display in menus for this item.
+     */
+    public function getText() {
+
+        if (isset($this->options['text'])) {
+            return $this->options['text'];
+        } else if (isset($this->options['title'])) {
+            return $this->options['title'];
+        }
+
+        return $this->options['text'] = $this->getDefaultText();
+    }
+
+    /**
+     * @return String The page title for this item, if different from
+     * getText().
+     */
+    public function getTitle() {
+
+        if (isset($this->options['title'])) {
+            return $this->options['title'];
+        } else if (isset($this->options['text'])) {
+            return $this->options['text'];
+        }
+
+        return $this->options['title'] = $this->getDefaultText();
+    }
+
+    /**
+     * Place for subclasses to generate the default text/title for this item.
+     * See, for example, SG_Nav_Item_File.
+     */
+    protected function getDefaultText() {
+        return '(unnamed)';
+    }
+
+
+    /**
+     * @return bool Whether this item should be used for $path.
+     */
+    public function matchesPath($path) {
+        return $this->options['path'] == $path;
+    }
+
+    /**
+     * Stores the given item in the find cache.
+     * @return object $item
+     */
+    protected function &_cacheFindResult($path, &$item, &$options) {
+
+        // For now, don't cache if any custom options were used for the lookup
+        if ($options !== null) {
+            return $item;
+        }
+
+        if (!$this->_findCache) {
+            $this->_findCache = array();
+        }
+
+        $this->_findCache[is_array($path) ? implode('/', $path) : $path] = $item;
+        return $item;
+    }
+
+    /**
+     * Checks to see if the given path has been looked up before, and
+     * returns the corresponding item if so.
+     */
+    protected function &_checkFindResultCache($path, &$options, &$item) {
+
+        $item = false;
+
+        if (empty($this->_findCache)) {
+            return $item;
+        }
+
+        $path = (is_array($path) ? implode('/', $path) : $path);
+
+        if (isset($this->_findCache[$path])) {
+            $item = $this->_findCache[$path];
+            return $item;
+        }
+
+        return $item;
+    }
+
+}
 
 ?>
