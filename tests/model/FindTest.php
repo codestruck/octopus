@@ -73,14 +73,17 @@ class FindTest extends SG_DB_TestCase {
                 `created` DATETIME NOT NULL,
                 `updated` DATETIME NOT NULL
                 );
+                ";
+        $db->query($sql);
 
+
+        $sql = "
                 CREATE TABLE findauthors (
                 `findauthor_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 `name` varchar ( 255 ) NOT NULL,
                 `active` TINYINT NOT NULL DEFAULT 1
                 )
                 ";
-
         $db->query($sql);
 
     }
