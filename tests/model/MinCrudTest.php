@@ -207,6 +207,18 @@ class ModelMinCrudLoadTest extends SG_DB_TestCase
         $this->assertTrue($created <= $now);
     }
 
+    function testReuseModel()
+    {
+        $post = new Minpost(1);
+        $this->assertEquals('My Title', $post->title);
+        $this->assertEquals(1, $post->minpost_id);
+
+        $post = new Minpost();
+        $this->assertEquals(null, $post->title);
+        $this->assertEquals(null, $post->minpost_id);
+    }
+
+
     function testSlugCreation()
     {
         $post = new Minpost();

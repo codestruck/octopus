@@ -2,7 +2,6 @@
 
 class SG_Model_Field {
 
-    protected $data;
     private $field;
     private $options;
 
@@ -36,12 +35,12 @@ class SG_Model_Field {
     }
 
     function accessValue($model) {
-        $value = isset($this->data) ? $this->data : '';
+        $value = $model->getInternalValue($this->getFieldName());
         return $value;
     }
 
     function saveValue($model) {
-        $value = isset($this->data) ? $this->data : '';
+        $value = $model->getInternalValue($this->getFieldName());
 
         $pk = $model->getPrimaryKey();
         if ($model->$pk === null) {
@@ -60,7 +59,7 @@ class SG_Model_Field {
     }
 
     function setValue($model, $value) {
-        $this->data = $value;
+        $model->setInternalValue($this->getFieldName(), $value);
     }
 
     function getFieldName() {
@@ -92,31 +91,19 @@ class SG_Model_Field {
         $fnc = $this->getOption($type);
         if ($fnc && function_exists($fnc)) {
             $newValue = $fnc($model, $this);
-            $this->data = $newValue;
+            $model->setInternalValue($this->getFieldName(), $newValue);
             return $newValue;
         }
 
         if ($fnc && method_exists($model, $fnc)) {
             $newValue = $model->$fnc($model, $this);
-            $this->data = $newValue;
+            $model->setInternalValue($this->getFieldName(), $newValue);
             return $newValue;
         }
 
         return $this->accessValue($model);
 
     }
-
-    // handlers
-    function onEmpty($model) {
-
-        $fnc = $this->getOption('onEmpty');
-        if ($fnc && function_exists($fnc)) {
-            return $fnc($model, $this);
-        }
-
-        return '';
-    }
-
 
     /**
      * @param $operator string Operator (=, LIKE, etc) to use. If null, the

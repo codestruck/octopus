@@ -40,6 +40,7 @@ class SG_Model {
 
     protected static $_className = null;
     protected static $_fieldHandles = null;
+    protected $data = array();
 
     public function __construct($id = null) {
 
@@ -76,6 +77,14 @@ class SG_Model {
         } else {
             $this->$var = $value;
         }
+    }
+
+    public function setInternalValue($field, $value) {
+        $this->data[$field] = $value;
+    }
+
+    public function getInternalValue($field) {
+        return isset($this->data[$field]) ? $this->data[$field] : '';
     }
 
     protected function setData($data) {
