@@ -24,24 +24,24 @@
     active="1"
   />
   <find_posts
-    find_post_id="5"
-    title="Post 5 - Case Test - FOO"
-    slug="post-5-case-test-foo"
+    find_post_id="3"
+    title="Post 3 - Case Test - FOO"
+    slug="post-3-case-test-foo"
     body=""
     display_order="0"
     active="1"
   />
   <find_posts
-    find_post_id="6"
-    title="Post 6 - Case Test - foo"
-    slug="post-5-case-test-foo-2"
+    find_post_id="4"
+    title="Post 4 - Case Test - foo"
+    slug="post-4-case-test-foo"
     body=""
     display_order="0"
     active="1"
   />
 
   <find_posts
-    find_post_id="7"
+    find_post_id="5"
     title="Magic Method Test Post"
     slug="magic-method-test-post"
     body="Magic Method Test Post Body"
@@ -51,7 +51,7 @@
   />
 
   <find_posts
-    find_post_id="8"
+    find_post_id="6"
     title="Second Magic Method Test Post"
     slug="second-magic-method-test-post"
     body="Second Magic Method Test Post Body"

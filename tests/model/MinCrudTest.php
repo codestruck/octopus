@@ -79,7 +79,7 @@ class ModelMinCrudLoadTest extends PHPUnit_Extensions_Database_TestCase
     function __destruct()
     {
         $db =& SG_DB::singleton();
-        $db->query('DROP TABLE IF EXISTS minposts');
+        //$db->query('DROP TABLE IF EXISTS minposts');
     }
 
     function testTableName()

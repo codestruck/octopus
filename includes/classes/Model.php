@@ -25,7 +25,7 @@ class SG_Model {
     /**
      * Name of the field to use when displaying this model e.g. in a list.
      * If an array, the first one that actually exists on the model will be
-     * used.
+     * used. Once the correct field is selected, it is cached.
      */
     public static $displayField = array('name', 'title', 'text', 'summary', 'description');
 
@@ -107,10 +107,10 @@ class SG_Model {
             $i = new SG_DB_Insert();
         }
 
-        $i->table($this->getTableName());
+        $i->table(static::getTableName());
 
-        foreach ($this->_fieldHandles as $obj) {
-            $i->set($obj->getFieldName(), $obj->saveValue($this));
+        foreach (static::getFields() as $name => $field) {
+            $i->set($name, $field->saveValue($this));
         }
 
         $i->execute();
@@ -125,7 +125,7 @@ class SG_Model {
 
         $pk = static::getPrimaryKey();
         $item_id = $this->$pk;
-        $table = $static::getTableName();
+        $table = static::getTableName();
 
         $d = new SG_DB_Delete();
         $d->table($table);
@@ -186,7 +186,7 @@ class SG_Model {
 
     public function getDisplayValue() {
         $field = static::getDisplayField();
-        return $this->$field;
+        return $this->{$field->getFieldName()};
     }
 
     public static function getPrimaryKey() {
@@ -268,9 +268,7 @@ class SG_Model {
 
         if (is_numeric($idOrName)) {
 
-            $keyField = static::getPrimaryKey();
-
-            $result = static::find(array($keyField => $idOrName));
+            $result = static::find(array('id' => $idOrName));
             if ($orderBy) $result = $result->orderBy($orderBy);
 
             $result = $result->first();
@@ -278,7 +276,7 @@ class SG_Model {
             if ($result) return $result;
         }
 
-        $displayField = static::getDisplayField();
+        $displayField = static::getDisplayField()->getFieldName();
 
         $result = static::find(array($displayField => $idOrName));
         if ($orderBy) $result = $result->orderBy($orderBy);

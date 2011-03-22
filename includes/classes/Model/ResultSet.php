@@ -63,8 +63,13 @@ class SG_Model_ResultSet implements Iterator {
      * Sends the SQL for the current query to dump_r().
      * @return $this to continue the chain.
      */
-    public function &dumpSql() {
-        dump_r($this->getSql());
+    public function &dumpSql($normalize = true) {
+
+        $params = array();
+        $sql = $this->getSql($params);
+        if ($normalize) $sql = normalize_sql($sql, $params);
+
+        dump_r($sql);
         return $this;
     }
 
@@ -75,7 +80,7 @@ class SG_Model_ResultSet implements Iterator {
 
         $q = $this->_query(true);
         $row = $q->fetchRow();
-        if (!$row) return false;
+        if (!$row) return $row;
 
         return $this->_createModelInstance($row);
     }
@@ -223,23 +228,21 @@ class SG_Model_ResultSet implements Iterator {
                 self::_readCriteriaKey($key, $fieldName, $operator);
 
 
-                // HACK: special-case id?
+                // HACK: special-case id
                 if (strcasecmp($fieldName, 'id') == 0) {
                     $mc = $this->_modelClass;
                     $fieldName = $mc::getPrimaryKey();
-                    SG::loadClass('SG_Model_Field_Numeric');
-                    $field = new SG_Model_Field_Numeric($fieldName, array());
+                    $criteriaSql = SG_Model_Field::defaultRestrict($mc::getPrimaryKey(), $operator, '=', $value, $s, $params);
                 } else {
                     $field = $this->_getField($fieldName);
+
+                    if (!$field) {
+                        //dump_r("Field not found: $fieldName");
+                        continue;
+                    }
+
+                    $criteriaSql = $field->restrict($operator, $value, $s, $params);
                 }
-
-
-                if (!$field) {
-                    //dump_r("Field not found: $fieldName");
-                    continue;
-                }
-
-                $criteriaSql = $field->restrict($operator, $value, $s, $params);
             }
 
             if (!empty($criteriaSql)) {

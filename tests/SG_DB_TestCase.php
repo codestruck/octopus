@@ -26,7 +26,7 @@ abstract class SG_DB_TestCase extends PHPUnit_Extensions_Database_TestCase {
     public function __destruct()
     {
         // Sometimes it might be nice to be able to inspect the DB after a failed test?
-        $this->dropTables(SG_DB::singleton());
+        //$this->dropTables(SG_DB::singleton());
     }
 
     /**

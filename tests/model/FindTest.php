@@ -90,9 +90,16 @@ class FindTest extends SG_DB_TestCase {
     }
 
 
-    function numberOfTestPosts() {
+    function numberOfTestPosts($criteria = null) {
         $db = SG_DB::singleton();
-        return $db->getOne('SELECT COUNT(*) FROM find_posts', true);
+
+        $sql = 'SELECT COUNT(*) FROM find_posts';
+
+        if ($criteria) {
+            $sql = "$sql WHERE $criteria";
+        }
+
+        return $db->getOne($sql, true);
     }
 
     function testFindAll() {
@@ -134,7 +141,7 @@ class FindTest extends SG_DB_TestCase {
         for($i = 1; $i <= $count; $i++) {
             $post = FindPost::get($i);
             $this->assertTrueish($post, '::get() failed for ' . $i);
-            //$this->assertEquals($i, $post->id, '::get() returned the wrong result for ' . $i);
+            $this->assertEquals($i, $post->id, '::get() returned the wrong result for ' . $i);
         }
     }
 
@@ -143,52 +150,51 @@ class FindTest extends SG_DB_TestCase {
         $fooExpr = '/Case Test - Foo/i';
 
         $test = 'Find w/o array, mixed case, no explicit LIKE';
-        $posts = FindPost::find('title', 'Foo');
+        $posts = FindPost::find('title', '* Foo');
         $this->assertSqlEquals(
-            "SELECT * FROM find_posts WHERE (`title` LIKE 'Foo')",
+            "SELECT * FROM find_posts WHERE (`title` LIKE '% Foo')",
             $posts,
             $test
         );
-        //$this->assertCountEquals(2, $posts, $test);
-        //$this->assertTitlesMatch($fooExpr, $posts, $test);
+        $this->assertCountEquals(2, $posts, $test);
+        $this->assertTitlesMatch($fooExpr, $posts, $test);
 
         $test = 'Find w/o array, mixed case, explicit LIKE';
-        $posts = FindPost::find('title LIKE', 'Foo');
+        $posts = FindPost::find('title LIKE', '* Foo');
         $this->assertSqlEquals(
-            "SELECT * FROM find_posts WHERE (`title` LIKE 'Foo')",
+            "SELECT * FROM find_posts WHERE (`title` LIKE '% Foo')",
             $posts,
             $test
         );
-        //$this->assertCountEquals(2, $posts, $test);
-        //$this->assertTitlesMatch($fooExpr, $posts, $test);
+        $this->assertCountEquals(2, $posts, $test);
+        $this->assertTitlesMatch($fooExpr, $posts, $test);
 
         $test = 'Find w/ array, mixed case, no explicit LIKE';
-        $posts = FindPost::find(array('title' =>'Foo'));
+        $posts = FindPost::find(array('title' => '* Foo'));
         $this->assertSqlEquals(
-            "SELECT * FROM find_posts WHERE (`title` LIKE 'Foo')",
+            "SELECT * FROM find_posts WHERE (`title` LIKE '% Foo')",
             $posts,
             $test
         );
-        //$this->assertCountEquals(2, $posts, $test);
-        //$this->assertTitlesMatch($fooExpr, $posts, $test);
+        $this->assertCountEquals(2, $posts, $test);
+        $this->assertTitlesMatch($fooExpr, $posts, $test);
 
-        $test = 'Find w/ array, mixed case, no explicit LIKE';
-        $posts = FindPost::find(array('title LIKE' =>'Foo'));
+        $test = 'Find w/ array, mixed case, explicit LIKE';
+        $posts = FindPost::find(array('title LIKE' => '* Foo'));
         $this->assertSqlEquals(
-            "SELECT * FROM find_posts WHERE (`title` LIKE 'Foo')",
+            "SELECT * FROM find_posts WHERE (`title` LIKE '% Foo')",
             $posts,
             $test
         );
-        //$this->assertCountEquals(2, $posts, $test);
-        //$this->assertTitlesMatch($fooExpr, $posts, $test);
-
+        $this->assertCountEquals(2, $posts, $test);
+        $this->assertTitlesMatch($fooExpr, $posts, $test);
     }
 
     function testFindByAndGetByMagicMethods() {
 
         $fields = array(
             // This isn't technically a field?
-            //'Id' => 7,
+            //'Id' => 5,
             'Slug' => 'magic-method-test-post',
             'Title' => array('LIKE', 'Magic Method Test Post'),
             'Body' => array('LIKE', 'Magic Method Test Post Body'),
@@ -222,11 +228,14 @@ class FindTest extends SG_DB_TestCase {
                 "column '$col' using method '$findMethod'"
             );
 
-            //$this->assertCountEquals(1, $posts);
-            //$getMethod = "getBy$f";
-            //$post = FindPost::$getMethod($v);
-            //$this->assertTrueish($post, "getBy$f did not return anything.");
-            //$this->assertEquals(7, $post->id, "getBy$f got the wrong post.");
+            $this->assertCountEquals(1, $posts);
+
+            if ($f == 'Active' || $f == 'DisplayOrder') continue;
+
+            $getMethod = "getBy$f";
+            $post = FindPost::$getMethod($v);
+            $this->assertTrueish($post, "getBy$f did not return anything.");
+            $this->assertEquals(5, $post->id, "getBy$f got the wrong post.");
         }
 
     }
@@ -270,7 +279,6 @@ class FindTest extends SG_DB_TestCase {
             $query
         );
 
-        /*
         $activeCount = $this->numberOfTestPosts('active = 1');
         $this->assertEquals(
             $activeCount,
@@ -284,7 +292,6 @@ class FindTest extends SG_DB_TestCase {
             FindPost::all()->whereNotActive()->count(),
             'wrong # of inactive posts'
         );
-        */
     }
 
     function testFluentWhereMethods() {

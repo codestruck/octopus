@@ -103,24 +103,37 @@ class SG_Model_Field {
      * @return String A chunk of SQL for a WHERE clause.
      */
     public function restrict($operator, $value, &$s, &$params) {
+        $sql = self::defaultRestrict($this->getFieldName(), $operator, $this->getDefaultSearchOperator(), $value, $s, $params);
+        return $sql;
+    }
 
-        $fieldName = $this->getFieldName();
+    /**
+     * A general-purpose implementation of restrict() that can be reused
+     * in a static context. This is to support restricting by IDs, which don't
+     * have associated SG_Model_Field instances.
+     */
+    public static function defaultRestrict($fieldName, $operator, $defaultOperator, $value, &$s, &$params) {
 
         if (!$operator) {
-            $operator = is_array($value) ? 'IN' : $this->getDefaultSearchOperator();
-        } else {
-            $operator = trim($operator);
+            $operator = is_array($value) ? 'IN' : $defaultOperator;
         }
 
+        $operator = strtoupper(trim($operator));
+        if (!$operator) $operator = '=';
+        $opLen = strlen($operator);
+
+        // Handle stuff like 'NOT', 'NOT LIKE', 'NOT =', 'NOT IN' etc.
         $not = false;
-        if (strncasecmp($operator, 'NOT', 3) == 0) {
+        if (($opLen == 3 && strcmp($operator, 'NOT') == 0) || ($opLen > 3 && strncmp($operator, 'NOT ', 4) == 0)) {
+
             $not = true;
             $operator = trim(substr($operator,3));
-            if ($operator == '') $operator = $this->getDefaultSearchOperator(); // Handle NOT without an = or LIKE
+            if ($operator == '') $operator = $defaultOperator;
+
         }
 
         // If no operator, and we get an array, then process it as an IN
-        if (strcasecmp($operator, 'IN') == 0) {
+        if (strcmp($operator, 'IN') == 0) {
 
             $value = is_array($value) ? $value : array($value);
             $expr = '';
