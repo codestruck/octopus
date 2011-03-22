@@ -3,11 +3,10 @@
     SG::loadClass('SG_Nav');
 
     /**
-     * @group core
+     * @group nav
      */
     class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
-        /*
         function testAddAndFindSimpleItem() {
 
             $nav = new SG_Nav();
@@ -56,7 +55,6 @@
             $this->assertFalse($item, 'matching item found when it shouldnt be');
 
         }
-        */
 
 
     }
