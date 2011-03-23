@@ -28,14 +28,14 @@ class SG_Model_ResultSet implements Iterator {
     /**
      * Creates a new ResultSet for the given model class.
      */
-    public function __construct($parent, $criteria = null, $orderBy = null) {
+    public function __construct($parentOrModelClass, $criteria = null, $orderBy = null) {
 
-        if (is_string($parent)) {
+        if (is_string($parentOrModelClass)) {
             $this->_parent = null;
-            $this->_modelClass = $parent;
+            $this->_modelClass = $parentOrModelClass;
         } else {
-            $this->_parent = $parent;
-            $this->_modelClass = $parent->_modelClass;
+            $this->_parent = $parentOrModelClass;
+            $this->_modelClass = $this->_parent->_modelClass;
         }
 
         $this->_criteria = $criteria ? $criteria : array();
