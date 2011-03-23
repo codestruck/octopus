@@ -91,16 +91,6 @@ class ModelMinCrudLoadTest extends SG_DB_TestCase
         $this->assertTrue($post->minpost_id > 0);
     }
 
-    function testIsSaved()
-    {
-        $post = new Minpost();
-        $post->title = 'Test post';
-        $post->body = 'Contents of post.';
-        $this->assertFalse($post->isSaved());
-        $post->save();
-        $this->assertTrue($post->isSaved());
-    }
-
     function testDelete()
     {
         $s = new SG_DB_Select();
