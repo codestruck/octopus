@@ -3,7 +3,8 @@
     $__SG_CANCEL_REDIRECT__ = false;
 
     /**
-     * Assembles a URL, ensuring it is properly prefixed etc.
+     * Assembles a URL, ensuring it is properly prefixed etc. If the url starts
+     * with a '/', the slash is replaced with URL_BASE.
      * @param $url string URL to format.
      * @param $args array Any querystring arguments to add to the URL. By
      * default, this is processed as changes to the current querystring. Setting
