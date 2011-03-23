@@ -4,6 +4,7 @@ class SG_Model_Field {
 
     private $field;
     private $options;
+    protected $defaultOptions = array();
 
     public function __construct($field, $options) {
         $this->field = $field;
@@ -42,8 +43,8 @@ class SG_Model_Field {
     function saveValue($model) {
         $value = $model->getInternalValue($this->getFieldName());
 
-        $pk = $model->getPrimaryKey();
-        if ($model->$pk === null) {
+        $primaryKey = $model->getPrimaryKey();
+        if ($model->$primaryKey === null) {
             $value = $this->handleTrigger('onCreate', $model);
         } else {
             $value = $this->handleTrigger('onUpdate', $model);
@@ -69,6 +70,8 @@ class SG_Model_Field {
     function getOption($option, $default = null) {
         if (isset($this->options[$option])) {
             return $this->options[$option];
+        } else if (isset($this->defaultOptions[$option])) {
+            return $this->defaultOptions[$option];
         } else {
             return $default;
         }
@@ -89,14 +92,24 @@ class SG_Model_Field {
     protected function handleTrigger($type, $model) {
 
         $fnc = $this->getOption($type);
+
+        // check for standalone function
         if ($fnc && function_exists($fnc)) {
             $newValue = $fnc($model, $this);
             $model->setInternalValue($this->getFieldName(), $newValue);
             return $newValue;
         }
 
+        // check for custom function on the model subclass
         if ($fnc && method_exists($model, $fnc)) {
             $newValue = $model->$fnc($model, $this);
+            $model->setInternalValue($this->getFieldName(), $newValue);
+            return $newValue;
+        }
+
+        // check for default function on the field subclass
+        if ($fnc && method_exists($this, $fnc)) {
+            $newValue = $this->$fnc($model, $this);
             $model->setInternalValue($this->getFieldName(), $newValue);
             return $newValue;
         }

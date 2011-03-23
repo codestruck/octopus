@@ -6,7 +6,6 @@ class SG_Model_Field_String extends SG_Model_Field {
         return 'LIKE';
     }
 
-
     /**
      * @param $operator string Operator (=, LIKE, etc) to use. If null, the
      * field's default operator will be used.
@@ -17,14 +16,14 @@ class SG_Model_Field_String extends SG_Model_Field {
      * the where() method.
      * @return String A chunk of SQL for a WHERE clause.
      */
-    public function restrict($operator, $value, &$s, &$params) {
+    public function restrict($operator, $value, &$selectStatement, &$params) {
 
         if (!$operator) {
 
-            if ($r = parse_regex($value)) {
+            if ($regex = parse_regex($value)) {
                 // Do a regex lookup by default
-                $operator = strpos($r['flags'], 'i') === false ? 'REGEXP BINARY' : 'REGEXP';
-                $value = to_mysql_regex($r['pattern']);
+                $operator = strpos($regex['flags'], 'i') === false ? 'REGEXP BINARY' : 'REGEXP';
+                $value = to_mysql_regex($regex['pattern']);
             } else {
                 $operator = $this->getDefaultSearchOperator();
             }
@@ -35,9 +34,8 @@ class SG_Model_Field_String extends SG_Model_Field {
             $value = str_replace('?', '_', $value);
         }
 
-        return parent::restrict($operator, $value, $s, $params);
+        return parent::restrict($operator, $value, $selectStatement, $params);
     }
-
 
 }
 
