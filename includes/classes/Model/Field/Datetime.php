@@ -3,23 +3,23 @@
 class SG_Model_Field_Datetime extends SG_Model_Field {
 
     private $format = 'Y-m-d H:i:s';
+    public function __construct($field, $options) {
+        parent::__construct($field, $options);
 
-    public function saveValue($model) {
-        $field = $this->getFieldName();
-
-        if ($field == 'created' && !$model->isSaved()) {
-            $value = date($this->format, time());
-            $model->setInternalValue($field, $value);
+        if ($field == 'created') {
+            $this->defaultOptions = array(
+                'onCreate' => '_setNow',
+            );
+        } else if ($field == 'updated') {
+            $this->defaultOptions = array(
+                'onSave' => '_setNow',
+            );
         }
-
-        if ($field == 'updated') {
-            $value = date($this->format, time());
-            $model->setInternalValue($field, $value);
-        }
-
-        return $model->getInternalValue($field);
     }
 
+    function _setNow($model, $field) {
+        return date($this->format, time());
+    }
 }
 
 ?>
