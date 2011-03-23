@@ -33,10 +33,18 @@
      */
     function h(/* as many as you want! */) {
 
-        $args = func_get_args();
+        $count = func_num_args();
+
+        switch($count) {
+
+            case 0: return '';
+            case 1: return htmlspecialchars(func_get_arg(0));
+
+        }
+
         $result = '';
-        foreach($args as $arg) {
-            $result .= htmlspecialchars($arg);
+        for($i = 0; $i < $count; $i++) {
+            $result .= htmlspecialchars(func_get_arg($i));
         }
 
         return $result;

@@ -81,7 +81,7 @@
               'multiple   spaces   ' => 'multiple-spaces'
             );
 
-            foreach($test as $input => $expected) {
+            foreach($tests as $input => $expected) {
 
                 $this->assertEquals(
                     $expected,
