@@ -23,7 +23,8 @@
                 $url_base = $options['URL_BASE'];
             }
 
-            if ($url_base) {
+            // Detect if URL_BASE has already been applied
+            if ($url_base && strncasecmp($url, $url_base, strlen($url_base)) != 0) {
 
                 if (strncmp($url, '/', 1) == 0) {
                     // It's an absolute path, so prepend URL_BASE

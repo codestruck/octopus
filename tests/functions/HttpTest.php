@@ -108,6 +108,17 @@
                 );
             }
 
+        }
+
+        function testDetectUrlBaseAlreadyApplied() {
+
+            $url_base = '/foo/';
+            $url = "{$url_base}whatever";
+
+            $this->assertEquals(
+                $url,
+                u($url, null, array('URL_BASE' => $url_base))
+            );
 
         }
 
