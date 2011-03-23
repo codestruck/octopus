@@ -75,34 +75,39 @@ class SG_Nav_Item {
      */
     public function &add($options, $extra = null) {
 
-        $path = '';
+        $fullPath = '';
 
         if (is_string($options)) {
-            $path = $options;
-        } else if (is_array($options)) {
-            $path = $options['path'];
+            $options = array('path' => $options);
         }
 
-        $levels = explode('/', $path);
-        $parent = $this;
+        if (is_array($options)) {
+            $options['path'] = trim($options['path'], '/');
+            $fullPath = $options['path'];
+            if (is_string($extra)) $options['text'] = $extra;
+        }
 
-        while(count($levels)) {
+        if (empty($fullPath)) return false;
+        $levels = explode('/', $fullPath);
 
-            $path = array_shift($levels);
+        $item = $this;
 
-            if (empty($levels)) {
-                $parent->add($options, $extra);
+        while($levelCount = count($levels)) {
+
+            $level = array_shift($levels);
+
+            if ($levelCount == 1) {
+                // This is the last one so really add.
+                $options['path'] = $level;
+                $item = $item->internalAdd($options, $extra);
                 break;
             }
 
-            $child = $parent->find($path);
-            if (!$child) $child = $parent->add($path);
+            $child = $item->find($level);
+            if (!$child) $child = $item->internalAdd($level);
 
-            $parent = $child;
+            $item = $child;
         }
-
-
-        $this->
 
         return $item;
     }
@@ -110,8 +115,10 @@ class SG_Nav_Item {
     /**
      * Adds a single item.
      */
-    protected function internalAdd($options) {
-        $item = is_array($options) ? SG_Nav_Item::create($options) : $item;
+    protected function &internalAdd($options, $extra = null) {
+
+        $item = ($options instanceof SG_Nav_Item) ? $options : SG_Nav_Item::create($options, $extra);
+        $item->setParent($this);
         $this->_children[] = $item;
         return $item;
     }
@@ -123,12 +130,13 @@ class SG_Nav_Item {
     public function &find($path, $options = null) {
 
         $item = false;
-        $originalPath = $path;
+
 
         if ($this->_checkFindResultCache($path, $options, $item)) {
             return $item;
         }
 
+        $originalPath = $path;
         $pathParts = is_array($path) ? $path : explode('/', trim($path, '/'));
 
         $firstPart = array_shift($pathParts);
@@ -193,7 +201,7 @@ class SG_Nav_Item {
      * @return String Path to this item, relative to its parent.
      */
     public function getPath() {
-        return $this->options['path'];
+        return isset($this->options['path']) ? $this->options['path'] : '';
     }
 
     /**
@@ -280,6 +288,14 @@ class SG_Nav_Item {
         }
 
         return $item;
+    }
+
+    protected function setParent($parent) {
+        $this->_parent = $parent;
+    }
+
+    public function &getParent() {
+        return $this->_parent;
     }
 
 }
