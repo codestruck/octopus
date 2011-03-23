@@ -29,6 +29,8 @@ class SG_Model {
      */
     public static $displayField = array('name', 'title', 'text', 'summary', 'description');
 
+    private static $_cache = array();
+
     // Map of magic method name patterns to handler funcs
     private static $_magicMethods = array(
 
@@ -38,8 +40,7 @@ class SG_Model {
 
     );
 
-    protected static $_className = null;
-    protected static $_fieldHandles = null;
+    protected $data = array();
 
     public function __construct($id = null) {
 
@@ -76,6 +77,14 @@ class SG_Model {
         } else {
             $this->$var = $value;
         }
+    }
+
+    public function setInternalValue($field, $value) {
+        $this->data[$field] = $value;
+    }
+
+    public function getInternalValue($field) {
+        return isset($this->data[$field]) ? $this->data[$field] : '';
     }
 
     protected function setData($data) {
@@ -190,20 +199,20 @@ class SG_Model {
     }
 
     public static function getPrimaryKey() {
-
         if (isset(static::$primaryKey)) {
             return static::$primaryKey;
+        } else {
+            return underscore(static::_getClassName()) . '_id';
         }
-
-        return static::$primaryKey = underscore(static::_getClassName()) . '_id';
     }
 
 
     public static function getTableName() {
         if (isset(static::$table)) {
             return static::$table;
+        } else {
+            return underscore(static::_pluralize(static::_getClassName()));
         }
-        return static::$table = underscore(static::_pluralize(static::_getClassName()));
     }
 
     /**
@@ -211,10 +220,8 @@ class SG_Model {
      * result.
      */
     private static function _getClassName() {
-        if (isset(static::$_className)) {
-            return static::$_className;
-        }
-        return static::$_className = get_called_class();
+        //TODO Cache this
+        return get_called_class();
     }
 
     protected static function _pluralize($str) {
@@ -222,17 +229,25 @@ class SG_Model {
         return pluralize($str);
     }
 
-    public static function &getFields() {
+    public static function getFields() {
 
-        if (empty(static::$_fieldHandles)) {
-            foreach (static::$fields as $field => $options) {
-                $obj = SG_Model_Field::getField($field, $options);
-                $field = $obj->getFieldName();
-                static::$_fieldHandles[$field] = $obj;
+        $className = get_called_class();
+
+        $handles = static::_getStatic('fieldHandles', $className);
+        if ($handles) return $handles;
+
+        $handles = array();
+        foreach (static::$fields as $name => $options) {
+
+            if (is_numeric($name)) {
+                $name = is_array($options) ? $options['name'] : $options;
             }
+
+            $field = SG_Model_Field::getField($name, $options);
+            $handles[$name] = $field;
         }
 
-        return static::$_fieldHandles;
+        return static::_setStatic('fieldHandles', $handles, $className);
     }
 
     public static function getField($name) {
@@ -344,6 +359,40 @@ class SG_Model {
 
         }
 
+    }
+
+    /**
+     * Helper for reading from static storage per-subclass.
+     */
+     protected static function _getStatic($key, &$className = null) {
+
+        // TODO: Cache class name.
+        $className = $className ? $className : get_called_class();
+
+        if (!isset(self::$_cache[$className])) {
+            return null;
+        }
+
+        if (!isset(self::$_cache[$className][$key])) {
+            return null;
+        }
+
+        return self::$_cache[$className][$key];
+    }
+
+    /**
+     * Helper for writing to static storage per-subclass.
+     */
+    protected static function _setStatic($key, $value, &$className = null) {
+
+        $className = $className ? $className : get_called_class();
+
+        if (!isset(self::$_cache[$className])) {
+            self::$_cache[$className] = array();
+        }
+
+        self::$_cache[$className][$key] = $value;
+        return $value;
     }
 
 

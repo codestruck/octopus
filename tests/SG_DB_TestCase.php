@@ -7,7 +7,8 @@ require_once('PHPUnit/Extensions/Database/TestCase.php');
  * infrastructure.
  */
 abstract class SG_DB_TestCase extends PHPUnit_Extensions_Database_TestCase {
-
+    private static $pdo = null;
+    private $conn = null;
     private $_xmlFile;
 
     /**
@@ -44,8 +45,16 @@ abstract class SG_DB_TestCase extends PHPUnit_Extensions_Database_TestCase {
     protected function getConnection()
     {
         $db = SG_DB::singleton();
-        $pdo = $db->driver->handle;
-        return $this->createDefaultDBConnection($pdo, $db->driver->database);
+
+        if ($this->conn === null) {
+            if (self::$pdo == null) {
+                self::$pdo = $db->driver->handle;
+            }
+            $this->conn = $this->createDefaultDBConnection(self::$pdo, $db->driver->database);
+        }
+
+        return $this->conn;
+
     }
 
     /**

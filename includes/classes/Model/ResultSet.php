@@ -164,7 +164,9 @@ class SG_Model_ResultSet implements Iterator {
             }
 
             $field = $this->_getField($fieldName);
-            $field->orderBy($s, $dir);
+            if ($field) {
+                $field->orderBy($s, $dir);
+            }
         }
 
     }

@@ -8,14 +8,16 @@ class SG_Model_Field_Datetime extends SG_Model_Field {
         $field = $this->getFieldName();
 
         if ($field == 'created' && !$model->isSaved()) {
-            $this->data = date($this->format, time());
+            $value = date($this->format, time());
+            $model->setInternalValue($field, $value);
         }
 
         if ($field == 'updated') {
-            $this->data = date($this->format, time());
+            $value = date($this->format, time());
+            $model->setInternalValue($field, $value);
         }
 
-        return isset($this->data) ? $this->data : '';
+        return $model->getInternalValue($field);
     }
 
 }

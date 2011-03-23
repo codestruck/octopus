@@ -73,7 +73,11 @@ class FindTest extends SG_DB_TestCase {
                 `created` DATETIME NOT NULL,
                 `updated` DATETIME NOT NULL
                 );
+                ";
 
+        $db->query($sql);
+
+        $sql = "
                 CREATE TABLE findauthors (
                 `findauthor_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 `name` varchar ( 255 ) NOT NULL,
@@ -87,6 +91,7 @@ class FindTest extends SG_DB_TestCase {
 
     function dropTables(&$db) {
         $db->query("DROP TABLE IF EXISTS find_posts");
+        $db->query("DROP TABLE IF EXISTS findauthors");
     }
 
 

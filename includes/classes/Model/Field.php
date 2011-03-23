@@ -2,7 +2,6 @@
 
 class SG_Model_Field {
 
-    protected $data;
     private $field;
     private $options;
 
@@ -36,23 +35,31 @@ class SG_Model_Field {
     }
 
     function accessValue($model) {
-        $value = isset($this->data) ? $this->data : '';
+        $value = $model->getInternalValue($this->getFieldName());
         return $value;
     }
 
     function saveValue($model) {
-        $value = isset($this->data) ? $this->data : '';
+        $value = $model->getInternalValue($this->getFieldName());
+
+        $pk = $model->getPrimaryKey();
+        if ($model->$pk === null) {
+            $value = $this->handleTrigger('onCreate', $model);
+        } else {
+            $value = $this->handleTrigger('onUpdate', $model);
+        }
 
         if (!$value) {
-            $value = $this->onEmpty($model);
-            $this->data = $value;
+            $value = $this->handleTrigger('onEmpty', $model);
         }
+
+        $value = $this->handleTrigger('onSave', $model);
 
         return $value;
     }
 
     function setValue($model, $value) {
-        $this->data = $value;
+        $model->setInternalValue($this->getFieldName(), $value);
     }
 
     function getFieldName() {
@@ -79,18 +86,24 @@ class SG_Model_Field {
         return true;
     }
 
+    protected function handleTrigger($type, $model) {
 
-    // handlers
-    function onEmpty($model) {
-
-        $fnc = $this->getOption('onEmpty');
+        $fnc = $this->getOption($type);
         if ($fnc && function_exists($fnc)) {
-            return $fnc($model, $this);
+            $newValue = $fnc($model, $this);
+            $model->setInternalValue($this->getFieldName(), $newValue);
+            return $newValue;
         }
 
-        return '';
-    }
+        if ($fnc && method_exists($model, $fnc)) {
+            $newValue = $model->$fnc($model, $this);
+            $model->setInternalValue($this->getFieldName(), $newValue);
+            return $newValue;
+        }
 
+        return $this->accessValue($model);
+
+    }
 
     /**
      * @param $operator string Operator (=, LIKE, etc) to use. If null, the
