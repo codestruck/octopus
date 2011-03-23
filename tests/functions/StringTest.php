@@ -72,6 +72,30 @@
 
         }
 
+        function testToSlug() {
+
+            $tests = array(
+              'My first slug' => 'my-first-slug',
+              'foo & BAR slug' => 'foo-and-bar-slug',
+              "it's a good thing" => 'its-a-good-thing',
+              'multiple   spaces   ' => 'multiple-spaces'
+            );
+
+            foreach($test as $input => $expected) {
+
+                $this->assertEquals(
+                    $expected,
+                    to_slug($input)
+                );
+
+                $this->assertEquals($expected, to_slug($input, 0));
+                $this->assertEquals($expected, to_slug($input, 1));
+
+                $this->assertEquals($expected . '-2', to_slug($input, 2));
+            }
+
+        }
+
     }
 
 ?>
