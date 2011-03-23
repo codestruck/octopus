@@ -43,8 +43,8 @@ class SG_Model_Field {
     function saveValue($model) {
         $value = $model->getInternalValue($this->getFieldName());
 
-        $pk = $model->getPrimaryKey();
-        if ($model->$pk === null) {
+        $primaryKey = $model->getPrimaryKey();
+        if ($model->$primaryKey === null) {
             $value = $this->handleTrigger('onCreate', $model);
         } else {
             $value = $this->handleTrigger('onUpdate', $model);

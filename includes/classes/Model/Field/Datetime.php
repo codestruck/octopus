@@ -17,7 +17,7 @@ class SG_Model_Field_Datetime extends SG_Model_Field {
         }
     }
 
-    function _setNow($model, $field) {
+    function _setNow() {
         return date($this->format, time());
     }
 }
