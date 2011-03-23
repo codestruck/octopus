@@ -199,13 +199,20 @@ class SG_Model {
     }
 
     public static function getPrimaryKey() {
-
-        return underscore(static::_getClassName()) . '_id';
+        if (isset(static::$primaryKey)) {
+            return static::$primaryKey;
+        } else {
+            return underscore(static::_getClassName()) . '_id';
+        }
     }
 
 
     public static function getTableName() {
-        return underscore(static::_pluralize(static::_getClassName()));
+        if (isset(static::$table)) {
+            return static::$table;
+        } else {
+            return underscore(static::_pluralize(static::_getClassName()));
+        }
     }
 
     /**
