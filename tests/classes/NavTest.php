@@ -12,7 +12,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
     }
 
 
-    function xtestAddAndFindSimpleItem() {
+    function testAddAndFindSimpleItem() {
 
         $nav = new SG_Nav();
 
@@ -26,7 +26,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
     }
 
-    function xtestAddSimpleItemDeep() {
+    function testAddSimpleItemDeep() {
 
         $nav = new SG_Nav();
 
