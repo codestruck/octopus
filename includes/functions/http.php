@@ -143,6 +143,8 @@
 
     /**
      * Does an HTTP redirect.
+     * @return bool FALSE if the redirect is suppressed, otherwise it calls
+     * exit() before returning.
      */
     function redirect($newLocation, $permanent = true) {
 
@@ -153,6 +155,15 @@
             header('Location: ' . u($newLocation));
         } else {
             // TODO: log?
+            // TODO: somehow delay this until all page headers have been set?
+            $newLocation = h($newLocation);
+            echo <<<END
+            <div class="sgSquashedRedirectNotice">
+                Suppressed redirect to:
+                <a href="$newLocation"><strong>$newLocation</strong></a>
+            </div>
+END;
+            return false;
         }
 
         exit();
