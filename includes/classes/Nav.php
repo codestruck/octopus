@@ -1,6 +1,7 @@
 <?php
 
 SG::loadClass('SG_Nav_Item');
+SG::loadClass('SG_Nav_Item_Directory');
 
 /**
  * Class that manages navigation structure and routing for the app.
@@ -8,10 +9,10 @@ SG::loadClass('SG_Nav_Item');
 class SG_Nav {
 
     private $_root = null; // Item representing the root
-    private $_maps = array();
+    private $_aliases = array();
 
     public function __construct($options = null) {
-        $this->_root = new SG_Nav_Item();
+        $this->_root = new SG_Nav_Item_Directory();
     }
 
     /**
@@ -23,16 +24,39 @@ class SG_Nav {
     }
 
     /**
+     * Adds a directory of content at the root of the nav. Any files in this
+     * directory will show up at the root level.
+     */
+    public function &addRootDirectory($path) {
+        $this->_root->addDirectory($path);
+        return $this;
+    }
+
+    /**
      * Finds the nav item to use for the given path.
      */
     public function &find($path, $options = null) {
 
-        if (isset($this->_maps[$path])) {
-            $path = $this->_maps[$path];
+        $path = trim($path, '/');
+        $pathLen = strlen($path);
+
+        foreach($this->_aliases as $newPath => $oldPath) {
+
+            $newLen = strlen($newPath);
+
+            if ($newLen > $pathLen) {
+                continue;
+            }
+
+            if (strncmp($newPath, $path, $newLen) == 0) {
+                // we have an alias
+                $path = $oldPath . '/' . substr($path,$newLen);
+            }
+
         }
 
         // HACK: special case '/'
-        if ($path == '/') return $this->_root;
+        if ($path == '') return $this->_root;
 
         $item = $this->_root->find($path, $options);
         return $item;
@@ -41,8 +65,12 @@ class SG_Nav {
     /**
      * Adds an alias to the nav.
      */
-    public function &alias($path, $toPath) {
-        $this->_maps[$path] = $toPath;
+    public function &alias($oldPath, $newPath) {
+
+        $oldPath = trim($oldPath, '/');
+        $newPath = trim($newPath, '/');
+
+        $this->_aliases[$newPath] = $oldPath;
         return $this;
     }
 

@@ -5,8 +5,6 @@
  */
 class SG_Nav_Item {
 
-    public static $defaults = array();
-
     private static $_registry = array();
 
     protected $_parent = null;
@@ -53,9 +51,8 @@ class SG_Nav_Item {
         if (!isset($options['type'])) {
 
             if (isset($options['directory'])) {
-                $options['type'] = 'SG_Nav_Item_Directory';
+                $options['type'] = 'directory';
             }
-
         }
 
         if (isset($options['type'])) {
@@ -150,6 +147,19 @@ class SG_Nav_Item {
             return $item;
         }
 
+        $item = $this->internalFind($path, $options);
+        $this->_cacheFindResult($path, $options, $item);
+
+        return $item;
+    }
+
+    /**
+     * Does a real find, without any caching.
+     */
+    protected function &internalFind($path, $options) {
+
+        $item = false;
+
         list($firstPart, $remainingPath) = $this->splitPath($path);
 
         if (!$firstPart) {
@@ -166,7 +176,6 @@ class SG_Nav_Item {
             // the complete path, then just the next portion of it.
 
             if ($child->matchesPath($path, $options)) {
-                $this->_cacheFindResult($path, $options, $child);
                 $matchesFullPath = true;
                 $item = $child;
                 break;
@@ -175,7 +184,6 @@ class SG_Nav_Item {
             if ($haveMorePath) {
 
                 if ($child->matchesPath($firstPart, $options)) {
-                    $this->_cacheFindResult($path, $options, $child);
                     $item = $child;
                     break;
                 }
@@ -186,8 +194,6 @@ class SG_Nav_Item {
         if ($item) {
 
             if ($matchesFullPath) {
-
-                $this->_cacheFindResult($path, $options, $item);
                 $item = $item->getFindResult($path);
                 return $item;
 
@@ -200,7 +206,6 @@ class SG_Nav_Item {
 
         }
 
-        $this->_cacheFindResult($path, $options, $item);
         return $item;
     }
 
@@ -370,7 +375,7 @@ class SG_Nav_Item {
      * @return bool Whether this item should be used for $path.
      */
     public function matchesPath($path) {
-        return $this->options['path'] == $path;
+        return $path == $this->getPath();
     }
 
     /**
@@ -398,7 +403,9 @@ class SG_Nav_Item {
      */
     protected function &_checkFindResultCache($path, &$options, &$item) {
 
+        // TODO actually implement caching once everything is working
         $item = false;
+        return $item;
 
         if (empty($this->_findCache)) {
             return $item;
@@ -425,5 +432,7 @@ class SG_Nav_Item {
 }
 
 SG_Nav_Item::register('regex', 'SG_Nav_Item_Regex');
+SG_Nav_Item::register('directory', 'SG_Nav_Item_Directory');
+SG_Nav_Item::register('file', 'SG_Nav_Item_File');
 
 ?>

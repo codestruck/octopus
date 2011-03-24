@@ -5,7 +5,28 @@
  */
 class SG_Nav_Item_File extends SG_Nav_Item {
 
-    var $_file;
+    private $_file;
+    private $_path;
+    private $_text;
+
+    public function __construct($file) {
+        parent::__construct();
+        $this->_file = $file;
+
+        $file = basename($file);
+        $pos = strrpos($file, '.');
+        if ($pos !== false) $file = substr($file, 0, $pos);
+
+        $this->_path = $file;
+    }
+
+    public function getPath() {
+        return $this->_path;
+    }
+
+    public function getFile() {
+        return $this->_file;
+    }
 
     protected function getDefaultText() {
 
@@ -21,6 +42,10 @@ class SG_Nav_Item_File extends SG_Nav_Item {
         if ($text) return $text;
         */
 
+        if ($this->_text) {
+            return $this->_text;
+        }
+
         // Make a nice name out of the file name
         $text = basename($this->_file);
         $text = preg_replace('/\..*?$/', '', $text);
@@ -28,7 +53,7 @@ class SG_Nav_Item_File extends SG_Nav_Item {
         $text = preg_replace('/\s{2,}/', ' ', $text);
         $text = ucwords($text);
 
-        return $text;
+        return $this->_text = $text;
     }
 
 

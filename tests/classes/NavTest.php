@@ -158,7 +158,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
         $nav = new SG_Nav();
         $nav->add('home', 'Home');
 
-        $nav->alias('/', 'home');
+        $nav->alias('home', '/');
 
         $home = $nav->find('/');
         $this->assertTrue($home !== false, 'home not found!');
@@ -212,6 +212,92 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
     }
 
+    function testAddDirectory() {
+
+        $dir = 'nav_directory';
+        $files = array('a.php', 'b.html', 'c.txt');
+
+        @mkdir($dir);
+        foreach($files as $f) {
+            touch("$dir/$f");
+        }
+
+        $nav = new SG_Nav();
+
+        $nav->add(array('directory' => 'nav_directory'));
+
+        $item = $nav->find('nav_directory');
+        $this->assertEquals('Nav Directory', $item->getText());
+
+        $children = $item->getChildren();
+        foreach($children as $child) {
+            $this->assertEquals($dir . '/' . array_shift($files), $child->getFile());
+        }
+
+        $nav->alias('nav_directory', '/');
+        $item = $nav->find('/');
+        $this->assertEquals('Nav Directory', $item->getText());
+    }
+
+    function testDirectoryAtRoot() {
+
+        $dir = 'nav_directory';
+        $files = array('a.php', 'b.html', 'c.txt');
+
+        @mkdir($dir);
+        foreach($files as $f) {
+            touch("$dir/$f");
+        }
+
+        $nav = new SG_Nav();
+        $nav->addRootDirectory($dir);
+
+        $a = $nav->find('a');
+        $this->assertTrue($a !== false, 'a not found');
+
+    }
+
+    function testDirectoryIndexFile() {
+
+        $dir = 'nav_directory';
+        $files = array('a.php', 'b.html', 'c.txt');
+
+        @mkdir($dir);
+        foreach($files as $f) {
+            touch("$dir/$f");
+        }
+
+        $nav = new SG_Nav();
+        $nav->add(array('directory' => $dir));
+
+        $item = $nav->find($dir);
+        $this->assertEquals("$dir/index.php", $item->getFile());
+
+    }
+
+    function testRegexWithDirectoryAtRoot() {
+
+        $dir = 'nav_directory';
+        $files = array('a.php', 'b.html', 'c.txt');
+
+        @mkdir($dir);
+        foreach($files as $f) {
+            touch("$dir/$f");
+        }
+
+        $nav = new SG_Nav();
+        $nav->addRootDirectory($dir);
+        $nav->add(array('regex' => '/^(?P<id>\d+)-(?P<slug>[a-z0-9-]+)/i'));
+
+        $file = $nav->find('a');
+        $this->assertTrue($file !== false, 'item for a not found');
+        $this->assertEquals('A', $file->getText(), 'text is wrong for a');
+
+        $virtual = $nav->find('42-some-slug');
+        $this->assertTrue($virtual !== false, 'virtual item not found');
+        $this->assertEquals('42-some-slug', $virtual->getPath(), 'path is wrong for virtual item');
+
+    }
 
 }
 

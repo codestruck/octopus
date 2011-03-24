@@ -99,6 +99,10 @@ class SG_Nav_Item_Regex extends SG_Nav_Item {
         return $parent;
     }
 
+    public function getPath() {
+        return $this->_path;
+    }
+
     private function call($func, $a = null, $b = null, $c = null, $d = null) {
 
         if ($this->_original) {
