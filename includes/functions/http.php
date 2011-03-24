@@ -1,7 +1,5 @@
 <?php
 
-    $__SG_CANCEL_REDIRECT__ = false;
-
     /**
      * Assembles a URL, ensuring it is properly prefixed etc. If the url starts
      * with a '/', the slash is replaced with URL_BASE.
@@ -79,8 +77,8 @@
      * Cancels any upcoming redirects.
      */
     function cancel_redirects($cancel = true) {
-        global $__SG_CANCEL_REDIRECT__;
-        $__SG_CANCEL_REDIRECT__ =  $cancel;
+        $GLOBALS['__SG_CANCEL_REDIRECT__'] = $cancel;
+        return $cancel;
     }
 
     /**
@@ -156,15 +154,24 @@
             header($permanent ? 'HTTP/1.1 301 Moved Permanently' : 'HTTP/1.1 302 Found');
             header('Location: ' . u($newLocation));
         } else {
+
             // TODO: log?
-            // TODO: somehow delay this until all page headers have been set?
-            $newLocation = h($newLocation);
-            echo <<<END
+            if (DEV && class_exists('SG_Debug')) {
+
+                $newLocation = h($newLocation);
+
+                $d = new SG_Debug('suppressedRedirect');
+                $d->add('content', <<<END
             <div class="sgSquashedRedirectNotice">
                 Suppressed redirect to:
                 <a href="$newLocation"><strong>$newLocation</strong></a>
             </div>
-END;
+END
+                );
+
+                $d->render();
+            }
+
             return false;
         }
 
@@ -182,8 +189,12 @@ END;
      * @return bool Whether you should process a redirect.
      */
     function should_redirect() {
-        global $__SG_CANCEL_REDIRECT__;
-        return $__SG_CANCEL_REDIRECT__;
+
+        if (!isset($GLOBALS['__SG_CANCEL_REDIRECT__'])) {
+            return false;
+        }
+
+        return !$GLOBALS['__SG_CANCEL_REDIRECT__'];
     }
 
 ?>
