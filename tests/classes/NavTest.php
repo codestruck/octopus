@@ -7,6 +7,26 @@ SG::loadClass('SG_Nav');
  */
 class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
+    static $testDir = 'nav_directory';
+    static $files = array('a.php', 'b.html', 'c.txt');
+
+    function setUp() {
+
+        @mkdir(self::$testDir);
+        foreach(self::$files as $f) {
+            touch(self::$testDir . "/$f");
+        }
+
+    }
+
+    function tearDown() {
+        foreach(self::$files as $f) {
+            @unlink(self::$testDir . "/$f");
+        }
+        @rmdir(self::$testDir);
+    }
+
+
     function testAddAndFindSimpleItem() {
 
         $nav = new SG_Nav();
@@ -200,11 +220,11 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
         $parent = $nav->add('regex_parent');
         $regexItem = $parent->add(array('regex' => '/^\d+$/'));
 
-
         $parent->setOption('foo', 'bar');
         $this->assertEquals('bar', $regexItem->getOption('foo'), 'getOption failed on plain-jane regex item');
 
         $regexItem = $nav->find('regex_parent/42');
+        $this->assertTrue($regexItem !== false, 'regex item not found');
         $this->assertEquals('bar', $regexItem->getOption('foo'), 'getOption failed on regex find result');
 
         $parent->setOption('answer', 42);
@@ -259,13 +279,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
     function testDirectoryIndexFile() {
 
-        $dir = 'nav_directory';
-        $files = array('a.php', 'b.html', 'c.txt');
-
-        @mkdir($dir);
-        foreach($files as $f) {
-            touch("$dir/$f");
-        }
+        $dir = self::$testDir;
 
         $nav = new SG_Nav();
         $nav->add(array('directory' => $dir));
@@ -277,16 +291,9 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
     function testRegexWithDirectoryAtRoot() {
 
-        $dir = 'nav_directory';
-        $files = array('a.php', 'b.html', 'c.txt');
-
-        @mkdir($dir);
-        foreach($files as $f) {
-            touch("$dir/$f");
-        }
 
         $nav = new SG_Nav();
-        $nav->addRootDirectory($dir);
+        $nav->addRootDirectory(self::$testDir);
         $nav->add(array('regex' => '/^(?P<id>\d+)-(?P<slug>[a-z0-9-]+)/i'));
 
         $file = $nav->find('a');
@@ -298,6 +305,22 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
         $this->assertEquals('42-some-slug', $virtual->getPath(), 'path is wrong for virtual item');
 
     }
+
+    function testDecorateExistingItem() {
+
+        $nav = new SG_Nav();
+        $nav->addRootDirectory(self::$testDir);
+
+        $nav->add('a', array('text' => 'test text', 'title' => 'test title', 'test option' => true));
+
+        $item = $nav->find('a');
+
+        $this->assertEquals('test text', $item->getText());
+        $this->assertEquals('test title', $item->getTitle());
+        $this->assertTrue($item->getOption('test option'));
+        $this->assertEquals(self::$testDir . '/a.php', $item->getFile());
+    }
+
 
 }
 

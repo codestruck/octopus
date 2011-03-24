@@ -80,7 +80,14 @@ class SG_Nav_Item {
         $fullPath = '';
 
         if (is_string($options)) {
-            $options = array('path' => $options);
+
+            if (is_array($extra)) {
+                $p = $options;
+                $options = $extra;
+                $options['path'] = $p;
+            } else {
+                $options = array('path' => $options);
+            }
         }
 
         if (is_array($options)) {
@@ -127,10 +134,54 @@ class SG_Nav_Item {
      */
     protected function &internalAdd($options, $extra = null) {
 
+        if ($item = $this->overlayOptionsOnExistingItem($options, $extra)) {
+            return $item;
+        }
+
         $item = ($options instanceof SG_Nav_Item) ? $options : SG_Nav_Item::create($options, $extra);
         $item->setParent($this);
         $this->_children[] = $item;
+        $this->invalidateCaches();
+
         return $item;
+    }
+
+    /**
+     * Attempts to modify an existing item rather than adding a new one.
+     * @return Mixed modified item or false if nothing is done.
+     */
+    protected function overlayOptionsOnExistingItem($options, $extra) {
+
+        if (!is_array($options)) {
+            return false;
+        }
+
+        // We might be able to overlay these options on an existing item
+
+        $path = isset($options['path']) ? $options['path'] : false;
+        if (!$path) return false;
+
+        $existing = null;
+        foreach($this->getChildren() as $c) {
+            if ($c->getPath() == $path) {
+                $existing = $c;
+                break;
+            }
+        }
+
+        if ($existing) {
+
+            $type = isset($options['type']) ? $options['type'] : false;
+            $existingType = isset($existing->options['type']) ? $existing->options['type'] : false;
+
+            if ($type == $existingType) {
+                $existing->options = array_merge($existing->options, $options);
+                $existing->invalidateCaches();
+                return $existing;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -427,6 +478,13 @@ class SG_Nav_Item {
 
     public function &getParent() {
         return $this->_parent;
+    }
+
+    /**
+     * Override to clear any caches this item is holding on to.
+     */
+    protected function invalidateCaches() {
+        $this->_findCache = array();
     }
 
 }

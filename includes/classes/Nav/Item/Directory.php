@@ -12,6 +12,7 @@ class SG_Nav_Item_Directory extends SG_Nav_Item {
     private $_fullDirectories = array();
     private $_directoryNames = array();
     private $_fsChildren = null;
+    private $_allChildren = null;
 
     public function __construct($options = null) {
         parent::__construct($options);
@@ -96,17 +97,28 @@ class SG_Nav_Item_Directory extends SG_Nav_Item {
      */
     public function getChildren() {
 
+        if ($this->_allChildren) {
+            return $this->_allChildren;
+        }
+
         $children = parent::getChildren();
         $fsChildren = $this->getFileSystemChildren();
 
-        $all = array_merge($fsChildren, $children);
-        return $all;
+        $this->_allChildren = array_merge($fsChildren, $children);
+
+        return $this->_allChildren;
     }
 
     public function getFile() {
         foreach($this->_fullDirectories as $path => &$items) {
             return $path . '/index.php';
         }
+    }
+
+    protected function invalidateCaches() {
+        parent::invalidateCaches();
+        $this->_fsChildren = null;
+        $this->_allChildren = null;
     }
 
 }
