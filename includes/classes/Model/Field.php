@@ -2,8 +2,8 @@
 
 class SG_Model_Field {
 
-    private $field;
-    private $options;
+    protected $field;
+    protected $options;
     protected $defaultOptions = array();
 
     public function __construct($field, $options) {
@@ -35,28 +35,31 @@ class SG_Model_Field {
         return $obj;
     }
 
-    function accessValue($model) {
+    function accessValue($model, $saving = false) {
         $value = $model->getInternalValue($this->getFieldName());
+
+        if ($saving) {
+
+            $primaryKey = $model->getPrimaryKey();
+            if ($model->$primaryKey === null) {
+                $value = $this->handleTrigger('onCreate', $model);
+            } else {
+                $value = $this->handleTrigger('onUpdate', $model);
+            }
+
+            if (!$value) {
+                $value = $this->handleTrigger('onEmpty', $model);
+            }
+
+            $value = $this->handleTrigger('onSave', $model);
+
+        }
+
         return $value;
     }
 
-    function saveValue($model) {
-        $value = $model->getInternalValue($this->getFieldName());
-
-        $primaryKey = $model->getPrimaryKey();
-        if ($model->$primaryKey === null) {
-            $value = $this->handleTrigger('onCreate', $model);
-        } else {
-            $value = $this->handleTrigger('onUpdate', $model);
-        }
-
-        if (!$value) {
-            $value = $this->handleTrigger('onEmpty', $model);
-        }
-
-        $value = $this->handleTrigger('onSave', $model);
-
-        return $value;
+    function save($model, $sqlQuery) {
+        $sqlQuery->set($this->getFieldName(), $this->accessValue($model, true));
     }
 
     function setValue($model, $value) {

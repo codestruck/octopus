@@ -118,8 +118,8 @@ class SG_Model {
 
         $i->table(static::getTableName());
 
-        foreach (static::getFields() as $name => $field) {
-            $i->set($name, $field->saveValue($this));
+        foreach (static::getFields() as $field) {
+            $field->save($this, $i);
         }
 
         $i->execute();
@@ -164,11 +164,6 @@ class SG_Model {
         return $this->errors;
     }
 
-    public function isSaved() {
-        $pk = static::getPrimaryKey();
-        return ($this->$pk !== null);
-    }
-
     public static function getDisplayField() {
 
         if (!static::$displayField) {
@@ -195,6 +190,8 @@ class SG_Model {
 
     public function getDisplayValue() {
         $field = static::getDisplayField();
+
+        if ($field) // HACK to fix tests while working on one to many
         return $this->{$field->getFieldName()};
     }
 
@@ -202,10 +199,13 @@ class SG_Model {
         if (isset(static::$primaryKey)) {
             return static::$primaryKey;
         } else {
-            return underscore(static::_getClassName()) . '_id';
+            return underscore(static::to_id(static::_getClassName()));
         }
     }
 
+    public static function to_id($name) {
+        return $name . '_id';
+    }
 
     public static function getTableName() {
         if (isset(static::$table)) {
@@ -244,7 +244,8 @@ class SG_Model {
             }
 
             $field = SG_Model_Field::getField($name, $options);
-            $handles[$name] = $field;
+            $fieldName = $field->getFieldName();
+            $handles[$fieldName] = $field;
         }
 
         return static::_setStatic('fieldHandles', $handles, $className);
@@ -360,11 +361,17 @@ class SG_Model {
         }
 
     }
+    /*
+    public function isSaved() {
+        $pk = static::getPrimaryKey();
+        return ($this->$pk !== null);
+    }
+    */
 
     /**
      * Helper for reading from static storage per-subclass.
      */
-     protected static function _getStatic($key, &$className = null) {
+    protected static function _getStatic($key, &$className = null) {
 
         // TODO: Cache class name.
         $className = $className ? $className : get_called_class();

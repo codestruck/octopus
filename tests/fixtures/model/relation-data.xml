@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<dataset>
+  <hammers
+    hammer_id="1"
+    name="Grape"
+    slug="grape"
+    active="1"
+    nail_id="1"
+    created="2000-03-20 04:20:11"
+    updated="2001-03-20 04:20:11"
+  />
+  <hammers
+    hammer_id="2"
+    name="Cherry"
+    slug="cherry"
+    active="1"
+    nail_id="1"
+    created="2000-03-20 04:20:11"
+    updated="2001-03-20 04:20:11"
+  />
+  <hammers
+    hammer_id="3"
+    name="Lime"
+    slug="lime"
+    active="1"
+    nail_id="2"
+    created="2000-03-20 04:20:11"
+    updated="2001-03-20 04:20:11"
+  />
+  <hammers
+    hammer_id="4"
+    name="Lime"
+    slug="lime"
+    active="1"
+    nail_id="5"
+    created="2000-03-20 04:20:11"
+    updated="2001-03-20 04:20:11"
+  />
+  <nails
+    nail_id="1"
+    name="Nail 1"
+    active="1"
+  />
+  <nails
+    nail_id="2"
+    name="Nail 2"
+    active="1"
+  />
+  <nails
+    nail_id="3"
+    name="Nail 3"
+    active="0"
+  />
+  <nails
+    nail_id="4"
+    name="Nail 4"
+    active="1"
+  />
+  <nails
+    nail_id="5"
+    name="Nail 5"
+    active="1"
+  />
+  <sledgehammers
+    sledgehammer_id="1"
+    name="Grape"
+    favorite_nail_id="1"
+  />
+  <sledgehammers
+    sledgehammer_id="2"
+    name="Cherry"
+    favorite_nail_id="1"
+  />
+  <sledgehammers
+    sledgehammer_id="3"
+    name="Lime"
+    favorite_nail_id="2"
+  />
+</dataset>

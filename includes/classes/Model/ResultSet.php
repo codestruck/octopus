@@ -3,7 +3,7 @@
 /**
  * Class that handles searching for SG_Model instances.
  */
-class SG_Model_ResultSet implements Iterator {
+class SG_Model_ResultSet implements Iterator, Countable {
 
     private $_parent;
     private $_modelClass;
@@ -28,14 +28,14 @@ class SG_Model_ResultSet implements Iterator {
     /**
      * Creates a new ResultSet for the given model class.
      */
-    public function __construct($parent, $criteria = null, $orderBy = null) {
+    public function __construct($parentOrModelClass, $criteria = null, $orderBy = null) {
 
-        if (is_string($parent)) {
+        if (is_string($parentOrModelClass)) {
             $this->_parent = null;
-            $this->_modelClass = $parent;
+            $this->_modelClass = $parentOrModelClass;
         } else {
-            $this->_parent = $parent;
-            $this->_modelClass = $parent->_modelClass;
+            $this->_parent = $parentOrModelClass;
+            $this->_modelClass = $this->_parent->_modelClass;
         }
 
         $this->_criteria = $criteria ? $criteria : array();
@@ -56,13 +56,6 @@ class SG_Model_ResultSet implements Iterator {
         $args = func_get_args();
         $derivedSet = $this->_restrict('AND', $args);
         return $derivedSet;
-    }
-
-    /**
-     * @return Number The # of records in this ResultSet.
-     */
-    public function count() {
-        return $this->_query()->numRows();
     }
 
     /**
@@ -484,6 +477,12 @@ class SG_Model_ResultSet implements Iterator {
         return $this->_current !== null;
     }
 
+    /**
+     * @return Number The # of records in this ResultSet.
+     */
+    public function count() {
+        return $this->_query()->numRows();
+    }
 
     // }}}
 

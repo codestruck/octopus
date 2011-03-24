@@ -33,10 +33,18 @@
      */
     function h(/* as many as you want! */) {
 
-        $args = func_get_args();
+        $count = func_num_args();
+
+        switch($count) {
+
+            case 0: return '';
+            case 1: return htmlspecialchars(func_get_arg(0));
+
+        }
+
         $result = '';
-        foreach($args as $arg) {
-            $result .= htmlspecialchars($arg);
+        for($i = 0; $i < $count; $i++) {
+            $result .= htmlspecialchars(func_get_arg($i));
         }
 
         return $result;
@@ -144,15 +152,25 @@
 
     /**
      * Converts an arbitrary string into a valid slug.
+     * @param $x String Text you want to slugify.
+     * @param $counter Number A numeric index to append to the end (for when
+     * you are trying to find a unique slug. If $counter is greater than 1,
+     * it will be appended to the resulting slug.
      */
-    function to_slug($x) {
+    function to_slug($x, $counter = null) {
 
         $x = strtolower(trim($x));
         $x = str_replace('&', ' and ', $x);
         $x = preg_replace('/[\'"\(\)]/', '', $x);
         $x = preg_replace('/[^a-z0-9-]/i', '-', $x);
         $x = preg_replace('/-{2,}/', '-', $x);
-        return trim($x, '-');
+        $x = trim($x, '-');
+
+        if ($counter > 1) {
+            $x .= '-' . $counter;
+        }
+
+        return $x;
     }
 
     /**

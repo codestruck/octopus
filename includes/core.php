@@ -55,6 +55,21 @@
         define('SITE_THEMES_DIR', $SITE_THEMES_DIR = $options['SITE_THEMES_DIR']);
 
         ////////////////////////////////////////////////////////////////////////
+        // Baseline PHP Configuration
+        ////////////////////////////////////////////////////////////////////////
+
+        session_start();
+
+        // TODO: figure out a better way to do this?
+        $tz = @date_default_timezone_get();
+        $err = error_get_last();
+        if ($err) {
+            if (strstr($err['message'], 'date_default_timezone_get')) {
+                date_default_timezone_set('America/Los_Angeles');
+            }
+        }
+
+        ////////////////////////////////////////////////////////////////////////
         // Core Includes
         ////////////////////////////////////////////////////////////////////////
 
@@ -63,6 +78,7 @@
         require_once(FUNCTIONS_DIR . 'strings.php');
         require_once(FUNCTIONS_DIR . 'files.php');
         require_once(FUNCTIONS_DIR . 'http.php');
+        require_once(FUNCTIONS_DIR . 'html.php');
         require_once(FUNCTIONS_DIR . 'compat.php');
 
         require_once(CLASSES_DIR .'SG.php');
@@ -132,12 +148,6 @@
         define_unless('DEV', !((defined('STAGING') && STAGING) || (defined('LIVE') && LIVE)));
         define_unless('STAGING', !((defined('DEV') && DEV) || (defined('LIVE') && LIVE)));
         define_unless('LIVE', !((defined('DEV') && DEV) || (defined('STAGING') && STAGING)));
-
-        ////////////////////////////////////////////////////////////////////////
-        // Stuff to maybe move to config?
-        ////////////////////////////////////////////////////////////////////////
-        date_default_timezone_set('America/Los_Angeles');
-
 
     }
 
