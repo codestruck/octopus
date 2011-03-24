@@ -41,7 +41,7 @@ class SG_Nav {
     /**
      * Adds an alias to the nav.
      */
-    public function &map($path, $toPath) {
+    public function &alias($path, $toPath) {
         $this->_maps[$path] = $toPath;
         return $this;
     }

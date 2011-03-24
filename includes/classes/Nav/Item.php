@@ -13,6 +13,7 @@ class SG_Nav_Item {
     protected $_nav = null;
     protected $_findCache = null;
     private $_children = array();
+    private $_propagate = array();
 
     /**
      * Creates a new nav item.
@@ -45,6 +46,10 @@ class SG_Nav_Item {
             $options['text'] = $extra;
         }
 
+        if (isset($options['regex'])) {
+            $options['type'] = 'regex';
+        }
+
         if (!isset($options['type'])) {
 
             if (isset($options['directory'])) {
@@ -66,8 +71,8 @@ class SG_Nav_Item {
     /**
      * Registers an SG_Nav_Item subclass.
      */
-    public static function register($class) {
-        self::$_registry[] = $class;
+    public static function register($name, $class) {
+        self::$_registry[$name] = $class;
     }
 
     /**
@@ -82,12 +87,20 @@ class SG_Nav_Item {
         }
 
         if (is_array($options)) {
-            $options['path'] = trim($options['path'], '/');
-            $fullPath = $options['path'];
+
+            if (isset($options['path'])) {
+                $options['path'] = trim($options['path'], '/');
+                $fullPath = $options['path'];
+            }
+
             if (is_string($extra)) $options['text'] = $extra;
         }
 
-        if (empty($fullPath)) return false;
+        if (empty($fullPath)) {
+            $item = $this->internalAdd($options, $extra);
+            return $item;
+        }
+
         $levels = explode('/', $fullPath);
 
         $item = $this;
@@ -130,37 +143,138 @@ class SG_Nav_Item {
     public function &find($path, $options = null) {
 
         $item = false;
-
+        $path = trim($path, '/');
 
         if ($this->_checkFindResultCache($path, $options, $item)) {
+            $item = $item->getFindResult($path);
             return $item;
         }
 
-        $originalPath = $path;
-        $pathParts = is_array($path) ? $path : explode('/', trim($path, '/'));
+        list($firstPart, $remainingPath) = $this->splitPath($path);
 
-        $firstPart = array_shift($pathParts);
+        if (!$firstPart) {
+            $item = false;
+            return $item;
+        }
+
+        $haveMorePath = strlen($remainingPath) > 0;
+        $matchesFullPath = false;
 
         foreach($this->getChildren() as $child) {
 
-            if ($child->matchesPath($firstPart, $options)) {
-                $this->_cacheFindResult($originalPath, $options, $child);
+            // Since regex items can have '/' in their pattern, first try matching
+            // the complete path, then just the next portion of it.
+
+            if ($child->matchesPath($path, $options)) {
+                $this->_cacheFindResult($path, $options, $child);
+                $matchesFullPath = true;
                 $item = $child;
                 break;
             }
 
+            if ($haveMorePath) {
+
+                if ($child->matchesPath($firstPart, $options)) {
+                    $this->_cacheFindResult($path, $options, $child);
+                    $item = $child;
+                    break;
+                }
+
+            }
         }
 
-        if (!$item || empty($pathParts)) {
-            return $item;
+        if ($item) {
+
+            if ($matchesFullPath) {
+
+                $this->_cacheFindResult($path, $options, $item);
+                $item = $item->getFindResult($path);
+                return $item;
+
+            } else {
+
+                // We need to search deeper
+                $item = $item->find($remainingPath, $options);
+
+            }
+
         }
 
-        $item = $child->find($pathParts, $options);
-        $this->_cacheFindResult($originalPath, $options, $item);
-
-
+        $this->_cacheFindResult($path, $options, $item);
         return $item;
+    }
 
+    /**
+     * @return The value of a named component of this item's path.
+     */
+    public function getArg($name, $default = null) {
+        // The real implementation is in SG_Nav_Item_Regex
+        return $default;
+    }
+
+    /**
+     * @return Mixed The value of the given option for this item. If the option
+     * is not explicitly set on this item, we traverse up the hierarchy to
+     * find it elsewhere.
+     */
+    public function getOption($name, $default = null) {
+
+        return $this->internalGetOption($name, $default, false);
+
+    }
+
+    /**
+     * Internal function that children call on their parents to get the value
+     * of an option. Handles propagation.
+     */
+    protected function internalGetOption($name, $default, $respectPropagation) {
+
+        if (isset($this->options[$name])) {
+
+            if ($respectPropagation && isset($this->_propagate[$name]) && !$this->_propagate[$name]) {
+                return $default;
+            }
+
+            return $this->options[$name];
+        } else {
+
+            $parent = $this->getParent();
+            if ($parent) {
+                return $parent->internalGetOption($name, $default, true);
+            }
+
+        }
+
+        return $default;
+
+    }
+
+
+    /**
+     * Sets the value of the given option.
+     * @return Object $this for method chaining.
+     */
+    public function &setOption($name, $value, $propagate = true) {
+
+        $this->options[$name] = $value;
+        $this->_propagate[$name] = $propagate;
+
+        return $this;
+    }
+
+    /**
+     * Splits $path into an array whose first element is the first component
+     * of the given path (the text up until the first '/') and second component
+     * is the rest of the path.
+     */
+    protected function splitPath($path) {
+
+        $pos = strpos($path, '/');
+        if ($pos === false) {
+            return array($path, '');
+        }
+
+        return array(substr($path, 0, $pos), trim(substr($path, $pos + 1), '/'));
     }
 
     /**
@@ -182,6 +296,16 @@ class SG_Nav_Item {
 
         return false;
     }
+
+    /**
+     * @return Object An SG_Nav_Item instance specific to the given path. In
+     * most cases, this will be $this. Some subclasses that do virtual path
+     * mapping might return a specific SG_Nav_Item for that path.
+     */
+    protected function &getFindResult($path) {
+        return $this;
+    }
+
 
     /**
      * @return string Full path from the root.
@@ -299,5 +423,7 @@ class SG_Nav_Item {
     }
 
 }
+
+SG_Nav_Item::register('regex', 'SG_Nav_Item_Regex');
 
 ?>
