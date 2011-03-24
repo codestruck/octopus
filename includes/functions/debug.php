@@ -169,7 +169,11 @@ END;
 
         echo "\n$line";
         foreach($this->_content as $name => $c) {
-            echo "\n$c";
+
+            foreach($c as $text) {
+                echo "\n$text";
+            }
+
         }
         echo "\n$line";
 
@@ -244,8 +248,15 @@ END;
 
             }
 
-            $file = '<span class="sgDebugBacktraceFile">' . htmlspecialchars($b['file']) . '</span>';
-            $line = '<span class="sgDebugBacktraceLine">Line ' . $b['line'] . '</span>';
+            $file = '';
+            if (isset($b['file'])) {
+                $file = '<span class="sgDebugBacktraceFile">' . htmlspecialchars($b['file']) . '</span>';
+            }
+
+            $line = '';
+            if (isset($b['line'])) {
+                $line = '<span class="sgDebugBacktraceLine">Line ' . $b['line'] . '</span>';
+            }
 
             $html .= <<<END
             <li$class>
@@ -354,16 +365,27 @@ END;
             return;
         }
 
-        $d = new SG_Debug('dump_r');
-        foreach($args as $arg) {
-            $html = '<pre>' . htmlspecialchars(var_export($arg, true)) . '</pre>';
-            $d->add('var', $html);
-        }
-        $d->add('context', SG_Debug::getArraysHtml());
-        $bt = debug_backtrace();
-        $d->add('context', SG_Debug::getBacktraceHtml($bt));
+        if (SG_Debug::inWebContext()) {
 
-        $d->add('footer', SG_Debug::getErrorReportingHtml());
+            $d = new SG_Debug('dump_r');
+            foreach($args as $arg) {
+                $html = '<pre>' . htmlspecialchars(var_export($arg, true)) . '</pre>';
+                $d->add('var', $html);
+            }
+            $d->add('context', SG_Debug::getArraysHtml());
+            $bt = debug_backtrace();
+            $d->add('context', SG_Debug::getBacktraceHtml($bt));
+
+            $d->add('footer', SG_Debug::getErrorReportingHtml());
+
+        } else {
+
+            $d = new SG_Debug('dump_r');
+            foreach($args as $arg) {
+                $d->add('var', var_export($arg, true));
+            }
+
+        }
 
         $d->render();
 
