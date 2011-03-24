@@ -84,7 +84,6 @@
         require_once(CLASSES_DIR .'SG.php');
 
         SG::loadClass('SG_Model');
-
         SG::loadClass('SG_Nav');
 
         ////////////////////////////////////////////////////////////////////////
@@ -104,10 +103,7 @@
         // Nav Setup
         ////////////////////////////////////////////////////////////////////////
 
-        $NAV = new StdClass();
-
-        // Add some default routes
-        // $NAV->add('/', 'home.php');
+        $GLOBALS['NAV'] = new SG_Nav();
 
         ////////////////////////////////////////////////////////////////////////
         // Site-Specific Configuration

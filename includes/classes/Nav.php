@@ -23,8 +23,9 @@ class SG_Nav {
         return $item;
     }
 
-    public function addFromArray($ar) {
-        return $this->_root->addFromArray($ar);
+    public function &addFromArray($ar) {
+        $this->_root->addFromArray($ar);
+        return $this;
     }
 
     /**
@@ -69,6 +70,14 @@ class SG_Nav {
 
         $this->_aliases[$newPath] = $oldPath;
         return $this;
+    }
+
+    public function toHtml() {
+        return $this->_root->toHtml();
+    }
+
+    public function __toString() {
+        return $this->toHtml();
     }
 
 }

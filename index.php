@@ -4,19 +4,16 @@
 
     bootstrap();
 
-    echo "Congrats! You've got Project Octopus Running!";
+    $file = '404.php';
 
-    echo "<p>";
-    echo a('?dump_r=1', "Test dump_r redirect canceling");
-    echo "</p>";
+    $URI = isset($_GET['__path']) ? $_GET['__path'] : '/';
+    $item = $NAV->find($URI);
 
-    if (get_numeric('dump_r')) {
-
-        $myVar = array('test variable' => true);
-        dump_r($myVar);
-
-        redirect('should_be_canceled');
+    if ($item) {
+        $file = $item->getFile();
     }
+
+    include($file);
 
 ?>
 

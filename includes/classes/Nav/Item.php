@@ -564,6 +564,31 @@ class SG_Nav_Item {
         $this->_findCache = array();
     }
 
+    public function __toString() {
+
+        return $this->toHtml();
+    }
+
+    public function toHtml() {
+
+        $html = '<ul>';
+
+        foreach($this->getChildren() as $c) {
+            $text = h($c->getText());
+            $path = h(u($c->getFullPath()));
+            $html .= <<<END
+<li>
+    <a href="$path">$text</a>
+END;
+
+            $html .= $c->toHtml();
+            $html .= '</li>';
+        }
+        $html .= '</ul>';
+
+        return $html;
+    }
+
 }
 
 SG_Nav_Item::register('regex', 'SG_Nav_Item_Regex');
