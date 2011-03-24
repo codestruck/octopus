@@ -1,253 +1,201 @@
 <?php /*:folding=explicit:collapseFolds=1:*/
 
-    /**
-     * Outputs the arguments passed to it along w/ debugging info.
-     * @param mixed Any arguments you want dumped.
-     */
-    function dump_r() {
+// SG_Debug Class {{{
 
-        $args = func_get_args();
-        if (empty($args)) return;
-        
-        if ((defined('LIVE') && LIVE) || (defined('STAGING') && STAGING)) {
-            // TODO: Log?
-            return;
-        }
+/**
+ * Helper class used to render debug information on the client.
+ */
+class SG_Debug {
 
-        $er = error_reporting();
-        
-        if (($er & E_NOTICE) !== E_NOTICE) {
-            // Only dump stuff when we are supposed to
-            return;
-        }
+    public static $css = <<<END
 
-        if (function_exists('cancel_redirects')) {
-            cancel_redirects();
-        }
-        
-        if (empty($_SERVER['HTTP_USER_AGENT'])) {
-            
-            // Probably running on command line
-            echo("\n--------------------------------------------------------------------------------\n");
-            
-            foreach($args as $arg) {
-                var_dump($arg);
-            }
-            
-            echo("--------------------------------------------------------------------------------\n");
-            
-            return;
-        }
-        
-        $styles = array(
-            'wrapper' => array(
-                'display' =>      'block',
-                'float' =>        'none',
-                'overflow' =>     'hidden',
-                'margin' =>       '10px',
-                'padding' =>      '10px',
-                'border' =>       '4px solid #808080',
-                'background' =>   '#f0f0f0',
-                'color' =>        'black',
-                'font-family' =>  'monospace',
-                'font-size' =>    '14px'
-            ),
-            'table' => array(
-              'padding-bottom' => '10px',
-              'margin-bottom' => '10px'
-            ),
-            'var' => array(
-              'background' => '#fff',
-              'padding' => '10px'
-            ),
-            'arrays' => array(
-                'float' => 'left'
-            ),
-            'array' => array(
-            ),
-            'arrayTh' => array(
-                'font-weight' => 'bold',
-                'padding-right' => '10px',
-                'padding-bottom' => '4px',
-                'text-align' => 'left'
-            ),
-            'arrayTd' => array(
-            ),
-            'backtrace' => array(
-                'float' => 'right',
-                'color' => '#444',
-                'padding-left' => '10px',
-            ),
-            'footer' => array(
-                'clear' => 'both',
-                'font-size' => '0.65em',
-                'padding-top' => '10px',
-                'padding-left' => '10px',
-                'color' => '#444',
-                'text-align' => 'right'
-            ),
-            'type_info' => array(
-                'display' => 'block',
-                'font-size' => '0.95em',
-                'margin-top' => '10px',
-                'color' => '#444',
-                'text-align' => 'center'
-            )
-        );
-        
-        // Variable(s)
-        $style = _make_style_attr($styles['wrapper']);
-        print "<div class=\"dump_r\" style=\"$style\">";
-        
-        $style = _make_style_attr($styles['table']);
-        print "<table style=\"$style\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\">";
-        print '<tr>';
-        foreach($args as $arg) {
-            
-            $var = stripslashes(var_export($arg, true));
-            $htmlVar = htmlspecialchars($var);
-            
-            print '<td>';
-            
-            $style = _make_style_attr($styles['var']);
-            print "<div style=\"$style\">";
-            print $htmlVar;
-            
-            $style = _make_style_attr($styles['type_info']);
-            print "<div style=\"$style\">";
-            print '<strong style="font-weight: bold;">' . gettype($var) . '</strong> ';
-            
-            if (is_string($var)) {
-                print 'strlen: ' . strlen($var) . ', mb_strlen: ' . mb_strlen($var);
-            } else if (is_array($var)) {
-                print 'count: ' . count($var);
-            }
-            
-            print '</div>';            
-            print "</div>";
-            print '</td>';
-        }
-        print '</tr>';
-        print '</table>';
-        
-        // built-in arrays
-        $style = _make_style_attr($styles['arrays']);
-        $thStyle = _make_style_attr($styles['arrayTh']);
-        $tdStyle = _make_style_attr($styles['arrayTd']);
-        print "<div style=\"$style\">";
-        foreach(array('GET', 'POST', 'SERVER', 'SESSION') as $arname) {
-           
-           eval('$ar = $_' . $arname . ';');
-           
-           $id = "__dump_r_$arname";
-           
-           print "<a href=\"#$arname\" onclick=\"var c = document.getElementById('$id'); if (c.style.display == 'none') c.style.display = ''; else c.style.display = 'none'; return false;\">\$_$arname</a><br />";
-           
-           $style = _make_style_attr($styles['array']);
-           print "<table id=\"$id\" style=\"display: none;$style\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">";
-           foreach($ar as $key => $value) {
-               
-               $value = var_export($value, true);
-               
-               print '<tr>';
-               print "<th style=\"$thStyle\">" . htmlspecialchars($key) . '</th>';
-               print "<td style=\"$tdStyle\">" . htmlspecialchars(stripslashes($value)) . '</td>';
-               print '</tr>';
-           }
-           print '</table>';
-           
-        }
-        print '</div>';
-        
-        // Backtrace
-        $backtrace = debug_backtrace();
-        $style = _make_style_attr($styles['backtrace']);
-        print "<div style=\"$style\">";
-        print _backtrace_to_html($backtrace);
-        print '</div>';
-        
-        // Error Reporting
-        $style = _make_style_attr($styles['footer']);
-        print "<div style=\"$style\">";
-        print 'error_reporting: ' . implode(' | ', _get_error_reporting_flags());
-        print '</div>';
-        
-        print '</div>';
+<style type="text/css">
+<!--
+
+    .sgDebug {
+        background: #ccc;
+        border: 1px solid #333;
+        color: #000;
+        font-family: monospace;
+        margin: 0 0 10px 0;
+        padding: 10px;
     }
 
-    /**
-     * Calls dump_r and then exit().
-     * @param mixed Any values you want displayed.
-     */
-    function dump_x() {
-        $args = func_get_args();
-        call_user_func_array('dump_r', $args);
-        exit();
+    .sgDebugContentTable {
+        width: 100%;
     }
-    
-    // Support Functions {{{ 
-    
-    function &_make_style_attr(&$styles) {
-        $attr = '';
-        foreach($styles as $key => $value) {
-            $attr .= "$key: $value !important;";
-        }
-        return $attr;
-    }
-    
-    /**
-     * @return string A backtrace rendered as HTML.
-     */
-    function _backtrace_to_html(&$bt) {
 
-        $html = '';
-        $currentLine = '';
-        $currentFile = '';
-        
-        $skipFunction = true;
-        $first = true;
-        
-        foreach($bt as $b) {
-            
-            $function = (empty($b['function']) || $skipFunction) ? '' : $b['function'] . '() ';
-            $file = empty($currentFile) ? '' : 'in ' . $currentFile;
-            $line = empty($currentLine) ? '' : 'on line ' . $currentLine;
-            
-            $loc = trim($function . ' ' . $file . ' ' . $line);
-            
-            if ($loc !== '') {
-                if ($first) {
-                    $loc = "<strong style=\"font-weight:bold;\">$loc</strong>";
-                    $first = false;
-                }
-                $html .= "-&nbsp;{$loc}<br />";
-            }
-            
-            $currentFile = isset($b['file']) ? basename($b['file']) : '';
-            $currentLine = isset($b['line']) ? $b['line'] : '';
-            $skipFunction = false;
+    table.sgDebugContentTable tr td {
+        vertical-align: top;
+        text-align: center;
+    }
+    table.sgDebugContentTable tr td.sgDebugLast { text-align: right; }
+    table.sgDebugContentTable tr td.sgDebugFirst { text-align: left; }
+
+
+    .sgDebug_var {
+        background: #eee;
+        padding: 5px;
+        margin-bottom: 10px;
+    }
+
+    table.sgDebugArrayTable {
+        background: #eee;
+        margin: 5px 0;
+    }
+    table.sgDebugArrayTable tr td, table.sgDebugArrayTable tr th {
+        text-align: left;
+    }
+
+    .sgDebugMissingArray { color: #444; }
+
+    ul.sgDebugBacktrace {
+        list-style-type: none;
+        padding: 0;
+    }
+    ul.sgDebugBacktrace li.sgDebugFirst { font-weight: bold; }
+
+    .sgDebugErrorReporting {
+        border-top: 1px dotted #555;
+        color: #555;
+        font-size: 0.9em;
+        margin-top: 10px;
+        padding-top: 10px;
+        text-align: right;
+    }
+
+-->
+</style>
+
+END;
+
+    private $_id;
+    private $_content = array();
+    private $_options;
+    private static $_renderedCss = false;
+    private static $_idCounter = 0;
+
+    private static function getNewId() {
+        return "sgDebug" . (++self::$_idCounter);
+    }
+
+    public function __construct($id) {
+        $this->_id = $id;
+    }
+
+    public function add($name, $content) {
+
+        if (!isset($this->_content[$name])) {
+            $this->_content[$name] = array();
         }
-        
+
+        $this->_content[$name][] = $content;
+    }
+
+    public function render() {
+        if (self::inWebContext()) {
+            $this->renderHtml();
+        } else {
+            $this->renderText();
+        }
+    }
+
+    public function renderHtml() {
+
+        if (!self::$_renderedCss) {
+            echo self::$css;
+            self::$_renderedCss = true;
+        }
+
+        $content = $this->getContentHtml();
+
+        echo <<<END
+        <div id="{$this->_id}" class="sgDebug">
+            $content
+        </div>
+END;
+    }
+
+    private function getContentHtml() {
+
+        $count = count($this->_content);
+
+        if (!$count) {
+            return '';
+        }
+
+        $result = '';
+        foreach($this->_content as $name => $values) {
+            $html = self::buildContentTable($name, $values);
+            $result .= $html;
+        }
+
+        return $result;
+
+    }
+
+    private static function buildContentTable($name, $values) {
+
+        $html = <<<END
+<table class="sgDebugContentTable sgDebug_$name">
+<tr>
+END;
+        $count = count($values);
+        $width = 100.0 / $count;
+
+        $i = 0;
+        foreach($values as $v) {
+
+            $classAttr = '';
+            if ($i == 0) $classAttr = 'sgDebugFirst';
+            if ($i == count($values) - 1) $classAttr .= ' sgDebugLast';
+            $classAttr = $classAttr ? " class=\"$classAttr\"" : '';
+
+            $html .= "<td style=\"width: {$width}%;\" $classAttr>";
+            $html .= $v;
+            $html .= "</td>";
+
+            $i++;
+        }
+
+        $html .= '</tr></table>';
+
         return $html;
     }
-    
+
+    public function renderText() {
+
+        $line = str_repeat('-', 80);
+
+        echo "\n$line";
+        foreach($this->_content as $name => $c) {
+            echo "\n$c";
+        }
+        echo "\n$line";
+
+    }
+
+    public static function inWebContext() {
+        return isset($_SERVER['HTTP_USER_AGENT']);
+    }
+
     /**
      * @return array The names of all enabled error reporting flags.
      */
-    function &_get_error_reporting_flags() {
-        
+    private static function &getErrorReportingFlags($er = null) {
+
         $allExceptDeprecated = E_ALL & ~E_DEPRECATED;
-        
-        $er = error_reporting();
+
+        $er = $er == null ? error_reporting() : $er;
         $flags = array();
-        
+
         if (($er & E_ALL) === E_ALL) {
             $flags[] = 'E_ALL';
         } else if ($er & $allExceptDeprecated === $allExceptDeprecated) {
             $flags[] = 'E_ALL (except E_DEPRECATED)';
         }
-        
-        
+
+
         if (empty($flags)) {
             foreach(array('E_NOTICE', 'E_ERROR', 'E_WARNING', 'E_PARSE', 'E_DEPRECATED') as $level) {
                 $val = constant($level);
@@ -263,7 +211,172 @@
 
         return $flags;
     }
-    
-    // }}}
+
+    /**
+     * @return string A backtrace rendered as HTML.
+     */
+    public static function getBacktraceHtml(&$bt = null) {
+
+        $bt = $bt ? $bt : debug_backtrace();
+
+        $html = '';
+        $currentLine = '';
+        $currentFile = '';
+
+        $skipFunction = true;
+        $first = true;
+
+        $html = '<ul class="sgDebugBacktrace">';
+
+        $i = 0;
+        $count = count($bt);
+
+        foreach($bt as $b) {
+
+            $class = '';
+            if ($i == 0) $class = ' sgDebugFirst';
+            if ($i == $count - 1) $class .= ' sgDebugLast';
+            $class = $class ? ' class="' . $class . '"' : '';
+
+            $func = '';
+            if (isset($b['function'])) {
+                $func = '<span class="sgDebugBacktraceFunction">' . $b['function'] . '()</span>';
+
+            }
+
+            $file = '<span class="sgDebugBacktraceFile">' . htmlspecialchars($b['file']) . '</span>';
+            $line = '<span class="sgDebugBacktraceLine">Line ' . $b['line'] . '</span>';
+
+            $html .= <<<END
+            <li$class>
+                $func
+                $file
+                $line
+            </li>
+END;
+
+            $i++;
+
+        }
+
+        $html .= '</ul>';
+
+        return $html;
+    }
+
+    public static function getErrorReportingHtml() {
+
+        $flags = implode(' | ', self::getErrorReportingFlags());
+
+        return <<<END
+        <div class="sgDebugErrorReporting">
+        error_reporting: $flags
+        </div>
+END;
+
+
+    }
+
+    /**
+     * Returns HTML for the various system arrays
+     */
+    public static function getArraysHtml() {
+
+        $html = '';
+
+        foreach(array('$_GET', '$_POST', '$_SERVER', '$_SESSION') as $arname) {
+
+           eval("\$ar = isset($arname) ? $arname : false;");
+           if ($ar === false) {
+               $html .= '<span class=\"sgDebugMissingArray">' . $arname . ' (unavailable)</span>';
+               continue;
+           }
+
+           $id = self::getNewId();
+
+           if (empty($ar)) {
+               $html .= '<span class="sgDebugEmptyArrayName">' . $arname . ' (Empty)</span><br>';
+               continue;
+           }
+
+           $html .= "<a href=\"#$arname\" onclick=\"var c = document.getElementById('$id'); if (c.style.display == 'none') c.style.display = ''; else c.style.display = 'none'; return false;\">$arname</a><br />";
+           $html .= '<table id="' . $id . '" style="display: none;" class="sgDebugArrayTable">';
+
+
+           foreach($ar as $key => $value) {
+
+               $value = var_export($value, true);
+
+               $html .=
+                '<tr>' .
+                    '<th>' . htmlspecialchars($key) . '</th>' .
+                    '<td>=></td>' .
+                    '<td>' . htmlspecialchars(stripslashes($value)) . '</td>';
+                '</tr>';
+
+           }
+
+           $html .= '</table>';
+
+
+        }
+
+       return $html;
+
+    }
+
+
+
+}
+
+// }}}
+
+    /**
+     * Outputs the arguments passed to it along w/ debugging info.
+     * @param mixed Any arguments you want dumped.
+     */
+    function dump_r() {
+
+        $args = func_get_args();
+        if (empty($args)) return;
+
+        if ((defined('LIVE') && LIVE) || (defined('STAGING') && STAGING)) {
+            // TODO: Log?
+            return;
+        }
+
+        if (function_exists('cancel_redirects')) {
+            cancel_redirects();
+        }
+
+        if ((error_reporting() & E_NOTICE) !== E_NOTICE) {
+            // Only dump stuff when we are supposed to
+            return;
+        }
+
+        $d = new SG_Debug('dump_r');
+        foreach($args as $arg) {
+            $html = '<pre>' . htmlspecialchars(var_export($arg, true)) . '</pre>';
+            $d->add('var', $html);
+        }
+        $d->add('context', SG_Debug::getArraysHtml());
+        $bt = debug_backtrace();
+        $d->add('context', SG_Debug::getBacktraceHtml($bt));
+
+        $d->add('footer', SG_Debug::getErrorReportingHtml());
+
+        $d->render();
+
+    }
+
+    /**
+     * Calls dump_r and then exit().
+     * @param mixed Any values you want displayed.
+     */
+    function dump_x() {
+        $args = func_get_args();
+        call_user_func_array('dump_r', $args);
+        exit();
+    }
 
 ?>
