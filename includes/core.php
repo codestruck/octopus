@@ -38,9 +38,12 @@
             /**
              * Whether or not to load site-specific configuration files.
              */
-            'use_site_config' =>    true
+            'use_site_config' =>    true,
+
+            'path_querystring_arg' => '__path'
         );
         $options = $options ? array_merge($defaults, $options) : $defaults;
+        $GLOBALS['BOOTSTRAP_OPTIONS'] = $options;
 
         ////////////////////////////////////////////////////////////////////////
         // Directory Configuration
@@ -145,6 +148,44 @@
         define_unless('STAGING', !((defined('DEV') && DEV) || (defined('LIVE') && LIVE)));
         define_unless('LIVE', !((defined('DEV') && DEV) || (defined('STAGING') && STAGING)));
 
+    }
+
+    /**
+     * Once the app has been bootstrapped, renders a page.
+     * @param $path String Page to render. If null, the __path querystring arg
+     * is used.
+     * @param $notFound mixed Template to render if the requested page can't
+     * be found, or false to not render anything.
+     */
+    function render_page($path = null, $notFound = '404.php') {
+
+        global $BOOTSTRAP_OPTIONS, $NAV;
+
+        if ($path === null) {
+            $arg = $BOOTSTRAP_OPTIONS['path_querystring_arg'];
+            $path = isset($_GET[$arg]) ? $_GET[$arg] : '/';
+        }
+
+        $file = false;
+        $item = $NAV->find($path);
+
+        if ($item) {
+
+            $file = $item->getFile();
+            if (!file_exists($file)) {
+                $file = false;
+            }
+
+        }
+
+        if (!$file && $notFound) {
+            $file = get_theme_file("templates/html/$notFound");
+        }
+
+        if (!$file) return false;
+
+        include($file);
+        return true;
     }
 
 ?>
