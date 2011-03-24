@@ -2,8 +2,8 @@
 
 class SG_Model_Field {
 
-    private $field;
-    private $options;
+    protected $field;
+    protected $options;
     protected $defaultOptions = array();
 
     public function __construct($field, $options) {

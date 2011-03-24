@@ -118,7 +118,7 @@ class SG_Model {
 
         $i->table(static::getTableName());
 
-        foreach (static::getFields() as $name => $field) {
+        foreach (static::getFields() as $field) {
             $field->save($this, $i);
         }
 
@@ -244,7 +244,8 @@ class SG_Model {
             }
 
             $field = SG_Model_Field::getField($name, $options);
-            $handles[$name] = $field;
+            $fieldName = $field->getFieldName();
+            $handles[$fieldName] = $field;
         }
 
         return static::_setStatic('fieldHandles', $handles, $className);
