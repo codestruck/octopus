@@ -3,8 +3,8 @@
 SG::loadClass('SG_Model');
 
 class Different extends SG_Model {
-    static $table = 'nonstandard';
-    static $fields = array(
+    protected $table = 'nonstandard';
+    protected $fields = array(
         'title' => array(),
         'created',
         'updated',
@@ -12,8 +12,8 @@ class Different extends SG_Model {
 }
 
 class Differentb extends SG_Model {
-    static $primaryKey = 'id';
-    static $fields = array(
+    protected $primaryKey = 'id';
+    protected $fields = array(
         'title' => array(),
         'created',
         'updated',
@@ -21,9 +21,9 @@ class Differentb extends SG_Model {
 }
 
 class Differentc extends SG_Model {
-    static $primaryKey = 'foobar';
-    static $table = 'randomtable';
-    static $fields = array(
+    protected $primaryKey = 'foobar';
+    protected $table = 'randomtable';
+    protected $fields = array(
         'title' => array(),
         'created',
         'updated',
@@ -31,8 +31,8 @@ class Differentc extends SG_Model {
 }
 
 class Differentd extends SG_Model {
-    static $displayField = 'kazi';
-    static $fields = array(
+    protected $displayField = 'kazi';
+    protected $fields = array(
         'kazi' => array(),
         'created',
         'updated',
@@ -154,7 +154,7 @@ class ModelNonStandardTest extends PHPUnit_Framework_TestCase
         $item->kazi = 'My Other Name';
         $item->save();
 
-        $other = Differentd::get('My Other Name');
+        $other = new Differentd('My Other Name');
         $this->assertEquals(2, $other->differentd_id);
     }
 

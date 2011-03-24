@@ -1,33 +1,30 @@
 <?php
 
 if(!function_exists('get_called_class')) {
-        class class_tools {
-                static $i = 0;
-                static $fl = null;
+    function get_called_class() {
+        $bt = debug_backtrace();
+        $i = 1;
 
-                static function get_called_class() {
-                    $bt = debug_backtrace();
+        do {
 
-                        if (self::$fl == $bt[2]['file'].$bt[2]['line']) {
-                            self::$i++;
-                        } else {
-                            self::$i = 0;
-                            self::$fl = $bt[2]['file'].$bt[2]['line'];
-                        }
+            if (isset($bt[$i]['object'])) {
+                return get_class($bt[$i]['object']);
+            }
 
-                        $lines = file($bt[2]['file']);
+            $lines = file($bt[$i]['file']);
 
-                        preg_match_all('/([a-zA-Z0-9\_]+)::'.$bt[2]['function'].'/',
-                            $lines[$bt[2]['line']-1],
+            preg_match_all('/([a-zA-Z0-9\_]+)::'.$bt[$i]['function'].'/',
+                            $lines[$bt[$i]['line']-1],
                             $matches);
 
-                return $matches[1][self::$i];
-            }
-        }
+            $class = $matches[1][0];
 
-        function get_called_class() {
-            return class_tools::get_called_class();
-        }
+            $i++;
+        } while ($class == 'self');
+
+        return $class;
+
+    }
 }
 
 ?>

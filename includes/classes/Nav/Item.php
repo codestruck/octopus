@@ -23,8 +23,8 @@ class SG_Nav_Item {
     public function __construct($options = null) {
 
         $options = $options ? $options : array();
-        if (isset(static::$defaults)) {
-            $options = array_merge($options, static::$defaults);
+        if (isset(self::$defaults)) {
+            $options = array_merge($options, self::$defaults);
         }
 
         $this->options = $options;

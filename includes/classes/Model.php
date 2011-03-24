@@ -14,31 +14,21 @@ class SG_Model {
      * Name of column that stores the primary key. If not set in a subclass,
      * it is inferred when you call getPrimaryKey().
      */
-    public static $primaryKey = null;
+    protected $primaryKey = null;
 
     /**
      * Name of table this model uses. If not set in a subclass, it is inferred
      * when you call getTableName()
      */
-    public static $table = null;
+    protected $table = null;
 
     /**
      * Name of the field to use when displaying this model e.g. in a list.
      * If an array, the first one that actually exists on the model will be
      * used. Once the correct field is selected, it is cached.
      */
-    public static $displayField = array('name', 'title', 'text', 'summary', 'description');
-
-    private static $_cache = array();
-
-    // Map of magic method name patterns to handler funcs
-    private static $_magicMethods = array(
-
-        '/^getBy(?P<field>[A-Z][a-zA-Z0-9_]*)$/' => '_getBy',
-
-        '/^findBy(?P<field>[A-Z][a-zA-Z0-9_]*)$/' => '_findBy'
-
-    );
+    protected $displayField = array('name', 'title', 'text', 'summary', 'description');
+    private $fieldHandles = array();
 
     protected $data = array();
 
@@ -49,7 +39,7 @@ class SG_Model {
             $this->setData($id);
         } else if ($id) {
             if ($id) {
-                $this->setData(static::get($id));
+                $this->setData(self::get($id));
             }
         }
     }
@@ -58,11 +48,11 @@ class SG_Model {
 
         if ($var == 'id') {
             // special case for id
-            $pk = static::getPrimaryKey();
+            $pk = $this->getPrimaryKey();
             return $pk == 'id' ? null : $this->$pk;
         }
 
-        $field = static::getField($var);
+        $field = $this->getField($var);
         if ($field) {
             return $field->accessValue($this);
         } else {
@@ -71,7 +61,7 @@ class SG_Model {
     }
 
     public function __set($var, $value) {
-        $field = static::getField($var);
+        $field = $this->getField($var);
         if ($field) {
             $field->setValue($this, $value);
         } else {
@@ -93,13 +83,6 @@ class SG_Model {
         }
     }
 
-    // find functions only here to support constructor
-    public function findOne() {
-        $results = call_user_func_array(array($this, 'find'), func_get_args());
-        return array_shift($results);
-    }
-
-
     public function save() {
 
         if (!$this->validate()) {
@@ -107,7 +90,7 @@ class SG_Model {
             return false;
         }
 
-        $pk = static::getPrimaryKey();
+        $pk = $this->getPrimaryKey();
 
         if ($this->$pk !== null) {
             $i = new SG_DB_Update();
@@ -116,9 +99,9 @@ class SG_Model {
             $i = new SG_DB_Insert();
         }
 
-        $i->table(static::getTableName());
+        $i->table($this->getTableName());
 
-        foreach (static::getFields() as $field) {
+        foreach ($this->getFields() as $field) {
             $field->save($this, $i);
         }
 
@@ -132,9 +115,9 @@ class SG_Model {
 
     public function delete() {
 
-        $pk = static::getPrimaryKey();
+        $pk = $this->getPrimaryKey();
         $item_id = $this->$pk;
-        $table = static::getTableName();
+        $table = $this->getTableName();
 
         $d = new SG_DB_Delete();
         $d->table($table);
@@ -149,7 +132,7 @@ class SG_Model {
         $pass = true;
         $this->errors = array();
 
-        foreach (static::getFields() as $obj) {
+        foreach ($this->getFields() as $obj) {
             if (!$obj->validate($this)) {
                 $this->errors[] = array('field' => $obj->getFieldname(), 'message' => 'is Required');
                 $pass = false;
@@ -164,54 +147,54 @@ class SG_Model {
         return $this->errors;
     }
 
-    public static function getDisplayField() {
+    public function getDisplayField() {
 
-        if (!static::$displayField) {
+        if (!$this->displayField) {
             return;
         }
 
-        if (is_string(static::$displayField)) {
-            return static::getField(static::$displayField);
-        } else if (is_array(static::$displayField)) {
+        if (is_string($this->displayField)) {
+            return $this->getField($this->displayField);
+        } else if (is_array($this->displayField)) {
 
-            $fields = static::getFields();
-            $candidates = static::$displayField;
+            $fields = $this->getFields();
+            $candidates = $this->displayField;
 
             foreach($candidates as $f) {
                 if (isset($fields[$f])) {
-                    static::$displayField = $f;
+                    $this->displayField = $f;
                     return $fields[$f];
                 }
             }
         }
 
-        static::$displayField = null;
+        $this->displayField = null;
     }
 
     public function getDisplayValue() {
-        $field = static::getDisplayField();
+        $field = $this->getDisplayField();
 
         if ($field) // HACK to fix tests while working on one to many
         return $this->{$field->getFieldName()};
     }
 
-    public static function getPrimaryKey() {
-        if (isset(static::$primaryKey)) {
-            return static::$primaryKey;
+    public function getPrimaryKey() {
+        if (isset($this->primaryKey)) {
+            return $this->primaryKey;
         } else {
-            return underscore(static::to_id(static::_getClassName()));
+            return underscore($this->to_id(self::_getClassName()));
         }
     }
 
-    public static function to_id($name) {
+    public function to_id($name) {
         return $name . '_id';
     }
 
-    public static function getTableName() {
-        if (isset(static::$table)) {
-            return static::$table;
+    public function getTableName() {
+        if (isset($this->table)) {
+            return $this->table;
         } else {
-            return underscore(static::_pluralize(static::_getClassName()));
+            return underscore($this->_pluralize(self::_getClassName()));
         }
     }
 
@@ -221,23 +204,22 @@ class SG_Model {
      */
     private static function _getClassName() {
         //TODO Cache this
-        return get_called_class();
+        $class = get_called_class();
+        return $class;
     }
 
-    protected static function _pluralize($str) {
+    protected function _pluralize($str) {
         // needs work...
         return pluralize($str);
     }
 
-    public static function getFields() {
+    public function getFields() {
 
-        $className = get_called_class();
+        if (count($this->fieldHandles)) {
+            return $this->fieldHandles;
+        }
 
-        $handles = static::_getStatic('fieldHandles', $className);
-        if ($handles) return $handles;
-
-        $handles = array();
-        foreach (static::$fields as $name => $options) {
+        foreach ($this->fields as $name => $options) {
 
             if (is_numeric($name)) {
                 $name = is_array($options) ? $options['name'] : $options;
@@ -245,14 +227,14 @@ class SG_Model {
 
             $field = SG_Model_Field::getField($name, $options);
             $fieldName = $field->getFieldName();
-            $handles[$fieldName] = $field;
+            $this->fieldHandles[$fieldName] = $field;
         }
 
-        return static::_setStatic('fieldHandles', $handles, $className);
+        return $this->fieldHandles;
     }
 
-    public static function getField($name) {
-        $fields = static::getFields();
+    public function getField($name) {
+        $fields = $this->getFields();
         return isset($fields[$name]) ? $fields[$name] : null;
     }
 
@@ -260,7 +242,7 @@ class SG_Model {
      * @return Object An SG_Model_ResultSet containing all records.
      */
     public static function &all() {
-        return static::find();
+        return self::find();
     }
 
     /**
@@ -269,7 +251,7 @@ class SG_Model {
     public static function &find(/* Variable */) {
 
         $criteria = func_get_args();
-        $class = static::_getClassName();
+        $class = get_called_class();
 
         $result = new SG_Model_ResultSet($class, $criteria);
         return $result;
@@ -284,7 +266,7 @@ class SG_Model {
 
         if (is_numeric($idOrName)) {
 
-            $result = static::find(array('id' => $idOrName));
+            $result = self::find(array('id' => $idOrName));
             if ($orderBy) $result = $result->orderBy($orderBy);
 
             $result = $result->first();
@@ -292,116 +274,16 @@ class SG_Model {
             if ($result) return $result;
         }
 
-        $displayField = static::getDisplayField()->getFieldName();
+        $class = self::_getClassName();
+        $obj = new $class();
 
-        $result = static::find(array($displayField => $idOrName));
+        $displayField = $obj->getDisplayField()->getFieldName();
+
+        $result = self::find(array($displayField => $idOrName));
         if ($orderBy) $result = $result->orderBy($orderBy);
 
         return $result->first();
     }
-
-
-    /**
-     * Handles findBy*() calls.
-     *
-     * @param $matches Array Matches from the regex run against the requested function name.
-     * @param $args Array Function args.
-     * @return Object An SG_Model_ResultSet containing all found things
-     *
-     * Signature for findBy*() is:
-     *
-     *  function findBy*($value, $orderBy = null)
-     *
-     */
-     private static function _findBy($matches, $args) {
-
-         $field = $matches['field'];
-         $value = $args[0];
-         $orderBy = isset($args[1]) ? $args[1] : null;
-
-         $result = static::find(array(underscore($field) => $value));
-         if ($orderBy) $result = $result->orderBy($orderBy);
-         return $result;
-
-     }
-
-    /**
-     * Handles getBy*() calls.
-     *
-     * @param $matches Array Matches from the regex run against the requested function name.
-     * @param $args Array Arguments passed to the function.
-     * @return Object An SG_Model instance if one is found, otherwise false.
-     *
-     * getBy*() has the following signature:
-     *
-     *  function getBy*($idOrName, $orderBy = null)
-     */
-    private static function _getBy($matches, $args) {
-
-        $field = $matches['field'];
-        $value = $args[0];
-        $orderBy = isset($args[1]) ? $args[1] : null;
-
-        $result = static::find(underscore($field), $value);
-        if ($orderBy) $result = $result->orderBy($orderBy);
-
-        return $result->first();
-    }
-
-
-    // NB: This requires PHP 5.3.0
-    public static function __callStatic($name, $args) {
-
-        foreach(self::$_magicMethods as $pattern => $handler) {
-
-            if (preg_match($pattern, $name, $m)) {
-                return static::$handler($m, $args);
-            }
-
-        }
-
-    }
-    /*
-    public function isSaved() {
-        $pk = static::getPrimaryKey();
-        return ($this->$pk !== null);
-    }
-    */
-
-    /**
-     * Helper for reading from static storage per-subclass.
-     */
-    protected static function _getStatic($key, &$className = null) {
-
-        // TODO: Cache class name.
-        $className = $className ? $className : get_called_class();
-
-        if (!isset(self::$_cache[$className])) {
-            return null;
-        }
-
-        if (!isset(self::$_cache[$className][$key])) {
-            return null;
-        }
-
-        return self::$_cache[$className][$key];
-    }
-
-    /**
-     * Helper for writing to static storage per-subclass.
-     */
-    protected static function _setStatic($key, $value, &$className = null) {
-
-        $className = $className ? $className : get_called_class();
-
-        if (!isset(self::$_cache[$className])) {
-            self::$_cache[$className] = array();
-        }
-
-        self::$_cache[$className][$key] = $value;
-        return $value;
-    }
-
 
 }
 

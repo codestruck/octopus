@@ -7,7 +7,20 @@
  */
 class SG_Debug {
 
-    public static $css = <<<END
+    public $css;
+    private $_id;
+    private $_content = array();
+    private $_options;
+    private static $_renderedCss = false;
+    private static $_idCounter = 0;
+
+    private static function getNewId() {
+        return "sgDebug" . (++self::$_idCounter);
+    }
+
+    public function __construct($id) {
+        $this->_id = $id;
+        $this->css = <<<END
 
 <style type="text/css">
 <!--
@@ -68,19 +81,6 @@ class SG_Debug {
 </style>
 
 END;
-
-    private $_id;
-    private $_content = array();
-    private $_options;
-    private static $_renderedCss = false;
-    private static $_idCounter = 0;
-
-    private static function getNewId() {
-        return "sgDebug" . (++self::$_idCounter);
-    }
-
-    public function __construct($id) {
-        $this->_id = $id;
     }
 
     public function add($name, $content) {

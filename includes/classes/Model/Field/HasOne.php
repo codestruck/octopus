@@ -12,7 +12,7 @@ class SG_Model_Field_HasOne extends SG_Model_Field {
         // setup a model class for this object based on the ID in the DB
         $field = $this->getFieldName();
         $class = $this->getItemClass();
-        $dataField = $model::to_id($field);
+        $dataField = $model->to_id($field);
 
         $value = $model->$dataField; // seems scary to access the join id as a var on the model
         return new $class($value);
@@ -29,7 +29,7 @@ class SG_Model_Field_HasOne extends SG_Model_Field {
         $value = $obj->$primaryKey;
 
         // save id of subobject in this field
-        $sqlQuery->set($model::to_id($field), $value);
+        $sqlQuery->set($model->to_id($field), $value);
     }
 
     function setValue($model, $value) {
@@ -49,7 +49,8 @@ class SG_Model_Field_HasOne extends SG_Model_Field {
     }
 
     public function restrict($operator, $value, &$s, &$params) {
-        $sql = self::defaultRestrict(SG_Model::to_id($this->field), $operator, $this->getDefaultSearchOperator(), $value, $s, $params);
+        $model = new SG_Model();
+        $sql = $this->defaultRestrict($model->to_id($this->field), $operator, $this->getDefaultSearchOperator(), $value, $s, $params);
         return $sql;
     }
 

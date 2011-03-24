@@ -232,8 +232,9 @@ class SG_Model_ResultSet implements Iterator, Countable {
                 // HACK: special-case id
                 if (strcasecmp($fieldName, 'id') == 0) {
                     $mc = $this->_modelClass;
-                    $fieldName = $mc::getPrimaryKey();
-                    $criteriaSql = SG_Model_Field::defaultRestrict($mc::getPrimaryKey(), $operator, '=', $value, $s, $params);
+                    $obj = new $mc();
+                    $fieldName = $obj->getPrimaryKey();
+                    $criteriaSql = SG_Model_Field::defaultRestrict($fieldName, $operator, '=', $value, $s, $params);
                 } else {
                     $field = $this->_getField($fieldName);
 
@@ -263,8 +264,9 @@ class SG_Model_ResultSet implements Iterator, Countable {
     }
 
     private function &_getField($name) {
-        $modelClass = $this->_modelClass;
-        $field = $modelClass::getField($name);
+        $mc = $this->_modelClass;
+        $obj = new $mc();
+        $field = $obj->getField($name);
         return $field;
     }
 
@@ -296,10 +298,11 @@ class SG_Model_ResultSet implements Iterator, Countable {
             return $this->_select;
         }
 
-        $modelClass = $this->_modelClass;
+        $mc = $this->_modelClass;
+        $obj = new $mc();
 
         $s = new SG_DB_Select();
-        $s->table($modelClass::getTableName());
+        $s->table($obj->getTableName());
 
         $sql = '';
         $params = array();

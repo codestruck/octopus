@@ -19,7 +19,7 @@ function trigger_onEmpty(SG_Model $model, SG_Model_Field $field) {
 }
 
 class Trigger extends SG_Model {
-    static $fields = array(
+    protected $fields = array(
         'title' => array(),
         'a' => array(
             'onCreate' => 'trigger_onCreate',

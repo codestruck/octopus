@@ -6,7 +6,7 @@ SG::loadClass('SG_Model');
 db_error_reporting(DB_PRINT_ERRORS);
 
 class Nail extends SG_Model {
-    static $fields = array(
+    protected $fields = array(
         'name' => array(
             'required' => true
         ),
@@ -20,7 +20,7 @@ class Nail extends SG_Model {
 }
 
 class Hammer extends SG_Model {
-    static $fields = array(
+    protected $fields = array(
         'name' => array(
             'required' => true,
         ),
@@ -43,7 +43,7 @@ class Hammer extends SG_Model {
 }
 
 class Sledgehammer extends SG_Model {
-    static $fields = array(
+    protected $fields = array(
         'name' => array(
             'required' => true,
         ),

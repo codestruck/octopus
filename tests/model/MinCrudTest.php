@@ -6,7 +6,7 @@ SG::loadClass('SG_Model');
 db_error_reporting(DB_PRINT_ERRORS);
 
 class Minpost extends SG_Model {
-    static $fields = array(
+    protected $fields = array(
         'title' => array(
             'required' => true,
         ),
