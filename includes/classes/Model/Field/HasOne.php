@@ -11,7 +11,7 @@ class SG_Model_Field_HasOne extends SG_Model_Field {
 
         // setup a model class for this object based on the ID in the DB
         $field = $this->getFieldName();
-        $class = ucfirst($field);
+        $class = $this->getItemClass();
         $dataField = $model::to_id($field);
 
         $value = $model->$dataField; // seems scary to access the join id as a var on the model
@@ -20,7 +20,6 @@ class SG_Model_Field_HasOne extends SG_Model_Field {
 
     function save($model, $sqlQuery) {
         $field = $this->getFieldName();
-        $dataField = $model::to_id($field);
 
         // save subobject
         $obj = $model->getInternalValue($field);
@@ -33,8 +32,30 @@ class SG_Model_Field_HasOne extends SG_Model_Field {
         $sqlQuery->set($model::to_id($field), $value);
     }
 
+    function setValue($model, $value) {
+        if (!is_object($value)) {
+            $id = $value;
+            $class = $this->getItemClass();
+
+            $value = new $class($id);
+        }
+
+        $model->setInternalValue($this->getFieldName(), $value);
+    }
+
     function validate($model) {
-        $obj = $model->getInternalValue($this->getFieldName());
+        $obj = $this->accessValue($model);
         return $obj->validate();
+    }
+
+    public function restrict($operator, $value, &$s, &$params) {
+        $sql = self::defaultRestrict(SG_Model::to_id($this->field), $operator, $this->getDefaultSearchOperator(), $value, $s, $params);
+        return $sql;
+    }
+
+    private function getItemClass() {
+        // use the 'model' option as the classname, otherwise the fieldname
+        $class = $this->getOption('model', $this->getFieldName());
+        return ucfirst($class);
     }
 }

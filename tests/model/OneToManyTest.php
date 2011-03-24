@@ -42,16 +42,23 @@ class Hammer extends SG_Model {
     );
 }
 
+class Sledgehammer extends SG_Model {
+    static $fields = array(
+        'name' => array(
+            'required' => true,
+        ),
+        'favorite_nail' => array(
+            'type' => 'hasOne',
+            'model' => 'nail',
+        ),
+    );
+}
+
 /**
  * @group Model
  */
 class ModelOneToManyTest extends SG_DB_TestCase
 {
-    function zzsetUp()
-    {
-        $this->markTestSkipped('Not implemented yet');
-    }
-
     function __construct()
     {
         parent::__construct('model/relation-data.xml');
@@ -81,6 +88,15 @@ class ModelOneToManyTest extends SG_DB_TestCase
                 ";
 
         $db->query($sql);
+
+        $sql = "CREATE TABLE sledgehammers (
+                `sledgehammer_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                `name` varchar ( 255 ) NOT NULL,
+                `favorite_nail_id` INT( 10 ) NOT NULL
+                )
+                ";
+
+        $db->query($sql);
     }
 
     function dropTables(&$db)
@@ -88,6 +104,7 @@ class ModelOneToManyTest extends SG_DB_TestCase
         $db =& SG_DB::singleton();
         $db->query('DROP TABLE IF EXISTS hammers');
         $db->query('DROP TABLE IF EXISTS nails');
+        $db->query('DROP TABLE IF EXISTS sledgehammers');
     }
 
     function testAccessNail()
@@ -126,4 +143,47 @@ class ModelOneToManyTest extends SG_DB_TestCase
         $this->assertEquals($hammersBefore, $hammersAfter);
     }
 
+    function testSetNailId()
+    {
+        $hammer = new Hammer();
+        $hammer->name = 'Using old nail';
+        $hammer->nail = 1;
+        $this->assertTrue($hammer->save());
+
+        $this->assertEquals('Nail 1', $hammer->nail->name);
+    }
+
+    function testChangenail()
+    {
+        $hammer = new Hammer(1);
+        $this->assertEquals('Nail 1', $hammer->nail->name);
+        $hammer->nail = 2;
+        $hammer->save();
+        $this->assertEquals('Nail 2', $hammer->nail->name);
+    }
+
+    function testNailHasHammers()
+    {
+        $nail = new Nail(1);
+        $this->assertEquals(2, count($nail->hammers));
+    }
+
+    function testSledgehammer() {
+        $hammer = new Sledgehammer(1);
+        $this->assertEquals('Nail 1', $hammer->favorite_nail->name);
+    }
+
+    function testSledgehammerCreateNail()
+    {
+        $nailsBefore = table_count('nails');
+
+        $hammer = new Sledgehammer();
+        $hammer->name = 'New Sledgehammer';
+        $hammer->favorite_nail = new Nail();
+        $hammer->favorite_nail->name = 'New Nail';
+        $hammer->save();
+
+        $nailsAfter = table_count('nails');
+        $this->assertEquals($nailsBefore + 1, $nailsAfter);
+    }
 }

@@ -3,7 +3,7 @@
 /**
  * Class that handles searching for SG_Model instances.
  */
-class SG_Model_ResultSet implements Iterator {
+class SG_Model_ResultSet implements Iterator, Countable {
 
     private $_parent;
     private $_modelClass;
@@ -50,13 +50,6 @@ class SG_Model_ResultSet implements Iterator {
         $args = func_get_args();
         $derivedSet = $this->_restrict('AND', $args);
         return $derivedSet;
-    }
-
-    /**
-     * @return Number The # of records in this ResultSet.
-     */
-    public function count() {
-        return $this->_query()->numRows();
     }
 
     /**
@@ -475,6 +468,12 @@ class SG_Model_ResultSet implements Iterator {
         return $this->_current !== null;
     }
 
+    /**
+     * @return Number The # of records in this ResultSet.
+     */
+    public function count() {
+        return $this->_query()->numRows();
+    }
 
     // }}}
 
