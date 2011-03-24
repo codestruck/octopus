@@ -77,6 +77,8 @@ class SG_Nav_Item {
      */
     public function &add($options, $extra = null) {
 
+        // TODO: detect if $options is a candidate for addFromArray and use that
+
         $fullPath = '';
 
         if (is_string($options)) {
@@ -127,6 +129,62 @@ class SG_Nav_Item {
         }
 
         return $item;
+    }
+
+    /**
+     * Attempts to load up the nav with items from an array.
+     */
+    public function addFromArray($ar) {
+
+        $count = 0;
+
+        foreach($ar as $key => $value) {
+            $count += $this->addSingleItemFromArray($key, $value);
+        }
+
+        return $count;
+
+    }
+
+    private function addSingleItemFromArray($key, $options) {
+
+        if (!is_array($options)) {
+
+            if (is_string($key)) {
+                $options = array('path' => $key, 'text' => $options);
+            } else {
+                $options = array('path' => $options);
+            }
+
+        }
+
+        if (is_array($options)) {
+
+            if (!isset($options['path'])) $options['path'] = $key;
+
+        }
+
+        $count = 0;
+
+        $children = isset($options['children']) ? $options['children'] : null;
+        unset($options['children']);
+
+        $alias = isset($options['alias']) ? $options['alias'] : null;
+        unset($options['alias']);
+
+        $item = $this->add($options);
+        if ($alias) $this->getNav()->alias($item->getFullPath(), $alias);
+        $count++;
+
+        if (!empty($children)) {
+
+            foreach($children as $key => $child) {
+                $count += $item->addSingleItemFromArray($key, $child);
+            }
+
+        }
+
+        return $count;
     }
 
     /**
@@ -418,7 +476,11 @@ class SG_Nav_Item {
      * See, for example, SG_Nav_Item_File.
      */
     protected function getDefaultText() {
-        return '(unnamed)';
+
+        $default = str_replace('_', ' ', $this->getPath());
+        $default = ucwords($default);
+        return $default;
+
     }
 
 
@@ -472,8 +534,23 @@ class SG_Nav_Item {
         return $item;
     }
 
+    public function getNav() {
+
+        if ($this->_nav) {
+            return $this->_nav;
+        }
+
+        $parent = $this->getParent();
+        if ($parent) {
+            return $this->_nav = $parent->getNav();
+        } else {
+            return null;
+        }
+    }
+
     protected function setParent($parent) {
         $this->_parent = $parent;
+        $this->_nav = null;
     }
 
     public function &getParent() {

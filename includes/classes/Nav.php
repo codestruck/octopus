@@ -12,7 +12,7 @@ class SG_Nav {
     private $_aliases = array();
 
     public function __construct($options = null) {
-        $this->_root = new SG_Nav_Item_Directory();
+        $this->_root = new SG_Nav_Item_Directory(null, $this);
     }
 
     /**
@@ -21,6 +21,10 @@ class SG_Nav {
     public function &add($options, $text = null) {
         $item = $this->_root->add($options, $text);
         return $item;
+    }
+
+    public function addFromArray($ar) {
+        return $this->_root->addFromArray($ar);
     }
 
     /**
@@ -42,17 +46,10 @@ class SG_Nav {
 
         foreach($this->_aliases as $newPath => $oldPath) {
 
-            $newLen = strlen($newPath);
-
-            if ($newLen > $pathLen) {
-                continue;
+            if ($newPath == $path) {
+                $path = $oldPath;
+                break;
             }
-
-            if (strncmp($newPath, $path, $newLen) == 0) {
-                // we have an alias
-                $path = $oldPath . '/' . substr($path,$newLen);
-            }
-
         }
 
         // HACK: special case '/'

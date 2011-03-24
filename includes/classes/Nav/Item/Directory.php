@@ -14,12 +14,14 @@ class SG_Nav_Item_Directory extends SG_Nav_Item {
     private $_fsChildren = null;
     private $_allChildren = null;
 
-    public function __construct($options = null) {
+    public function __construct($options = null, $nav = null) {
         parent::__construct($options);
 
         if ($options && isset($options['directory'])) {
             $this->addDirectory($options['directory']);
         }
+
+        $this->_nav = $nav;
     }
 
     public function addDirectory($path) {

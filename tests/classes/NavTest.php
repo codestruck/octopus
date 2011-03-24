@@ -143,36 +143,6 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
     }
 
 
-    function xtestAddArray() {
-
-
-        $nav = new SG_Nav();
-
-        $nav->add(array(
-
-            'home' => array(
-                'title' => 'Home',
-                'children' => array(
-                    'privacy' => array('title' => 'Privacy')
-                )
-            ),
-            'products' => array(
-                'title' => 'Our Products'
-            )
-
-        ));
-
-        $home = $nav->find('home');
-        $this->assertEquals('Home', $home->getTitle());
-
-        $privacy = $nav->find('home/privacy');
-        $this->assertEquals('Privacy', $privacy->getTitle());
-
-        $products = $nav->find('products');
-        $this->assertEquals('Our Products', $products->getTitle());
-
-    }
-
     function testAlias() {
 
         $nav = new SG_Nav();
@@ -319,6 +289,44 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
         $this->assertEquals('test title', $item->getTitle());
         $this->assertTrue($item->getOption('test option'));
         $this->assertEquals(self::$testDir . '/a.php', $item->getFile());
+    }
+
+    function testAddABunch() {
+
+        $nav = new SG_Nav();
+
+        $nav->addFromArray(array(
+
+            'home' => array('title' => 'Welcome to my site', 'alias' => '/'),
+            'products' => array(
+                'boxes' => array('trial'),
+                'children' => array(
+                    'hammers' => array('title' => 'A full selection of hammers'),
+                    'nails' => array('title' => "Don't forget nails!")
+                )
+            ),
+            'trial'
+
+        ));
+
+        $home = $nav->find('/');
+        $this->assertEquals('home', $home->getPath(), 'home not found by alias');
+        $home = $nav->find('home');
+        $this->assertEquals('home', $home->getPath(), 'home not found explicitly');
+
+        $products = $nav->find('products');
+        $this->assertEquals('products', $products->getPath());
+        $this->assertEquals(array('trial'), $products->getOption('boxes'), 'boxes wrong on products');
+
+        $children = $products->getChildren();
+        $this->assertEquals('products/hammers', $children[0]->getFullPath());
+        $this->assertEquals(array('trial'), $children[0]->getOption('boxes'), 'boxes wrong on hammers');
+        $this->assertEquals('products/nails', $children[1]->getFullPath());
+        $this->assertEquals(array('trial'), $children[1]->getOption('boxes'), 'boxes wrong on nails');
+
+        $trial = $nav->find('trial');
+        $this->assertEquals('Trial', $trial->getText());
+
     }
 
 
