@@ -87,7 +87,7 @@ class ModelMinCrudLoadTest extends SG_DB_TestCase
         $post = new Minpost();
         $post->title = 'Test post';
         $post->body = 'Contents of post.';
-        $post->save();
+        $this->assertTrue($post->save());
         $this->assertTrue($post->minpost_id > 0);
     }
 

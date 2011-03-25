@@ -28,7 +28,7 @@ class SG_Model {
      * used. Once the correct field is selected, it is cached.
      */
     protected $displayField = array('name', 'title', 'text', 'summary', 'description');
-    private $fieldHandles = array();
+    private static $fieldHandles = array();
 
     protected $data = array();
 
@@ -215,8 +215,10 @@ class SG_Model {
 
     public function getFields() {
 
-        if (count($this->fieldHandles)) {
-            return $this->fieldHandles;
+        $class = self::_getClassName();
+
+        if (isset(self::$fieldHandles[$class])) {
+            return self::$fieldHandles[$class];
         }
 
         foreach ($this->fields as $name => $options) {
@@ -227,10 +229,10 @@ class SG_Model {
 
             $field = SG_Model_Field::getField($name, $options);
             $fieldName = $field->getFieldName();
-            $this->fieldHandles[$fieldName] = $field;
+            self::$fieldHandles[$class][$fieldName] = $field;
         }
 
-        return $this->fieldHandles;
+        return self::$fieldHandles[$class];
     }
 
     public function getField($name) {
