@@ -336,7 +336,15 @@ END;
 
     }
 
+    public static function dumpToString($x) {
 
+        // var_export chokes on recursive references, but var_dump doesn't.
+        // of course, var_dump involves output buffering. yay.
+
+        ob_start();
+        var_dump($x);
+        return ob_get_clean();
+    }
 
 }
 
@@ -369,7 +377,7 @@ END;
 
             $d = new SG_Debug('dump_r');
             foreach($args as $arg) {
-                $html = '<pre>' . htmlspecialchars(var_export($arg, true)) . '</pre>';
+                $html = '<pre>' . htmlspecialchars(SG_Debug::dumpToString($arg)) . '</pre>';
                 $d->add('var', $html);
             }
             $d->add('context', SG_Debug::getArraysHtml());
@@ -382,7 +390,7 @@ END;
 
             $d = new SG_Debug('dump_r');
             foreach($args as $arg) {
-                $d->add('var', var_export($arg, true));
+                $d->add('var', SG_Debug::dumpToString($arg));
             }
 
         }
