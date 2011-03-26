@@ -1,5 +1,9 @@
 <?php
 
+require_once('PHPUnit/Framework/SelfDescribing.php');
+require_once('PHPUnit/Framework/Test.php');
+require_once('PHPUnit/Framework/Assert.php');
+require_once('PHPUnit/Framework/TestCase.php');
 require_once('PHPUnit/Extensions/Database/TestCase.php');
 
 /**

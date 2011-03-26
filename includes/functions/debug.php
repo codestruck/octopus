@@ -7,7 +7,7 @@
  */
 class SG_Debug {
 
-    public $css;
+    public static $css;
     private $_id;
     private $_content = array();
     private $_options;
@@ -20,7 +20,7 @@ class SG_Debug {
 
     public function __construct($id) {
         $this->_id = $id;
-        $this->css = <<<END
+        self::$css = <<<END
 
 <style type="text/css">
 <!--
