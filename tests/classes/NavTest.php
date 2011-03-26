@@ -10,6 +10,9 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
     static $testDir = 'nav_directory';
     static $files = array('a.php', 'b.html', 'c.txt');
 
+    static $controllersDir = 'nav_controller_test';
+    static $controllerFiles = array('Posts.php', 'Authors.php', 'Admin_Posts.php', 'Admin_Authors.php');
+
     function setUp() {
 
         @mkdir(self::$testDir);
@@ -17,13 +20,25 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
             touch(self::$testDir . "/$f");
         }
 
+        @mkdir(self::$controllersDir);
+        foreach(self::$controllerFiles as $f) {
+            touch(self::$controllersDir . "/$f");
+        }
+
     }
 
     function tearDown() {
+
         foreach(self::$files as $f) {
             @unlink(self::$testDir . "/$f");
         }
         @rmdir(self::$testDir);
+
+        foreach(self::$controllerFiles as $f) {
+            @unlink(self::$controllersDir . "/$f");
+        }
+
+        @rmdir(self::$controllersDir);
     }
 
 
@@ -247,6 +262,14 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
     }
 
+    function testDontFindMissingThings() {
+
+        $nav = new SG_Nav();
+        $nav->add('foo');
+        $this->assertFalse($nav->find('foo/bar'));
+
+    }
+
     function testDirectoryIndexFile() {
 
         $dir = self::$testDir;
@@ -328,6 +351,130 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
         $this->assertEquals('Trial', $trial->getText());
 
     }
+
+    function testBuriedControllers() {
+
+        $nav = new SG_Nav();
+        $nav->addControllers(self::$controllersDir);
+
+        $tests = array(
+
+            'admin/posts' => array(
+                'controller' => 'Admin_Posts',
+                'action' => 'index'
+            ),
+
+            'admin/posts/index' => array(
+                'controller' => 'Admin_Posts',
+                'action' => 'index'
+            ),
+
+            'admin/posts/search' => array(
+                'controller' => 'Admin_Posts',
+                'action' => 'search'
+            ),
+
+            'admin/posts/search/foo' => array(
+                'controller' => 'Admin_Posts',
+                'action' => 'search',
+                'args' => array('foo')
+            ),
+
+            'admin/posts/search/foo/1' => array(
+                'controller' => 'Admin_Posts',
+                'action' => 'search',
+                'args' => array('foo', 1)
+            )
+
+        );
+
+        foreach($tests as $path => $opts) {
+
+            $item = $nav->find($path);
+            $this->assertTrue($item !== false, "$path not found");
+            $this->assertEquals($path, $item->getFullPath());
+
+            $info = $item->getControllerInfo();
+            $this->assertTrue($info !== false, 'No controller info found for ' . $path);
+
+            $this->assertEquals($opts['controller'], $info['controller'], "Bad controller for $path");
+            $this->assertEquals($opts['action'], $info['action'], "Bad action for $path");
+
+            if (isset($opts['args'])) {
+                $this->assertEquals($opts['args'], $item->getArgs(), "Bad args for $path");
+            } else {
+                $this->assertTrue(empty($info['args']), "$path should not have args");
+            }
+
+        }
+
+
+    }
+
+    function testControllerDiscovery() {
+
+        $nav = new SG_Nav();
+        $nav->addControllers(self::$controllersDir); // also do automatically?
+
+        $tests = array(
+
+            'posts' => array(
+                'controller' => 'Posts',
+                'action' => 'index'
+            ),
+
+            'posts/index' => array(
+                'controller' => 'Posts',
+                'action' => 'index'
+            ),
+
+            'posts/search' => array(
+                'controller' => 'Posts',
+                'action' => 'search'
+            ),
+
+            'posts/search/foo' => array(
+                'controller' => 'Posts',
+                'action' => 'search',
+                'args' => array('foo')
+            ),
+
+            'posts/search/foo/1' => array(
+                'controller' => 'Posts',
+                'action' => 'search',
+                'args' => array('foo', 1)
+            )
+
+        );
+
+        foreach($tests as $path => $opts) {
+
+            $item = $nav->find($path);
+            $this->assertTrue($item !== false, "$path not found");
+
+            if (strpos($path, '/') !== false) {
+                $this->assertEquals('SG_Nav_Item_Action', get_class($item), "$path is of the wrong class");
+            }
+
+            $this->assertEquals($path, $item->getFullPath(), "full path is wrong for $path");
+
+            $info = $item->getControllerInfo();
+            $this->assertTrue($info !== false, 'No controller info found for ' . $path);
+
+            $this->assertEquals($opts['controller'], $info['controller'], "Bad controller for $path");
+            $this->assertEquals($opts['action'], $info['action'], "Bad action for $path");
+
+            if (isset($opts['args'])) {
+                $this->assertEquals($opts['args'], $item->getArgs(), "Bad args for $path");
+            } else {
+                $args = $item->getArgs();
+                $this->assertTrue(empty($args), "$path should not have args");
+            }
+
+        }
+
+    }
+
 
 
 }

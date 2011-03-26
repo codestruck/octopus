@@ -39,6 +39,10 @@ class SG_Nav_Item_Directory extends SG_Nav_Item {
 
     protected function getDefaultText() {
 
+        if (empty($this->_directoryNames)) {
+            return '';
+        }
+
         $dir = $this->_directoryNames[0];
 
         $text = basename($dir);

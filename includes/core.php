@@ -164,6 +164,7 @@
         if ($path === null) {
             $arg = $BOOTSTRAP_OPTIONS['path_querystring_arg'];
             $path = isset($_GET[$arg]) ? $_GET[$arg] : '/';
+            unset($_GET[$arg]);
         }
 
         $file = false;

@@ -6,6 +6,7 @@
     $NAV
         ->addRootDirectory(SITE_DIR . 'content')
         ->alias('home', '/')
+        ;
 
 
 ?>

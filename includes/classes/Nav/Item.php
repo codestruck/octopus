@@ -322,7 +322,7 @@ class SG_Nav_Item {
      * @return The value of a named component of this item's path.
      */
     public function getArg($name, $default = null) {
-        // The real implementation is in SG_Nav_Item_Regex
+        // The real implementation is in SG_Nav_Item_Regex and SG_Nav_Item_Action
         return $default;
     }
 
@@ -488,7 +488,7 @@ class SG_Nav_Item {
      * @return bool Whether this item should be used for $path.
      */
     public function matchesPath($path) {
-        return $path == $this->getPath();
+        return strcmp($path, $this->getPath()) == 0;
     }
 
     /**
@@ -534,6 +534,18 @@ class SG_Nav_Item {
         return $item;
     }
 
+    /**
+     * @return Mixed If a controller / action can be determined for this
+     * item, an array with 'controller', 'action', 'args'. Otherwise, false.
+     */
+    public function getControllerInfo() {
+        return false;
+    }
+
+    public function getArgs() {
+        return array();
+    }
+
     public function getNav() {
 
         if ($this->_nav) {
@@ -565,8 +577,27 @@ class SG_Nav_Item {
     }
 
     public function __toString() {
+        return $this->toText();
+    }
 
-        return $this->toHtml();
+    public function toText($indent = 0) {
+
+        $text = $this->getText();
+        $path = $this->getPath();
+        $fullPath = $this->getFullPath();
+        $s = '';
+
+        if ($fullPath != '') {
+            $s .= str_repeat('  ', $indent);
+            $s .= "$text ($path; $fullPath)";
+        }
+
+        foreach($this->getChildren() as $child) {
+            $s .= "\n" . $child->toText($indent+1);
+        }
+
+        return $s;
+
     }
 
     public function toHtml() {
