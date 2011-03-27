@@ -1,0 +1,9 @@
+#!/bin/sh
+
+rm .htaccess
+ln -s octopus/.htaccess
+
+rm index.php
+ln -s octopus/index.php
+
+echo Octopus is now installed.

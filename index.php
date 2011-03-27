@@ -1,6 +1,6 @@
 <?php
 
-    require_once('octopus/includes/core.php');
+    require_once('includes/core.php');
 
     bootstrap();
 
