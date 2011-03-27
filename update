@@ -10,7 +10,9 @@ then
 	rm index.php
 fi
 
-git pull octopus
+cd octopus
+git pull
+cd ..
 
 octopus/install
 
