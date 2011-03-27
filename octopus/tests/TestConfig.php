@@ -22,6 +22,7 @@
     switch ($hostname) {
 
         case 'estesm-sole-desktop':
+        case 'estesm-laptop':
 
             define('DB_hostname', 'localhost');
             define('DB_database', 'octopus_test');
