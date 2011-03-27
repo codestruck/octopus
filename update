@@ -1,0 +1,16 @@
+#!/bin/sh
+
+if [ -f .htaccess ]
+then
+	rm .htaccess
+fi
+
+if [ -f index.php ]
+then
+	rm index.php
+fi
+
+git pull octopus
+
+octopus/install
+
