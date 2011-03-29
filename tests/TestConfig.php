@@ -40,6 +40,14 @@
 
             break;
 
+        case 'server1.solepure.com':
+
+            define('DB_hostname', 'localhost');
+            define('DB_database', 'solegrap_octopus');
+            define('DB_username', 'solegrap_general');
+            define('DB_password', '58#a3e*7h9hmubpfkhec4du!6754hu');
+
+            break;
 
     }
 

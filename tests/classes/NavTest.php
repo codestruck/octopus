@@ -1,4 +1,4 @@
-p<?php
+<?php
 
 SG::loadClass('SG_Nav');
 
