@@ -5,8 +5,9 @@
      * app should include this file first.
      */
 
-    $GLOBALS['ROOT_DIR'] = dirname(dirname(__FILE__)) . '/';
-    $GLOBALS['INCLUDES_DIR'] = dirname(__FILE__) . '/';
+    $GLOBALS['OCTOPUS_DIR'] = dirname(dirname(__FILE__)) . '/';
+    $GLOBALS['ROOT_DIR'] = dirname($GLOBALS['OCTOPUS_DIR']) . '/';
+    $GLOBALS['INCLUDES_DIR'] = $GLOBALS['OCTOPUS_DIR'] . 'includes/';
     $GLOBALS['FUNCTIONS_DIR'] = $GLOBALS['INCLUDES_DIR'] . 'functions/';
     $GLOBALS['CLASSES_DIR'] = $GLOBALS['INCLUDES_DIR'] . 'classes/';
     $GLOBALS['THEMES_DIR'] = $GLOBALS['ROOT_DIR'] . 'themes/';
