@@ -145,10 +145,9 @@
         // DEV / STAGING / LIVE Configuration
         ////////////////////////////////////////////////////////////////////////
 
-        define_unless('DEV', !((defined('STAGING') && STAGING) || (defined('LIVE') && LIVE)));
-        define_unless('STAGING', !((defined('DEV') && DEV) || (defined('LIVE') && LIVE)));
-        define_unless('LIVE', !((defined('DEV') && DEV) || (defined('STAGING') && STAGING)));
-
+        define_unless('DEV', is_dev_environment());
+        define_unless('STAGING', is_staging_environment());
+        define_unless('LIVE', is_live_environment());
     }
 
     /**
