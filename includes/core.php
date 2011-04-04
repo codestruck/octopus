@@ -22,12 +22,13 @@
     function bootstrap($options = null) {
 
         global $URL_BASE;
-        global $ROOT_DIR, $INCLUDES_DIR, $FUNCTIONS_DIR, $CLASSES_DIR, $THEMES_DIR;
+        global $OCTOPUS_DIR, $ROOT_DIR, $INCLUDES_DIR, $FUNCTIONS_DIR, $CLASSES_DIR, $THEMES_DIR;
         global $SITE_DIR, $SITE_THEMES_DIR;
         global $NAV;
 
         $defaults = array(
 
+            'OCTOPUS_DIR' =>        $OCTOPUS_DIR,
             'ROOT_DIR' =>           $ROOT_DIR,
             'INCLUDES_DIR' =>       $INCLUDES_DIR,
             'FUNCTIONS_DIR' =>      $FUNCTIONS_DIR,
@@ -50,6 +51,7 @@
         // Directory Configuration
         ////////////////////////////////////////////////////////////////////////
 
+        define('OCTOPUS_DIR', $OCTOPUS_DIR = $options['OCTOPUS_DIR']);
         define('ROOT_DIR', $ROOT_DIR = $options['ROOT_DIR']);
         define('INCLUDES_DIR', $INCLUDES_DIR = $options['INCLUDES_DIR']);
         define('FUNCTIONS_DIR', $FUNCTIONS_DIR = $options['FUNCTIONS_DIR']);
@@ -87,8 +89,11 @@
 
         require_once(CLASSES_DIR .'SG.php');
 
-        SG::loadClass('SG_Model');
         SG::loadClass('SG_Nav');
+        SG::loadClass('SG_Response');
+        SG::loadClass('SG_Dispatcher');
+        SG::loadClass('SG_Controller');
+        SG::loadClass('SG_Model');
 
         ////////////////////////////////////////////////////////////////////////
         // WHERE ARE WE?
@@ -107,7 +112,7 @@
         // Nav Setup
         ////////////////////////////////////////////////////////////////////////
 
-        $GLOBALS['NAV'] = new SG_Nav();
+        $NAV = $GLOBALS['NAV'] = new SG_Nav();
 
         ////////////////////////////////////////////////////////////////////////
         // Site-Specific Configuration
@@ -120,7 +125,7 @@
             $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : trim(`hostname`);
             $hostConfigFile = SITE_DIR . "config.$host.php";
 
-            if (!file_exists($configFile)) {
+            if (!file_exists($configFile)   ) {
                 // TODO Friendlier message
                 echo "No config file found.";
                 exit();
@@ -154,10 +159,8 @@
      * Once the app has been bootstrapped, renders a page.
      * @param $path String Page to render. If null, the __path querystring arg
      * is used.
-     * @param $notFound mixed Template to render if the requested page can't
-     * be found, or false to not render anything.
      */
-    function render_page($path = null, $notFound = '404.php') {
+    function render_page($path = null) {
 
         global $BOOTSTRAP_OPTIONS, $NAV;
 
@@ -167,26 +170,9 @@
             unset($_GET[$arg]);
         }
 
-        $file = false;
-        $item = $NAV->find($path);
-
-        if ($item) {
-
-            $file = $item->getFile();
-            if (!file_exists($file)) {
-                $file = false;
-            }
-
-        }
-
-        if (!$file && $notFound) {
-            $file = get_theme_file("templates/html/$notFound");
-        }
-
-        if (!$file) return false;
-
-        include($file);
-        return true;
+        $dispatch = new SG_Dispatcher();
+        $response = $dispatch->getResponse($path);
+        $response->flush();
     }
 
 ?>

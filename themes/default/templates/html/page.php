@@ -1,32 +1,26 @@
 <?php
-    
+
     /*
-     * A standard page template. 
+     * A standard page template.
      *
      */
-     
+
 ?>
-<! doctype html >
+<!doctype html>
 <html>
 <head>
-<?php $page->renderHead(); ?>
+<style>
+html { font-family: Helvetica, sans-serif; }
+</style>
 </head>
 <body>
 
     <div id="wrap">
-        
-        <?php
-        
-            $page->render('header');
-            
-            $page->render('content');
-            
-            $page->render('footer');
-        
-        ?>
-        
+
+        <?php echo $content; ?>
+
     </div>
-    
+
 </body>
 </html>
 
