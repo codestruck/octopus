@@ -61,16 +61,15 @@ class SG_Dispatcher {
         $args = isset($info['args']) ? $info['args'] : false;
         if (!$args) $args = array();
 
-        // Allow setting default arg values
-        $controllerClass = get_class($controller);
-        $defaults = $action . '_defaults';
-        if (!empty($controllerClass::$defaults)) {
-            $defaults = $controllerClass::$defaults;
-            $args = array_merge($defaults, $args);
-        }
-
         if (!method_exists($controller, $action)) {
-            // No good
+
+            /*
+            $action = camel_case($action);
+            if (!method_exists($controller, $action)) {
+                // No good
+                $action = 'error';
+            }
+            */
             $action = 'error';
         }
 
