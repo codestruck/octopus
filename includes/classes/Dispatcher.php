@@ -12,22 +12,26 @@ class SG_Dispatcher {
 
 
     /**
-     * Given a nav item or path, renders the page and generates an SG_Response
+     * Given a path, renders the page and generates an SG_Response
      * instance for it.
-     * @param $navItem Mixed An SG_Nav_Item instance or a path string.
+     * @param $path String A path in the app.
      * @return Object An SG_Response instance.
      */
-    public function &getResponse($navItem) {
+    public function &getResponse($path) {
 
         global $NAV;
         $nav = empty($this->nav) ? $NAV : $this->nav;
 
-        if (is_string($navItem)) {
-            $navItem = $nav->find($navItem);
+        $navItem = $nav->find($path);
+
+        $response = new SG_Response();
+
+        if ($navItem) {
+            $info = $navItem->getControllerInfo();
+        } else {
+            $info = array('controller' => false, 'action' => 'notFound', 'args' => array('path' => $path));
         }
 
-        $info = $navItem->getControllerInfo();
-        $response = new SG_Response();
         $controller = $this->createController($info, $response);
 
         if (!$controller) {

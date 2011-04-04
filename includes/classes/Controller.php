@@ -47,9 +47,9 @@ abstract class SG_Controller {
     /**
      * @return String View html for the 404 page.
      */
-    public function notFound() {
-        $this->response->addHeader('Status', '404 Not Found');
-        return array();
+    public function notFound($args) {
+        $this->getResponse()->addHeader('Status', '404 Not Found');
+        return $this->render('404', $args);
     }
 
     /**
