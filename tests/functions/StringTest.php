@@ -96,6 +96,26 @@
 
         }
 
+        function testCamelCase() {
+
+            $tests = array(
+
+                'camel_cased' => 'camelCased',
+                'CAMEL__cased' => 'camelCased',
+                'camel-CASED' => 'camelCased',
+                '  camel  CASED  ' => 'camelCased',
+                'CamelCased' => 'camelCased'
+
+             );
+
+            foreach($tests as $input => $expected) {
+                $this->assertEquals(
+                    $expected,
+                    camel_case($input),
+                    'failed on ' . $input
+                );
+            }
+        }
     }
 
 ?>

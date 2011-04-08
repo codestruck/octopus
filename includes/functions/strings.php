@@ -1,6 +1,35 @@
 <?php
 
     /**
+     * Converts an input string to a camelCased string.
+     */
+    function camel_case($s, $initialCap = false) {
+
+        $s = trim($s);
+        $s = preg_replace('/([\p{Ll}\d])(\p{Lu})/', '$1_$2', $s);
+
+        $parts = preg_split('/[-_\s]+/', $s);
+
+        $result = '';
+        foreach($parts as $part) {
+            if ($result || $initialCap) {
+                $result .= strtoupper(substr($part, 0, 1)) . strtolower(substr($part, 1));
+            } else {
+                $result .= strtolower($part);
+            }
+        }
+
+        return $result;
+    }
+    function _camel_case_helper($matches) {
+
+        $prev = $matches[1];
+        $next = $matches[2];
+
+        return $prev . strtoupper($next);
+    }
+
+    /**
      * Cleans up text from unknown sources (like ie from word).
      */
     function decruftify($s) {
