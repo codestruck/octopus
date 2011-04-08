@@ -11,6 +11,7 @@ class SG_Model_ResultSet implements Iterator, Countable {
     private $_orderBy;
     private $_select;
     private $_query;
+    private $_currentQuery = null;
     private $_current = null;
 
     /**
@@ -448,15 +449,6 @@ class SG_Model_ResultSet implements Iterator, Countable {
     // Iterator Implementation {{{
 
     public function current() {
-
-        if ($this->_current) {
-            return $this->_current;
-        }
-
-        $row = $this->_query()->fetchRow();
-        if (!$row) return false;
-
-        $this->_current = $this->_createModelInstance($row);
         return $this->_current;
     }
 
@@ -468,16 +460,28 @@ class SG_Model_ResultSet implements Iterator, Countable {
     }
 
     public function next() {
-        $this->_current = null;
     }
 
     public function rewind() {
-        $this->_current = null;
-        $this->_query = null;
+        $this->_currentQuery = $this->_query(true);
     }
 
     public function valid() {
-        return $this->_current !== null;
+
+        if (!$this->_currentQuery) {
+            $this->_current = null;
+            return false;
+        }
+
+        $row = $this->_currentQuery->fetchRow();
+        if (!$row) {
+            $this->_current = null;
+            $this->_currentQuery = null;
+            return false;
+        }
+
+        $this->_current = $this->_createModelInstance($row);
+        return true;
     }
 
     /**

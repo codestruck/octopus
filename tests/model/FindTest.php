@@ -482,6 +482,58 @@ class FindTest extends SG_DB_TestCase {
 
     }
 
+    function testResultSetForeachAll() {
+
+        $all = FindPost::all();
+        $this->assertEquals(6, count($all), 'The Count of the ::all array is wrong');
+
+        $i = 1;
+        foreach ($all as $item) {
+            $this->assertEquals($i, $item->find_post_id, 'The Post Id does not match');
+            $i++;
+        }
+        $this->assertEquals(7, $i, 'The foreach loop did not run 6 times');
+
+    }
+
+    function testResultSetForeachAllTwice() {
+
+        $all = FindPost::all();
+        $this->assertEquals(6, count($all));
+
+        $i = 1;
+        foreach ($all as $item) {
+            $this->assertEquals($i, $item->find_post_id);
+            $i++;
+        }
+        $this->assertEquals(7, $i);
+
+        $this->assertEquals(6, count($all));
+
+        $i = 1;
+        foreach ($all as $item) {
+            $this->assertEquals($i, $item->find_post_id);
+            $i++;
+        }
+        $this->assertEquals(7, $i);
+
+    }
+
+    function testResultSetForeachKey() {
+
+        $all = FindPost::all();
+        $this->assertEquals(6, count($all), 'The Count of the ::all array is wrong');
+
+        $i = 1;
+        foreach ($all as $id => $item) {
+            $this->assertEquals($i, $item->find_post_id, 'The Post Id does not match i');
+            $this->assertEquals($id, $item->find_post_id, 'The Post Id does not match id');
+            $i++;
+        }
+        $this->assertEquals(7, $i, 'The foreach loop did not run 6 times');
+
+    }
+
     function assertTrueish($condition, $message = null) {
         $this->assertTrue($condition == true, $message);
     }
@@ -523,7 +575,7 @@ class FindTest extends SG_DB_TestCase {
 
             $this->assertTrueish(
                 preg_match($expr, $post->title),
-                $message
+                $postMessage
             );
 
         }

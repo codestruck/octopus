@@ -112,4 +112,18 @@ print "SG_Model Selecting $limit rows: $diff seconds\n";
 print "\n\n$insertMultiple times slower inserting\n";
 print "$selectMultiple times slower selecting\n";
 
+
+$start = getTime();
+
+$all = Perf::all();
+foreach ($all as $item) {
+    $foo = $item->title;
+}
+
+$end = getTime();
+$selectMultiple = round(($end - $start) / $diff, 2);
+$diff = $end - $start;
+print "SG_Model foreach $limit rows: $diff seconds\n";
+
+
 $db->query('DROP TABLE IF EXISTS perfs');
