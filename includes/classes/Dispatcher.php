@@ -63,14 +63,11 @@ class SG_Dispatcher {
 
         if (!method_exists($controller, $action)) {
 
-            /*
             $action = camel_case($action);
             if (!method_exists($controller, $action)) {
                 // No good
                 $action = 'error';
             }
-            */
-            $action = 'error';
         }
 
         if ($action == 'defaultAction' || $action == 'error') {
