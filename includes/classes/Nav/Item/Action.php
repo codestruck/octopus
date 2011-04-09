@@ -15,16 +15,6 @@ class SG_Nav_Item_Action extends SG_Nav_Item {
         $this->_args = $args ? explode('/', rawurldecode($args)) : array();
     }
 
-    public function getControllerInfo() {
-
-        $parent = $this->getParent();
-        $info = $parent->getControllerInfo();
-        if (!$info) return false;
-
-        $info['action'] = $this->_action;
-
-        return $info;
-    }
 
     public function getArgs() {
         return $this->_args;

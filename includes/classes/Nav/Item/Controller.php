@@ -45,15 +45,6 @@ class SG_Nav_Item_Controller extends SG_Nav_item {
         return str_replace('_', ' ', $this->_controllerName);
     }
 
-    public function getControllerInfo() {
-
-        return array(
-            'controller' => $this->_controllerName,
-            'action' => 'index'
-        );
-
-    }
-
 
     protected function invalidateCaches() {
         parent::invalidateCaches();

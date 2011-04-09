@@ -1,9 +1,13 @@
 <?php
 
 SG::loadClass('SG_Model');
+SG::loadClass('SG_Nav');
+SG::loadClass('SG_Dispatcher');
+SG::loadClass('SG_Response');
+SG::loadClass('SG_Controller');
 
 // Shortcut functions
-function app_error($error, $level = E_WARN) {
+function app_error($error, $level = E_USER_WARNING) {
     SG_App::singleton()->error($error, $level);
 }
 
@@ -65,13 +69,97 @@ class SG_App {
     /**
      * Logs an error.
      */
-    public function error($message, $level = E_WARN) {
+    public function error($message, $level = E_USER_WARNING) {
         trigger_error($message, $level);
     }
 
 
     public function find($path, $options = null) {
         return $this->_nav->find($path, $options);
+    }
+
+    /**
+     * @return Array A hierarchical list of controllers.
+     */
+    public function getControllers($flat = false) {
+
+        $o =& $this->_options;
+        $found = array();
+
+        $dirs = array($o['OCTOPUS_DIR'], $o['SITE_DIR']);
+
+        foreach($dirs as $d) {
+
+            foreach(glob($d . 'controllers/*.php') as $f) {
+
+                $parts = explode('_', basename($f, '.php'));
+
+                $this->fillOutControllerHierarchy($found, $parts);
+
+            }
+
+        }
+
+        if ($flat) {
+            $found = $this->flattenControllerHierarchy($found);
+        }
+
+        return $found;
+    }
+
+    private function fillOutControllerHierarchy(&$h, &$parts) {
+
+        if (empty($parts)) {
+            return;
+        }
+
+        while(($p = array_shift($parts)) !== null) {
+
+            if (!$p) {
+                continue;
+            }
+
+            if (!isset($h[$p])) {
+                $h[$p] = array();
+            }
+
+            $this->fillOutControllerHierarchy($h[$p], $parts);
+            return;
+        }
+
+    }
+
+    /**
+     * Calls get_file using the options specified for this app instance.
+     * @return Mixed The path to the file, if found, or false if it is not
+     * found.
+     */
+    public function getFile($paths, $dirs = null, $options = null) {
+
+        $o =& $this->_options;
+
+        if ($dirs == null) {
+            $dirs = array($o['SITE_DIR'], $o['ROOT_DIR']);
+        }
+
+        if ($options === null) $options = array();
+        if (!$this->isDevEnvironment()) $options['debug'] = false;
+
+        return get_file($paths, $dirs, $options);
+    }
+
+    public function getOption($name, $default = null) {
+        return isset($this->_options[$name]) ? $this->_options[$name] : $default;
+    }
+
+    public function getNav() {
+
+        if (!$this->_nav) {
+            $this->_nav = new SG_Nav();
+        }
+
+        return $this->_nav;
+
     }
 
     /**
@@ -88,7 +176,8 @@ class SG_App {
 
         $dispatch = new SG_Dispatcher($this);
         $response = $dispatch->getResponse($path);
-        $response->flush();
+
+        return $response;
     }
 
     public function isDevEnvironment() {
@@ -149,7 +238,7 @@ class SG_App {
             if (empty($o[$dir])) {
 
                 if (defined($dir)) {
-                    $o[$dir] = $dir;
+                    $o[$dir] = constant($dir);
                 } else {
 
                     switch($dir) {
@@ -240,6 +329,23 @@ class SG_App {
         }
     }
 
+    private function flattenControllerHierarchy($h, $inProgress = '', &$result = array()) {
+
+        foreach($h as $key => $children) {
+
+            $item = $inProgress . ($inProgress ? '_' : '') . $key;
+
+            if (count($children)) {
+                $this->flattenControllerHierarchy($children, $item, $result);
+            } else {
+                $result[] = $item;
+            }
+        }
+
+        return $result;
+
+    }
+
     /**
      * Loads any config files from the sitedir.
      */
@@ -307,7 +413,9 @@ class SG_App {
      */
     private function _setUpPHP() {
 
-        session_start();
+        if (!session_id()) {
+            session_start('octopus');
+        }
 
         // TODO: figure out a better way to do this?
         $tz = @date_default_timezone_get();

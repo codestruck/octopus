@@ -56,6 +56,14 @@ class SG_Response {
         return $output;
     }
 
+    public function getView() {
+        return $this->_view;
+    }
+
+    public function setView($view) {
+        $this->_view = $view;
+    }
+
     public function getHeader($name, $default = null) {
         if (isset($this->_headers[$name])) {
             return $this->_headers[$name];
@@ -80,6 +88,13 @@ class SG_Response {
     public function &removeHeader($name) {
         unset($this->_headers[$name]);
         return $this;
+    }
+
+    /**
+     * Helper that marks the response as a 404.
+     */
+    public function notFound() {
+        $this->addHeader('Status', '404 Not Found');
     }
 
 

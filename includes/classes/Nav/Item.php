@@ -534,14 +534,6 @@ class SG_Nav_Item {
         return $item;
     }
 
-    /**
-     * @return Mixed If a controller / action can be determined for this
-     * item, an array with 'controller', 'action', 'args'. Otherwise, false.
-     */
-    public function getControllerInfo() {
-        return false;
-    }
-
     public function getArgs() {
         return array();
     }

@@ -352,7 +352,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
     }
 
-    function testBuriedControllers() {
+    function dontTestBuriedControllers() {
 
         $nav = new SG_Nav();
         $nav->addControllers(self::$controllersDir);
