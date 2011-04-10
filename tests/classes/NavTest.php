@@ -112,7 +112,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
         $this->assertEquals('some-product.php', $item->getFile());
 
         $item = $nav->find('/some-product');
-        $this->assertFalse($item, 'matching item found when it shouldnt be');
+        $this->assertFalse($item instanceof SG_Nav_Item_Regex, 'matching item found when it shouldnt be');
     }
 
     function testAddRegexItemAsChild() {
@@ -122,12 +122,12 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
         $bar = $nav->add('foo/bar');
         $bar->add(array('regex' => '#^(?P<category>\w+)/(?P<id>\d+)#', 'file' => 'whatever.php'));
 
-        $shouldNotExist = $nav->find('category/42');
-        $this->assertFalse($shouldNotExist, 'Found deep regex item from root');
+        $shouldNotBeRegexItem = $nav->find('category/42');
+        $this->assertFalse($shouldNotBeRegexItem instanceof SG_Nav_Item_Regex, 'Found deep regex item from root');
 
         $foo = $nav->find('foo');
-        $shouldNotExist = $foo->find('category/42');
-        $this->assertFalse($shouldNotExist, 'Found regex item under 1st level');
+        $shouldNotBeRegexItem = $foo->find('category/42');
+        $this->assertFalse($shouldNotBeRegexItem instanceof SG_Nav_Item_Regex, 'Found regex item under 1st level');
 
         $bar = $nav->find('foo/bar');
         $shouldExist = $bar->find('category/42');
@@ -262,12 +262,14 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
     }
 
-    function testDontFindMissingThings() {
+    function testFindMissingThingsButTheyreInvisible() {
 
         $nav = new SG_Nav();
         $nav->add('foo');
-        $this->assertFalse($nav->find('foo/bar'));
+        $item = $nav->find('foo/bar');
+        $this->assertTrue($item !== false);
 
+        $this->assertFalse($item->getOption('visible'));
     }
 
     function testDirectoryIndexFile() {
@@ -411,7 +413,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
     }
 
-    function testControllerDiscovery() {
+    function dontTestControllerDiscovery() {
 
         $nav = new SG_Nav();
 
@@ -457,8 +459,6 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
             $this->assertEquals($path, $item->getFullPath(), "full path is wrong for $path");
 
-            $info = $item->getControllerInfo();
-            $this->assertTrue($info !== false, 'No controller info found for ' . $path);
 
             $this->assertEquals($opts['controller'], $info['controller'], "Bad controller for $path");
             $this->assertEquals($opts['action'], $info['action'], "Bad action for $path");
@@ -471,6 +471,15 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
             }
 
         }
+
+    }
+
+    function testGetFullPath() {
+
+        $nav = new SG_Nav();
+
+        $item = $nav->find('octopus/about');
+        $this->assertEquals('octopus/about', $item->getFullPath());
 
     }
 

@@ -118,7 +118,7 @@ class SG_Dispatcher {
             $response->addError("Found controller file, but class $className does not exist.");
             $info['action'] = 'error';
         } else {
-            $controller = new $className($response);
+            $controller = new $className($this->_app, $response);
             $this->configureController($controller, $info);
         }
 
@@ -127,9 +127,9 @@ class SG_Dispatcher {
     }
 
     protected function &createDefaultController($info, $response) {
-        require_once(OCTOPUS_DIR . 'controllers/Default.php');
+        require_once($this->_app->getOption('OCTOPUS_DIR') . 'controllers/Default.php');
 
-        $controller = new DefaultController($response);
+        $controller = new DefaultController($this->_app, $response);
         $this->configureController($controller, $info);
 
         return $controller;
@@ -152,32 +152,32 @@ class SG_Dispatcher {
     private function getControllerInfo($navItem) {
 
         $controllers = $this->_app->getControllers(true);
-
         $parts = explode('/', $navItem->getFullPath());
 
         // Find the most specific controller we can
         $controller = '';
+        $found = false;
         while(($p = array_shift($parts))) {
 
             if (!$p) {
                 continue;
             }
 
-            $controller .= ($controller ? '_' : '') . $p;
+            $controller .= ($controller ? '_' : '') . camel_case($p, true);
 
-            if (isset($controllers[$controller])) {
+            if (in_array($controller, $controllers)) {
                 // Found it!
+                $found = true;
                 break;
             }
         }
 
-        if (!isset($controllers[$controller])) {
+        if (!$found) {
             return false;
         }
 
         $action = array_shift($parts);
         if (!$action) $action = 'index';
-
 
         return array(
           'controller' => $controller,
@@ -190,18 +190,13 @@ class SG_Dispatcher {
 
         $resp = $controller->getResponse();
 
-        if (!$action) $action = 'defaultAction';
         if (!$args) $args = array();
 
         if (!method_exists($controller, $action)) {
 
             $action = camel_case($action);
             if (!method_exists($controller, $action)) {
-
-                // TODO Swap over to DefaultController and serve up an
-                // error().
-
-                return array('error' => "Action not found: $action");
+                $action = 'defaultAction';
             }
         }
 
@@ -251,6 +246,13 @@ class SG_Dispatcher {
                     'extensions' => array('.php', '.tpl')
                 )
             );
+        }
+
+        if ($response->isForbidden()) {
+
+            // Short-circuit around
+            $view = 'sys/forbidden';
+
         }
 
         if ($view) {

@@ -24,29 +24,6 @@ class SG_Nav {
         return $item;
     }
 
-    private function addControllersFromDirectory($dir, $options) {
-
-        $dir = rtrim($dir, '/') . '/';
-        foreach(glob($dir . '*.php') as $file) {
-
-            $parts = explode('_', strtolower(basename($file, '.php')));
-
-            $controller = array_pop($parts);
-            $controllerItem = new SG_Nav_Item_Controller($controller, $file);
-
-            $parent = $this->_root;
-
-            if (!empty($parts)) {
-                $prefixPath = implode('/', $parts);
-                $parent = $this->_root->find($prefixPath);
-                if (!$parent) $parent = $this->_root->add($prefixPath);
-            }
-
-            $parent->add($controllerItem);
-        }
-
-    }
-
     public function &addFromArray($ar) {
         $this->_root->addFromArray($ar);
         return $this;

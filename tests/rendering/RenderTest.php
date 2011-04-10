@@ -78,6 +78,68 @@ END
         }
     }
 
+    function testRenderingWithExistingController() {
+
+        $this->setUpSiteDir();
+        $siteDir = self::$siteDir;
+
+        mkdir("$siteDir/views/test");
+
+        file_put_contents(
+            "$siteDir/controllers/test.php",
+            <<<END
+<?php
+class TestController extends SG_Controller {}
+?>
+END
+        );
+
+        file_put_contents(
+            "$siteDir/views/test/foo.php",
+            "SUCCESS!"
+        );
+
+        $app = SG_App::start(array(
+            'SITE_DIR' => $siteDir
+        ));
+
+        $resp = $app->getResponse('test/foo');
+        $this->assertEquals('SUCCESS!', $resp->getContent());
+
+    }
+
+    function testSysControllerNotAvailableOutsideDev() {
+
+        $siteDir = self::$siteDir;
+        @mkdir("$siteDir/views/sys");
+        touch("$siteDir/views/sys/forbidden.php");
+
+        $states = array(
+            'DEV' => true,
+            'LIVE' => false,
+            'STAGING' => false
+        );
+
+        foreach($states as $state => $available) {
+
+            $app = SG_App::start(array(
+                'use_defines' => false,
+                'use_globals' => false,
+                $state => true,
+                'SITE_DIR' => self::$siteDir
+            ));
+
+            $resp = $app->getResponse('sys/about');
+
+            if ($available) {
+                $this->assertEquals(200, $resp->getStatus(), "sys/about should be available under $state");
+            } else {
+                $this->assertEquals(403, $resp->getStatus(), "should be forbidden under $state");
+                $this->assertEquals('', $resp->getContent(), "content should be empty under $state");
+            }
+        }
+
+    }
 
     function dontTestBasicSmartyViewRendering() {
 

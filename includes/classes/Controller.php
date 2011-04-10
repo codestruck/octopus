@@ -5,14 +5,24 @@
  */
 abstract class SG_Controller {
 
-    protected $_response;
+    private $_app;
+    private $_response;
     private $_view;
     private $_template;
 
     /**
      * Creates a new SG_Controller instance for the given SG_Response.
      */
-    public function __construct($response) {
+    public function __construct($app, $response) {
+        $this->_app = $app;
+        $this->_response = $response;
+    }
+
+    /**
+     * @return Object The SG_App instance that owns this controller.
+     */
+    public function getApp() {
+        return $this->_app;
     }
 
     public function &getResponse() {

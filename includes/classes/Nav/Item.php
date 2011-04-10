@@ -313,6 +313,20 @@ class SG_Nav_Item {
 
             }
 
+        } else {
+
+            // This item doesn't exist, but that doesn't mean it shouldn't
+            // exist.
+            $item = $this->add(
+                array(
+                    'path' => $firstPart,
+                    'visible' => false
+                )
+            );
+
+            if ($haveMorePath) {
+                $item = $item->find($remainingPath, $options);
+            }
         }
 
         return $item;
