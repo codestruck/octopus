@@ -253,8 +253,6 @@ class SG_Dispatcher {
             );
         }
 
-        dump_r($controller, $view);
-
         if ($view) {
 
             // First look for a view specific to the controller

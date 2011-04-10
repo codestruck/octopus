@@ -192,7 +192,7 @@ class SG_Nav_Item {
      */
     protected function &internalAdd($options, $extra = null) {
 
-        if ($item = $this->overlayOptionsOnExistingItem($options, $extra)) {
+        if ($item = $this->applyOptionsToExistingItem($options, $extra)) {
             return $item;
         }
 
@@ -208,7 +208,7 @@ class SG_Nav_Item {
      * Attempts to modify an existing item rather than adding a new one.
      * @return Mixed modified item or false if nothing is done.
      */
-    protected function overlayOptionsOnExistingItem($options, $extra) {
+    protected function applyOptionsToExistingItem($options, $extra) {
 
         if (!is_array($options)) {
             return false;

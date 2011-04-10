@@ -414,7 +414,6 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
     function testControllerDiscovery() {
 
         $nav = new SG_Nav();
-        $nav->addControllers(self::$controllersDir); // also do automatically?
 
         $tests = array(
 

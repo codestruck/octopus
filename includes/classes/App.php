@@ -52,6 +52,7 @@ class SG_App {
     private $_options;
     private $_nav;
     private $_settings;
+    private $_controllers = null, $_flatControllers = null;
 
     private function __construct($options = array()) {
 
@@ -61,8 +62,15 @@ class SG_App {
         $this->_figureOutDirectories();
         $this->_figureOutSecurity();
         $this->_findUrlBase();
+        $this->_initNav();
         $this->_loadSiteConfig();
         $this->_setEnvironmentFlags();
+
+    }
+
+    private function _initNav() {
+
+        $this->_nav = new SG_Nav();
 
     }
 
@@ -75,6 +83,11 @@ class SG_App {
 
 
     public function find($path, $options = null) {
+
+        if (!$this->_nav) {
+            $this->_nav = new SG_Nav();
+        }
+
         return $this->_nav->find($path, $options);
     }
 
@@ -82,6 +95,12 @@ class SG_App {
      * @return Array A hierarchical list of controllers.
      */
     public function getControllers($flat = false) {
+
+        if ($this->_controllers && !$flat) {
+            return $this->_controllers;
+        } else if ($this->_flatControllers && $flat) {
+            return $this->_flatControllers;
+        }
 
         $o =& $this->_options;
         $found = array();
@@ -102,9 +121,12 @@ class SG_App {
 
         if ($flat) {
             $found = $this->flattenControllerHierarchy($found);
+            $this->_flatControllers = $found;
+            return $found;
+        } else {
+            $this->_controllers = $found;
+            return $found;
         }
-
-        return $found;
     }
 
     private function fillOutControllerHierarchy(&$h, &$parts) {
