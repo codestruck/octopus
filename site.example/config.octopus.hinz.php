@@ -1,8 +1,0 @@
-<?php
-
-    /*
-     * Host-Specific Configuration
-     *
-     */
-
-?>
