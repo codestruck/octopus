@@ -5,48 +5,16 @@ SG::loadClass('SG_App');
 /**
  * @group core
  */
-class RenderTests extends PHPUnit_Framework_TestCase
+class RenderTests extends SG_App_TestCase
 {
-    static $siteDir = 'render-tests';
-
-
-    function cleanUpSiteDir() {
-        $siteDir = self::$siteDir;
-        `rm -rf {$siteDir}`;
-    }
-
-    function setUpSiteDir() {
-
-        $this->cleanUpSiteDir();
-
-        $siteDir = self::$siteDir;
-
-        mkdir($siteDir);
-        mkdir("$siteDir/views");
-        mkdir("$siteDir/views/controller");
-        mkdir("$siteDir/controllers");
-        mkdir("$siteDir/content");
-        mkdir("$siteDir/themes");
-        mkdir("$siteDir/themes/default");
-        mkdir("$siteDir/themes/default/templates");
-        mkdir("$siteDir/themes/default/templates/html");
-
-        touch("$siteDir/config.php");
-        touch("$siteDir/nav.php");
-
-        file_put_contents("$siteDir/themes/default/templates/html/page.php", '<?php echo $view_content; ?>');
-
-    }
-
 
     function testBasicViewRendering() {
 
-        $this->setUpSiteDir();
-        $siteDir = self::$siteDir;
+        mkdir("{$this->siteDir}/views/controller");
 
         $locations = array(
-            "$siteDir/views/action.php",
-            "$siteDir/views/controller/action.php"
+            "{$this->siteDir}/views/action.php",
+            "{$this->siteDir}/views/controller/action.php"
         );
 
         foreach($locations as $viewLoc) {
@@ -58,12 +26,7 @@ $viewLoc
 END
             );
 
-            $app = SG_App::start(array(
-                'SITE_DIR' => $siteDir
-            ));
-
-            $app->getNav()
-                ->add('controller/action');
+            $app = $this->startApp();
 
             $resp = $app->getResponse('/controller/action');
             $this->assertTrue(!!$resp, 'No response returned. loc: ' . $viewLoc);
@@ -80,13 +43,10 @@ END
 
     function testRenderingWithExistingController() {
 
-        $this->setUpSiteDir();
-        $siteDir = self::$siteDir;
-
-        mkdir("$siteDir/views/test");
+        mkdir("{$this->siteDir}/views/test");
 
         file_put_contents(
-            "$siteDir/controllers/test.php",
+            "{$this->siteDir}/controllers/test.php",
             <<<END
 <?php
 class TestController extends SG_Controller {}
@@ -95,13 +55,11 @@ END
         );
 
         file_put_contents(
-            "$siteDir/views/test/foo.php",
+            "{$this->siteDir}/views/test/foo.php",
             "SUCCESS!"
         );
 
-        $app = SG_App::start(array(
-            'SITE_DIR' => $siteDir
-        ));
+        $app = $this->startApp();
 
         $resp = $app->getResponse('test/foo');
         $this->assertEquals('SUCCESS!', $resp->getContent());
@@ -109,27 +67,16 @@ END
     }
 
 
-
-
-
     function testBasicSmartyViewRendering() {
 
-        $this->setUpSiteDir();
-        $siteDir = self::$siteDir;
-
         file_put_contents(
-            "$siteDir/views/action.tpl",
+            "{$this->siteDir}/views/action.tpl",
             <<<END
 Basic view contents.
 END
         );
 
-        $app = SG_App::start(array(
-            'SITE_DIR' => $siteDir
-        ));
-
-        $app->getNav()
-            ->add('controller/action');
+        $app = $this->startApp();
 
         $resp = $app->getResponse('/controller/action');
         $this->assertTrue(!!$resp, 'No response returned.');
