@@ -65,6 +65,15 @@ class SG_App {
         $this->_initNav();
         $this->_loadSiteConfig();
         $this->_setEnvironmentFlags();
+        $this->_ensurePrivateDir();
+
+    }
+
+    private function _ensurePrivateDir() {
+
+        if (!is_dir($this->_options['PRIVATE_DIR'])) {
+            mkdir($this->_options['PRIVATE_DIR']);
+        }
 
     }
 
@@ -243,6 +252,13 @@ class SG_App {
     }
 
     /**
+     * @return bool Whether there is already a running instance of the app.
+     */
+    public static function isStarted() {
+        return !!self::$_instance;
+    }
+
+    /**
      * Spins up a new application instance.
      */
     public static function start($options = array()) {
@@ -264,7 +280,7 @@ class SG_App {
     private function _figureOutDirectories() {
 
         $o = &$this->_options;
-        $dirs = array('OCTOPUS_DIR', 'ROOT_DIR',  'SITE_DIR', 'INCLUDES_DIR', 'FUNCTIONS_DIR', 'CLASSES_DIR');
+        $dirs = array('OCTOPUS_DIR', 'ROOT_DIR',  'SITE_DIR', 'INCLUDES_DIR', 'FUNCTIONS_DIR', 'CLASSES_DIR', 'PRIVATE_DIR', 'EXTERNALS_DIR');
 
         foreach($dirs as $dir) {
 
@@ -287,6 +303,14 @@ class SG_App {
 
                         case 'SITE_DIR':
                             $o[$dir] = $o['ROOT_DIR'] . 'site';
+                            break;
+
+                        case 'PRIVATE_DIR':
+                            $o[$dir] = $o['ROOT_DIR'] . '_private';
+                            break;
+
+                        case 'EXTERNALS_DIR':
+                            $o[$dir] = $o['OCTOPUS_DIR'] . 'externals';
                             break;
 
                         case 'INCLUDES_DIR':

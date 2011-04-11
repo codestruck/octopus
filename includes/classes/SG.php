@@ -2,6 +2,8 @@
 
 class SG {
 
+    private static $_externals = array();
+
     public static function loadClass($classname) {
 
         if (!class_exists($classname)) {
@@ -20,6 +22,36 @@ class SG {
         }
 
     }
+
+    /**
+     * Includes an external library.
+     */
+    public static function loadExternal($name, $version = null) {
+
+        $name = strtolower($name);
+
+        if (isset(self::$_externals[$name])) {
+            return;
+        }
+        self::$_externals[$name] = true;
+
+        $dir = '';
+
+        if (defined('EXTERNALS_DIR')) {
+            $dir = EXTERNALS_DIR;
+        } else if (class_exists('SG_App') && SG_App::isStarted()) {
+            $dir = SG_App::singleton()->getOption('EXTERNALS_DIR');
+        }
+
+        $file = "{$dir}{$name}/external.php";
+        require_once($file);
+
+        $func = "external_{$name}";
+        if (function_exists($func)) {
+            $func($version);
+        }
+    }
+
 
 /*
     function loadModel($classname, $module = null) {

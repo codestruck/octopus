@@ -1,8 +1,5 @@
 <?php
 
-SG::loadClass('SG_Renderer_PHP');
-SG::loadClass('SG_Renderer_Smarty');
-
 /**
  * Base class for a renderer.
  */
@@ -24,6 +21,7 @@ class SG_Renderer {
 
         foreach(self::$_registry as $pattern => $class) {
             if (preg_match($pattern, $filename)) {
+                SG::loadClass($class);
                 return new $class($filename);
             }
         }

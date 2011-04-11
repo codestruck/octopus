@@ -5,7 +5,7 @@
  */
 class DefaultController extends SG_Controller {
 
-    public function defaultAction($args) {
+    public function defaultAction($action, $args) {
         return $args;
     }
 
