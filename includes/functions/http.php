@@ -23,11 +23,15 @@
             }
 
             // Detect if URL_BASE has already been applied
-            if ($url_base && strncasecmp($url, $url_base, strlen($url_base)) != 0) {
+            if ($url_base) {
 
-                if (strncmp($url, '/', 1) == 0) {
-                    // It's an absolute path, so prepend URL_BASE
-                    $url = $url_base . ltrim($url, '/');
+                if (strncasecmp($url, $url_base, strlen($url_base)) != 0) {
+
+                    if (strncmp($url, '/', 1) == 0) {
+                        // It's an absolute path, so prepend URL_BASE
+                        $url = $url_base . ltrim($url, '/');
+                    }
+
                 }
 
             }

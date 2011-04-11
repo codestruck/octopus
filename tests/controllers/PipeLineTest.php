@@ -136,6 +136,27 @@ END
         $this->assertFalse(isset($GLOBALS['BeforeAndAfterController::_after']), '_after should not have been called.');
     }
 
+    function testRedirectToAddSlashOnIndex() {
+
+        $app = $this->startApp();
+
+        $resp = $app->getResponse('/controller');
+
+        $this->assertEquals(
+            <<<END
+Status: 302 Moved Temporarily
+Location: /controller/
+END
+            ,
+            trim($resp)
+        );
+
+        $resp = $app->getResponse('/controller/');
+        $this->assertEquals(200, $resp->getStatus());
+
+    }
+
+
 
 }
 

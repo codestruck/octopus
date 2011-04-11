@@ -127,6 +127,25 @@ class SG_Response {
         return $this->getStatus() == 403;
     }
 
+    public function redirect($to, $permanent = false) {
+        $this->addHeader('Status', ($permanent ? '301 Moved Permanently' : '302 Moved Temporarily'));
+        $this->addHeader('Location', $to);
+    }
+
+    public function __toString() {
+
+        $result = '';
+
+        foreach($this->_headers as $name => $content) {
+            $result .= "$name: $content\n";
+        }
+        $result .= "\n\n";
+
+        $result .= $this->getContent();
+
+        return $result;
+    }
+
 }
 
 ?>

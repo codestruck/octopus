@@ -20,32 +20,16 @@ class SG_Dispatcher {
     /**
      * Given a path, renders the page and generates an SG_Response
      * instance for it.
-     * @param $path Mixed A path in the app or an SG_Nav_Item instance.
+     * @param $path String A path in the app.
      * @return Object An SG_Response instance.
      */
     public function &getResponse($path) {
 
-        if ($path instanceof SG_Nav_Item) {
-            $navItem = $path;
-        } else {
-            $navItem = $this->_app->find($path);
-        }
+        $originalPath = trim($path);
+        $navItem = $this->_app->find($path);
 
-        $response = new SG_Response();
-
-        if (!$navItem) {
-
-            // Item not found = 404
-            $response->addHeader('Status', '404 Not Found');
-            $info = array('controller' => false, 'action' => false, 'args' => array('path' => $path), 'view' => '404');
-            $path = trim($path, '/');
-
-        } else {
-
-            // Item found = Yay! Resolve controller / action
-            $info = $this->getControllerInfo($navItem);
-            $path = $navItem->getFullPath();
-        }
+        $info = $this->getControllerInfo($navItem);
+        $path = $navItem->getFullPath();
 
         if (!$info) $info = array();
 
@@ -66,6 +50,21 @@ class SG_Dispatcher {
             }
         }
 
+        $response = new SG_Response();
+
+        if (empty($info['action'])) {
+
+            // No action specified == index, but we need to make sure the
+            // path ends with a '/'.
+            if (substr($originalPath, strlen($originalPath) - 1, 1) != '/') {
+                $response->redirect($this->_app->makeUrl('/' . $path . '/'));
+                return $response;
+            }
+
+        }
+
+
+
         $controller = $this->createController($info, $response);
 
         if (!$controller) {
@@ -74,7 +73,7 @@ class SG_Dispatcher {
 
         $data = $this->execute(
             $controller,
-            empty($info['action']) ? '' : $info['action'],
+            empty($info['action']) ? 'index' : $info['action'],
             empty($info['args']) ? array() : $info['args']
         );
 
@@ -130,6 +129,7 @@ class SG_Dispatcher {
         require_once($this->_app->getOption('OCTOPUS_DIR') . 'controllers/Default.php');
 
         $controller = new DefaultController($this->_app, $response);
+        $controller->requestedController = $info['controller'];
         $this->configureController($controller, $info);
 
         return $controller;
@@ -292,7 +292,13 @@ class SG_Dispatcher {
         $templateFile = $viewFile = false;
 
         // TODO Theme support
-        if ($template) {
+
+        if (strncmp($template, '/', 1) == 0) {
+
+            // Absolute path
+            $templateFile = $template;
+
+        } else if ($template) {
             $templateFile = $app->getFile(
                 $template,
                 array($siteDir . 'themes/default/templates/', $octopusDir . 'themes/default/templates/'),
@@ -309,7 +315,12 @@ class SG_Dispatcher {
 
         }
 
-        if ($view) {
+        if (strncmp($view, '/', 1) == 0) {
+
+            // Absolute path to view == use that file
+            $viewFile = $view;
+
+        } else if ($view) {
 
             // First look for a view specific to the controller
             if ($controller) {

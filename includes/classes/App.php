@@ -241,6 +241,13 @@ class SG_App {
         return $this->_options['STAGING'];
     }
 
+    public function makeUrl($path) {
+        return make_url(
+            $path,
+            null,
+            array('URL_BASE' => $this->_options['URL_BASE'])
+        );
+    }
 
     public static function &singleton() {
 
