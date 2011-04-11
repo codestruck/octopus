@@ -103,7 +103,7 @@ class SG_Dispatcher {
         }
 
         $name = preg_replace('/Controller$/', '', $info['controller']);
-        $controllerFile = get_file('controllers/' . $name . '.php');
+        $controllerFile = $this->_app->getFile('controllers/' . $name . '.php');
 
         if (!$controllerFile) {
             return $controller;
@@ -189,6 +189,7 @@ class SG_Dispatcher {
     protected function execute($controller, $action, $args) {
 
         $resp = $controller->getResponse();
+        $originalAction = $action;
 
         if (!$args) $args = array();
 
@@ -200,9 +201,36 @@ class SG_Dispatcher {
             }
         }
 
+        if (method_exists($controller, '_before')) {
+            $controller->_before($originalAction, $args);
+        }
+
+        $beforeMethod = 'before_' . $originalAction;
+        if (method_exists($controller, $beforeMethod)) {
+            $result = $controller->$beforeMethod($args);
+            if ($result === false) {
+                // Short-circuit out
+                return;
+            }
+        }
+
+        if ($originalAction != $action) {
+
+            // Support before_defaultAction as well
+            $beforeMethod = 'before_' . $action;
+            if (method_exists($controller, $beforeMethod)) {
+                $result = $controller->$beforeMethod($args);
+                if ($result === false) {
+                    // Short-circuit
+                    return;
+                }
+            }
+
+        }
+
         if ($action == 'defaultAction' || $action == 'error') {
             // Special case-- pass args
-            $ret = $controller->$action($args);
+            $data = $controller->$action($args);
         } else {
 
             $positionalArgs = array();
@@ -215,14 +243,34 @@ class SG_Dispatcher {
             }
 
             if (empty($positionalArgs)) {
-                $ret = $controller->$action($args);
+                $data = $controller->$action($args);
             } else {
                 $positionalArgs[] = $args;
-                $ret = call_user_func_array(array($controller,$action), $positionalArgs);
+                $data = call_user_func_array(array($controller,$action), $positionalArgs);
             }
         }
 
-        return $ret;
+        // Call the after_ actions
+
+        if ($originalAction != $action) {
+
+            $afterMethod = 'after_' . $action;
+            if (method_exists($controller, $afterMethod)) {
+                $data = $controller->$afterMethod($args, $data);
+            }
+
+        }
+
+        $afterMethod = 'after_'. $originalAction;
+        if (method_exists($controller, $afterMethod)) {
+            $data = $controller->$afterMethod($args, $data);
+        }
+
+        if (method_exists($controller, '_after')) {
+            $data = $controller->_after($originalAction, $args, $data);
+        }
+
+        return $data;
     }
 
     /**

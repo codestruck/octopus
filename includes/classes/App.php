@@ -161,7 +161,7 @@ class SG_App {
         $o =& $this->_options;
 
         if ($dirs == null) {
-            $dirs = array($o['SITE_DIR'], $o['ROOT_DIR']);
+            $dirs = array($o['SITE_DIR'], $o['OCTOPUS_DIR']);
         }
 
         if ($options === null) $options = array();
@@ -176,6 +176,13 @@ class SG_App {
 
     public function getOption($name, $default = null) {
         return isset($this->_options[$name]) ? $this->_options[$name] : $default;
+    }
+
+    /**
+     * @return Array The options for the app.
+     */
+    public function getOptions() {
+        return $this->_options;
     }
 
     public function getNav() {
@@ -427,18 +434,16 @@ class SG_App {
         $o =& $this->_options;
 
         $flags = array('DEV', 'LIVE', 'STAGING');
-        if ($o['use_defines']) {
-            foreach($flags as $f) {
+        foreach($flags as $f) {
 
-                if (isset($o[$f])) {
-                    continue;
-                }
+            if (isset($o[$f])) {
+                continue;
+            }
 
-                if (defined($f)) {
-                    $o[$f] = constant($f);
-                } else {
-                    $o[$f] = null;
-                }
+            if ($o['use_defines'] && defined($f)) {
+                $o[$f] = constant($f);
+            } else {
+                $o[$f] = null;
             }
         }
 

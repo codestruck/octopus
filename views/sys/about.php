@@ -9,7 +9,16 @@
     Yay! Octopus is running!
 </p>
 
-<h2>Some Links</h2>
-<ul>
-    <li><a href="fake-page">A 404ing Page</a></li>
-</ul>
+<h2>Options</h2>
+
+<table id="options">
+<?php foreach($options as $key => $value): ?>
+<tr>
+    <th><?php echo h($key); ?></th>
+    <td><pre><?php echo h($value); ?></pre></td>
+</tr>
+<?php endforeach ?>
+</table>
+
+
+

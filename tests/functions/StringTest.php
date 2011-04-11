@@ -104,7 +104,8 @@
                 'CAMEL__cased' => 'camelCased',
                 'camel-CASED' => 'camelCased',
                 '  camel  CASED  ' => 'camelCased',
-                'CamelCased' => 'camelCased'
+                'CamelCased' => 'camelCased',
+                'camel-cased' => 'camelCased'
 
              );
 
