@@ -149,6 +149,10 @@ class SG_Dispatcher {
 
     }
 
+    /**
+     * Given a nav item, figure out what controller it should use, what action
+     * should be called, and what args should be passed.
+     */
     private function getControllerInfo($navItem) {
 
         $controllers = $this->_app->getControllers(true);
@@ -186,6 +190,9 @@ class SG_Dispatcher {
         );
     }
 
+    /**
+     * Actually executes an action on a controller and returns the results.
+     */
     protected function execute($controller, $action, $args) {
 
         $resp = $controller->getResponse();
@@ -225,12 +232,11 @@ class SG_Dispatcher {
                     return;
                 }
             }
-
         }
 
-        if ($action == 'defaultAction' || $action == 'error') {
+        if ($action == 'defaultAction') {
             // Special case-- pass args
-            $data = $controller->$action($args);
+            $data = $controller->defaultAction($originalAction, $args);
         } else {
 
             $positionalArgs = array();
@@ -330,6 +336,16 @@ class SG_Dispatcher {
                     )
                 );
             }
+        }
+
+        if (!$viewFile) {
+            $viewFile = $app->getFile(
+                'sys/view-not-found',
+                array($siteDir . 'views/', $octopusDir . 'views/'),
+                array(
+                    'extensions' => array('.php', '.tpl')
+                )
+            );
         }
 
         $viewContent = $templateContent = '';

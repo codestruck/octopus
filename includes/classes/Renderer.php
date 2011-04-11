@@ -32,11 +32,7 @@ class SG_Renderer {
     }
 
     public static function register($pattern, $class) {
-
-        if (!self::$_registry) {
-            self::$_registry[$pattern] = $class;
-        }
-
+        self::$_registry[$pattern] = $class;
     }
 }
 

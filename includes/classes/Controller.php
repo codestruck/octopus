@@ -53,7 +53,7 @@ abstract class SG_Controller {
      * If the action specified does not exist on this class, defaultAction()
      * gets called.
      */
-    public function defaultAction($args) {}
+    public function defaultAction($action, $args) {}
 
 
     /**
