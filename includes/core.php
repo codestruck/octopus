@@ -10,6 +10,8 @@
     define('ROOT_DIR', dirname(OCTOPUS_DIR) . '/');
     define('FUNCTIONS_DIR', INCLUDES_DIR . 'functions/');
     define('CLASSES_DIR', INCLUDES_DIR . 'classes/');
+    define('EXTERNALS_DIR', OCTOPUS_DIR . 'externals/');
+    define('PRIVATE_DIR', ROOT_DIR . '_private/');
 
     /**
      * Spins up a new instance of the application.

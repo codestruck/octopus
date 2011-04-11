@@ -43,7 +43,9 @@ class SG {
             $dir = SG_App::singleton()->getOption('EXTERNALS_DIR');
         }
 
-        $file = "{$dir}{$name}/external.php";
+        $EXTERNAL_DIR = "{$dir}{$name}/";
+
+        $file = "{$EXTERNAL_DIR}external.php";
         require_once($file);
 
         $func = "external_{$name}";
