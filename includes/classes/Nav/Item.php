@@ -192,7 +192,7 @@ class SG_Nav_Item {
      */
     protected function &internalAdd($options, $extra = null) {
 
-        if ($item = $this->overlayOptionsOnExistingItem($options, $extra)) {
+        if ($item = $this->applyOptionsToExistingItem($options, $extra)) {
             return $item;
         }
 
@@ -208,7 +208,7 @@ class SG_Nav_Item {
      * Attempts to modify an existing item rather than adding a new one.
      * @return Mixed modified item or false if nothing is done.
      */
-    protected function overlayOptionsOnExistingItem($options, $extra) {
+    protected function applyOptionsToExistingItem($options, $extra) {
 
         if (!is_array($options)) {
             return false;
@@ -313,6 +313,20 @@ class SG_Nav_Item {
 
             }
 
+        } else {
+
+            // This item doesn't exist, but that doesn't mean it shouldn't
+            // exist.
+            $item = $this->add(
+                array(
+                    'path' => $firstPart,
+                    'visible' => false
+                )
+            );
+
+            if ($haveMorePath) {
+                $item = $item->find($remainingPath, $options);
+            }
         }
 
         return $item;
@@ -532,14 +546,6 @@ class SG_Nav_Item {
         }
 
         return $item;
-    }
-
-    /**
-     * @return Mixed If a controller / action can be determined for this
-     * item, an array with 'controller', 'action', 'args'. Otherwise, false.
-     */
-    public function getControllerInfo() {
-        return false;
     }
 
     public function getArgs() {

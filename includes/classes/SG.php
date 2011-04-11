@@ -1,7 +1,5 @@
 <?php
 
-define('SG_LOAD_CLASS_DIR', dirname(__FILE__) . '/');
-
 class SG {
 
     public static function loadClass($classname) {
@@ -22,6 +20,7 @@ class SG {
         }
 
     }
+
 /*
     function loadModel($classname, $module = null) {
 

@@ -5,14 +5,11 @@
      * app should include this file first.
      */
 
-    $GLOBALS['OCTOPUS_DIR'] = dirname(dirname(__FILE__)) . '/';
-    $GLOBALS['ROOT_DIR'] = dirname($GLOBALS['OCTOPUS_DIR']) . '/';
-    $GLOBALS['INCLUDES_DIR'] = $GLOBALS['OCTOPUS_DIR'] . 'includes/';
-    $GLOBALS['FUNCTIONS_DIR'] = $GLOBALS['INCLUDES_DIR'] . 'functions/';
-    $GLOBALS['CLASSES_DIR'] = $GLOBALS['INCLUDES_DIR'] . 'classes/';
-    $GLOBALS['THEMES_DIR'] = $GLOBALS['ROOT_DIR'] . 'themes/';
-    $GLOBALS['SITE_DIR'] = $GLOBALS['ROOT_DIR'] . 'site/';
-    $GLOBALS['SITE_THEMES_DIR'] = $GLOBALS['SITE_DIR'] . 'themes/';
+    define('INCLUDES_DIR', dirname(__FILE__) . '/');
+    define('OCTOPUS_DIR', dirname(INCLUDES_DIR) . '/');
+    define('ROOT_DIR', dirname(OCTOPUS_DIR) . '/');
+    define('FUNCTIONS_DIR', INCLUDES_DIR . 'functions/');
+    define('CLASSES_DIR', INCLUDES_DIR . 'classes/');
 
     /**
      * Spins up a new instance of the application.
@@ -21,21 +18,7 @@
      */
     function bootstrap($options = null) {
 
-        global $URL_BASE;
-        global $OCTOPUS_DIR, $ROOT_DIR, $INCLUDES_DIR, $FUNCTIONS_DIR, $CLASSES_DIR, $THEMES_DIR;
-        global $SITE_DIR, $SITE_THEMES_DIR;
-        global $NAV;
-
         $defaults = array(
-
-            'OCTOPUS_DIR' =>        $OCTOPUS_DIR,
-            'ROOT_DIR' =>           $ROOT_DIR,
-            'INCLUDES_DIR' =>       $INCLUDES_DIR,
-            'FUNCTIONS_DIR' =>      $FUNCTIONS_DIR,
-            'CLASSES_DIR' =>        $CLASSES_DIR,
-            'THEMES_DIR' =>         $THEMES_DIR,
-            'SITE_DIR' =>           $SITE_DIR,
-            'SITE_THEMES_DIR' =>    $SITE_THEMES_DIR,
 
             /**
              * Whether or not to load site-specific configuration files.
@@ -44,39 +27,11 @@
 
             'path_querystring_arg' => '__path'
         );
+
         $options = $options ? array_merge($defaults, $options) : $defaults;
-        $GLOBALS['BOOTSTRAP_OPTIONS'] = $options;
 
         ////////////////////////////////////////////////////////////////////////
-        // Directory Configuration
-        ////////////////////////////////////////////////////////////////////////
-
-        define('OCTOPUS_DIR', $OCTOPUS_DIR = $options['OCTOPUS_DIR']);
-        define('ROOT_DIR', $ROOT_DIR = $options['ROOT_DIR']);
-        define('INCLUDES_DIR', $INCLUDES_DIR = $options['INCLUDES_DIR']);
-        define('FUNCTIONS_DIR', $FUNCTIONS_DIR = $options['FUNCTIONS_DIR']);
-        define('CLASSES_DIR', $CLASSES_DIR = $options['CLASSES_DIR']);
-        define('THEMES_DIR', $THEMES_DIR = $options['THEMES_DIR']);
-        define('SITE_DIR', $SITE_DIR = $options['SITE_DIR']);
-        define('SITE_THEMES_DIR', $SITE_THEMES_DIR = $options['SITE_THEMES_DIR']);
-
-        ////////////////////////////////////////////////////////////////////////
-        // Baseline PHP Configuration
-        ////////////////////////////////////////////////////////////////////////
-
-        session_start();
-
-        // TODO: figure out a better way to do this?
-        $tz = @date_default_timezone_get();
-        $err = error_get_last();
-        if ($err) {
-            if (strstr($err['message'], 'date_default_timezone_get')) {
-                date_default_timezone_set('America/Los_Angeles');
-            }
-        }
-
-        ////////////////////////////////////////////////////////////////////////
-        // Core Includes
+        // Core function includes
         ////////////////////////////////////////////////////////////////////////
 
         require_once(FUNCTIONS_DIR . 'debug.php');
@@ -87,72 +42,16 @@
         require_once(FUNCTIONS_DIR . 'html.php');
         require_once(FUNCTIONS_DIR . 'compat.php');
 
-        require_once(CLASSES_DIR .'SG.php');
-
-        SG::loadClass('SG_Nav');
-        SG::loadClass('SG_Response');
-        SG::loadClass('SG_Dispatcher');
-        SG::loadClass('SG_Controller');
-        SG::loadClass('SG_Model');
-
         ////////////////////////////////////////////////////////////////////////
-        // WHERE ARE WE?
+        // Spin up an app instance
         ////////////////////////////////////////////////////////////////////////
 
-        $URL_BASE = find_url_base();
+        require_once(OCTOPUS_DIR . 'includes/classes/SG.php');
 
-        if ($URL_BASE === false) {
-            error_log('Could not determine URL_BASE. Assuming "/".');
-            $URL_BASE = '/';
-        }
+        SG::loadClass('SG_App');
 
-        define('URL_BASE', $URL_BASE);
+        $app = SG_App::start($options);
 
-        ////////////////////////////////////////////////////////////////////////
-        // Nav Setup
-        ////////////////////////////////////////////////////////////////////////
-
-        $NAV = $GLOBALS['NAV'] = new SG_Nav();
-
-        ////////////////////////////////////////////////////////////////////////
-        // Site-Specific Configuration
-        ////////////////////////////////////////////////////////////////////////
-
-        if ($options['use_site_config']) {
-
-            $configFile = SITE_DIR . 'config.php';
-
-            $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : trim(`hostname`);
-            $hostConfigFile = SITE_DIR . "config.$host.php";
-
-            if (!file_exists($configFile)   ) {
-                // TODO Friendlier message
-                echo "No config file found.";
-                exit();
-            }
-
-            if (file_exists($hostConfigFile)) {
-                require_once($hostConfigFile);
-            }
-
-            require_once($configFile);
-
-            // Nav Structure
-            $navFile = SITE_DIR . 'nav.php';
-            if (!file_exists($navFile)) {
-                error_log("No nav.php found.");
-            } else {
-                require_once($navFile);
-            }
-        }
-
-        ////////////////////////////////////////////////////////////////////////
-        // DEV / STAGING / LIVE Configuration
-        ////////////////////////////////////////////////////////////////////////
-
-        define_unless('DEV', is_dev_environment());
-        define_unless('STAGING', is_staging_environment());
-        define_unless('LIVE', is_live_environment());
     }
 
     /**
@@ -162,17 +61,10 @@
      */
     function render_page($path = null) {
 
-        global $BOOTSTRAP_OPTIONS, $NAV;
-
-        if ($path === null) {
-            $arg = $BOOTSTRAP_OPTIONS['path_querystring_arg'];
-            $path = isset($_GET[$arg]) ? $_GET[$arg] : '/';
-            unset($_GET[$arg]);
-        }
-
-        $dispatch = new SG_Dispatcher();
-        $response = $dispatch->getResponse($path);
+        $app = SG_App::singleton();
+        $response = $app->getResponse($path);
         $response->flush();
+
     }
 
 ?>

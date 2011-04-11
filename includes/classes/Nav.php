@@ -2,10 +2,10 @@
 
 SG::loadClass('SG_Nav_Item');
 SG::loadClass('SG_Nav_Item_Directory');
-SG::loadClass('SG_Nav_Item_Controller');
 
 /**
- * Class that manages navigation structure and routing for the app.
+ * Class that manages navigation structure and routing, and page options for
+ * the app.
  */
 class SG_Nav {
 
@@ -22,76 +22,6 @@ class SG_Nav {
     public function &add($options, $text = null) {
         $item = $this->_root->add($options, $text);
         return $item;
-    }
-
-    /**
-     * Adds nav entries for any controllers discovered in the given directory.
-     * @param $dir Mixed Either a string or an array of strings, directory(ies)
-     * to scan for controllers.
-     * @param $options Array Any extra options. Mostly used for testing. You
-     * can override CONTROLLERS_DIR and SITE_CONTROLLERS_DIR by setting those
-     * keys here.
-     */
-    public function &addControllers($dir = null, $options = null) {
-
-        if ($dir === null) {
-
-            $controllersDir = false;
-            $siteControllersDir = false;
-
-            if (defined('CONTROLLERS_DIR')) {
-                $controllersDir = CONTROLLERS_DIR;
-            }
-
-            if (defined('SITE_CONTROLLERS_DIR')) {
-                $siteControllersDir = SITE_CONTROLLERS_DIR;
-            }
-
-            if ($options !== null) {
-
-                if (isset($options['CONTROLLERS_DIR'])) $controllersDir = $options['CONTROLLERS_DIR'];
-                if (isset($options['SITE_CONTROLLERS_DIR'])) $controllersDir = $options['SITE_CONTROLLERS_DIR'];
-
-            }
-
-            $dir = array($siteControllersDir, $controllersDir);
-
-        } else if (!is_array($dir)) {
-            $dir = array($dir);
-        }
-
-        foreach($dir as $d) {
-
-            if ($d) {
-                $this->addControllersFromDirectory($d, $options);
-            }
-
-        }
-
-        return $this;
-    }
-
-    private function addControllersFromDirectory($dir, $options) {
-
-        $dir = rtrim($dir, '/') . '/';
-        foreach(glob($dir . '*.php') as $file) {
-
-            $parts = explode('_', strtolower(basename($file, '.php')));
-
-            $controller = array_pop($parts);
-            $controllerItem = new SG_Nav_Item_Controller($controller, $file);
-
-            $parent = $this->_root;
-
-            if (!empty($parts)) {
-                $prefixPath = implode('/', $parts);
-                $parent = $this->_root->find($prefixPath);
-                if (!$parent) $parent = $this->_root->add($prefixPath);
-            }
-
-            $parent->add($controllerItem);
-        }
-
     }
 
     public function &addFromArray($ar) {

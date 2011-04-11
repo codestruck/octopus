@@ -6,9 +6,15 @@
 class DefaultController extends SG_Controller {
 
     public function defaultAction($args) {
-        return $this->render('about-octopus', array('args' => $args));
+        return $args;
     }
 
+    /**
+     * Called when there's an error.
+     */
+    public function error($args) {
+
+    }
 
 
 }

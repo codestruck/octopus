@@ -15,28 +15,35 @@
      */
     function get_file($paths, $dirs = null, $options = null) {
 
-        if ($dirs === null) {
+        $options = $options ? $options : array();
 
-            $octopusDir = OCTOPUS_DIR;
-            $siteDir = SITE_DIR;
-
-            if ($options) {
-
-                if (!empty($options['OCTOPUS_DIR'])) $rootDir = $options['OCTOPUS_DIR'];
-                if (!empty($options['SITE_DIR'])) $siteDir = $options['SITE_DIR'];
-
-            }
-
-            $dirs = array($siteDir, $octopusDir);
-
-        }
-
-        $options = ($options === null ? array() : $options);
         if (!isset($options['newest'])) $options['newest'] = false;
         if (!isset($options['extensions'])) $options['extensions'] = false;
         if (!isset($options['debug'])) $options['debug'] = false;
 
-        if (!DEV) $options['debug'] = false;
+        if (defined('DEV')) {
+            if (!DEV) $options['debug'] = false;
+        } else if (!isset($options['debug'])) {
+            $options['debug'] = false;
+        }
+
+        if ($dirs === null) {
+
+            $dirs = array();
+
+            if (!empty($options['OCTOPUS_DIR'])) {
+                $dirs[] = $options['OCTOPUS_DIR'];
+            } else if (defined('OCTOPUS_DIR')) {
+                $dirs[] = OCTOPUS_DIR;
+            }
+
+            if (!empty($options['SITE_DIR'])) {
+                $dirs[] = $options['SITE_DIR'];
+            } else if (defined('SITE_DIR')) {
+                $dirs[] = SITE_DIR;
+            }
+
+        }
 
         if (!is_array($paths)) {
             $paths = array($paths);
@@ -48,7 +55,6 @@
             $newestTime = 0;
             $newestPath = false;
             $found = false;
-
 
             foreach($dirs as &$dir) {
 

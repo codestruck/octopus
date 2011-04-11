@@ -42,6 +42,14 @@ class SG_Response {
     }
 
     /**
+     * Sets the status header to 403/Forbidden and clears the output buffer.
+     */
+    public function forbidden() {
+        $this->addHeader('Status', '403 Forbidden');
+        $this->_content = array();
+    }
+
+    /**
      * @return String All content that has been added to this response since
      * the last flush.
      */
@@ -54,6 +62,29 @@ class SG_Response {
         }
 
         return $output;
+    }
+
+    /**
+     * @return Number The numeric value of the Status header, e.g. 404 or 200.
+     */
+    public function getStatus() {
+
+        $header = $this->getHeader('Status', false);
+        if (!$header) return 200;
+
+        if (!preg_match('/^\s*(\d+)/', $header, $m)) {
+            return 200;
+        }
+
+        return intval($m[1]);
+    }
+
+    public function getView() {
+        return $this->_view;
+    }
+
+    public function setView($view) {
+        $this->_view = $view;
     }
 
     public function getHeader($name, $default = null) {
@@ -82,6 +113,19 @@ class SG_Response {
         return $this;
     }
 
+    /**
+     * Helper that marks the response as a 404.
+     */
+    public function notFound() {
+        $this->addHeader('Status', '404 Not Found');
+    }
+
+    /**
+     * @return bool Whether this response is 403 forbidden.
+     */
+    public function isForbidden() {
+        return $this->getStatus() == 403;
+    }
 
 }
 

@@ -17,7 +17,10 @@ html { font-family: Helvetica, sans-serif; }
 
     <div id="wrap">
 
-        <?php echo $content; ?>
+        <?php echo $view_content; ?>
+
+        <div id="sideBoxes">
+        </div>
 
     </div>
 
