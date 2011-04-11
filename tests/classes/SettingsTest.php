@@ -2,11 +2,17 @@
 
 SG::loadClass('SG_Settings');
 
-class SettingsTest extends PHPUnit_Framework_TestCase {
+class SettingsTest extends SG_DB_TestCase {
 
     public $testDir = '.settings-test';
 
+    function __construct() {
+        parent::__construct('settings/basic.xml');
+    }
+
     function setUp() {
+
+        parent::setUp();
 
         $this->deleteTestDir();
         mkdir($this->testDir);
@@ -14,11 +20,90 @@ class SettingsTest extends PHPUnit_Framework_TestCase {
     }
 
     function deleteTestDir() {
+
         `rm -rf {$this->testDir}`;
     }
 
     function tearDown() {
+        parent::tearDown();
         $this->deleteTestDir();
+    }
+
+    function createTables(&$db) {
+
+        $db->query("
+
+            CREATE TABLE settings (
+
+                `name` varchar(100) NOT NULL,
+                `value` text,
+                PRIMARY KEY (`name`)
+
+            );
+
+
+        ");
+
+    }
+
+    function dropTables(&$db) {
+
+        $db->query('DROP TABLE settings');
+
+    }
+
+    function testReadFromDB() {
+
+        $settings = new SG_Settings();
+
+        $this->assertEquals('Project Octopus!', $settings->get('site_name'));
+        $this->assertEquals(0.1, $settings->get('site_version'));
+
+    }
+
+    function testWriteToDB() {
+
+        $settings = new SG_Settings();
+        $settings->set('foo', 'bar');
+
+        $settings = new SG_Settings();
+        $this->assertEquals('bar', $settings->get('foo'));
+
+    }
+
+    function testReset() {
+
+        $file = $this->testDir . '/' . to_slug(__METHOD__) . '.yaml';
+
+        file_put_contents(
+            $file,
+            <<<END
+name:
+  desc: "Your Name"
+  type: text
+  default: Joe Blow
+age:
+  desc: "Your Age"
+  type: numeric
+  default: 20
+END
+        );
+
+        $settings = new SG_Settings();
+        $settings->addFromFile($file);
+
+        $settings->set('name', 'Matt');
+        $settings  = new SG_Settings();
+
+        $this->assertEquals('Matt', $settings->get('name'));
+
+        $settings->reset('name');
+        $settings = new SG_Settings();
+        $settings->addFromFile($file);
+
+        $this->assertEquals('Joe Blow', $settings->get('name'));
+
+
     }
 
     function testBasicYamlDefaults() {
