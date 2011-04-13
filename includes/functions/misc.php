@@ -92,7 +92,7 @@
             }
         }
 
-        return true;
+        return !isset($_SERVER['HTTP_USER_AGENT']);
     }
 
     /**
