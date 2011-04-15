@@ -2,8 +2,8 @@
 
 class AppTests extends PHPUnit_Framework_TestCase {
 
-    function dontTestDetectDevEnvironment() {
-
+    function testdontTestDetectDevEnvironment() {
+        $this->markTestIncomplete();
         $app = SG_App::start(array(
         ));
 

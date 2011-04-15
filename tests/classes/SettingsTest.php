@@ -48,7 +48,7 @@ class SettingsTest extends SG_DB_TestCase {
 
     function dropTables(&$db) {
 
-        $db->query('DROP TABLE settings');
+        $db->query('DROP TABLE IF EXISTS settings');
 
     }
 
