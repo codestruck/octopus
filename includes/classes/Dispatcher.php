@@ -235,24 +235,29 @@ class SG_Dispatcher {
         }
 
         if ($action == 'defaultAction') {
-            // Special case-- pass args
+            // Special case-- pass args as an array along w/ action
             $data = $controller->defaultAction($originalAction, $args);
         } else {
 
-            $positionalArgs = array();
-            $last = -1;
-            foreach($args as $key => $value) {
-                if (is_numeric($key) && $key == $last + 1) {
-                    $positionalArgs[] = $value;
-                    $last++;
-                }
-            }
+            $haveArgs = !!count($args);
 
-            if (empty($positionalArgs)) {
-                $data = $controller->$action($args);
+            if (!$haveArgs) {
+
+                // Easy enough
+                $data = $controller->$action();
+
             } else {
-                $positionalArgs[] = $args;
-                $data = call_user_func_array(array($controller,$action), $positionalArgs);
+
+                /* If args is an associative array, pass in as a single
+                 * argument. Otherwise, assume each value in the array maps
+                 * to a corresponding argument in the action.
+                 */
+
+                if (is_associative_array($args)) {
+                    $data = $controller->$action($args);
+                } else {
+                    $data = call_user_func_array(array($controller, $action), $args);
+                }
             }
         }
 

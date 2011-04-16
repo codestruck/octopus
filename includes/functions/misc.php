@@ -39,6 +39,27 @@
     }
 
     /**
+     * @return bool Whether $arr is an associative array.
+     */
+    function is_associative_array ($arr) {
+
+        if (!is_array($arr)) {
+            return false;
+        }
+
+        $last = null;
+        foreach($arr as $key => $value) {
+
+            if (!is_numeric($key)) {
+                return true;
+            }
+
+        }
+
+        return false;
+    }
+
+    /**
      * @return bool Whether or not we are currently running in a dev environment,
      * e.g. on a dev's computer.
      *
