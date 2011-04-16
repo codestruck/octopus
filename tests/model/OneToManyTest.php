@@ -186,4 +186,20 @@ class ModelOneToManyTest extends SG_DB_TestCase
         $nailsAfter = table_count('nails');
         $this->assertEquals($nailsBefore + 1, $nailsAfter);
     }
+
+    
+    function testUpdateNoNail()
+    {
+        $hammer = new Hammer(1);
+        $this->assertEquals('Grape', $hammer->name);
+        
+        $hammer->name = 'NEW NAME';
+        $hammer->save();
+       $this->assertEquals('NEW NAME', $hammer->name);
+        
+        $newhammer = new Hammer(1);
+        $this->assertEquals('NEW NAME', $newhammer->name);
+        
+    }
+
 }
