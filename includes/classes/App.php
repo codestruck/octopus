@@ -72,7 +72,9 @@ class SG_App {
     private function _ensurePrivateDir() {
 
         if (!is_dir($this->_options['PRIVATE_DIR'])) {
-            mkdir($this->_options['PRIVATE_DIR']);
+            if (!@mkdir($this->_options['PRIVATE_DIR'])) {
+                $this->error('Unable to create private directory: ' . $this->_options['PRIVATE_DIR']);
+            }
         }
 
     }

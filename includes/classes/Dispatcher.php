@@ -114,7 +114,7 @@ class SG_Dispatcher {
 
         if (!class_exists($className)) {
             $response->notFound();
-            $response->addError("Found controller file, but class $className does not exist.");
+            app_error("Found controller file, but class $className does not exist.");
             $info['action'] = 'error';
         } else {
             $controller = new $className($this->_app, $response);
@@ -325,7 +325,7 @@ class SG_Dispatcher {
             // First look for a view specific to the controller
             if ($controller) {
 
-                $path = str_replace('_', '/', $controller);
+                $path = str_replace('_', '/', strtolower($controller));
                 $path = trim($path, '/');
 
                 $viewFile = $app->getFile(
