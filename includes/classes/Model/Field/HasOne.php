@@ -23,6 +23,12 @@ class SG_Model_Field_HasOne extends SG_Model_Field {
 
         // save subobject
         $obj = $model->getInternalValue($field);
+
+        // we may not have an object?
+        if (!$obj) {
+            return;
+        }
+
         $obj->save();
 
         $primaryKey = $obj->getPrimaryKey();
