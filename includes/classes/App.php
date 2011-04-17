@@ -5,6 +5,7 @@ SG::loadClass('SG_Nav');
 SG::loadClass('SG_Dispatcher');
 SG::loadClass('SG_Response');
 SG::loadClass('SG_Controller');
+SG::loadClass('SG_Settings');
 
 // Shortcut functions
 function app_error($error, $level = E_USER_WARNING) {
@@ -66,6 +67,28 @@ class SG_App {
         $this->_loadSiteConfig();
         $this->_setEnvironmentFlags();
         $this->_ensurePrivateDir();
+        //$this->_initSettings();
+
+    }
+
+    private function _initSettings() {
+
+        $o =& $this->_options;
+
+        $this->_settings = new SG_Settings();
+
+        foreach(array($o['OCTOPUS_DIR'], $o['SITE_DIR']) as $dir) {
+
+            $settingsFile = $dir . 'settings.yaml';
+
+            if (is_file($settingsFile)) {
+                $this->_settings->addFromFile($settingsFile);
+            }
+
+        }
+
+        // TODO: add settings from modules.
+
 
     }
 
@@ -83,6 +106,50 @@ class SG_App {
 
         $this->_nav = new SG_Nav();
 
+    }
+
+    /**
+     * Installs an app instance, runs DB migrations, etc.
+     */
+    public function install() {
+
+        $modules = array(
+            'core' => $this->getOption('OCTOPUS_DIR')
+        );
+
+        $result = array(
+            'modules' => array(
+            )
+        );
+
+        SG::loadClass('SG_DB_Schema');
+
+        $db = SG_DB::singleton();
+        $schema = new SG_DB_Schema();
+
+        foreach($modules as $name => $root) {
+
+            // TODO compare versions etc
+
+            $root = rtrim($root, '/');
+
+            $migrationsFile = $root . '/migrations.php';
+
+            if (is_file($migrationsFile)) {
+
+                require_once($migrationsFile);
+
+                $func = 'migrate_' . $name;
+                if (function_exists($func)) {
+                    $func($db, $schema);
+                    $result['modules'][] = $name;
+                }
+
+            }
+
+        }
+
+        return $result;
     }
 
     /**
@@ -223,6 +290,12 @@ class SG_App {
 
         return $response;
     }
+
+    /*
+    public function getSettings() {
+        return $this->_settings;
+    }
+    */
 
     public function isDevEnvironment() {
         return $this->_options['DEV'];

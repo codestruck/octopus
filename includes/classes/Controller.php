@@ -50,6 +50,18 @@ abstract class SG_Controller {
     }
 
     /**
+     * Redirects the user to a new path.
+     */
+    public function redirect($path) {
+
+        // TODO: should this modify the response rather than setting headers
+        // directly?
+
+        header('Location: ' . u($path));
+        exit();
+    }
+
+    /**
      * If the action specified does not exist on this class, defaultAction()
      * gets called.
      */
