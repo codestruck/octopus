@@ -33,7 +33,7 @@ class SettingsTest extends SG_DB_TestCase {
 
         $db->query("
 
-            CREATE TABLE settings (
+            CREATE TABLE IF NOT EXISTS settings (
 
                 `name` varchar(100) NOT NULL,
                 `value` text,
@@ -141,6 +141,52 @@ END
 
     }
 
+    function testToArray() {
+
+        $file = $this->testDir . '/' . to_slug(__METHOD__) . '.yaml';
+
+        file_put_contents(
+            $file,
+            <<<END
+name:
+  desc: "Your Name"
+  type: text
+  default: Joe Blow
+age:
+  desc: "Your Age"
+  type: numeric
+  default: 20
+END
+        );
+
+        $settings = new SG_Settings();
+        $settings->addFromFile($file);
+
+        $this->assertEquals(
+            array(
+                'age' => 20,
+                'name' => 'Joe Blow',
+                'site_name' => 'Project Octopus!',
+                'site_version' => 0.1
+            ),
+            $settings->toArray()
+        );
+
+        $settings->set('name', 'Matt');
+        $this->assertEquals(
+            array(
+                'age' => 20,
+                'name' => 'Matt',
+                'site_name' => 'Project Octopus!',
+                'site_version' => 0.1
+            ),
+            $settings->toArray()
+        );
+
+
+
+
+    }
 
 }
 

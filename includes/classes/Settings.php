@@ -31,11 +31,12 @@ class SG_Settings extends SG_Base {
 
         if (isset($this->_values[$name])) {
             return $this->_values[$name];
-        } else if (!$this->_loaded) {
-            $this->loadFromDB();
-            if (isset($this->_values[$name])) {
-                return $this->_values[$name];
-            }
+        }
+
+        $this->loadFromDB();
+
+        if (isset($this->_values[$name])) {
+            return $this->_values[$name];
         }
 
         $setting =& $this->_settings[$name];
@@ -62,6 +63,7 @@ class SG_Settings extends SG_Base {
      */
     public function reload() {
         $this->_values = array();
+        $this->_loaded = false;
         return $this;
     }
 
@@ -111,13 +113,32 @@ class SG_Settings extends SG_Base {
         return $this;
     }
 
+    /**
+     * @return Array An array of all present settings.
+     */
+    public function toArray() {
+
+        $defaults = array();
+        foreach($this->_settings as $name => $def) {
+            $defaults[$name] = isset($def['default']) ? $def['default'] : null;
+        }
+
+        $this->loadFromDB();
+
+        $result = array_merge($defaults, $this->_values);
+        ksort($result);
+
+        return $result;
+    }
+
     private function loadFromDB() {
+
+        if ($this->_loaded) return;
+        $this->_loaded = true;
 
         $s = new SG_DB_Select();
         $s->table('settings', array('name', 'value'));
         $this->_values = $s->getMap();
-
-        $this->_loaded = true;
 
     }
 

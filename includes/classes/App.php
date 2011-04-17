@@ -67,7 +67,7 @@ class SG_App {
         $this->_loadSiteConfig();
         $this->_setEnvironmentFlags();
         $this->_ensurePrivateDir();
-        //$this->_initSettings();
+        $this->_initSettings();
 
     }
 
@@ -291,11 +291,9 @@ class SG_App {
         return $response;
     }
 
-    /*
     public function getSettings() {
         return $this->_settings;
     }
-    */
 
     public function isDevEnvironment() {
         return $this->_options['DEV'];

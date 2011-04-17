@@ -15,9 +15,29 @@ class SysController extends SG_Controller {
     public function about() {
 
         return array(
-            'options' => $this->getApp()->getOptions()
+            'options' => $this->getApp()->getOptions(),
+            'settings' => $this->getApp()->getSettings()->toArray()
         );
 
+    }
+
+    /**
+     * Installs the system.
+     */
+    public function install($status = '') {
+
+        $result = array(
+            'installed' => false
+        );
+
+        if (strtolower($status) == 'now') {
+
+            $result['result'] = $this->getApp()->install();
+            $this->redirect('/sys/installed');
+
+        }
+
+        return $result;
     }
 
 }

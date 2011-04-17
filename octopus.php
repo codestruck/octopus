@@ -23,7 +23,7 @@ END;
 
     require_once(dirname(__FILE__) . '/includes/core.php');
 
-    bootstrap();
+    bootstrap(array('command_line' => true));
 
     $path = array_shift($argv);
     foreach($argv as $arg) {
