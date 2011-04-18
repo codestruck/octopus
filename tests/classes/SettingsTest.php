@@ -183,8 +183,40 @@ END
             $settings->toArray()
         );
 
+    }
 
+    function testIteration() {
 
+        $settings = new SG_Settings();
+        $settings->addFromYaml(<<<END
+site_lang:
+  default: en-us
+site_name:
+  default: Default Site Name
+END
+        );
+
+        $expected = array(
+            'site_lang' => 'en-us',
+            'site_name' => 'Project Octopus!',
+            'site_version' => 0.1
+        );
+        $keys = array_keys($expected);
+        $values = array_values($expected);
+        $tests = 0;
+
+        foreach($settings as $key => $value) {
+
+            $expectedKey = array_shift($keys);
+            $expectedValue = array_shift($values);
+
+            $this->assertEquals($expectedKey, $key, 'Key is wrong.');
+            $this->assertEquals($expectedValue, $value, 'Value is wrong.');
+
+            $tests++;
+        }
+
+        $this->assertNotEquals(0, $tests, 'No tests were run!');
 
     }
 

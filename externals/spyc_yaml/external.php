@@ -5,4 +5,8 @@ function load_yaml($file) {
     return spyc_load_file($file);
 }
 
+function load_yaml_string($yaml) {
+    return spyc_load($yaml);
+}
+
 ?>

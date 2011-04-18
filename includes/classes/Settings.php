@@ -3,11 +3,14 @@
 /**
  * Class that manages app settings.
  */
-class SG_Settings extends SG_Base {
+class SG_Settings extends SG_Base implements Iterator {
 
     private $_settings = array();
     private $_values = array();
     private $_loaded = false;
+
+    private $_iteratorKeys = null;
+    private $_iteratorKey = null;
 
     /**
      * Adds setting definitions from a file.
@@ -15,13 +18,30 @@ class SG_Settings extends SG_Base {
     public function addFromFile($file) {
 
         if (preg_match('/\.yaml/i', $file)) {
-            SG::loadExternal('spyc_yaml');
-            $data = load_yaml($file);
+            $this->addFromYaml(file_get_contents($file));
         } else {
             die("Can't load settings from file: $file");
         }
 
-        $this->_settings = array_merge($this->_settings, $data);
+        return $this;
+    }
+
+    /**
+     * Adds setting data from a YAML string.
+     */
+    public function addFromYaml($yaml) {
+
+        SG::loadExternal('spyc_yaml');
+        $data = load_yaml($yaml);
+
+        return $this->addFromArray($data);
+    }
+
+    public function addFromArray($ar) {
+
+        $this->_settings = array_merge($this->_settings, $ar);
+        return $this;
+
     }
 
     /**
@@ -141,6 +161,42 @@ class SG_Settings extends SG_Base {
         $this->_values = $s->getMap();
 
     }
+
+    /* Iterator Implementation {{{ */
+
+    public function current() {
+        $this->loadIteratorKeys();
+        return $this->get($this->_iteratorKey);
+    }
+
+    public function key() {
+        return $this->_iteratorKey;
+    }
+
+    public function next() {
+        $this->loadIteratorKeys();
+        $this->_iteratorKey = array_shift($this->_iteratorKeys);
+    }
+
+    public function rewind() {
+        $this->_iteratorKeys =
+            $this->_iteratorKey =
+                $this->_iteratorValue = null;
+    }
+
+    public function valid() {
+        $this->loadIteratorKeys();
+        return $this->_iteratorKey !== null || !empty($this->_iteratorKeys);
+    }
+
+    private function loadIteratorKeys() {
+        if ($this->_iteratorKeys === null) {
+            $this->_iteratorKeys = array_keys($this->toArray());
+            $this->_iteratorKey = array_shift($this->_iteratorKeys);
+        }
+    }
+
+    /* End Iterator Implementation }}} */
 
 }
 
