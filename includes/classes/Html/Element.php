@@ -57,6 +57,18 @@ class SG_Html_Element {
     }
 
     /**
+     * Appends content to this element.
+     */
+    public function append($item) {
+
+        if ($this->_content === null) {
+            $this->_content = array();
+        }
+
+        $this->_content[] = $item;
+    }
+
+    /**
      * Sets elements of the style attribute.
      */
     public function css($key, $value = null) {
@@ -103,6 +115,14 @@ class SG_Html_Element {
             $this->setAttribute('data-' . $key, $value);
         }
 
+    }
+
+    /**
+     * Clears the content in this element.
+     */
+    public function &clear() {
+        $this->_content = array();
+        return $this;
     }
 
     public function getAttribute($key, $default = null) {

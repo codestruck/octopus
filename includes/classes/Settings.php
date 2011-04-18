@@ -45,6 +45,28 @@ class SG_Settings extends SG_Base implements Iterator {
     }
 
     /**
+     * @return Object An SG_Html_Element for editing the given setting.
+     */
+    public function createEditor($setting) {
+
+        $options = isset($this->_settings[$setting]) ? $this->_settings[$setting] : array();
+
+        SG::loadClass('SG_Html_Form_Field');
+        $field = new SG_Html_Form_Field($setting);
+
+        if (isset($options['desc'])) {
+            $field->setLabel($options['desc']);
+        } else if (isset($options['label'])) {
+            $field->setLabel($options['label']);
+        } else {
+            $field->setLabel($setting);
+        }
+
+
+        return $field;
+    }
+
+    /**
      * @return Mixed The present value of the given setting.
      */
     public function get($name) {
