@@ -8,21 +8,25 @@ class SG {
 
         if (!class_exists($classname)) {
 
-            $class_dir = dirname(__FILE__) . '/';
             $classname = str_replace('SG_', '', $classname);
 
             $filedir = str_replace('_', DIRECTORY_SEPARATOR, $classname);
             $file = $filedir . '.php';
-            
-            $site_class_dir = SITE_DIR . 'classes/';
 
-            if (is_file($site_class_dir . $file)) {
-                require_once($site_class_dir . $file);
-            } else if (is_file($class_dir . $file)) {
-                require_once($class_dir. $file);
-            } else {
+            $dirs = array(dirname(__FILE__) . '/');
+
+            if (defined('SITE_DIR')) {
+                array_unshift($dirs, SITE_DIR . 'classes/');
+            }
+
+            $filepath = get_file($file, $dirs);
+
+            if (!$filepath) {
                 trigger_error("SG::loadClass('$classname') - class not found", E_USER_WARNING);
             }
+
+            require_once($filepath);
+
         }
 
     }
@@ -58,9 +62,7 @@ class SG {
         }
     }
 
-
-/*
-    function loadModel($classname, $module = null) {
+    function loadModel($classname) {
 
         $classname = start_in('SG_Model_', $classname);
 
@@ -69,24 +71,23 @@ class SG {
             $filedir = str_replace('SG_Model_', '', $classname);
             $file = $filedir . '.php';
 
-            if ($module) {
-                if (is_file(MODULE_DIR . $module . '/models/' . $file)) {
-                    require_once(MODULE_DIR . $module . '/models/' . $file);
-                    return;
-                }
+            $dirs = array(OCTOPUS_DIR . 'models/');
+
+            if (defined('SITE_DIR')) {
+                array_unshift($dirs, SITE_DIR . 'models/');
             }
 
-            if (file_exists(SG_LOAD_CUSTOM_MODEL_DIR . $file)) {
-                require_once(SG_LOAD_CUSTOM_MODEL_DIR . $file);
-                return;
+            $filepath = get_file($file, $dirs);
+
+            if (!$filepath) {
+                trigger_error("SG::loadModel('$classname') - class not found", E_USER_WARNING);
             }
 
-            trigger_error("SG::loadModel('$classname') - class not found", E_USER_WARNING);
+            require_once($filepath);
 
         }
 
     }
-*/
 
 }
 

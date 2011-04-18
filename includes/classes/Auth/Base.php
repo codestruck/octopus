@@ -29,6 +29,7 @@ class SG_Auth_Base extends SG_Base {
         $this->portable_passwords = TRUE;
         $this->cookiePath = '/';
         $this->cookieSsl = false;
+        $this->hiddenField = 'hidden';
 
         if (!isset($this->rememberDays)) {
             $this->rememberDays = 14;
@@ -78,7 +79,7 @@ class SG_Auth_Base extends SG_Base {
             if ($u) {
 
                 $u->where('user_id = ?', $this->info['user_id']);
-                $u->where('hidden = 0');
+                $u->where($this->hiddenField . ' = 0');
                 $u->execute();
             }
 
@@ -108,7 +109,7 @@ class SG_Auth_Base extends SG_Base {
         $s->comment('SG_Admin_User_Auth::checkLogin');
         $s->table($this->table);
         $s->where($this->usernameField . ' = ?', $username);
-        $s->where('hidden = 0');
+        $s->where($this->hiddenField . ' = 0');
         $result = $s->fetchRow();
 
         if ($result) {
@@ -156,12 +157,21 @@ class SG_Auth_Base extends SG_Base {
         $checker = new PasswordHash($this->password_algo_strength, $this->portable_passwords);
         $hash = $checker->HashPassword($password);
 
+        $s = new SG_DB_Select();
+        $s->table($this->table);
+        $s->limit(1);
+        $row = $s->fetchRow();
+
         $u = new SG_DB_Update();
         $u->table($this->table);
         $u->set('password', $hash);
-        $u->set('password_salt', '');
+
+        if (isset($row['password_salt'])) {
+            $u->set('password_salt', '');
+        }
+
         $u->where('user_id = ?', $this->user_id);
-        $u->where('hidden = 0');
+        $u->where($this->hiddenField . ' = 0');
         $u->execute();
 
         return true;
@@ -183,7 +193,7 @@ class SG_Auth_Base extends SG_Base {
         $u->set('password', $hash);
         $u->set('password_salt', '');
         $u->where('user_id = ?', $this->user_id);
-        $u->where('hidden = 0');
+        $u->where($this->hiddenField . ' = 0');
         $u->execute();
 
         $s = new SG_DB_Select();

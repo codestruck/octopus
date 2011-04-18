@@ -160,7 +160,7 @@ class SG_Html_Header extends SG_Base {
 
         }
 
-        return $file;
+        return u($file);
     }
 
     function buildAttributeString($attrs) {
