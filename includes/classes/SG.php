@@ -13,8 +13,12 @@ class SG {
 
             $filedir = str_replace('_', DIRECTORY_SEPARATOR, $classname);
             $file = $filedir . '.php';
+            
+            $site_class_dir = SITE_DIR . 'classes/';
 
-            if (is_file($class_dir . $file)) {
+            if (is_file($site_class_dir . $file)) {
+                require_once($site_class_dir . $file);
+            } else if (is_file($class_dir . $file)) {
                 require_once($class_dir. $file);
             } else {
                 trigger_error("SG::loadClass('$classname') - class not found", E_USER_WARNING);

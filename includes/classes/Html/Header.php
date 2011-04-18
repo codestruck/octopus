@@ -88,10 +88,10 @@ class SG_Html_Header extends SG_Base {
             $file = substr($file, 0, $pos);
         }
 
-        $fullfile = PUBLIC_ROOT_DIR . $file;
+        $fullfile = ROOT_DIR . $file;
 
         if ($this->baseDir) {
-            $basefullfile = PUBLIC_ROOT_DIR . $this->baseDir . '/' . $file;
+            $basefullfile = ROOT_DIR . $this->baseDir . '/' . $file;
             if (is_file($basefullfile)) {
                 $fullfile = $basefullfile;
             }
@@ -114,10 +114,10 @@ class SG_Html_Header extends SG_Base {
         $lastDot = strrpos($rawFile, '.');
         $src = substr($rawFile, 0, $lastDot) . '_src' . substr($rawFile, $lastDot);
 
-        $fullSrc = PUBLIC_ROOT_DIR . $src;
+        $fullSrc = ROOT_DIR . $src;
 
         if ($this->baseDir && $rawFile[0] != '/') {
-            $fullSrc = PUBLIC_ROOT_DIR . $this->baseDir . '/' . $src;
+            $fullSrc = ROOT_DIR . $this->baseDir . '/' . $src;
         }
 
         if (is_file($fullSrc)) {
