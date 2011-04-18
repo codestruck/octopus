@@ -49,7 +49,7 @@ class ModelNonStandardTest extends PHPUnit_Framework_TestCase
     {
         $db =& SG_DB::singleton();
 
-        $sql = "CREATE TABLE nonstandard (
+        $sql = "CREATE TABLE IF NOT EXISTS nonstandard (
                 `different_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 `title` varchar ( 255 ) NOT NULL,
                 `created` DATETIME NOT NULL,
@@ -59,7 +59,7 @@ class ModelNonStandardTest extends PHPUnit_Framework_TestCase
 
         $db->query($sql);
 
-        $sql = "CREATE TABLE differentbs (
+        $sql = "CREATE TABLE IF NOT EXISTS differentbs (
                 `different_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 `title` varchar ( 255 ) NOT NULL,
                 `created` DATETIME NOT NULL,
@@ -69,7 +69,7 @@ class ModelNonStandardTest extends PHPUnit_Framework_TestCase
 
         $db->query($sql);
 
-        $sql = "CREATE TABLE randomtable (
+        $sql = "CREATE TABLE IF NOT EXISTS randomtable (
                 `foobar` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 `title` varchar ( 255 ) NOT NULL,
                 `created` DATETIME NOT NULL,
@@ -79,7 +79,7 @@ class ModelNonStandardTest extends PHPUnit_Framework_TestCase
 
         $db->query($sql);
 
-        $sql = "CREATE TABLE differentds (
+        $sql = "CREATE TABLE IF NOT EXISTS differentds (
                 `differentd_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 `kazi` varchar ( 255 ) NOT NULL,
                 `created` DATETIME NOT NULL,

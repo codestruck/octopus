@@ -5,6 +5,7 @@
  */
 class SG_Response {
 
+    private $_status = null;
     private $_headers = array();
     private $_content = array();
     private $_flushedHeaders = array();
@@ -44,9 +45,11 @@ class SG_Response {
     /**
      * Sets the status header to 403/Forbidden and clears the output buffer.
      */
-    public function forbidden() {
-        $this->addHeader('Status', '403 Forbidden');
-        $this->_content = array();
+    public function &forbidden() {
+        return
+            $this
+                ->reset()
+                ->setStatus('HTTP/1.1 403 Forbidden');
     }
 
     /**
@@ -69,22 +72,25 @@ class SG_Response {
      */
     public function getStatus() {
 
-        $header = $this->getHeader('Status', false);
-        if (!$header) return 200;
-
-        if (!preg_match('/^\s*(\d+)/', $header, $m)) {
-            return 200;
+        if (preg_match('#^\s*(HTTP\s*[\\/]?\s*\d(\.\d)?\s*)?(\d+)#i', $this->_status, $m)) {
+            return intval($m[3]);
         }
 
-        return intval($m[1]);
+        return 200;
     }
 
-    public function getView() {
-        return $this->_view;
-    }
+    /**
+     * Sets the status line for this response.
+     */
+    public function &setStatus($status) {
 
-    public function setView($view) {
-        $this->_view = $view;
+        if (is_numeric($status)) {
+            $status = 'HTTP/1.1 ' . $status;
+        }
+
+        $this->_status = $status;
+
+        return $this;
     }
 
     public function getHeader($name, $default = null) {
@@ -116,8 +122,10 @@ class SG_Response {
     /**
      * Helper that marks the response as a 404.
      */
-    public function notFound() {
-        $this->addHeader('Status', '404 Not Found');
+    public function &notFound() {
+        return $this
+            ->reset()
+            ->setStatus('HTTP/1.1 404 Not Found');
     }
 
     /**
@@ -127,20 +135,67 @@ class SG_Response {
         return $this->getStatus() == 403;
     }
 
-    public function redirect($to, $permanent = false) {
-        $this->addHeader('Status', ($permanent ? '301 Moved Permanently' : '302 Moved Temporarily'));
-        $this->addHeader('Location', $to);
+    /**
+     * @return bool Whether this response is 404 Not Found
+     */
+    public function isNotFound() {
+        return $this->getStatus() == 404;
+    }
+
+    /**
+     * Clears the response and redirects the user to a new location.
+     * @param $to string URL to redirect to.
+     * @param $permanent bool Whether this is a permanent redirect.
+     */
+    public function &redirect($to, $permanent = false) {
+
+        $this
+            ->reset()
+            ->setStatus('HTTP/1.1 ' . ($permanent ? '301 Moved Permanently' : '302 Found'))
+            ->addHeader('Location', $to);
+
+        return $this;
+    }
+
+    /**
+     * Clears the response.
+     */
+    private function &reset() {
+        $this->_status = null;
+        $this->_headers = array();
+        $this->_content = array();
+        $this->_flushedHeaders = array();
+        return $this;
+    }
+
+    /**
+     * @return bool Whether the app should bother continuing to process this
+     * request.
+     */
+    public function shouldContinueProcessing() {
+
+        $status = $this->getStatus();
+
+        switch($status) {
+
+            case 301:
+            case 302:
+            case 307:
+                return false;
+
+            default:
+                return true;
+        }
     }
 
     public function __toString() {
 
-        $result = '';
+        $result = ($this->_status ? $this->_status : 'HTTP/1.1 200 OK');
 
         foreach($this->_headers as $name => $content) {
-            $result .= "$name: $content\n";
+            $result .= "\n$name: $content";
         }
         $result .= "\n\n";
-
         $result .= $this->getContent();
 
         return $result;

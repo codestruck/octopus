@@ -63,8 +63,6 @@ class SG_Dispatcher {
 
         }
 
-
-
         $controller = $this->createController($info, $response);
 
         if (!$controller) {
@@ -72,13 +70,19 @@ class SG_Dispatcher {
         }
 
         $data = $this->execute(
+            $response,
             $controller,
             empty($info['action']) ? 'index' : $info['action'],
             empty($info['args']) ? array() : $info['args']
         );
 
-        $template = $controller->getTemplate();
-        $view = $controller->getView();
+        // For e.g. 301 redirects we don't need to bother rendering
+        if (!$response->shouldContinueProcessing()) {
+            return $response;
+        }
+
+        $template = $controller->template;
+        $view = $controller->view;
 
         $this->render(
             isset($info['controller']) ? $info['controller'] : '',
@@ -137,14 +141,14 @@ class SG_Dispatcher {
 
     private function configureController($controller, $info) {
 
-        $controller->setTemplate(isset($info['template']) ? $info['template'] : self::$defaultTemplate);
+        $controller->template = (isset($info['template']) ? $info['template'] : self::$defaultTemplate);
 
         if (isset($info['view'])) {
-            $controller->setView($info['view']);
+            $controller->view = $info['view'];
         } else if (isset($info['action'])) {
-            $controller->setView($info['action']);
+            $controller->view = $info['action'];
         } else {
-            $controller->setView(self::$defaultView);
+            $controller->view = self::$defaultView;
         }
 
     }
@@ -193,9 +197,8 @@ class SG_Dispatcher {
     /**
      * Actually executes an action on a controller and returns the results.
      */
-    protected function execute($controller, $action, $args) {
+    protected function execute($resp, $controller, $action, $args) {
 
-        $resp = $controller->getResponse();
         $originalAction = $action;
 
         if (!$args) $args = array();
@@ -235,24 +238,29 @@ class SG_Dispatcher {
         }
 
         if ($action == 'defaultAction') {
-            // Special case-- pass args
+            // Special case-- pass args as an array along w/ action
             $data = $controller->defaultAction($originalAction, $args);
         } else {
 
-            $positionalArgs = array();
-            $last = -1;
-            foreach($args as $key => $value) {
-                if (is_numeric($key) && $key == $last + 1) {
-                    $positionalArgs[] = $value;
-                    $last++;
-                }
-            }
+            $haveArgs = !!count($args);
 
-            if (empty($positionalArgs)) {
-                $data = $controller->$action($args);
+            if (!$haveArgs) {
+
+                // Easy enough
+                $data = $controller->$action();
+
             } else {
-                $positionalArgs[] = $args;
-                $data = call_user_func_array(array($controller,$action), $positionalArgs);
+
+                /* If args is an associative array, pass in as a single
+                 * argument. Otherwise, assume each value in the array maps
+                 * to a corresponding argument in the action.
+                 */
+
+                if (is_associative_array($args)) {
+                    $data = $controller->$action($args);
+                } else {
+                    $data = call_user_func_array(array($controller, $action), $args);
+                }
             }
         }
 

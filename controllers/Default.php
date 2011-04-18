@@ -17,7 +17,7 @@ class DefaultController extends SG_Controller {
             $path .= '/' . implode('/', $args);
         }
 
-        $file = $this->getApp()->getFile(
+        $file = $this->app->getFile(
             'content/' . $path,
             null,
             array(
@@ -26,7 +26,7 @@ class DefaultController extends SG_Controller {
         );
 
         if ($file) {
-            $this->setView($file);
+            $this->view =$file;
         }
 
     }

@@ -5,48 +5,28 @@
  */
 abstract class SG_Controller {
 
-    private $_app;
-    private $_response;
-    private $_view;
-    private $_template;
+    public $template;
+    public $view;
+    public $app;
+    public $response;
 
-    /**
-     * Creates a new SG_Controller instance for the given SG_Response.
-     */
     public function __construct($app, $response) {
-        $this->_app = $app;
-        $this->_response = $response;
+        $this->app = $app;
+        $this->response = $response;
     }
 
     /**
-     * @return Object The SG_App instance that owns this controller.
+     * Redirects the user to a new path.
      */
-    public function getApp() {
-        return $this->_app;
-    }
-
-    public function &getResponse() {
-        return $this->_response;
+    protected function redirect($path) {
+        $this->response->redirect(u($path));
     }
 
     /**
-     * @return String The template inside which output from this controller
-     * will be rendered.
+     * Redirects the user to the current URL.
      */
-    public function getTemplate() {
-        return $this->_template;
-    }
+    protected function reload() {
 
-    public function setTemplate($template) {
-        $this->_template = $template;
-    }
-
-    public function getView() {
-        return $this->_view;
-    }
-
-    public function setView($view) {
-        $this->_view = $view;
     }
 
     /**
@@ -55,12 +35,11 @@ abstract class SG_Controller {
      */
     public function defaultAction($action, $args) {}
 
-
     /**
      * Called at the end of each action to render the controller data as
      * JSON.
      */
-    public function renderJson($data = array(), $options = null) {
+    protected function renderJson($data = array(), $options = null) {
 
         header('Content-type: application/json');
 
@@ -69,8 +48,6 @@ abstract class SG_Controller {
         exit();
 
     }
-
-
 }
 
 ?>
