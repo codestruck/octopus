@@ -5,60 +5,28 @@
  */
 abstract class SG_Controller {
 
-    private $_app;
-    private $_response;
-    private $_view;
-    private $_template;
+    public $template;
+    public $view;
+    public $app;
+    public $response;
 
-    /**
-     * Creates a new SG_Controller instance for the given SG_Response.
-     */
     public function __construct($app, $response) {
-        $this->_app = $app;
-        $this->_response = $response;
-    }
-
-    /**
-     * @return Object The SG_App instance that owns this controller.
-     */
-    public function getApp() {
-        return $this->_app;
-    }
-
-    public function &getResponse() {
-        return $this->_response;
-    }
-
-    /**
-     * @return String The template inside which output from this controller
-     * will be rendered.
-     */
-    public function getTemplate() {
-        return $this->_template;
-    }
-
-    public function setTemplate($template) {
-        $this->_template = $template;
-    }
-
-    public function getView() {
-        return $this->_view;
-    }
-
-    public function setView($view) {
-        $this->_view = $view;
+        $this->app = $app;
+        $this->response = $response;
     }
 
     /**
      * Redirects the user to a new path.
      */
-    public function redirect($path) {
+    protected function redirect($path) {
+        $this->response->redirect(u($path));
+    }
 
-        // TODO: should this modify the response rather than setting headers
-        // directly?
+    /**
+     * Redirects the user to the current URL.
+     */
+    protected function reload() {
 
-        header('Location: ' . u($path));
-        exit();
     }
 
     /**
@@ -67,12 +35,11 @@ abstract class SG_Controller {
      */
     public function defaultAction($action, $args) {}
 
-
     /**
      * Called at the end of each action to render the controller data as
      * JSON.
      */
-    public function renderJson($data = array(), $options = null) {
+    protected function renderJson($data = array(), $options = null) {
 
         header('Content-type: application/json');
 
@@ -81,8 +48,6 @@ abstract class SG_Controller {
         exit();
 
     }
-
-
 }
 
 ?>

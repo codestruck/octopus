@@ -144,7 +144,7 @@ END
 
         $this->assertEquals(
             <<<END
-Status: 302 Moved Temporarily
+HTTP/1.1 302 Found
 Location: /controller/
 END
             ,

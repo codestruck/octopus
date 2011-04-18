@@ -63,8 +63,6 @@ class SG_Dispatcher {
 
         }
 
-
-
         $controller = $this->createController($info, $response);
 
         if (!$controller) {
@@ -72,13 +70,19 @@ class SG_Dispatcher {
         }
 
         $data = $this->execute(
+            $response,
             $controller,
             empty($info['action']) ? 'index' : $info['action'],
             empty($info['args']) ? array() : $info['args']
         );
 
-        $template = $controller->getTemplate();
-        $view = $controller->getView();
+        // For e.g. 301 redirects we don't need to bother rendering
+        if (!$response->shouldContinueProcessing()) {
+            return $response;
+        }
+
+        $template = $controller->template;
+        $view = $controller->view;
 
         $this->render(
             isset($info['controller']) ? $info['controller'] : '',
@@ -137,14 +141,14 @@ class SG_Dispatcher {
 
     private function configureController($controller, $info) {
 
-        $controller->setTemplate(isset($info['template']) ? $info['template'] : self::$defaultTemplate);
+        $controller->template = (isset($info['template']) ? $info['template'] : self::$defaultTemplate);
 
         if (isset($info['view'])) {
-            $controller->setView($info['view']);
+            $controller->view = $info['view'];
         } else if (isset($info['action'])) {
-            $controller->setView($info['action']);
+            $controller->view = $info['action'];
         } else {
-            $controller->setView(self::$defaultView);
+            $controller->view = self::$defaultView;
         }
 
     }
@@ -193,9 +197,8 @@ class SG_Dispatcher {
     /**
      * Actually executes an action on a controller and returns the results.
      */
-    protected function execute($controller, $action, $args) {
+    protected function execute($resp, $controller, $action, $args) {
 
-        $resp = $controller->getResponse();
         $originalAction = $action;
 
         if (!$args) $args = array();

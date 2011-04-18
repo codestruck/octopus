@@ -6,8 +6,8 @@ class SysController extends SG_Controller {
 
         /* Restrict access to the system actions when not running in DEV mode */
 
-        if (!$this->getApp()->isDevEnvironment()) {
-            $this->getResponse()->forbidden();
+        if (!$this->app->isDevEnvironment()) {
+            $this->response->forbidden();
             return false;
         }
     }
@@ -15,8 +15,8 @@ class SysController extends SG_Controller {
     public function about() {
 
         return array(
-            'options' => $this->getApp()->getOptions(),
-            'settings' => $this->getApp()->getSettings()->toArray()
+            'options' => $this->app->getOptions(),
+            'settings' => $this->app->getSettings()->toArray()
         );
 
     }
@@ -32,12 +32,26 @@ class SysController extends SG_Controller {
 
         if (strtolower($status) == 'now') {
 
-            $result['result'] = $this->getApp()->install();
+            $result['result'] = $this->app->install();
             $this->redirect('/sys/installed');
 
         }
 
         return $result;
+    }
+
+    /**
+     *
+     */
+    public function settings() {
+
+
+        return array(
+
+            'settings' => $this->app->getSettings()
+
+        );
+
     }
 
 }
