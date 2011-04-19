@@ -202,4 +202,36 @@ class ModelOneToManyTest extends SG_DB_TestCase
         
     }
 
+    function testResultSetForeachFind() {
+
+        $all = Hammer::find(array('nail' => 1));
+
+        $i = 1;
+        foreach ($all as $item) {
+            $i++;
+        }
+        $this->assertEquals(3, $i, 'The foreach loop did not run 2 times');
+
+    }
+
+    function testResultSetForeachFindTwice() {
+
+        $all = Hammer::find(array('nail' => 1));
+
+        $i = 1;
+        foreach ($all as $item) {
+            $i++;
+        }
+        $this->assertEquals(3, $i);
+
+        $this->assertEquals(2, count($all));
+
+        $i = 1;
+        foreach ($all as $item) {
+            $i++;
+        }
+        $this->assertEquals(3, $i);
+
+    }
+    
 }
