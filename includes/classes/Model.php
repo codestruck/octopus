@@ -8,7 +8,7 @@ SG::loadClass('SG_DB_Delete');
 SG::loadClass('SG_Model_Field');
 SG::loadClass('SG_Model_ResultSet');
 
-class SG_Model {
+abstract class SG_Model {
 
     /**
      * Name of column that stores the primary key. If not set in a subclass,

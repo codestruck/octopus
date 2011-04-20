@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<dataset>
+  <groups
+    group_id="1"
+    name="Group 1"
+  />
+  <groups
+    group_id="2"
+    name="Group 2"
+  />
+  <products
+    product_id="1"
+    name="Product 1"
+  />
+  <products
+    product_id="2"
+    name="Product 2"
+  />
+  <products
+    product_id="3"
+    name="Product 3"
+  />
+  <group_product_join
+    group_id="1"
+    product_id="1"
+  />
+  <group_product_join
+    group_id="1"
+    product_id="2"
+  />
+  <group_product_join
+    group_id="1"
+    product_id="3"
+  />
+  <group_product_join
+    group_id="2"
+    product_id="2"
+  />
+
+</dataset>

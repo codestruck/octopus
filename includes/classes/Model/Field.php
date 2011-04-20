@@ -1,6 +1,6 @@
 <?php
 
-class SG_Model_Field {
+abstract class SG_Model_Field {
 
     protected $field;
     protected $options;
@@ -35,7 +35,7 @@ class SG_Model_Field {
         return $obj;
     }
 
-    function accessValue($model, $saving = false) {
+    public function accessValue($model, $saving = false) {
         $value = $model->getInternalValue($this->getFieldName());
 
         if ($saving) {
@@ -58,19 +58,19 @@ class SG_Model_Field {
         return $value;
     }
 
-    function save($model, $sqlQuery) {
+    public function save($model, $sqlQuery) {
         $sqlQuery->set($this->getFieldName(), $this->accessValue($model, true));
     }
 
-    function setValue($model, $value) {
+    public function setValue($model, $value) {
         $model->setInternalValue($this->getFieldName(), $value);
     }
 
-    function getFieldName() {
+    public function getFieldName() {
         return $this->field;
     }
 
-    function getOption($option, $default = null) {
+    protected function getOption($option, $default = null) {
         if (isset($this->options[$option])) {
             return $this->options[$option];
         } else if (isset($this->defaultOptions[$option])) {
@@ -80,7 +80,7 @@ class SG_Model_Field {
         }
     }
 
-    function validate($model) {
+    public function validate($model) {
 
         if ($this->getOption('required')) {
             $value = $this->accessValue($model);
@@ -131,8 +131,8 @@ class SG_Model_Field {
      * the where() method.
      * @return String A chunk of SQL for a WHERE clause.
      */
-    public function restrict($operator, $value, &$s, &$params) {
-        $sql = self::defaultRestrict($this->getFieldName(), $operator, $this->getDefaultSearchOperator(), $value, $s, $params);
+    public function restrict($operator, $value, &$s, &$params, $model) {
+        $sql = self::defaultRestrict($this->getFieldName(), $operator, $this->getDefaultSearchOperator(), $value, $s, $params, $model);
         return $sql;
     }
 
@@ -141,7 +141,7 @@ class SG_Model_Field {
      * in a static context. This is to support restricting by IDs, which don't
      * have associated SG_Model_Field instances.
      */
-    public static function defaultRestrict($fieldName, $operator, $defaultOperator, $value, &$s, &$params) {
+    public static function defaultRestrict($fieldName, $operator, $defaultOperator, $value, &$s, &$params, $model) {
 
         if (!$operator) {
             $operator = is_array($value) ? 'IN' : $defaultOperator;

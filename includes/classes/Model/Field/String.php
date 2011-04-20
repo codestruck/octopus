@@ -16,7 +16,7 @@ class SG_Model_Field_String extends SG_Model_Field {
      * the where() method.
      * @return String A chunk of SQL for a WHERE clause.
      */
-    public function restrict($operator, $value, &$selectStatement, &$params) {
+    public function restrict($operator, $value, &$selectStatement, &$params, $model) {
 
         if (!$operator) {
 
@@ -34,7 +34,7 @@ class SG_Model_Field_String extends SG_Model_Field {
             $value = str_replace('?', '_', $value);
         }
 
-        return parent::restrict($operator, $value, $selectStatement, $params);
+        return parent::restrict($operator, $value, $selectStatement, $params, $model);
     }
 
 }

@@ -43,13 +43,7 @@ class SG_Model_ResultSet implements Iterator, Countable {
         $this->_orderBy = $orderBy ? $orderBy : array();
 
     }
-
-    public function __destruct() {
-        if ($this->_query) {
-
-        }
-    }
-
+    
     /**
      * @return Object A new ResultSet with extra constraints added via AND.
      */
@@ -235,16 +229,18 @@ class SG_Model_ResultSet implements Iterator, Countable {
                     $mc = $this->_modelClass;
                     $obj = new $mc();
                     $fieldName = $obj->getPrimaryKey();
-                    $criteriaSql = SG_Model_Field::defaultRestrict($fieldName, $operator, '=', $value, $s, $params);
+                    $criteriaSql = SG_Model_Field::defaultRestrict($fieldName, $operator, '=', $value, $s, $params, $obj);
                 } else {
                     $field = $this->_getField($fieldName);
-
                     if (!$field) {
                         //dump_r("Field not found: $fieldName");
                         continue;
                     }
 
-                    $criteriaSql = $field->restrict($operator, $value, $s, $params);
+                    $mc = $this->_modelClass;
+                    $obj = new $mc();
+
+                    $criteriaSql = $field->restrict($operator, $value, $s, $params, $obj);
                 }
             }
 

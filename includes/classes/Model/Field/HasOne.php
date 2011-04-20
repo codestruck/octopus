@@ -2,7 +2,7 @@
 
 class SG_Model_Field_HasOne extends SG_Model_Field {
 
-    function accessValue($model, $saving = false) {
+    public function accessValue($model, $saving = false) {
         // if we all ready have an object, return it
         $value = $model->getInternalValue($this->getFieldName());
         if ($value) {
@@ -18,7 +18,7 @@ class SG_Model_Field_HasOne extends SG_Model_Field {
         return new $class($value);
     }
 
-    function save($model, $sqlQuery) {
+    public function save($model, $sqlQuery) {
         $field = $this->getFieldName();
 
         // save subobject
@@ -38,7 +38,7 @@ class SG_Model_Field_HasOne extends SG_Model_Field {
         $sqlQuery->set($model->to_id($field), $value);
     }
 
-    function setValue($model, $value) {
+    public function setValue($model, $value) {
         if (!is_object($value)) {
             $id = $value;
             $class = $this->getItemClass();
@@ -49,14 +49,13 @@ class SG_Model_Field_HasOne extends SG_Model_Field {
         $model->setInternalValue($this->getFieldName(), $value);
     }
 
-    function validate($model) {
+    public function validate($model) {
         $obj = $this->accessValue($model);
         return $obj->validate();
     }
 
-    public function restrict($operator, $value, &$s, &$params) {
-        $model = new SG_Model();
-        $sql = $this->defaultRestrict($model->to_id($this->field), $operator, $this->getDefaultSearchOperator(), $value, $s, $params);
+    public function restrict($operator, $value, &$s, &$params, $model) {
+       $sql = $this->defaultRestrict($model->to_id($this->field), $operator, $this->getDefaultSearchOperator(), $value, $s, $params, $model);
         return $sql;
     }
 

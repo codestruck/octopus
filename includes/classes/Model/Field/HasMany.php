@@ -2,11 +2,11 @@
 
 class SG_Model_Field_HasMany extends SG_Model_Field {
 
-    function save($model, $sqlQuery) {
+    public function save($model, $sqlQuery) {
         // do nothing
     }
 
-    function accessValue($model, $saving = false) {
+    public function accessValue($model, $saving = false) {
         $type = strtolower(get_class($model));
         $value = $model->id;
 
@@ -14,7 +14,7 @@ class SG_Model_Field_HasMany extends SG_Model_Field {
 
     }
 
-    function getFieldName() {
+    public function getFieldName() {
         return pluralize($this->field);
     }
 
