@@ -146,6 +146,21 @@ class SG_Html_Element {
         return $this;
     }
 
+    /**
+     * Sets multiple attributes.
+     */
+    public function &setAttributes($attributes) {
+
+        if (!empty($attributes)) {
+
+            foreach($attributes as $attr => $value) {
+                $this->setAttribute($attr, $value);
+            }
+        }
+
+        return $this;
+    }
+
     public function removeAttribute($key) {
         unset($this->_attributes[$key]);
         return $this;
@@ -301,6 +316,26 @@ class SG_Html_Element {
 
     public function __toString() {
         return $this->render(true);
+    }
+
+    /**
+     * Helper function for setting the 'value' attribute.
+     * @return Object $this for method chaining.
+     */
+    public function &val(/* No args = return val, 1 arg = set value */) {
+
+        $argCount = func_num_args();
+
+        switch($argCount) {
+
+            case 0:
+                $val = $this->getAttribute('value');
+                return $val;
+
+            default:
+                $this->setAttribute('value', func_get_arg(0));
+                return $this;
+        }
     }
 
 }
