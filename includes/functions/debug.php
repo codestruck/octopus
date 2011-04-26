@@ -368,11 +368,6 @@ END;
             cancel_redirects();
         }
 
-        if ((error_reporting() & E_NOTICE) !== E_NOTICE) {
-            // Only dump stuff when we are supposed to
-            return;
-        }
-
         if (SG_Debug::inWebContext()) {
 
             $d = new SG_Debug('dump_r');
