@@ -26,10 +26,9 @@ class SG_Dispatcher {
     public function &getResponse($path) {
 
         $originalPath = trim($path);
-        $navItem = $this->_app->find($path);
+        $path = trim($path, '/');
 
-        $info = $this->getControllerInfo($navItem);
-        $path = $navItem->getFullPath();
+        $info = $this->getControllerInfo($path);
 
         if (!$info) $info = array();
 
@@ -154,13 +153,13 @@ class SG_Dispatcher {
     }
 
     /**
-     * Given a nav item, figure out what controller it should use, what action
+     * Given a path, figure out what controller it should use, what action
      * should be called, and what args should be passed.
      */
-    private function getControllerInfo($navItem) {
+    private function getControllerInfo($path) {
 
         $controllers = $this->_app->getControllers(true);
-        $parts = explode('/', $navItem->getFullPath());
+        $parts = explode('/', $path);
 
         // Find the most specific controller we can
         $controller = '';
