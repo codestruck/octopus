@@ -80,6 +80,21 @@
     }
 
     /**
+     * Converts a 'COMPUTERY_STRING' into a 'Computery String'.
+     */
+    function humanize($str, $titleCaps = true) {
+
+        $str = strtolower(trim(str_replace('_', ' ', $str)));
+        if (!$str) return $str;
+
+        if ($titleCaps) {
+            return ucwords($str);
+        } else {
+            return strtoupper(substr($str, 0, 1)) . substr($str, 1);
+        }
+    }
+
+    /**
      * Examines a string and tells you if it looks like a regular expression.
      * For our purposes, regexes look like this:
      *
