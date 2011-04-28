@@ -164,7 +164,7 @@
 
         $x = trim($x);
         $x = preg_replace('/[^a-z0-9-]/i', '-', $x);
-        $x = preg_replace('/-{2,}/', '-');
+        $x = preg_replace('/-{2,}/', '-', $x);
         $x = preg_replace('/^([^a-z-])/i', '-$1', $x);
 
         return $x;
