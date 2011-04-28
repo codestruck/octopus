@@ -117,6 +117,28 @@
                 );
             }
         }
+
+        function testPluralize() {
+
+            $tests = array(
+
+                'product' => 'products',
+                'category' => 'categories',
+                'products' => 'products',
+                'categories' => 'categories',
+
+             );
+
+            foreach($tests as $input => $expected) {
+                $this->assertEquals(
+                    $expected,
+                    pluralize($input),
+                    'failed on ' . $input
+                );
+            }
+        }
+
+
     }
 
 ?>

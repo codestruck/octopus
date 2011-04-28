@@ -69,6 +69,22 @@ abstract class SG_Model {
         }
     }
 
+    public function __call($name, $arguments) {
+        if (preg_match('/^(add|remove)(.*)$/', $name, $matches)) {
+            $action = $matches[1];
+            $type = $matches[1];
+            $fieldname = pluralize(strtolower($matches[2]));
+
+            $field = $this->getField($fieldname);
+            if ($field) {
+                return $field->handleRelation($action, $arguments, $this);
+            }
+        }
+
+        trigger_error('Invalid call to ' . $name);
+
+    }
+
     public function setInternalValue($field, $value) {
         $this->data[$field] = $value;
     }

@@ -83,5 +83,119 @@ class ModelManyToManyTest extends SG_DB_TestCase
         $group = new Group(1);
         $this->assertEquals(3, count($group->products));
     }
-    
+
+    function testAddProductToGroup()
+    {
+        $product = new Product();
+        $product->name = 'New Product';
+
+        $group = new Group(2);
+        $group->addProduct($product);
+        $group->save();
+
+        $p = new Product(4);
+        $this->assertEquals('New Product', $p->name);
+
+        $g = new Group(2);
+        $this->assertEquals(2, count($g->products));
+    }
+
+    function testAddProductsToGroup()
+    {
+        $product = new Product();
+        $product->name = 'New Product';
+
+        $product2 = new Product();
+        $product2->name = 'New Product2';
+
+        $group = new Group(2);
+        $group->addProducts(array($product, $product2));
+        $group->save();
+
+        $p = new Product(4);
+        $this->assertEquals('New Product', $p->name);
+
+        $p = new Product(5);
+        $this->assertEquals('New Product2', $p->name);
+
+        $g = new Group(2);
+        $this->assertEquals(3, count($g->products));
+    }
+
+    function testAddProductIdToGroup()
+    {
+        $product = new Product();
+        $product->name = 'New Product';
+        $product->save();
+        $product_id = $product->product_id;
+
+        $group = new Group(2);
+        $group->addProduct($product_id);
+        $group->save();
+
+        $p = new Product(4);
+        $this->assertEquals('New Product', $p->name);
+
+        $g = new Group(2);
+        $this->assertEquals(2, count($g->products));
+    }
+
+    function testAddProductIdsToGroup()
+    {
+        $product = new Product();
+        $product->name = 'New Product';
+        $product->save();
+        $product_id = $product->product_id;
+
+        $product2 = new Product();
+        $product2->name = 'New Product2';
+        $product2->save();
+        $product_id2 = $product2->product_id;
+
+        $group = new Group(2);
+        $group->addProducts(array($product_id, $product_id2));
+
+        $p = new Product(4);
+        $this->assertEquals('New Product', $p->name);
+
+        $p = new Product(5);
+        $this->assertEquals('New Product2', $p->name);
+
+        $g = new Group(2);
+        $this->assertEquals(3, count($g->products));
+    }
+
+    function testRemoveProduct()
+    {
+        $product = new Product(2);
+
+        $group = new Group(2);
+        $group->removeProduct($product);
+
+        $g = new Group(2);
+        $this->assertEquals(0, count($g->products));
+    }
+
+    function testRemoveProducts()
+    {
+        $product = new Product(1);
+        $product2 = new Product(2);
+
+        $group = new Group(1);
+        $group->removeProducts(array($product, $product2));
+
+        $g = new Group(1);
+        $this->assertEquals(1, count($g->products));
+    }
+
+    function testRemoveProductById()
+    {
+        $group = new Group(2);
+        $group->removeProduct(2);
+
+        $g = new Group(2);
+        $this->assertEquals(0, count($g->products));
+    }
+
 }
+

@@ -195,7 +195,7 @@ END
     function should_redirect() {
 
         if (!isset($GLOBALS['__SG_CANCEL_REDIRECT__'])) {
-            return false;
+            return true;
         }
 
         return !$GLOBALS['__SG_CANCEL_REDIRECT__'];

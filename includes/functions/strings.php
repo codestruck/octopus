@@ -157,6 +157,10 @@
      */
     function pluralize($x) {
 
+        if (substr($x, -1) == 's') {
+            return $x;
+        }
+
         $x = preg_replace('/y$/i', 'ies', $x, 1, $count);
         if ($count) return $x;
 
