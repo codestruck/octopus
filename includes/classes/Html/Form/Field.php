@@ -9,6 +9,9 @@ class SG_Html_Form_Field extends SG_Html_Element {
     public $label;
     public $help;
 
+    private $_rules = array();
+    private $_requiredRule = null;
+
     public function __construct($tag, $name, $type, $attributes) {
 
         parent::__construct($tag, $attributes);
@@ -25,6 +28,44 @@ class SG_Html_Form_Field extends SG_Html_Element {
     }
 
     /**
+     * Adds a validation rule to this field.
+     */
+    public function addRule($rule) {
+
+        if (!$rule) {
+            return $this;
+        }
+
+        $this->_rules[] = $rule;
+        return $this;
+    }
+
+    public function getRules() {
+        return $this->_rules;
+    }
+
+    public function removeRule($rule) {
+
+        if (!$rule) {
+            return $this;
+        }
+
+        $newRules = array();
+
+        foreach($this->_rules as $r) {
+
+            if ($rule !== $r) {
+                $newRules[] = $r;
+            }
+        }
+
+        $this->_rules = $newRules;
+
+        return $this;
+
+    }
+
+    /**
      * Sets the 'autofocus' attribute on this element.
      */
     public function autoFocus($focus = true) {
@@ -35,6 +76,52 @@ class SG_Html_Form_Field extends SG_Html_Element {
             $this->removeAttribute('autofocus');
         }
 
+    }
+
+    /**
+     * Validates that input in this field is between two numbers.
+     */
+    public function between($inclusiveMin, $inclusiveMax, $message = null) {
+        SG::loadClass('SG_Html_Form_Rule_Range');
+        return $this->addRule(new SG_Html_Form_Rule_Range($inclusiveMin, $inclusiveMax, $message));
+    }
+
+    /**
+     * Adds a regular expression rule to this field.
+     */
+    public function mustMatch($pattern, $message = null) {
+        SG::loadClass('SG_Html_Form_Rule_Regex');
+        return $this->addRule(new SG_Html_Form_Rule_Regex($pattern, $message));
+    }
+
+    /**
+     * Marks this field as required.
+     */
+    public function required($required = true) {
+
+        $message = (is_string($required) ? $required : null);
+        $required = !!$required;
+
+        $this->removeRule($this->_requiredRule);
+
+        if ($required) {
+
+            if (!$this->_requiredRule) {
+                SG::loadClass('SG_Html_Form_Rule_Required');
+                $this->_requiredRule = new SG_Html_Form_Rule_Required();
+            }
+
+            $this->_requiredRule->setMessage($message);
+            $this->addRule($this->_requiredRule);
+            $this->addClass('required');
+
+        } else {
+            $this->removeClass('required');
+        }
+
+        parent::setAttribute('required', $required);
+
+        return $this;
     }
 
     /**
@@ -55,6 +142,49 @@ class SG_Html_Form_Field extends SG_Html_Element {
                 $this->setAttribute('value', func_get_arg(0));
                 return $this;
         }
+    }
+
+    /**
+     * Validates this field.
+     * @param $data Array All data posted for the form.
+     */
+    public function validate($data) {
+
+        $result = new StdClass();
+        $result->errors = array();
+        $errorCount = 0;
+
+        foreach($this->_rules as $r) {
+
+            $v = $r->validate($this, $data);
+
+            if ($v === true) {
+                continue;
+            } else if ($v === false) {
+                $result->errors[] = $r->getMessage($this, $data);
+            } else if (is_string($v)) {
+                $result->errors[] = $v;
+            } else if (is_array($v)) {
+                $result->errors += $v;
+            }
+
+            $errorCount++;
+        }
+
+        $result->success = !$errorCount;
+        $result->hasErrors = !!$errorCount;
+
+        return $result;
+    }
+
+    public function setAttribute($attr, $value) {
+
+        if (strcasecmp($attr, 'required') == 0) {
+            return $this->required($value);
+        } else {
+            return parent::setAttribute($attr, $value);
+        }
+
     }
 
     /**

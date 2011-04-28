@@ -37,10 +37,35 @@ class SG_Html_Form extends SG_Html_Element {
      */
     public function validate($values = null) {
 
+        $values = ($values === null ? $_POST : $values);
+
         $result = new StdClass();
-        $result->success = true;
+        $result->errors = array();
+
+        foreach($this->children() as $c) {
+            $this->validateRecursive($c, $values, $result);
+        }
+
+        $result->success = (count($result->errors) == 0);
+        $result->hasErrors = !$result->success;
 
         return $result;
+
+    }
+
+    private function validateRecursive(&$el, &$values, &$result) {
+
+        if ($el instanceof SG_Html_Form_Field) {
+
+            $fieldResult = $el->validate($values);
+            $result->errors += $fieldResult->errors;
+
+        }
+
+        foreach($el->children() as $c) {
+            $this->validateRecursive($c, $values, $result);
+        }
+
     }
 
 
