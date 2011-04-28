@@ -9,9 +9,9 @@ class SG_Html_Form_Field extends SG_Html_Element {
     public $label;
     public $help;
 
-    public function __construct($name, $type, $attributes) {
+    public function __construct($tag, $name, $type, $attributes) {
 
-        parent::__construct('input', $attributes);
+        parent::__construct($tag, $attributes);
 
         $this->type = $type;
         $this->name = $name;
@@ -41,7 +41,7 @@ class SG_Html_Form_Field extends SG_Html_Element {
      * Helper function for setting the 'value' attribute.
      * @return Object $this for method chaining.
      */
-    public function &val(/* No args = return val, 1 arg = set value */) {
+    public function val(/* No args = return val, 1 arg = set value */) {
 
         $argCount = func_num_args();
 
@@ -117,7 +117,11 @@ class SG_Html_Form_Field extends SG_Html_Element {
 
         SG::loadClass($class);
 
-        return new $class($name, $type, $attributes);
+        if ($class == 'SG_Html_Form_Field') {
+            return new SG_Html_Form_Field('input', $name, $type, $attributes);
+        } else {
+            return new $class($name, $type, $attributes);
+        }
     }
 
 }

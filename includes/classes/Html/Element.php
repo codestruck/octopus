@@ -15,6 +15,8 @@ class SG_Html_Element {
         'name' => -9,
         'id' => -8,
         'class' => -7,
+        'selected' => 8,
+        'checked' => 8,
         'autofocus' => 9,
         'required' => 10,
     );
@@ -24,6 +26,7 @@ class SG_Html_Element {
     protected static $noValueAttrs = array(
         'autofocus' => true,
         'checked' => true,
+        'multiple' => true,
         'required' => true,
         'selected' => true
     );
@@ -149,6 +152,10 @@ class SG_Html_Element {
     public function &clear() {
         $this->_content = array();
         return $this;
+    }
+
+    public function children() {
+        return $this->_content;
     }
 
     public function getAttribute($key, $default = null) {

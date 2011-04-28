@@ -22,8 +22,13 @@ abstract class SG_Html_TestCase extends PHPUnit_Framework_TestCase {
      */
     public static function normalizeHtml($html) {
 
-        $whitespacePattern = '/\s{2,}/';
-        $html = trim(preg_replace($whitespacePattern, '', $html));
+        $html = trim(preg_replace('/\s+/m', ' ', $html));
+
+        // Consume whitespace before some elements
+        $html = preg_replace('#\s*(<option(\s|>))#i', '$1', $html);
+
+        // Consume whitespace before the close of other elements
+        $html = preg_replace('#\s*(</(select)>)#', '$1', $html);
 
         return $html;
     }

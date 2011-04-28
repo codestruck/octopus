@@ -5,11 +5,15 @@ SG::loadClass('SG_Html_Form_Field');
 class SG_Html_Form_Select extends SG_Html_Form_Field {
 
     private $_valueFields = array('value', 'id', '/.*_id$/i');
-    private $_textFields = array('name', 'title', 'desc', 'summary', 'description');
+    private $_textFields = array('name', 'title', 'desc', 'summary', 'description', 'text');
 
-    public function __construct($name, $attributes = null) {
-        parent::__construct('select', $attributes);
+    protected $valueField = null;
+    protected $textField = null;
+
+    public function __construct($name, $type = null, $attributes = null) {
+        parent::__construct('select', $name, $type ? $type : 'select', $attributes);
         $this->setAttribute('name', $name);
+        $this->removeAttribute('type');
     }
 
     /**
@@ -47,9 +51,13 @@ class SG_Html_Form_Select extends SG_Html_Form_Field {
 
         foreach($options as $value => $text) {
 
-            if ((is_object($text) || is_array($text)) || is_numeric($value)) {
-                $value = $text;
-                $text = null;
+            if (is_numeric($value)) {
+
+                if (is_array($text) || is_object($text)) {
+                    $value = $text;
+                    $text = null;
+                }
+
             }
 
             $opt = $this->createOption($value, $text, null);
@@ -59,19 +67,82 @@ class SG_Html_Form_Select extends SG_Html_Form_Field {
         return $this;
     }
 
+    public function setAttribute($attr, $value) {
+
+        if (strcasecmp($attr, 'value') == 0) {
+            return $this->setValue($value);
+        } else {
+            return parent::setAttribute($attr, $value);
+        }
+
+    }
+
+    public function val($value = null) {
+
+        if ($value === null) {
+            return $this->getValue();
+        } else {
+            $this->setValue($value);
+            return $this;
+        }
+
+    }
+
+    private function getValue() {
+
+        $result = null;
+
+        foreach($this->children() as $o) {
+
+            if ($o->selected) {
+                return $o->value === null ? $o->text() : $o->value;
+            } else if ($result === null) {
+
+                // by default, 1st option is selected
+                $result = $o->value === null ? $o->text() : $o->value;
+            }
+        }
+
+        return $result;
+
+    }
+
+    private function setValue($value) {
+
+        // TODO: is value case-sensitive?
+
+        $options = $this->children();
+        foreach($options as $o) {
+
+            $val = $o->value;
+            if ($val === null) $val = $o->text();
+
+            if (strcasecmp($val, $value) == 0) {
+                $o->selected = true;
+            } else {
+                $o->selected = false;
+            }
+
+        }
+
+        return $this;
+
+    }
+
+
     /**
      * Factory method for creating <options>
      */
-    protected function &createOption($value, $text, $attributes) {
+    protected function createOption($value, $text, $attributes) {
 
         if (is_array($text) && $attributes === null) {
             $attributes = $text;
             $text = null;
         }
 
-        if (is_object($value) && $text === null) {
+        if (is_object($value)) {
             $this->getValueAndTextFromObject($value, $value, $text);
-        } else if (is_array($value) && $text === null) {
+        } else if (is_array($value)) {
             $this->getValueAndTextFromArray($value, $value, $text);
         }
 
@@ -81,7 +152,7 @@ class SG_Html_Form_Select extends SG_Html_Form_Field {
             $value = $text;
         }
 
-        $attributes = $attributes ? $attributes : array();
+        if ($attributes === null) $attributes = array();
         $attributes['value'] = $value;
 
         $opt = new SG_Html_Element('option', $attributes);
@@ -96,7 +167,15 @@ class SG_Html_Form_Select extends SG_Html_Form_Field {
      */
     private static function findCandidateField(&$obj, &$fieldNames) {
 
-        $objectVars = null;
+        $vars = null;
+
+        $isArray = is_array($obj);
+        $isObj = is_object($obj);
+
+
+        if (!($isArray || $isObj)) {
+            return false;
+        }
 
         foreach($fieldNames as $fieldName) {
 
@@ -104,23 +183,30 @@ class SG_Html_Form_Select extends SG_Html_Form_Field {
 
                 // The fieldname is actually a pattern, see if any
                 // properties match
-                if ($objectVars === null) {
 
-                    if (is_object($obj)) {
-                        $objectVars = get_object_vars($obj);
-                    } else if (is_array($obj)) {
-                        $objectVars = $obj;
+                if ($vars === null) {
+
+                    if ($isArray) {
+                        $vars =& $obj;
+                    } else if ($isObj) {
+                        $vars = get_object_vars($obj);
                     }
                 }
 
-                foreach($objectVars as $key => $value) {
+                foreach($vars as $key => $value) {
+
                     if (preg_match($fieldName, $key)) {
                         return $key;
                     }
+
                 }
 
-            } else if (isset($obj->$fieldName)) {
-                    return $fieldName;
+            } else if ($isObj && isset($obj->$fieldName)) {
+
+                return $fieldName;
+
+            } else if ($isArray && isset($obj[$fieldName])) {
+                return $fieldName;
             }
 
         }
@@ -131,8 +217,8 @@ class SG_Html_Form_Select extends SG_Html_Form_Field {
 
     private function getValueAndTextFromArray($array, &$value, &$text) {
 
-        $valueField = isset($this->valueField) ? $this->valueField : null;
-        $textField = isset($this->textField) ? $this->textField : null;
+        $valueField = $this->valueField;
+        $textField = $this->textField;
 
         $value = $text = null;
 
