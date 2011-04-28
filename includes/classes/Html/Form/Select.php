@@ -1,8 +1,8 @@
 <?php
 
-SG::loadClass('SG_Html_Element');
+SG::loadClass('SG_Html_Form_Field');
 
-class SG_Html_Form_Select extends SG_Html_Element {
+class SG_Html_Form_Select extends SG_Html_Form_Field {
 
     private $_valueFields = array('value', 'id', '/.*_id$/i');
     private $_textFields = array('name', 'title', 'desc', 'summary', 'description');
@@ -26,6 +26,7 @@ class SG_Html_Form_Select extends SG_Html_Element {
 
     /**
      * Adds multiple options to the select.
+     * @param $options Array An array of options to add.
      * @return Object $this for method chaining.
      */
     public function addOptions($options) {
@@ -200,5 +201,7 @@ class SG_Html_Form_Select extends SG_Html_Element {
     }
 
 }
+
+SG_Html_Form_Field::register('select', 'SG_Html_Form_Select');
 
 ?>

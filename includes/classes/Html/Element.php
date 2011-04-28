@@ -6,14 +6,40 @@
 class SG_Html_Element {
 
     private $_tag;
-    private $_attributes;
+    protected $_attributes;
     private $_content;
+
+    // Helper for displaying attributes in a standard order.
+    protected static $attributeWeights = array(
+        'type' => -10,
+        'name' => -9,
+        'id' => -8,
+        'class' => -7,
+        'autofocus' => 9,
+        'required' => 10,
+    );
+
+    // Helper for determining which attributes should not be rendered with a
+    // value when true.
+    protected static $noValueAttrs = array(
+        'autofocus' => true,
+        'checked' => true,
+        'required' => true,
+        'selected' => true
+    );
 
     public function __construct($tag, $attrs = null, $content = null) {
 
         $this->_tag = $tag;
         $this->_attributes = ($attrs ? $attrs : array());
-        $this->_content = $content;
+
+        if (is_array($content)) {
+            $this->_content = $content;
+        } else if ($content) {
+            $this->_content = array($content);
+        } else {
+            $this->_content = array();
+        }
 
     }
 
@@ -228,8 +254,20 @@ class SG_Html_Element {
 
         $result = '<' . $this->_tag;
 
+        uksort($this->_attributes, array($this, '_compareAttributes'));
+
         foreach($this->_attributes as $key => $value) {
-            $result .= ' ' . htmlspecialchars($key) . '="' . htmlspecialchars($value) . '"';
+
+            // Support e.g., 'autofocus' and 'required', which are rendered
+            // without values.
+            $hasValue = empty(self::$noValueAttrs[$key]);
+
+            if ($hasValue) {
+                $result .= ' ' . htmlspecialchars($key) . '="' . htmlspecialchars($value) . '"';
+            } else if ($value) {
+                $result .= ' ' . htmlspecialchars($key);
+            }
+
         }
 
         return $result;
@@ -318,25 +356,15 @@ class SG_Html_Element {
         return $this->render(true);
     }
 
-    /**
-     * Helper function for setting the 'value' attribute.
-     * @return Object $this for method chaining.
-     */
-    public function &val(/* No args = return val, 1 arg = set value */) {
+    private static function _compareAttributes($x, $y) {
 
-        $argCount = func_num_args();
+        return
+            (isset(self::$attributeWeights[$x]) ? self::$attributeWeights[$x] : 0)
+            -
+            (isset(self::$attributeWeights[$y]) ? self::$attributeWeights[$y] : 0);
 
-        switch($argCount) {
-
-            case 0:
-                $val = $this->getAttribute('value');
-                return $val;
-
-            default:
-                $this->setAttribute('value', func_get_arg(0));
-                return $this;
-        }
     }
+
 
 }
 

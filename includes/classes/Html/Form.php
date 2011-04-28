@@ -1,6 +1,6 @@
 <?php
 
-SG::loadClass('SG_Html_Element');
+SG::loadClass('SG_Html_Form_Field');
 
 class SG_Html_Form extends SG_Html_Element {
 
@@ -14,17 +14,35 @@ class SG_Html_Form extends SG_Html_Element {
 
     public function &add($nameOrElement, $type = 'text', $desc = null, $attributes = null) {
 
+        $field = null;
+
         if ($nameOrElement instanceof SG_Html_Element) {
-            $this->append($nameOrElement);
-            return $nameOrElement;
+            $field = $nameOrElement;
+        } else {
+            $field = SG_Html_Form_Field::create($nameOrElement, $type, $desc, $attributes);
         }
 
-        // TODO factory for creating fields
+        if ($field) {
+            $this->append($field);
+        }
 
+        return $field;
     }
 
-    public function setData($data) {
+    /**
+     * Validates data in this form.
+     * @param $values Array Data to validate. If not specified, then either
+     * $_GET or $_POST will be used as appropriate.
+     * @return Object An object with two properties: success and errors.
+     */
+    public function validate($values = null) {
+
+        $result = new StdClass();
+        $result->success = true;
+
+        return $result;
     }
+
 
 }
 
