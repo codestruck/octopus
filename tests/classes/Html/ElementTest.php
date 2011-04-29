@@ -22,13 +22,13 @@ class ElementTests extends PHPUnit_Framework_TestCase {
         $e->css('font-weight', 'bold');
 
         $this->assertEquals(
-            "<span class=\"testClass\" lang=\"en-us\" style=\"font-weight: bold;\" />",
+            "<span class=\"testClass\" style=\"font-weight: bold;\" lang=\"en-us\" />",
             $e->render(true)
         );
 
         unset($e->class);
         $this->assertEquals(
-            "<span lang=\"en-us\" style=\"font-weight: bold;\" />",
+            "<span style=\"font-weight: bold;\" lang=\"en-us\" />",
             $e->render(true)
         );
 
@@ -60,7 +60,7 @@ class ElementTests extends PHPUnit_Framework_TestCase {
         $this->assertEquals('<span />', $e->render(true));
 
         $e->data(array('id' => 42, 'foo' => 'bar'));
-        $this->assertEquals('<span data-id="42" data-foo="bar" />', $e->render(true));
+        $this->assertEquals('<span data-foo="bar" data-id="42" />', $e->render(true));
 
         $e->removeAttribute('data-id');
         $this->assertEquals('<span data-foo="bar" />', $e->render(true));

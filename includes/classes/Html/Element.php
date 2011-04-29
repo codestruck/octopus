@@ -15,6 +15,8 @@ class SG_Html_Element {
         'name' => -9,
         'id' => -8,
         'class' => -7,
+        'style' => -6,
+        'alt' => 1,
         'selected' => 8,
         'checked' => 8,
         'autofocus' => 9,
@@ -365,11 +367,16 @@ class SG_Html_Element {
 
     private static function _compareAttributes($x, $y) {
 
-        return
-            (isset(self::$attributeWeights[$x]) ? self::$attributeWeights[$x] : 0)
-            -
-            (isset(self::$attributeWeights[$y]) ? self::$attributeWeights[$y] : 0);
+        $xWeight = (isset(self::$attributeWeights[$x]) ? self::$attributeWeights[$x] : 0);
+        $yWeight = (isset(self::$attributeWeights[$y]) ? self::$attributeWeights[$y] : 0);
 
+        $result = $xWeight - $yWeight;
+        if ($result != 0) return $result;
+
+
+        // Alphabetize unweighted attributes for maybe some
+        // compression benefits?
+        return strcasecmp($x, $y);
     }
 
 
