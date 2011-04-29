@@ -95,6 +95,14 @@ class SG_Html_Form_Field extends SG_Html_Element {
     }
 
     /**
+     * Adds a callback rule to this field.
+     */
+    public function mustPass($callback, $message = null) {
+        SG::loadClass('SG_Html_Form_Rule_Callback');
+        return $this->addRule(new SG_Html_Form_Rule_Callback($callback, $message));
+    }
+
+    /**
      * Marks this field as required.
      */
     public function required($required = true) {

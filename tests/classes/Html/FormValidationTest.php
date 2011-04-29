@@ -4,14 +4,45 @@ SG::loadClass('SG_Html_Form');
 
 class FormValidationTest extends PHPUnit_Framework_TestCase {
 
-    /*
     function testCallbackValidation() {
 
         $form = new SG_Html_Form('callback');
-        $form->add('foo')->passesCallback();
+        $form->add('foo')->mustPass(array($this, '_test_callback'));
+
+        $tests = array(
+            false => true,
+            '' => true,
+            '      ' => true,
+            'pass' => true,
+            'fail' => false
+
+        );
+
+        foreach($tests as $input => $expectedResult) {
+
+            $data = array();
+            if ($input !== false && $input !== 0) $data['foo'] = $input;
+
+            $result = $form->validate($data);
+
+            $input = ($input === false || $input === 0 ? '<no input>' : "'$input'");
+
+            $this->assertEquals($expectedResult, $result->success, "Failed on $input");
+        }
+
 
     }
-    */
+
+    function _test_callback($field, $input, $data) {
+
+        $this->assertTrue(!!$field, "Field is missing");
+        $this->assertTrue(!!$data, "Data is missing");
+
+        $this->assertEquals('foo', $field->name, "field name is wrong");
+        $this->assertTrue(isset($data['foo']), 'no key in data');
+
+        return $input == 'pass';
+    }
 
     function testRegexValidate() {
 
