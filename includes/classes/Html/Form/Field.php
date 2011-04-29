@@ -6,6 +6,10 @@ class SG_Html_Form_Field extends SG_Html_Element {
 
     private static $_registry = array();
 
+    private static $_formats = array(
+        'email' => '/^\s*[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\s*$/i'
+    );
+
     public $label;
     public $help;
 
@@ -84,6 +88,14 @@ class SG_Html_Form_Field extends SG_Html_Element {
     public function between($inclusiveMin, $inclusiveMax, $message = null) {
         SG::loadClass('SG_Html_Form_Rule_Range');
         return $this->addRule(new SG_Html_Form_Rule_Range($inclusiveMin, $inclusiveMax, $message));
+    }
+
+    /**
+     * Validates input against one of a known set of data formats, e.g.
+     * email, zip code, etc.
+     */
+    public function mustBe($format, $message = null) {
+        return $this->mustMatch(self::$_formats[$format], $message);
     }
 
     /**

@@ -8,9 +8,7 @@ SG::loadClass('SG_Html_Form_Rule');
 class SG_Html_Form_Rule_Required extends SG_Html_Form_Rule {
 
     public function validate($field, $data) {
-        $val = isset($data[$field->name]) ? trim($data[$field->name]) : '';
-
-        return $val !== '';
+        return trim($this->getInput($field, $data)) !== '';
     }
 
 }

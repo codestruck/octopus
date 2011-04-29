@@ -44,7 +44,6 @@ abstract class SG_Html_Form_Rule {
         }
 
         return $data[$field->name];
-
     }
 
     protected function getDefaultMessage($field, $data) {

@@ -1,16 +1,50 @@
 <?php
 
+define('NO_INPUT', '--NO INPUT--');
+
 SG::loadClass('SG_Html_Form');
 
 class FormValidationTest extends PHPUnit_Framework_TestCase {
 
-    function testCallbackValidation() {
-
-        $form = new SG_Html_Form('callback');
-        $form->add('foo')->mustPass(array($this, '_test_callback'));
+    function testEmailValidation() {
 
         $tests = array(
-            false => true,
+            NO_INPUT => true,
+            '' => true,
+            '    ' => true,
+            'matthinz@solegraphics.com' => true,
+            'matthinz+test@gmail.com' => true,
+            'aasdf' => false,
+            'asd23@' => false,
+            'no@no' => false,
+            'no @ no.com' => false
+        );
+
+        $form = new SG_Html_Form('email');
+        $form->add('foo')->mustBe('email');
+
+        foreach($tests as $input => $expectedResult) {
+            $this->runValidationTest($form, $input, $expectedResult);
+        }
+
+    }
+
+    function runValidationTest($form, $input, $expectedResult) {
+
+        $data = array();
+        if ($input !== NO_INPUT) $data['foo'] = $input;
+
+        $result = $form->validate($data);
+
+        $input = ($input === NO_INPUT ? $input : "'$input'");
+
+        $this->assertEquals($expectedResult, $result->success, "Failed on $input");
+    }
+
+    function testCallbackValidation() {
+
+        $tests = array(
+            NO_INPUT => true,
             '' => true,
             '      ' => true,
             'pass' => true,
@@ -18,19 +52,12 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
 
         );
 
+        $form = new SG_Html_Form('callback');
+        $form->add('foo')->mustPass(array($this, '_test_callback'));
+
         foreach($tests as $input => $expectedResult) {
-
-            $data = array();
-            if ($input !== false && $input !== 0) $data['foo'] = $input;
-
-            $result = $form->validate($data);
-
-            $input = ($input === false || $input === 0 ? '<no input>' : "'$input'");
-
-            $this->assertEquals($expectedResult, $result->success, "Failed on $input");
+            $this->runValidationTest($form, $input, $expectedResult);
         }
-
-
     }
 
     function _test_callback($field, $input, $data) {
@@ -46,13 +73,8 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
 
     function testRegexValidate() {
 
-        $form = new SG_Html_Form('regex');
-
-        $form->add('foo')
-            ->mustMatch('/^\s*\d+(-\d+)?\s*$/');
-
         $tests = array(
-
+            NO_INPUT => true,
             '' => true,
             '     ' => true,
             '98225' => true,
@@ -60,24 +82,21 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
 
         );
 
+        $form = new SG_Html_Form('regex');
+        $form->add('foo')
+            ->mustMatch('/^\s*\d+(-\d+)?\s*$/');
+
+
         foreach($tests as $input => $expectedResult) {
-
-            $result = $form->validate(array('foo' => $input));
-            $this->assertEquals($expectedResult, $result->success, "Failed on '$input'");
-
+            $this->runValidationTest($form, $input, $expectedResult);
         }
 
     }
 
     function testRangeValidation() {
 
-        $form = new SG_Html_Form('range');
-
-        $form->add('foo')
-            ->between(1, 10);
-
         $tests = array(
-
+            NO_INPUT => true,
             '' => true,
             '   ' => true,
             'plain text' => false,
@@ -86,53 +105,43 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
             10 => true,
         );
 
+        $form = new SG_Html_Form('range');
+        $form->add('foo')
+            ->between(1, 10);
+
         foreach($tests as $input => $expectedResult) {
-
-            $result = $form->validate(array('foo' => $input));
-            $this->assertEquals($expectedResult, $result->success, "Failed on '$input'");
-
+            $this->runValidationTest($form, $input, $expectedResult);
         }
 
-        $result = $form->validate(array('foo' => 10.001));
-        $this->assertFalse($result->success, "Failed on 10.001");
-
-        $result = $form->validate(array('foo' => 9.99));
-        $this->assertTrue($result->success, "Failed on 9.99");
-
-        $result = $form->validate(array('foo' => 1.01));
-        $this->assertTrue($result->success, "Failed on 1.01");
-
-        $result = $form->validate(array('foo' => .99));
-        $this->assertFalse($result->success, "Failed on .99");
-
-
+        $this->runValidationTest($form, 10.001, false);
+        $this->runValidationTest($form, 9.99, true);
+        $this->runValidationTest($form, 1.01, true);
+        $this->runValidationTest($form, .99, false);
     }
 
     function testRequiredValidation() {
 
-        $form = new SG_Html_Form('reqForm');
-        $field = $form->add('name', 'text')->required();
-
-        $this->assertTrue(count($field->getRules()) === 1, 'Field should have a required rule on it');
-
         $tests = array(
+            NO_INPUT => false,
             '' => false,
             '     ' => false,
             '0' => true,
             'false' => true
         );
 
+        $form = new SG_Html_Form('reqForm');
+        $field = $form->add('foo', 'text')->required();
+        $this->assertTrue(count($field->getRules()) === 1, 'Field should have a required rule on it');
+
         foreach($tests as $input => $expectedResult) {
-            $result = $form->validate(array('name' => $input));
-            $this->assertEquals($expectedResult, $result->success, "Failed on '$input'");
+            $this->runValidationTest($form, $input, $expectedResult);
         }
 
         $field->required(false);
         $this->assertTrue(count($field->getRules()) === 0, 'Field should not have a required rule on it');
 
         foreach($tests as $input => $expectedResult) {
-            $result = $form->validate(array('name' => $input));
-            $this->assertEquals(true, $result->success, "Failed on '$input' w/ no rule");
+            $this->runValidationTest($form, $input, true);
         }
 
     }
