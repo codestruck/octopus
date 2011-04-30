@@ -43,7 +43,7 @@ class SG_Model_ResultSet implements Iterator, Countable {
         $this->_orderBy = $orderBy ? $orderBy : array();
 
     }
-    
+
     /**
      * @return Object A new ResultSet with extra constraints added via AND.
      */
@@ -219,6 +219,17 @@ class SG_Model_ResultSet implements Iterator, Countable {
                 }
 
             } else {
+
+                // check if we are passed a result set
+                if (is_object($value)) {
+                    $newValue = array();
+
+                    foreach ($value as $item) {
+                        $newValue[] = $item->id;
+                    }
+
+                    $value = $newValue;
+                }
 
                 // standard field = whatever syntax
                 self::_readCriteriaKey($key, $fieldName, $operator);
