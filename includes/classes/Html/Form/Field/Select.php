@@ -2,7 +2,7 @@
 
 SG::loadClass('SG_Html_Form_Field');
 
-class SG_Html_Form_Select extends SG_Html_Form_Field {
+class SG_Html_Form_Field_Select extends SG_Html_Form_Field {
 
     private $_valueFields = array('value', 'id', '/.*_id$/i');
     private $_textFields = array('name', 'title', 'desc', 'summary', 'description', 'text');
@@ -288,6 +288,6 @@ class SG_Html_Form_Select extends SG_Html_Form_Field {
 
 }
 
-SG_Html_Form_Field::register('select', 'SG_Html_Form_Select');
+SG_Html_Form_Field::register('select', 'SG_Html_Form_Field_Select');
 
 ?>

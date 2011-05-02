@@ -3,13 +3,13 @@
 SG::loadClass('SG_Html_TestCase');
 
 SG::loadClass('SG_Html_Form');
-SG::loadClass('SG_Html_Form_Select');
+SG::loadClass('SG_Html_Form_Field_Select');
 
 class SelectTest extends SG_Html_TestCase {
 
     function testSelectExplicitOptions() {
 
-        $s = new SG_Html_Form_Select('test');
+        $s = new SG_Html_Form_Field_Select('test');
 
         $s->addOption(42, 'The Answer')->addClass('ultimateQuestion');
         $s->addOptions(array(
@@ -35,7 +35,7 @@ END;
 
     function testSelectValue() {
 
-        $s = new SG_Html_Form_Select('test');
+        $s = new SG_Html_Form_Field_Select('test');
         $s->addOptions(array(
            1 => 'Foo',
            2 => 'Bar'
@@ -77,7 +77,7 @@ END;
 
     function testSelectUsingFunctionForOptions() {
 
-        $sel = new SG_Html_Form_Select('test');
+        $sel = new SG_Html_Form_Field_Select('test');
         $sel->addOptions(array($this, '_test_get_options'));
 
         $expected = <<<END
@@ -92,7 +92,7 @@ END;
 
     function _test_get_options($sel) {
 
-        $this->assertTrue(!!$sel, 'SG_Html_Form_Select should be passed to function factory');
+        $this->assertTrue(!!$sel, 'SG_Html_Form_Field_Select should be passed to function factory');
         $this->assertEquals('test', $sel->name);
 
         return array(
@@ -118,7 +118,7 @@ END;
             $foo = array($idField => 1, $textField => 'Foo');
             $bar = array($idField => 2, $textField => 'Bar');
 
-            $sel = new SG_Html_Form_Select('test');
+            $sel = new SG_Html_Form_Field_Select('test');
             $sel->addOptions(array($foo, $bar));
 
             $expected = <<<END
@@ -158,7 +158,7 @@ $this->assertHtmlEquals($expected, $sel->render(true), "failed on {$idField}, {$
             $bar->$idField = 2;
             $bar->$textField = 'Bar';
 
-            $sel = new SG_Html_Form_Select('test');
+            $sel = new SG_Html_Form_Field_Select('test');
             $sel->addOptions(array($foo, $bar));
 
             $expected = <<<END

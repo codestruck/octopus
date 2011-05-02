@@ -86,8 +86,8 @@ class SG_Html_Form_Field extends SG_Html_Element {
      * Validates that input in this field is between two numbers.
      */
     public function between($inclusiveMin, $inclusiveMax, $message = null) {
-        SG::loadClass('SG_Html_Form_Rule_Range');
-        return $this->addRule(new SG_Html_Form_Rule_Range($inclusiveMin, $inclusiveMax, $message));
+        SG::loadClass('SG_Html_Form_Field_Rule_Range');
+        return $this->addRule(new SG_Html_Form_Field_Rule_Range($inclusiveMin, $inclusiveMax, $message));
     }
 
     /**
@@ -102,16 +102,16 @@ class SG_Html_Form_Field extends SG_Html_Element {
      * Adds a regular expression rule to this field.
      */
     public function mustMatch($pattern, $message = null) {
-        SG::loadClass('SG_Html_Form_Rule_Regex');
-        return $this->addRule(new SG_Html_Form_Rule_Regex($pattern, $message));
+        SG::loadClass('SG_Html_Form_Field_Rule_Regex');
+        return $this->addRule(new SG_Html_Form_Field_Rule_Regex($pattern, $message));
     }
 
     /**
      * Adds a callback rule to this field.
      */
     public function mustPass($callback, $message = null) {
-        SG::loadClass('SG_Html_Form_Rule_Callback');
-        return $this->addRule(new SG_Html_Form_Rule_Callback($callback, $message));
+        SG::loadClass('SG_Html_Form_Field_Rule_Callback');
+        return $this->addRule(new SG_Html_Form_Field_Rule_Callback($callback, $message));
     }
 
     /**
@@ -127,8 +127,8 @@ class SG_Html_Form_Field extends SG_Html_Element {
         if ($required) {
 
             if (!$this->_requiredRule) {
-                SG::loadClass('SG_Html_Form_Rule_Required');
-                $this->_requiredRule = new SG_Html_Form_Rule_Required();
+                SG::loadClass('SG_Html_Form_Field_Rule_Required');
+                $this->_requiredRule = new SG_Html_Form_Field_Rule_Required();
             }
 
             $this->_requiredRule->setMessage($message);

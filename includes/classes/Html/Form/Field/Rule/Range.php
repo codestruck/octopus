@@ -1,8 +1,8 @@
 <?php
 
-SG::loadClass('SG_Html_Form_Rule');
+SG::loadClass('SG_Html_Form_Field_Rule');
 
-class SG_Html_Form_Rule_Range extends SG_Html_Form_Rule {
+class SG_Html_Form_Field_Rule_Range extends SG_Html_Form_Field_Rule {
 
     private $min;
     private $max;

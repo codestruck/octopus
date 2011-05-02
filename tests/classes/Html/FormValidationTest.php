@@ -146,6 +146,25 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
 
     }
 
+    function testFormValidation() {
+
+        $form = new SG_Html_Form('validation');
+        $form->mustPass(array($this, '_test_validate_form'));
+
+        $this->assertTrue($form->validate(array('x' => 'pass', 'y' => 'pass'))->success);
+        $this->assertFalse($form->validate(array('x' => 'fail', 'y' => 'fail'))->success);
+
+    }
+
+    function _test_validate_form($form, $data) {
+
+        $this->assertTrue($form instanceof SG_Html_Form, '$form is not an SG_Html_Form');
+        $this->assertTrue(!!$data, '$data is empty.');
+
+        return $data['x'] == 'pass' && $data['y'] == 'pass';
+
+    }
+
 }
 
 ?>
