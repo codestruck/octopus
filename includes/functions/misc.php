@@ -1,14 +1,18 @@
 <?php
 
-    /**
-     * Define something only if it's not already
-     */
-    function define_unless($constant, $value) {
-        if (!defined($constant)) {
-            define($constant, $value);
-            return true;
+    if (!function_exists('define_unless')) {
+
+        /**
+         * Define something only if it's not already
+         */
+        function define_unless($constant, $value) {
+            if (!defined($constant)) {
+                define($constant, $value);
+                return true;
+            }
+            return false;
         }
-        return false;
+
     }
 
 

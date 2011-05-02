@@ -350,6 +350,8 @@ END;
 
 // }}}
 
+    if (!function_exists('dump_r')) {
+
     /**
      * Outputs the arguments passed to it along w/ debugging info.
      * @param mixed Any arguments you want dumped.
@@ -391,6 +393,8 @@ END;
         }
 
         $d->render();
+
+    }
 
     }
 
