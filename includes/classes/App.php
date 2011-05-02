@@ -94,9 +94,9 @@ class SG_App {
 
     private function _ensurePrivateDir() {
 
-        if (!is_dir($this->_options['PRIVATE_DIR'])) {
-            if (!@mkdir($this->_options['PRIVATE_DIR'])) {
-                $this->error('Unable to create private directory: ' . $this->_options['PRIVATE_DIR']);
+        if (!is_dir($this->_options['OCTOPUS_PRIVATE_DIR'])) {
+            if (!@mkdir($this->_options['OCTOPUS_PRIVATE_DIR'])) {
+                $this->error('Unable to create private directory: ' . $this->_options['OCTOPUS_PRIVATE_DIR']);
             }
         }
 
@@ -360,7 +360,7 @@ class SG_App {
     private function _figureOutDirectories() {
 
         $o = &$this->_options;
-        $dirs = array('OCTOPUS_DIR', 'ROOT_DIR',  'SITE_DIR', 'OCTOPUS_INCLUDES_DIR', 'OCTOPUS_FUNCTIONS_DIR', 'OCTOPUS_CLASSES_DIR', 'PRIVATE_DIR', 'OCTOPUS_EXTERNALS_DIR');
+        $dirs = array('OCTOPUS_DIR', 'ROOT_DIR',  'SITE_DIR', 'OCTOPUS_INCLUDES_DIR', 'OCTOPUS_FUNCTIONS_DIR', 'OCTOPUS_CLASSES_DIR', 'OCTOPUS_PRIVATE_DIR', 'OCTOPUS_EXTERNALS_DIR');
 
         foreach($dirs as $dir) {
 
@@ -385,7 +385,7 @@ class SG_App {
                             $o[$dir] = $o['ROOT_DIR'] . 'site';
                             break;
 
-                        case 'PRIVATE_DIR':
+                        case 'OCTOPUS_PRIVATE_DIR':
                             $o[$dir] = $o['ROOT_DIR'] . '_private';
                             break;
 

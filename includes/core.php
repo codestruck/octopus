@@ -4,7 +4,6 @@
      * All core app functionality comes from here. Any page served up by the
      * app should include this file first.
      */
-
     define('OCTOPUS_INCLUDES_DIR', dirname(__FILE__) . '/');
     define('OCTOPUS_DIR', dirname(OCTOPUS_INCLUDES_DIR) . '/');
     define('OCTOPUS_FUNCTIONS_DIR', OCTOPUS_INCLUDES_DIR . 'functions/');
@@ -15,9 +14,23 @@
         define('ROOT_DIR', dirname(OCTOPUS_DIR) . '/');
     }
 
-    if (!defined('PRIVATE_DIR')) {
-        define('PRIVATE_DIR', ROOT_DIR . '_private/');
+    if (defined('PRIVATE_DIR')) {
+        define('OCTOPUS_PRIVATE_DIR', PRIVATE_DIR);
+    } else {
+        define('OCTOPUS_PRIVATE_DIR', ROOT_DIR . '_private/');
     }
+
+    ////////////////////////////////////////////////////////////////////////
+    // Core function includes
+    ////////////////////////////////////////////////////////////////////////
+
+    require_once(OCTOPUS_FUNCTIONS_DIR . 'debug.php');
+    require_once(OCTOPUS_FUNCTIONS_DIR . 'misc.php');
+    require_once(OCTOPUS_FUNCTIONS_DIR . 'strings.php');
+    require_once(OCTOPUS_FUNCTIONS_DIR . 'files.php');
+    require_once(OCTOPUS_FUNCTIONS_DIR . 'http.php');
+    require_once(OCTOPUS_FUNCTIONS_DIR . 'html.php');
+    require_once(OCTOPUS_FUNCTIONS_DIR . 'compat.php');
 
     /**
      * Spins up a new instance of the application.
@@ -33,32 +46,28 @@
              */
             'use_site_config' =>    true,
 
-            'path_querystring_arg' => '__path'
+            'path_querystring_arg' => '__path',
+
+            'start_app' => true
         );
 
         $options = $options ? array_merge($defaults, $options) : $defaults;
 
-        ////////////////////////////////////////////////////////////////////////
-        // Core function includes
-        ////////////////////////////////////////////////////////////////////////
-
-        require_once(OCTOPUS_FUNCTIONS_DIR . 'debug.php');
-        require_once(OCTOPUS_FUNCTIONS_DIR . 'misc.php');
-        require_once(OCTOPUS_FUNCTIONS_DIR . 'strings.php');
-        require_once(OCTOPUS_FUNCTIONS_DIR . 'files.php');
-        require_once(OCTOPUS_FUNCTIONS_DIR . 'http.php');
-        require_once(OCTOPUS_FUNCTIONS_DIR . 'html.php');
-        require_once(OCTOPUS_FUNCTIONS_DIR . 'compat.php');
 
         ////////////////////////////////////////////////////////////////////////
-        // Spin up an app instance
+        // Core class includes
         ////////////////////////////////////////////////////////////////////////
 
         require_once(OCTOPUS_DIR . 'includes/classes/SG.php');
 
-        SG::loadClass('SG_App');
+        ////////////////////////////////////////////////////////////////////////
+        // Spin up an App instance
+        ////////////////////////////////////////////////////////////////////////
 
-        $app = SG_App::start($options);
+        if ($options['start_app']) {
+            SG::loadClass('SG_App');
+            SG_App::start($options);
+        }
 
     }
 

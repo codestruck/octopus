@@ -1,6 +1,6 @@
 <?php
 
-require_once('Smarty-3.0.7/libs/Smarty.class.php');
+require_once(dirname(__FILE__) . '/Smarty-3.0.7/libs/Smarty.class.php');
 
 class SG_Smarty extends SG_Base {
 
@@ -24,13 +24,13 @@ class SG_Smarty extends SG_Base {
 
             if (defined('SMARTY_COMPILE_DIR')) {
                 $compileDir = SMARTY_COMPILE_DIR;
-            } else if (defined('PRIVATE_DIR')) {
-                $compileDir = PRIVATE_DIR . 'smarty';
+            } else if (defined('OCTOPUS_PRIVATE_DIR')) {
+                $compileDir = OCTOPUS_PRIVATE_DIR . 'smarty';
             } else if ($app) {
 
                 $compileDir = $app->getOption('SMARTY_COMPILE_DIR');
                 if (!$compileDir) {
-                    $compileDir = $app->getOption('PRIVATE_DIR') . 'smarty';
+                    $compileDir = $app->getOption('OCTOPUS_PRIVATE_DIR') . 'smarty';
                 }
 
             } else {
