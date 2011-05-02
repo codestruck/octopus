@@ -5,13 +5,19 @@
      * app should include this file first.
      */
 
-    define('INCLUDES_DIR', dirname(__FILE__) . '/');
-    define('OCTOPUS_DIR', dirname(INCLUDES_DIR) . '/');
-    define('ROOT_DIR', dirname(OCTOPUS_DIR) . '/');
-    define('FUNCTIONS_DIR', INCLUDES_DIR . 'functions/');
-    define('CLASSES_DIR', INCLUDES_DIR . 'classes/');
-    define('EXTERNALS_DIR', OCTOPUS_DIR . 'externals/');
-    define('PRIVATE_DIR', ROOT_DIR . '_private/');
+    define('OCTOPUS_INCLUDES_DIR', dirname(__FILE__) . '/');
+    define('OCTOPUS_DIR', dirname(OCTOPUS_INCLUDES_DIR) . '/');
+    define('OCTOPUS_FUNCTIONS_DIR', OCTOPUS_INCLUDES_DIR . 'functions/');
+    define('OCTOPUS_CLASSES_DIR', OCTOPUS_INCLUDES_DIR . 'classes/');
+    define('OCTOPUS_EXTERNALS_DIR', OCTOPUS_DIR . 'externals/');
+
+    if (!defined('ROOT_DIR')) {
+        define('ROOT_DIR', dirname(OCTOPUS_DIR) . '/');
+    }
+
+    if (!defined('PRIVATE_DIR')) {
+        define('PRIVATE_DIR', ROOT_DIR . '_private/');
+    }
 
     /**
      * Spins up a new instance of the application.
@@ -36,13 +42,13 @@
         // Core function includes
         ////////////////////////////////////////////////////////////////////////
 
-        require_once(FUNCTIONS_DIR . 'debug.php');
-        require_once(FUNCTIONS_DIR . 'misc.php');
-        require_once(FUNCTIONS_DIR . 'strings.php');
-        require_once(FUNCTIONS_DIR . 'files.php');
-        require_once(FUNCTIONS_DIR . 'http.php');
-        require_once(FUNCTIONS_DIR . 'html.php');
-        require_once(FUNCTIONS_DIR . 'compat.php');
+        require_once(OCTOPUS_FUNCTIONS_DIR . 'debug.php');
+        require_once(OCTOPUS_FUNCTIONS_DIR . 'misc.php');
+        require_once(OCTOPUS_FUNCTIONS_DIR . 'strings.php');
+        require_once(OCTOPUS_FUNCTIONS_DIR . 'files.php');
+        require_once(OCTOPUS_FUNCTIONS_DIR . 'http.php');
+        require_once(OCTOPUS_FUNCTIONS_DIR . 'html.php');
+        require_once(OCTOPUS_FUNCTIONS_DIR . 'compat.php');
 
         ////////////////////////////////////////////////////////////////////////
         // Spin up an app instance

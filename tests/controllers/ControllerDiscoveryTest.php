@@ -49,7 +49,7 @@ class ControllerDiscoveryTest extends PHPUnit_Framework_TestCase {
             'OCTOPUS_DIR' => self::$testDir . "/octopus",
             'SITE_DIR' => self::$testDir . "/site",
             'ROOT_DIR' => ROOT_DIR,
-            'INCLUDES_DIR' => INCLUDES_DIR,
+            'OCTOPUS_INCLUDES_DIR' => OCTOPUS_INCLUDES_DIR,
             'use_site_config' => false
         ));
 

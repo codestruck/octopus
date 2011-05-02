@@ -1,35 +1,51 @@
 <?php
 
-class SG {
+/**
+ * Class locator.
+ */
+class Octopus {
 
     private static $_externals = array();
 
-    public static function loadClass($classname) {
+    /**
+     * Locates the given class and makes it available.
+     * @param $classname String The class to find and load.
+     * @param $errorWhenMissing bool Whether or not to crap out when the class
+     * isn't found.
+     * @return bool True if class was found and loaded, false otherwise.
+     */
+    public static function loadClass($classname, $errorWhenMissing = true) {
 
-        if (!class_exists($classname)) {
-
-            $classname = str_replace('SG_', '', $classname);
-
-            $filedir = str_replace('_', DIRECTORY_SEPARATOR, $classname);
-            $file = $filedir . '.php';
-
-            $dirs = array(dirname(__FILE__) . '/');
-
-            if (defined('SITE_DIR')) {
-                array_unshift($dirs, SITE_DIR . 'classes/');
-            }
-
-            $filepath = get_file($file, $dirs);
-
-            if (!$filepath) {
-                trigger_error("SG::loadClass('$classname') - class not found", E_USER_WARNING);
-            }
-
-            require_once($filepath);
-
+        if (class_exists($classname)) {
+            return true;
         }
 
+        $classname = str_replace('SG_', '', $classname);
+
+        $filedir = str_replace('_', DIRECTORY_SEPARATOR, $classname);
+        $file = $filedir . '.php';
+
+        $dirs = array(dirname(__FILE__) . '/');
+
+        if (defined('SITE_DIR')) {
+            array_unshift($dirs, SITE_DIR . 'classes/');
+        }
+
+        $filepath = get_file($file, $dirs);
+
+        if (!$filepath) {
+
+            if ($errorWhenMissing) {
+                trigger_error("Octopus::loadClass('$classname') - class not found", E_USER_WARNING);
+            }
+
+            return false;
+        }
+
+        require_once($filepath);
+        return true;
     }
+
 
     /**
      * Includes an external library.
@@ -45,10 +61,10 @@ class SG {
 
         $dir = '';
 
-        if (defined('EXTERNALS_DIR')) {
-            $dir = EXTERNALS_DIR;
-        } else if (class_exists('SG_App') && SG_App::isStarted()) {
-            $dir = SG_App::singleton()->getOption('EXTERNALS_DIR');
+        if (class_exists('SG_App') && SG_App::isStarted()) {
+            $dir = SG_App::singleton()->getOption('OCTOPUS_EXTERNALS_DIR');
+        } else if (defined('OCTOPUS_EXTERNALS_DIR')) {
+            $dir = OCTOPUS_EXTERNALS_DIR;
         }
 
         $EXTERNAL_DIR = "{$dir}{$name}/";
@@ -62,7 +78,10 @@ class SG {
         }
     }
 
-    function loadModel($classname) {
+    /**
+     * Makes a model class available.
+     */
+    public static function loadModel($classname) {
 
         $classname = start_in('SG_Model_', $classname);
 
@@ -89,8 +108,22 @@ class SG {
 
     }
 
+
 }
 
-SG::loadClass('SG_Base');
+
+if (class_exists('SG')) {
+
+    // We are running alongside solecms.
+
+    Octopus::loadClass('SG_Base');
+
+} else {
+
+    // We are running standalone.
+    class SG extends Octopus {}
+    SG::loadClass('SG_Base');
+
+}
 
 ?>

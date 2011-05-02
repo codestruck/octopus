@@ -360,7 +360,7 @@ class SG_App {
     private function _figureOutDirectories() {
 
         $o = &$this->_options;
-        $dirs = array('OCTOPUS_DIR', 'ROOT_DIR',  'SITE_DIR', 'INCLUDES_DIR', 'FUNCTIONS_DIR', 'CLASSES_DIR', 'PRIVATE_DIR', 'EXTERNALS_DIR');
+        $dirs = array('OCTOPUS_DIR', 'ROOT_DIR',  'SITE_DIR', 'OCTOPUS_INCLUDES_DIR', 'OCTOPUS_FUNCTIONS_DIR', 'OCTOPUS_CLASSES_DIR', 'PRIVATE_DIR', 'OCTOPUS_EXTERNALS_DIR');
 
         foreach($dirs as $dir) {
 
@@ -389,20 +389,20 @@ class SG_App {
                             $o[$dir] = $o['ROOT_DIR'] . '_private';
                             break;
 
-                        case 'EXTERNALS_DIR':
+                        case 'OCTOPUS_EXTERNALS_DIR':
                             $o[$dir] = $o['OCTOPUS_DIR'] . 'externals';
                             break;
 
-                        case 'INCLUDES_DIR':
+                        case 'OCTOPUS_INCLUDES_DIR':
                             $o[$dir] = $o['OCTOPUS_DIR'] . 'includes/';
                             break;
 
-                        case 'FUNCTIONS_DIR':
-                            $o[$dir] = $o['INCLUDES_DIR'] . 'functions/';
+                        case 'OCTOPUS_FUNCTIONS_DIR':
+                            $o[$dir] = $o['OCTOPUS_INCLUDES_DIR'] . 'functions/';
                             break;
 
-                        case 'CLASSES_DIR':
-                            $o[$dir] = $o['INCLUDES_DIR'] . 'classes/';
+                        case 'OCTOPUS_CLASSES_DIR':
+                            $o[$dir] = $o['OCTOPUS_INCLUDES_DIR'] . 'classes/';
                             break;
 
                     }

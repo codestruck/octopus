@@ -1,6 +1,6 @@
 <?php
 
-require_once(FUNCTIONS_DIR . 'compat.php');
+require_once(OCTOPUS_FUNCTIONS_DIR . 'compat.php');
 
 class CallingBase {
 
