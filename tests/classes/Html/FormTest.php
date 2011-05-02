@@ -1,190 +1,183 @@
 <?php
 
-SG::loadClass('SG_Html_Form');
-SG::loadClass('SG_Html_Form_Select');
+SG::loadClass('SG_Html_TestCase');
 
+SG::loadClass('SG_Html_Form');
 
 class FormTest extends PHPUnit_Framework_TestCase {
 
-    function testSelectExplicitOptions() {
+    function testNothing() {}
 
-        $s = new SG_Html_Form_Select('test');
+    function dontTestBasicFormUsage() {
 
-        $s->addOption(42, 'The Answer')->addClass('ultimateQuestion');
-        $s->addOptions(array(
-            1 => 'One',
-            2 => 'Two',
-            3 => 'Three',
-        ));
-        $s->addOption('Hi There', array('class' => 'sameTextAndValue'));
+        $form = new SG_Html_Form('testForm', 'post');
+        $form->action = 'whatever.php';
 
-        $expected = <<<END
-<select name="test">
-    <option value="42" class="ultimateQuestion">The Answer</option>
-    <option value="1">One</option>
-    <option value="2">Two</option>
-    <option value="3">Three</option>
-    <option value="Hi There" class="sameTextAndValue">Hi There</option>
-</select>
-END;
+        $form->add('name', 'text')
+            ->autoFocus()
+            ->required();
 
-        $this->assertHtmlEquals($expected, $s->render(true));
+        $form->add('email')
+            ->required()
+            ->mustBe('email');
 
-    }
+        $form->add('submit');
 
-    function testSelectValue() {
+        $form->setValues(array('name' => 'Joe Blow', 'email' => 'joe@blow.com'));
 
-        $s = new SG_Html_Form_Select('test');
-        $s->addOptions(array(
-           1 => 'Foo',
-           2 => 'Bar'
-        ));
-
-        $s->val(2);
-        $this->assertEquals(2, $s->val());
-
-        $expected = <<<END
-<select name="test">
-    <option value="1">Foo</option>
-    <option value="2" selected>Bar</option>
-</select>
-END;
-
-        $this->assertHtmlEquals($expected, $s->render(true));
-
-        $s->val(1);
-        $expected = <<<END
-<select name="test">
-    <option value="1" selected>Foo</option>
-    <option value="2">Bar</option>
-</select>
-END;
-
-        $this->assertHtmlEquals($expected, $s->render(true));
-
-        $s->setAttribute('value', 'missing');
-        $expected = <<<END
-<select name="test">
-    <option value="1">Foo</option>
-    <option value="2">Bar</option>
-</select>
-END;
-
-        $this->assertHtmlEquals($expected, $s->render(true));
-
-    }
-
-    function testSelectUsingFunctionForOptions() {
-
-        $sel = new SG_Html_Form_Select('test');
-        $sel->addOptions(array($this, '_test_get_options'));
-
-        $expected = <<<END
-<select name="test">
-    <option value="1">Foo</option>
-    <option value="2">Bar</option>
-</select>
-END;
-        $this->assertHtmlEquals($expected, $sel->render(true));
-
-    }
-
-    function _test_get_options($sel) {
-
-        $this->assertTrue(!!$sel, 'SG_Html_Form_Select should be passed to function factory');
-        $this->assertEquals('test', $sel->name);
-
-        return array(
-          1 => 'Foo',
-          2 => 'Bar'
+        $this->assertHtmlEquals(
+<<<END
+<form id="testForm" method="post" action="whatever.php">
+    <div id="nameField" class="name text field required">
+        <label for="name">Name:</label>
+        <input type="text" id="nameInput" class="name text required" name="name" value="Joe Blow" autofocus required />
+    </div>
+    <div id="emailField" class="email text field required">
+        <label for="email">Email:</label>
+        <input type="email" id="emailInput" class="email text required" name="email" value="joe@blow.com" required />
+    </div>
+    <div class="buttons">
+        <input type="submit" />
+    </div>
+</form>
+END
+            ,
+            $form->render(true)
         );
 
     }
 
-    function testSelectUsingArrays() {
+    function saveTemplate($text) {
 
-        $fieldsToTry = array(
-            array('id', 'text'),
-            array('some_id', 'name'),
-            array('value', 'description')
+        $templateFile = '.form_template_test.tpl';
+        if (is_file($templateFile)) unlink($templateFile);
+
+        file_put_contents($templateFile, $text);
+        return $templateFile;
+    }
+
+    function dontTestTemplateFormFieldLabel() {
+
+        $file = $this->saveTemplate('{name.label}');
+
+        $form = new SG_Html_Form('label');
+        $form->template = $file;
+        $form->add('name');
+
+        $this->assertHtmlEquals('Name:', $form->render(true));
+    }
+
+    function dontTestTemplateFormFieldHtml() {
+        $file = $this->saveTemplate('{name.html}');
+
+        $form = new SG_Html_Form('field');
+        $form->template = $file;
+        $form->add('name');
+
+        $this->assertHtmlEquals('<input type="text" name="name" id="nameInput" class="name text" value="" />', $form->render(true));
+    }
+
+    function dontTestTemplateFormFieldAttributes() {
+
+        $file = $this->saveTemplate('{name.attributes}');
+
+        $form = new SG_Html_Form('attributes');
+        $form->template = $file;
+        $form->add('name');
+
+        $this->assertEquals(
+            'type="text" name="name" id="nameInput" class="name text" value=""',
+            $form->render(true)
         );
 
-        foreach($fieldsToTry as $fields) {
+    }
 
-            $idField = array_shift($fields);
-            $textField = array_shift($fields);
+    function dontTestTemplateFormFieldIteration() {
 
-            $foo = array($idField => 1, $textField => 'Foo');
-            $bar = array($idField => 2, $textField => 'Bar');
+        $form = new SG_Html_Form('iteration');
+        $form->template = $this->saveTemplate(<<<END
+{foreach from=\$fields item=f}
+{\$f.name}
+{/foreach}
+END
+        );
 
-            $sel = new SG_Html_Form_Select('test');
-            $sel->addOptions(array($foo, $bar));
+        $form->add('name');
+        $form->add('email');
+        $form->add('foo');
 
-            $expected = <<<END
-<select name="test">
-    <option value="{$foo[$idField]}">{$foo[$textField]}</option>
-    <option value="{$bar[$idField]}">{$bar[$textField]}</option>
-</select>
-END;
+        $this->assertEquals(<<<END
+name
+email
+foo
+END
+            ,
+            $form->render(true)
+        );
 
-            $this->assertHtmlEquals($expected, $sel->render(true));
+    }
+    function dontTestTemplateFormFieldErrors() {
 
+        $file = $this->saveTemplate('{name.errors}');
+
+        $form = new SG_Html_Form('errors');
+        $form->template = $file;
+        $form->add('name')->required('Name is required.');
+        $form->setValues(array());
+
+        $this->assertHtmlEquals(
+<<<END
+<ul class="errors">
+    <li>Name is required.</li>
+</ul>
+END
+            ,
+            $form->render(true)
+        );
+
+    }
+
+    function dontTestTemplateFormErrors() {
+
+        $form = new SG_Html_Form('errors');
+        $form->template = $this->saveTemplate('{$errors}');
+        $form->add('name')->required('Name is required.');
+        $form->add('email')->required('Email is required.');
+
+        $this->assertHtmlEquals(
+<<<END
+<ul class="errors">
+    <li>Name is required.</li>
+    <li>Email is required.</li>
+</ul>
+END
+            ,
+            $form->render(true)
+        );
+
+    }
+
+    function dontTestTemplateFormIndividualAttributes() {
+
+        $tests = array(
+            'type' => 'text',
+            'id' => 'nameInput',
+            'name' => 'name',
+            'class' => 'name text',
+            'value' => '',
+            'autofocus' => 'autofocus'
+        );
+
+        foreach($tests as $attr => $value) {
+
+            $form = new SG_Html_Form('attr');
+            $form->add('name')->autoFocus();
+
+            $form->template = $this->saveTemplate("{\$name.$attr}");
+            $this->assertEquals($value, $form->render(true), 'failed on ' . $attr);
         }
-    }
-
-
-    function testSelectUsingObjects() {
-
-        $foo = new StdClass();
-        $bar = new StdClass();
-
-        $fieldsToTry = array(
-            array('id', 'text'),
-            array('some_id', 'name'),
-            array('value', 'description')
-        );
-
-        foreach($fieldsToTry as $fields) {
-
-            $idField = array_shift($fields);
-            $textField = array_shift($fields);
-
-            $foo = new StdClass();
-            $foo->$idField = 1;
-            $foo->$textField = 'Foo';
-
-            $bar = new StdClass();
-            $bar->$idField = 2;
-            $bar->$textField = 'Bar';
-
-            $sel = new SG_Html_Form_Select('test');
-            $sel->addOptions(array($foo, $bar));
-
-            $expected = <<<END
-<select name="test">
-    <option value="{$foo->$idField}">{$foo->$textField}</option>
-    <option value="{$bar->$idField}">{$bar->$textField}</option>
-</select>
-END;
-
-            $this->assertHtmlEquals($expected, $sel->render(true));
-
-        }
-
 
     }
-
-    function assertHtmlEquals($expected, $actual, $message = '') {
-
-        $whitespacePattern = '/\s{2,}/';
-
-        $expected = trim(preg_replace($whitespacePattern, '', $expected));
-        $actual = trim(preg_replace($whitespacePattern, '', $expected));
-
-        $this->assertEquals($expected, $actual, $message);
-
-    }
-
 }
 
 ?>
