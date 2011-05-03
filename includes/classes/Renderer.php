@@ -3,7 +3,7 @@
 /**
  * Base class for a renderer.
  */
-class SG_Renderer {
+class Octopus_Renderer {
 
     private static $_registry = array();
     protected $_file;
@@ -21,7 +21,7 @@ class SG_Renderer {
 
         foreach(self::$_registry as $pattern => $class) {
             if (preg_match($pattern, $filename)) {
-                SG::loadClass($class);
+                Octopus::loadClass($class);
                 return new $class($filename);
             }
         }
@@ -34,7 +34,7 @@ class SG_Renderer {
     }
 }
 
-SG_Renderer::register('/\.php$/i', 'SG_Renderer_PHP');
-SG_Renderer::register('/\.tpl$/i', 'SG_Renderer_Smarty');
+Octopus_Renderer::register('/\.php$/i', 'Octopus_Renderer_PHP');
+Octopus_Renderer::register('/\.tpl$/i', 'Octopus_Renderer_Smarty');
 
 ?>

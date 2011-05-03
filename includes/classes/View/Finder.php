@@ -3,7 +3,7 @@
 /**
  * Class encapsulating how the app searches for views.
  */
-class SG_View_Finder {
+class Octopus_View_Finder {
 }
 
 ?>

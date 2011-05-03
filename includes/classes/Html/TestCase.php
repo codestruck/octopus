@@ -3,7 +3,7 @@
 /**
  * Custom testcase for testing stuff that generates HTML.
  */
-abstract class SG_Html_TestCase extends PHPUnit_Framework_TestCase {
+abstract class Octopus_Html_TestCase extends PHPUnit_Framework_TestCase {
 
     /**
      * Asserts two chunks of HTML are equal.

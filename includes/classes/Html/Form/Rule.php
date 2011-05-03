@@ -3,7 +3,7 @@
 /**
  * A validation rule.
  */
-abstract class SG_Html_Form_Rule {
+abstract class Octopus_Html_Form_Rule {
 
     public $message;
 
@@ -29,7 +29,7 @@ abstract class SG_Html_Form_Rule {
 
     /**
      * Performs validation.
-     * @param $field Object The SG_Form_Field being validated.
+     * @param $field Object The Octopus_Form_Field being validated.
      * @param $data Array All data posted for the form.
      */
     public abstract function validate($field, $data);

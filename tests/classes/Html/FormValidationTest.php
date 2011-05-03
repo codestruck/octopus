@@ -1,13 +1,13 @@
 <?php
 
-SG::loadClass('SG_Html_Form');
+Octopus::loadClass('Octopus_Html_Form');
 
 class FormValidationTest extends PHPUnit_Framework_TestCase {
 
     /*
     function testCallbackValidation() {
 
-        $form = new SG_Html_Form('callback');
+        $form = new Octopus_Html_Form('callback');
         $form->add('foo')->passesCallback();
 
     }
@@ -15,7 +15,7 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
 
     function testRegexValidate() {
 
-        $form = new SG_Html_Form('regex');
+        $form = new Octopus_Html_Form('regex');
 
         $form->add('foo')
             ->mustMatch('/^\s*\d+(-\d+)?\s*$/');
@@ -40,7 +40,7 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
 
     function testRangeValidation() {
 
-        $form = new SG_Html_Form('range');
+        $form = new Octopus_Html_Form('range');
 
         $form->add('foo')
             ->between(1, 10);
@@ -79,7 +79,7 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
 
     function testRequiredValidation() {
 
-        $form = new SG_Html_Form('reqForm');
+        $form = new Octopus_Html_Form('reqForm');
         $field = $form->add('name', 'text')->required();
 
         $this->assertTrue(count($field->getRules()) === 1, 'Field should have a required rule on it');

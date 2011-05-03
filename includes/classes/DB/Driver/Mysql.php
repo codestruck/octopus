@@ -1,10 +1,10 @@
 <?php
 
-SG::loadClass('SG_Logger_File');
+Octopus::loadClass('Octopus_Logger_File');
 
-class SG_DB_Driver_Mysql {
+class Octopus_DB_Driver_Mysql {
 
-    function SG_DB_Driver_Mysql() {
+    function Octopus_DB_Driver_Mysql() {
         $this->handle = null;
         $this->queries = array();
 
@@ -16,33 +16,33 @@ class SG_DB_Driver_Mysql {
 
         if ($this->handle === null) {
 
-            $SG_username = DB_username;
-            $SG_password = DB_password;
-            $SG_hostname = DB_hostname;
-            $SG_database = DB_database;
+            $Octopus_username = DB_username;
+            $Octopus_password = DB_password;
+            $Octopus_hostname = DB_hostname;
+            $Octopus_database = DB_database;
 
-            $this->handle = @mysql_connect($SG_hostname, $SG_username, $SG_password);
+            $this->handle = @mysql_connect($Octopus_hostname, $Octopus_username, $Octopus_password);
 
             if (!$this->handle) {
                 $msg = 'Problem connecting to database server.';
-                $logger = new SG_Logger_File(LOG_DIR . 'db.txt');
+                $logger = new Octopus_Logger_File(LOG_DIR . 'db.txt');
                 $logger->log($msg);
                 die($msg);
             }
 
-            $selectDB = mysql_select_db($SG_database);
+            $selectDB = mysql_select_db($Octopus_database);
 
             if (!$selectDB) {
                 $msg = 'Database does not exist, or missing permissions.';
-                $logger = new SG_Logger_File(LOG_DIR . 'db.txt');
+                $logger = new Octopus_Logger_File(LOG_DIR . 'db.txt');
                 $logger->log($msg);
                 die($msg);
             }
 
-            $this->database = $SG_database;
+            $this->database = $Octopus_database;
             $this->connection = $this->handle;
 
-            if (SG_ENCODING == 'UTF-8') {
+            if (Octopus_ENCODING == 'UTF-8') {
                 mysql_query("SET NAMES 'utf8'");
             } else {
                 mysql_query("SET NAMES 'latin1'");

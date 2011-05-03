@@ -1,11 +1,11 @@
 <?php
 
-SG::loadClass('SG_Renderer');
+Octopus::loadClass('Octopus_Renderer');
 
 /**
  * Class responsible for locating controllers and rendering views.
  */
-class SG_Dispatcher {
+class Octopus_Dispatcher {
 
     public static $defaultTemplate = 'html/page';
 
@@ -14,14 +14,14 @@ class SG_Dispatcher {
     private $_app;
 
     public function __construct($app = null) {
-        $this->_app = ($app ? $app : SG_App::singleton());
+        $this->_app = ($app ? $app : Octopus_App::singleton());
     }
 
     /**
-     * Given a path, renders the page and generates an SG_Response
+     * Given a path, renders the page and generates an Octopus_Response
      * instance for it.
      * @param $path String A path in the app.
-     * @return Object An SG_Response instance.
+     * @return Object An Octopus_Response instance.
      */
     public function &getResponse($path) {
 
@@ -49,7 +49,7 @@ class SG_Dispatcher {
             }
         }
 
-        $response = new SG_Response();
+        $response = new Octopus_Response();
 
         if (empty($info['action'])) {
 
@@ -92,9 +92,9 @@ class SG_Dispatcher {
     }
 
     /**
-     * Given the controller info array from an SG_Nav_Item, instantiates the
+     * Given the controller info array from an Octopus_Nav_Item, instantiates the
      * appropriate controller instance.
-     * @return Object An SG_Controller if found, otherwise NULL.
+     * @return Object An Octopus_Controller if found, otherwise NULL.
      */
     protected function &createController(&$info, $response) {
 
@@ -369,7 +369,7 @@ class SG_Dispatcher {
         $viewContent = $templateContent = '';
 
         if ($viewFile) {
-            $viewRenderer = SG_Renderer::createForFile($viewFile);
+            $viewRenderer = Octopus_Renderer::createForFile($viewFile);
             $viewContent = $viewRenderer->render($data);
         } else {
             // TODO handle view not found
@@ -378,7 +378,7 @@ class SG_Dispatcher {
         }
 
         if ($templateFile) {
-            $templateRenderer = SG_Renderer::createForFile($templateFile);
+            $templateRenderer = Octopus_Renderer::createForFile($templateFile);
             $data['view_content'] = $viewContent;
             $templateContent = $templateRenderer->render($data);
         } else {

@@ -1,12 +1,12 @@
 <?php
 
-SG::loadClass('SG_Html_Element');
+Octopus::loadClass('Octopus_Html_Element');
 
 class ElementTests extends PHPUnit_Framework_TestCase {
 
     function testSingleTagRender() {
 
-        $e = new SG_Html_Element('img', array('src' => 'test.png', 'alt' => 'Alt Text'));
+        $e = new Octopus_Html_Element('img', array('src' => 'test.png', 'alt' => 'Alt Text'));
         $this->assertEquals(
             '<img src="test.png" alt="Alt Text" />',
             $e->render(true)
@@ -16,7 +16,7 @@ class ElementTests extends PHPUnit_Framework_TestCase {
 
     function testAttributes() {
 
-        $e = new SG_Html_Element('span');
+        $e = new Octopus_Html_Element('span');
         $e->class = 'testClass';
         $e->setAttribute('lang', 'en-us');
         $e->css('font-weight', 'bold');
@@ -68,7 +68,7 @@ class ElementTests extends PHPUnit_Framework_TestCase {
 
     function testAddAndRemoveClass() {
 
-        $e = new SG_Html_Element('span');
+        $e = new Octopus_Html_Element('span');
         $e->addClass('foo');
         $this->assertEquals('<span class="foo" />', $e->render(true));
 
@@ -99,7 +99,7 @@ class ElementTests extends PHPUnit_Framework_TestCase {
 
     function testSetInnerText() {
 
-        $e = new SG_Html_Element('span');
+        $e = new Octopus_Html_Element('span');
         $e->text('<escape> & <test>');
         $this->assertEquals(
             '<span>&lt;escape&gt; &amp; &lt;test&gt;</span>',
@@ -110,7 +110,7 @@ class ElementTests extends PHPUnit_Framework_TestCase {
 
     function testSetInnerHtml() {
 
-        $e = new SG_Html_Element('span');
+        $e = new Octopus_Html_Element('span');
         $e->html('<b>bold!</b>');
 
         $this->assertEquals('<span><b>bold!</b></span>', $e->render(true));

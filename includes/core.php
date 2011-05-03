@@ -58,15 +58,15 @@
         // Core class includes
         ////////////////////////////////////////////////////////////////////////
 
-        require_once(OCTOPUS_DIR . 'includes/classes/SG.php');
+        require_once(OCTOPUS_DIR . 'includes/classes/Octopus.php');
 
         ////////////////////////////////////////////////////////////////////////
         // Spin up an App instance
         ////////////////////////////////////////////////////////////////////////
 
         if ($options['start_app']) {
-            SG::loadClass('SG_App');
-            SG_App::start($options);
+            Octopus::loadClass('Octopus_App');
+            Octopus_App::start($options);
         }
 
     }
@@ -78,7 +78,7 @@
      */
     function render_page($path = null) {
 
-        $app = SG_App::singleton();
+        $app = Octopus_App::singleton();
         $response = $app->getResponse($path);
         $response->flush();
 

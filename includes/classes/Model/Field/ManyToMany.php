@@ -1,6 +1,6 @@
 <?php
 
-class SG_Model_Field_ManyToMany extends SG_Model_Field {
+class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
 
     public function save($model, $sqlQuery) {
         // do nothing
@@ -10,7 +10,7 @@ class SG_Model_Field_ManyToMany extends SG_Model_Field {
         $type = strtolower(get_class($model));
         $value = $model->id;
 
-        return new SG_Model_ResultSet($this->field, array(pluralize($type) => $value));
+        return new Octopus_Model_ResultSet($this->field, array(pluralize($type) => $value));
     }
 
     public function restrict($operator, $value, &$s, &$params, $model) {
@@ -50,14 +50,14 @@ class SG_Model_Field_ManyToMany extends SG_Model_Field {
             $type = strtolower(get_class($model));
             $joinTable = $this->getJoinTableName(array($this->field, $type));
 
-            $d = new SG_DB_Delete();
+            $d = new Octopus_DB_Delete();
             $d->table($joinTable);
             $d->where($model->getPrimaryKey() . ' = ?', $model->id);
             $d->where($obj->getPrimaryKey() . ' = ?', $obj->id);
             $d->execute();
 
             if ($action == 'add') {
-                $i = new SG_DB_Insert();
+                $i = new Octopus_DB_Insert();
                 $i->table($joinTable);
                 $i->set($model->getPrimaryKey(), $model->id);
                 $i->set($obj->getPrimaryKey(), $obj->id);

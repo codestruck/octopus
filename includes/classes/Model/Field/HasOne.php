@@ -1,6 +1,6 @@
 <?php
 
-class SG_Model_Field_HasOne extends SG_Model_Field {
+class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
 
     public function accessValue($model, $saving = false) {
         // if we all ready have an object, return it

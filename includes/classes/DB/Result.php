@@ -1,8 +1,8 @@
 <?php
 
-class SG_DB_Result {
+class Octopus_DB_Result {
 
-    function SG_DB_Result($driver, $query) {
+    function Octopus_DB_Result($driver, $query) {
         $this->success = true;
         $this->driver = $driver;
         $this->query = $query;

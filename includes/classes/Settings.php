@@ -3,7 +3,7 @@
 /**
  * Class that manages app settings.
  */
-class SG_Settings extends SG_Base implements Iterator {
+class Octopus_Settings extends Octopus_Base implements Iterator {
 
     private $_settings = array();
     private $_values = array();
@@ -31,7 +31,7 @@ class SG_Settings extends SG_Base implements Iterator {
      */
     public function addFromYaml($yaml) {
 
-        SG::loadExternal('spyc_yaml');
+        Octopus::loadExternal('spyc_yaml');
         $data = load_yaml($yaml);
 
         return $this->addFromArray($data);
@@ -45,14 +45,14 @@ class SG_Settings extends SG_Base implements Iterator {
     }
 
     /**
-     * @return Object An SG_Html_Element for editing the given setting.
+     * @return Object An Octopus_Html_Element for editing the given setting.
      */
     public function createEditor($setting) {
 
         $options = isset($this->_settings[$setting]) ? $this->_settings[$setting] : array();
 
-        SG::loadClass('SG_Html_Form_Field');
-        $field = new SG_Html_Form_Field($setting);
+        Octopus::loadClass('Octopus_Html_Form_Field');
+        $field = new Octopus_Html_Form_Field($setting);
 
         if (isset($options['desc'])) {
             $field->setLabel($options['desc']);
@@ -92,7 +92,7 @@ class SG_Settings extends SG_Base implements Iterator {
 
         unset($this->_values[$setting]);
 
-        $d = new SG_DB_Delete();
+        $d = new Octopus_DB_Delete();
         $d->table('settings');
         $d->where('name = ?', $setting);
         $d->execute();
@@ -115,7 +115,7 @@ class SG_Settings extends SG_Base implements Iterator {
     public function resetAll() {
         $this->_values = array();
 
-        $d = new SG_DB_Delete();
+        $d = new Octopus_DB_Delete();
         $d->table('settings');
         $d->execute();
 
@@ -140,12 +140,12 @@ class SG_Settings extends SG_Base implements Iterator {
 
             $this->_values[$key] = $value;
 
-            $d = new SG_DB_Delete();
+            $d = new Octopus_DB_Delete();
             $d->table('settings');
             $d->where('name = ?', $key);
             $d->execute();
 
-            $i = new SG_DB_Insert();
+            $i = new Octopus_DB_Insert();
             $i->table('settings');
             $i->set('name', $key);
             $i->set('value', $value);
@@ -178,7 +178,7 @@ class SG_Settings extends SG_Base implements Iterator {
         if ($this->_loaded) return;
         $this->_loaded = true;
 
-        $s = new SG_DB_Select();
+        $s = new Octopus_DB_Select();
         $s->table('settings', array('name', 'value'));
         $this->_values = $s->getMap();
 

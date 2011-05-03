@@ -1,6 +1,6 @@
 <?php
 
-class SG_Model_Field_Numeric extends SG_Model_Field {
+class Octopus_Model_Field_Numeric extends Octopus_Model_Field {
 
 }
 

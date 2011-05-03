@@ -1,9 +1,9 @@
 <?php
 
 /**
- * An SG_Nav_Item based on a physical file.
+ * An Octopus_Nav_Item based on a physical file.
  */
-class SG_Nav_Item_File extends SG_Nav_Item {
+class Octopus_Nav_Item_File extends Octopus_Nav_Item {
 
     private $_file;
     private $_path;

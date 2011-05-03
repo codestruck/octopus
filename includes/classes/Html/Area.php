@@ -3,7 +3,7 @@
     /**
      * A chunk of a page.
      */
-    class SG_Html_Area {
+    class Octopus_Html_Area {
         
         static $defaults = array(
             'display_order' => 0

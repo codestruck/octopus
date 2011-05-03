@@ -1,7 +1,8 @@
 <?php
 
-SG::loadClass('SG_Logger_File');
-SG::loadExternal('htmlmimemail');
+Octopus::loadClass('Octopus_Logger_File');
+
+require_once(EXTERNAL_INCLUDE_DIR . 'htmlMimeMail/htmlMimeMail.php');
 
 define_unless('LOG_EMAILS', false);
 define_unless('SEND_EMAILS', true);
@@ -10,9 +11,9 @@ define_unless('SEND_EMAILS', true);
 define_unless('DATE_RFC822', 'D, d M y H:i:s O');
 
 
-class SG_Mail {
+class Octopus_Mail {
 
-    function SG_Mail() {
+    function Octopus_Mail() {
 
         $this->mailHandler = new htmlMimeMail();
 
@@ -184,7 +185,7 @@ END;
     }
     
     function _log($message) {
-        $log = new SG_Logger_File(LOG_DIR . 'mail.log');
+        $log = new Octopus_Logger_File(LOG_DIR . 'mail.log');
         $log->log($message);
     }
 

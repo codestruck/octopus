@@ -1,11 +1,11 @@
 <?php
 
-SG::loadClass('SG_DB');
-SG::loadClass('SG_Model');
+Octopus::loadClass('Octopus_DB');
+Octopus::loadClass('Octopus_Model');
 
 db_error_reporting(DB_PRINT_ERRORS);
 
-class User extends SG_Model {
+class User extends Octopus_Model {
     protected $fields = array(
         'name' => array(
             'required' => true
@@ -16,7 +16,7 @@ class User extends SG_Model {
     );
 }
 
-class Container extends SG_Model {
+class Container extends Octopus_Model {
     protected $fields = array(
         'name' => array(
             'required' => true,
@@ -30,7 +30,7 @@ class Container extends SG_Model {
     );
 }
 
-class Thing extends SG_Model {
+class Thing extends Octopus_Model {
     protected $fields = array(
         'name' => array(
             'required' => true,
@@ -44,7 +44,7 @@ class Thing extends SG_Model {
 /**
  * @group Model
  */
-class HierarchyTest extends SG_DB_TestCase
+class HierarchyTest extends Octopus_DB_TestCase
 {
     function __construct()
     {
@@ -83,7 +83,7 @@ class HierarchyTest extends SG_DB_TestCase
 
     function dropTables(&$db)
     {
-        $db =& SG_DB::singleton();
+        $db =& Octopus_DB::singleton();
         $db->query('DROP TABLE IF EXISTS users');
         $db->query('DROP TABLE IF EXISTS containers');
         $db->query('DROP TABLE IF EXISTS things');

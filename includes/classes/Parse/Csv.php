@@ -2,9 +2,9 @@
 
 ini_set('auto_detect_line_endings', true);
 
-class SG_Parse_Csv {
+class Octopus_Parse_Csv {
 
-    function SG_Parse_Csv($filename, $skipRows = 2) {
+    function Octopus_Parse_Csv($filename, $skipRows = 2) {
 
         $this->analyzeFile($filename);
 

@@ -1,6 +1,6 @@
 <?php
 
-class SysControllerTests extends SG_App_TestCase {
+class SysControllerTests extends Octopus_App_TestCase {
 
     function testSysControllerNotAvailableOutsideDev() {
 

@@ -34,7 +34,7 @@ END;
 
     }
 
-    $app = SG_App::singleton();
+    $app = Octopus_App::singleton();
     $response = $app->getResponse($path);
 
     echo $response->getContent();

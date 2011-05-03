@@ -1,9 +1,9 @@
 <?php
 
-SG::loadClass('SG_Nav_Item');
-SG::loadClass('SG_Nav_Item_File');
+Octopus::loadClass('Octopus_Nav_Item');
+Octopus::loadClass('Octopus_Nav_Item_File');
 
-class SG_Nav_Item_Directory extends SG_Nav_Item {
+class Octopus_Nav_Item_Directory extends Octopus_Nav_Item {
 
     public static $defaults = array(
         'filter' => '/\.(php|html?)$/i'
@@ -81,7 +81,7 @@ class SG_Nav_Item_Directory extends SG_Nav_Item {
                 $filter = $path . '/*';
                 foreach(glob($filter) as $file) {
 
-                    $item = new SG_Nav_Item_File($file);
+                    $item = new Octopus_Nav_Item_File($file);
                     $items[$item->getPath()] = $item;
                 }
 

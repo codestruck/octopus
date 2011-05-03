@@ -1,10 +1,10 @@
 <?php
 
-SG::loadClass('SG_Logger_File');
+Octopus::loadClass('Octopus_Logger_File');
 
-class SG_DB_Driver_Pdo {
+class Octopus_DB_Driver_Pdo {
 
-    function SG_DB_Driver_Pdo() {
+    function Octopus_DB_Driver_Pdo() {
         $this->handle = null;
         $this->lastSql = '';
     }
@@ -18,7 +18,7 @@ class SG_DB_Driver_Pdo {
 
             if (!$this->handle) {
                 $msg = 'Problem connecting to database server.';
-                $logger = new SG_Logger_File(LOG_DIR . 'db.txt');
+                $logger = new Octopus_Logger_File(LOG_DIR . 'db.txt');
                 $logger->log($msg);
                 die($msg);
             }

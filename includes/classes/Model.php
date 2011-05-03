@@ -1,14 +1,14 @@
 <?php
 
-SG::loadClass('SG_DB_Insert');
-SG::loadClass('SG_DB_Update');
-SG::loadClass('SG_DB_Select');
-SG::loadClass('SG_DB_Delete');
+Octopus::loadClass('Octopus_DB_Insert');
+Octopus::loadClass('Octopus_DB_Update');
+Octopus::loadClass('Octopus_DB_Select');
+Octopus::loadClass('Octopus_DB_Delete');
 
-SG::loadClass('SG_Model_Field');
-SG::loadClass('SG_Model_ResultSet');
+Octopus::loadClass('Octopus_Model_Field');
+Octopus::loadClass('Octopus_Model_ResultSet');
 
-abstract class SG_Model {
+abstract class Octopus_Model {
 
     /**
      * Name of column that stores the primary key. If not set in a subclass,
@@ -109,10 +109,10 @@ abstract class SG_Model {
         $pk = $this->getPrimaryKey();
 
         if ($this->$pk !== null) {
-            $i = new SG_DB_Update();
+            $i = new Octopus_DB_Update();
             $i->where($pk . ' = ?', $this->$pk);
         } else {
-            $i = new SG_DB_Insert();
+            $i = new Octopus_DB_Insert();
         }
 
         $i->table($this->getTableName());
@@ -135,7 +135,7 @@ abstract class SG_Model {
         $item_id = $this->$pk;
         $table = $this->getTableName();
 
-        $d = new SG_DB_Delete();
+        $d = new Octopus_DB_Delete();
         $d->table($table);
         $d->where($pk . ' = ?', $item_id);
         $d->execute();
@@ -243,7 +243,7 @@ abstract class SG_Model {
                 $name = is_array($options) ? $options['name'] : $options;
             }
 
-            $field = SG_Model_Field::getField($name, $options);
+            $field = Octopus_Model_Field::getField($name, $options);
             $fieldName = $field->getFieldName();
             self::$fieldHandles[$class][$fieldName] = $field;
         }
@@ -257,21 +257,21 @@ abstract class SG_Model {
     }
 
     /**
-     * @return Object An SG_Model_ResultSet containing all records.
+     * @return Object An Octopus_Model_ResultSet containing all records.
      */
     public static function &all() {
         return self::find();
     }
 
     /**
-     * @return Object an SG_Model_ResultSet
+     * @return Object an Octopus_Model_ResultSet
      */
     public static function &find(/* Variable */) {
 
         $criteria = func_get_args();
         $class = get_called_class();
 
-        $result = new SG_Model_ResultSet($class, $criteria);
+        $result = new Octopus_Model_ResultSet($class, $criteria);
         return $result;
     }
 

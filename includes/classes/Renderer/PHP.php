@@ -1,6 +1,6 @@
 <?php
 
-class SG_Renderer_PHP extends SG_Renderer {
+class Octopus_Renderer_PHP extends Octopus_Renderer {
 
     public function render($data) {
 
