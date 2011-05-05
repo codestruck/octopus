@@ -1,15 +1,15 @@
 <?php
 
-SG::loadClass('SG_DB_Schema_Reader');
-SG::loadClass('SG_DB_Schema');
+Octopus::loadClass('Octopus_DB_Schema_Reader');
+Octopus::loadClass('Octopus_DB_Schema');
 
-class SG_DB_Replace {
+class Octopus_DB_Replace {
 
     function replace($from, $to) {
 
         $fields = $this->getFields();
-        $schema = new SG_DB_Schema();
-        $db =& SG_DB::singleton();
+        $schema = new Octopus_DB_Schema();
+        $db =& Octopus_DB::singleton();
 
         foreach ($fields as $field) {
 
@@ -17,7 +17,7 @@ class SG_DB_Replace {
                 continue;
             }
 
-            $reader = new SG_DB_Schema_Reader($field[0]);
+            $reader = new Octopus_DB_Schema_Reader($field[0]);
             $dbFields = $reader->getFields();
 
             if (!in_array($field[1], array_keys($dbFields))) {

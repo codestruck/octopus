@@ -1,11 +1,11 @@
 <?php
 
-SG::loadClass('SG_DB');
-SG::loadClass('SG_Model');
+Octopus::loadClass('Octopus_DB');
+Octopus::loadClass('Octopus_Model');
 
 db_error_reporting(DB_PRINT_ERRORS);
 
-class Product extends SG_Model {
+class Product extends Octopus_Model {
     protected $fields = array(
         'name' => array(
             'required' => true
@@ -16,7 +16,7 @@ class Product extends SG_Model {
     );
 }
 
-class Group extends SG_Model {
+class Group extends Octopus_Model {
     protected $fields = array(
         'name' => array(
             'required' => true,
@@ -30,7 +30,7 @@ class Group extends SG_Model {
 /**
  * @group Model
  */
-class ModelManyToManyTest extends SG_DB_TestCase
+class ModelManyToManyTest extends Octopus_DB_TestCase
 {
     function __construct()
     {
@@ -66,7 +66,7 @@ class ModelManyToManyTest extends SG_DB_TestCase
 
     function dropTables(&$db)
     {
-        $db =& SG_DB::singleton();
+        $db =& Octopus_DB::singleton();
         $db->query('DROP TABLE IF EXISTS groups');
         $db->query('DROP TABLE IF EXISTS products');
         $db->query('DROP TABLE IF EXISTS group_product_join');

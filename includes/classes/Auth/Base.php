@@ -1,14 +1,14 @@
 <?php
 
-SG::loadExternal('phpass');
+Octopus::loadExternal('phpass');
 
-SG::loadClass('SG_Cookie');
-SG::loadClass('SG_DB_Delete');
-SG::loadClass('SG_DB_Insert');
-SG::loadClass('SG_DB_Select');
-SG::loadClass('SG_DB_Update');
-SG::loadClass('SG_Mail');
-SG::loadClass('SG_Settings');
+Octopus::loadClass('Octopus_Cookie');
+Octopus::loadClass('Octopus_DB_Delete');
+Octopus::loadClass('Octopus_DB_Insert');
+Octopus::loadClass('Octopus_DB_Select');
+Octopus::loadClass('Octopus_DB_Update');
+Octopus::loadClass('Octopus_Mail');
+Octopus::loadClass('Octopus_Settings');
 
 function createPassword($length) {
     $chars = "234567890abcdefghijkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -21,9 +21,9 @@ function createPassword($length) {
     return $password;
 }
 
-class SG_Auth_Base extends SG_Base {
+class Octopus_Auth_Base extends Octopus_Base {
 
-    function SG_Auth_Base() {
+    function Octopus_Auth_Base() {
         $this->user_id = null;
         $this->password_algo_strength = 8;
         $this->portable_passwords = TRUE;
@@ -54,7 +54,7 @@ class SG_Auth_Base extends SG_Base {
             $hash = md5(uniqid(rand(), true));
             $ip = $this->getUserAddress();
 
-            $i = new SG_DB_Insert();
+            $i = new Octopus_DB_Insert();
             $i->table('user_auth');
             $i->set('user_id', $this->info['user_id']);
             $i->set('auth_hash', $hash);
@@ -69,9 +69,9 @@ class SG_Auth_Base extends SG_Base {
                 $expire = time() + $this->rememberSeconds;
             }
 
-            SG_Cookie::set($this->cookieName, $hash, $expire, $this->cookiePath, null, $this->cookieSsl);
+            Octopus_Cookie::set($this->cookieName, $hash, $expire, $this->cookiePath, null, $this->cookieSsl);
 
-            $u = new SG_DB_Update();
+            $u = new Octopus_DB_Update();
             $u->table($this->table);
 
             $u = $this->updateLoginFields($u);
@@ -93,7 +93,7 @@ class SG_Auth_Base extends SG_Base {
 
     function cleanup() {
 
-        $d = new SG_DB_Delete();
+        $d = new Octopus_DB_Delete();
         $d->table('user_auth');
         $d->where('created < DATE_SUB(NOW(), INTERVAL ' . $this->rememberDays . ' DAY)');
         $d->where('realm = ?', $this->realm);
@@ -105,8 +105,8 @@ class SG_Auth_Base extends SG_Base {
 
         $checker = new PasswordHash($this->password_algo_strength, $this->portable_passwords);
 
-        $s = new SG_DB_Select();
-        $s->comment('SG_Admin_User_Auth::checkLogin');
+        $s = new Octopus_DB_Select();
+        $s->comment('Octopus_Admin_User_Auth::checkLogin');
         $s->table($this->table);
         $s->where($this->usernameField . ' = ?', $username);
         $s->where($this->hiddenField . ' = 0');
@@ -157,12 +157,12 @@ class SG_Auth_Base extends SG_Base {
         $checker = new PasswordHash($this->password_algo_strength, $this->portable_passwords);
         $hash = $checker->HashPassword($password);
 
-        $s = new SG_DB_Select();
+        $s = new Octopus_DB_Select();
         $s->table($this->table);
         $s->limit(1);
         $row = $s->fetchRow();
 
-        $u = new SG_DB_Update();
+        $u = new Octopus_DB_Update();
         $u->table($this->table);
         $u->set('password', $hash);
 
@@ -188,7 +188,7 @@ class SG_Auth_Base extends SG_Base {
         $checker = new PasswordHash($this->password_algo_strength, $this->portable_passwords);
         $hash = $checker->HashPassword($password);
 
-        $u = new SG_DB_Update();
+        $u = new Octopus_DB_Update();
         $u->table($this->table);
         $u->set('password', $hash);
         $u->set('password_salt', '');
@@ -196,14 +196,14 @@ class SG_Auth_Base extends SG_Base {
         $u->where($this->hiddenField . ' = 0');
         $u->execute();
 
-        $s = new SG_DB_Select();
+        $s = new Octopus_DB_Select();
         $s->table($this->table, array('email'));
         $s->where('user_id = ?', $this->user_id);
         $email = $s->getOne();
 
         if ($email) {
 
-            $settings =& SG_Settings::singleton();
+            $settings =& Octopus_Settings::singleton();
             $from = $settings->get('info_email');
             $site_name = $settings->get('site_name');
 
@@ -221,7 +221,7 @@ You may change it after logging in to the site.
 
 END;
 
-            $mail = new SG_Mail();
+            $mail = new Octopus_Mail();
             $mail->to($email);
             $mail->from($from);
             $mail->subject($subject);
@@ -235,15 +235,15 @@ END;
 
     function logout() {
 
-        $hash = SG_Cookie::get($this->cookieName);
+        $hash = Octopus_Cookie::get($this->cookieName);
         $this->user_id = null;
-        SG_Cookie::destroy($this->cookieName);
+        Octopus_Cookie::destroy($this->cookieName);
 
         if (!$hash) {
             return;
         }
 
-        $d = new SG_DB_Delete();
+        $d = new Octopus_DB_Delete();
         $d->table('user_auth');
         $d->where('auth_hash = ?', $hash);
         $d->where('realm = ?', $this->realm);
@@ -257,15 +257,15 @@ END;
             return true;
         }
 
-        $hash = SG_Cookie::get($this->cookieName);
+        $hash = Octopus_Cookie::get($this->cookieName);
 
         if ($hash) {
-            $log = new SG_Logger_File(LOG_DIR . 'auth.log');
+            $log = new Octopus_Logger_File(LOG_DIR . 'auth.log');
 
             $ip = $this->getUserAddress();
 
-            $s = new SG_DB_Select();
-            $s->comment('SG_Auth_Base::auth');
+            $s = new Octopus_DB_Select();
+            $s->comment('Octopus_Auth_Base::auth');
             $s->table('user_auth');
             $s->where('auth_hash = ?', $hash);
             $s->where('realm = ?', $this->realm);
@@ -308,8 +308,8 @@ END;
             }
 
             // check if user exists
-            $s = new SG_DB_Select();
-            $s->comment('SG_Auth_Base::auth');
+            $s = new Octopus_DB_Select();
+            $s->comment('Octopus_Auth_Base::auth');
             $s->table($this->table);
             $s->where('user_id = ?', $user_id);
             $result = $s->fetchRow();
@@ -331,8 +331,8 @@ END;
 
                 $hostname = gethostbyaddr($ip);
 
-                $u = new SG_DB_Update();
-                $u->comment('SG_Auth_Base::auth');
+                $u = new Octopus_DB_Update();
+                $u->comment('Octopus_Auth_Base::auth');
                 $u->table('user_auth');
                 $u->setNow('last_activity');
                 $u->set('auth_address', $ip);
@@ -349,7 +349,7 @@ END;
                 return true;
 
             } else {
-                $d = new SG_DB_Delete();
+                $d = new Octopus_DB_Delete();
                 $d->table('user_auth');
                 $d->where('auth_hash = ?', $hash);
                 $d->where('realm = ?', $this->realm);
@@ -379,7 +379,7 @@ END;
 
     function getApiKey() {
 
-        $_SESSION['api_key'] = substr(sha1('sole' . SG_Cookie::get($this->cookieName)), 5, 20);
+        $_SESSION['api_key'] = substr(sha1('sole' . Octopus_Cookie::get($this->cookieName)), 5, 20);
         return $_SESSION['api_key'];
 
     }

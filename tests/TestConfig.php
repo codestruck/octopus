@@ -9,12 +9,12 @@
 
     $hostname = trim(`hostname`);
     define('TEST_FIXTURE_DIR', dirname(__FILE__) . '/fixtures/');
-    require_once('SG_DB_TestCase.php');
-    require_once('SG_App_TestCase.php');
+    require_once('Octopus_DB_TestCase.php');
+    require_once('Octopus_App_TestCase.php');
 
     // put testing helpers somewhere
     function table_count($table) {
-        $s = new SG_DB_Select();
+        $s = new Octopus_DB_Select();
         $s->table($table);
         $query = $s->query();
 

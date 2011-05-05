@@ -1,8 +1,8 @@
 <?php
 
-SG::loadClass('SG_Html_Form_Field');
+Octopus::loadClass('Octopus_Html_Form_Field');
 
-class SG_Html_Form_Field_Select extends SG_Html_Form_Field {
+class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
 
     private $_valueFields = array('value', 'id', '/.*_id$/i');
     private $_textFields = array('name', 'title', 'desc', 'summary', 'description', 'text');
@@ -18,7 +18,7 @@ class SG_Html_Form_Field_Select extends SG_Html_Form_Field {
 
     /**
      * Adds a single option to this select.
-     * @return Object An SG_Html_Element for the option added.
+     * @return Object An Octopus_Html_Element for the option added.
      */
     public function addOption($value, $text = null, $attributes = null) {
 
@@ -155,7 +155,7 @@ class SG_Html_Form_Field_Select extends SG_Html_Form_Field {
         if ($attributes === null) $attributes = array();
         $attributes['value'] = $value;
 
-        $opt = new SG_Html_Element('option', $attributes);
+        $opt = new Octopus_Html_Element('option', $attributes);
         $opt->text($text);
 
         return $opt;
@@ -288,6 +288,6 @@ class SG_Html_Form_Field_Select extends SG_Html_Form_Field {
 
 }
 
-SG_Html_Form_Field::register('select', 'SG_Html_Form_Field_Select');
+Octopus_Html_Form_Field::register('select', 'Octopus_Html_Form_Field_Select');
 
 ?>

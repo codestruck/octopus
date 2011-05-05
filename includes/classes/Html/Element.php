@@ -3,7 +3,7 @@
 /**
  * Helper for generating HTML.
  */
-class SG_Html_Element {
+class Octopus_Html_Element {
 
     private $_tag;
     protected $_attributes;

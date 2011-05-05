@@ -1,9 +1,9 @@
 <?php
 
-SG::loadClass('SG_Base');
-SG::loadClass('SG_Html_Header');
+Octopus::loadClass('Octopus_Base');
+Octopus::loadClass('Octopus_Html_Header');
 
-class SG_Html_Page extends SG_Base {
+class Octopus_Html_Page extends Octopus_Base {
 
     private $_navItem;
 
@@ -20,7 +20,7 @@ class SG_Html_Page extends SG_Base {
     }
 
     function singleton() {
-        return SG_Base::base_singleton('SG_Html_Page');
+        return Octopus_Base::base_singleton('Octopus_Html_Page');
     }
 
 

@@ -1,12 +1,12 @@
 <?php
 
-SG::loadExternal('smarty');
+Octopus::loadExternal('smarty');
 
-class SG_Renderer_Smarty extends SG_Renderer {
+class Octopus_Renderer_Smarty extends Octopus_Renderer {
 
     public function render($data) {
 
-        $smarty = SG_Smarty::singleton()->smarty;
+        $smarty = Octopus_Smarty::singleton()->smarty;
         $smartyData = $smarty->createData();
 
         if (is_array($data)) {

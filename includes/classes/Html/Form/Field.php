@@ -1,8 +1,8 @@
 <?php
 
-SG::loadClass('SG_Html_Element');
+Octopus::loadClass('Octopus_Html_Element');
 
-class SG_Html_Form_Field extends SG_Html_Element {
+class Octopus_Html_Form_Field extends Octopus_Html_Element {
 
     private static $_registry = array();
 
@@ -85,8 +85,8 @@ class SG_Html_Form_Field extends SG_Html_Element {
      * Validates that input in this field is between two numbers.
      */
     public function between($inclusiveMin, $inclusiveMax, $message = null) {
-        SG::loadClass('SG_Html_Form_Field_Rule_Range');
-        return $this->addRule(new SG_Html_Form_Field_Rule_Range($inclusiveMin, $inclusiveMax, $message));
+        Octopus::loadClass('Octopus_Html_Form_Field_Rule_Range');
+        return $this->addRule(new Octopus_Html_Form_Field_Rule_Range($inclusiveMin, $inclusiveMax, $message));
     }
 
     /**
@@ -101,16 +101,16 @@ class SG_Html_Form_Field extends SG_Html_Element {
      * Adds a regular expression rule to this field.
      */
     public function mustMatch($pattern, $message = null) {
-        SG::loadClass('SG_Html_Form_Field_Rule_Regex');
-        return $this->addRule(new SG_Html_Form_Field_Rule_Regex($pattern, $message));
+        Octopus::loadClass('Octopus_Html_Form_Field_Rule_Regex');
+        return $this->addRule(new Octopus_Html_Form_Field_Rule_Regex($pattern, $message));
     }
 
     /**
      * Adds a callback rule to this field.
      */
     public function mustPass($callback, $message = null) {
-        SG::loadClass('SG_Html_Form_Field_Rule_Callback');
-        return $this->addRule(new SG_Html_Form_Field_Rule_Callback($callback, $message));
+        Octopus::loadClass('Octopus_Html_Form_Field_Rule_Callback');
+        return $this->addRule(new Octopus_Html_Form_Field_Rule_Callback($callback, $message));
     }
 
     /**
@@ -126,8 +126,8 @@ class SG_Html_Form_Field extends SG_Html_Element {
         if ($required) {
 
             if (!$this->_requiredRule) {
-                SG::loadClass('SG_Html_Form_Field_Rule_Required');
-                $this->_requiredRule = new SG_Html_Form_Field_Rule_Required();
+                Octopus::loadClass('Octopus_Html_Form_Field_Rule_Required');
+                $this->_requiredRule = new Octopus_Html_Form_Field_Rule_Required();
             }
 
             $this->_requiredRule->setMessage($message);
@@ -211,7 +211,7 @@ class SG_Html_Form_Field extends SG_Html_Element {
      */
     protected function createLabel() {
 
-        $label = new SG_Html_Element('label', array('for' => $this->name));
+        $label = new Octopus_Html_Element('label', array('for' => $this->name));
         $label->text(humanize($this->name) . ':');
 
         return $label;
@@ -222,7 +222,7 @@ class SG_Html_Form_Field extends SG_Html_Element {
      * @param $name String The unique name of this field type.
      * @param $class String The name of the class used for this field type
      * @param $attributes Array Default attributes for this input type.
-     * @param $tag String The tag this type uses, if $class is SG_Html_Element.
+     * @param $tag String The tag this type uses, if $class is Octopus_Html_Element.
      */
     public static function register($name, $class, $attributes = null) {
 
@@ -255,7 +255,7 @@ class SG_Html_Form_Field extends SG_Html_Element {
             $type = empty($attributes['type']) ? $name : $attributes['type'];
         }
 
-        $class = 'SG_Html_Form_Field';
+        $class = 'Octopus_Html_Form_Field';
 
         if (isset(self::$_registry[$type])) {
             $entry = self::$_registry[$type];
@@ -264,10 +264,10 @@ class SG_Html_Form_Field extends SG_Html_Element {
         }
 
 
-        SG::loadClass($class);
+        Octopus::loadClass($class);
 
-        if ($class == 'SG_Html_Form_Field') {
-            return new SG_Html_Form_Field('input', $name, $type, $attributes);
+        if ($class == 'Octopus_Html_Form_Field') {
+            return new Octopus_Html_Form_Field('input', $name, $type, $attributes);
         } else {
             return new $class($name, $type, $attributes);
         }
@@ -275,6 +275,6 @@ class SG_Html_Form_Field extends SG_Html_Element {
 
 }
 
-SG_Html_Form_Field::register('email', 'SG_Html_Form_Field', array('type' => 'email', 'class' => 'text'));
+Octopus_Html_Form_Field::register('email', 'Octopus_Html_Form_Field', array('type' => 'email', 'class' => 'text'));
 
 ?>

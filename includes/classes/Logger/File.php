@@ -1,8 +1,8 @@
 <?php
 
-class SG_Logger_File {
+class Octopus_Logger_File {
 
-    function SG_Logger_File($file) {
+    function Octopus_Logger_File($file) {
         $this->file = $file;
         $this->_handle = null;
     }

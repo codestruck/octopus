@@ -3,9 +3,9 @@
 /**
  * Controller used when none is specified.
  */
-class DefaultController extends SG_Controller {
+class DefaultController extends Octopus_Controller {
 
-    // This is set by SG_Dispatcher when using the default controller.
+    // This is set by Octopus_Dispatcher when using the default controller.
     public $requestedController = 'Default';
 
     public function defaultAction($action, $args) {

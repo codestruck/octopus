@@ -1,14 +1,14 @@
 <?php
 
-SG::loadClass('SG_Html_Form_Field');
+Octopus::loadClass('Octopus_Html_Form_Field');
 
-SG::loadClass('SG_Html_TestCase');
+Octopus::loadClass('Octopus_Html_TestCase');
 
-class FormFieldTest extends SG_Html_TestCase {
+class FormFieldTest extends Octopus_Html_TestCase {
 
     function testRenderTextField() {
 
-        $name = SG_Html_Form_Field::create('name', 'text', array('autofocus' => true));
+        $name = Octopus_Html_Form_Field::create('name', 'text', array('autofocus' => true));
 
         $this->assertHtmlEquals(
             '<input type="text" name="name" id="nameInput" class="name text" autofocus />',
@@ -24,7 +24,7 @@ class FormFieldTest extends SG_Html_TestCase {
 
     function testRenderEmailField() {
 
-        $email = SG_Html_Form_Field::create('email');
+        $email = Octopus_Html_Form_Field::create('email');
 
         $this->assertHtmlEquals(
             '<input type="email" name="email" id="emailInput" class="text email" />',

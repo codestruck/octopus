@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Class that handles searching for SG_Model instances.
+ * Class that handles searching for Octopus_Model instances.
  */
-class SG_Model_ResultSet implements Iterator, Countable {
+class Octopus_Model_ResultSet implements Iterator, Countable {
 
     private $_parent;
     private $_modelClass;
@@ -123,7 +123,7 @@ class SG_Model_ResultSet implements Iterator, Countable {
             return $this;
         }
 
-        $derivedSet = new SG_Model_ResultSet($this, null, $newOrderBy);
+        $derivedSet = new Octopus_Model_ResultSet($this, null, $newOrderBy);
         return $derivedSet;
     }
 
@@ -162,7 +162,7 @@ class SG_Model_ResultSet implements Iterator, Countable {
     /**
      * Takes a big fat criteria array and generates a WHERE clause.
      * @param $criteria Array Set of criteria to compile into a WHERE clause.
-     * @param $s Object SG_DB_Select being used.
+     * @param $s Object Octopus_DB_Select being used.
      * @param $sql String Variable to hold generated SQL.
      * @param $params Array Set of parameters referenced by $sql.
      */
@@ -240,7 +240,7 @@ class SG_Model_ResultSet implements Iterator, Countable {
                     $mc = $this->_modelClass;
                     $obj = new $mc();
                     $fieldName = $obj->getPrimaryKey();
-                    $criteriaSql = SG_Model_Field::defaultRestrict($fieldName, $operator, '=', $value, $s, $params, $obj);
+                    $criteriaSql = Octopus_Model_Field::defaultRestrict($fieldName, $operator, '=', $value, $s, $params, $obj);
                 } else {
                     $field = $this->_getField($fieldName);
                     if (!$field) {
@@ -298,7 +298,7 @@ class SG_Model_ResultSet implements Iterator, Countable {
     }
 
     /**
-     * @return Object A new SG_DB_Select instance.
+     * @return Object A new Octopus_DB_Select instance.
      */
     private function &_buildSelect($recreate = false) {
 
@@ -309,7 +309,7 @@ class SG_Model_ResultSet implements Iterator, Countable {
         $mc = $this->_modelClass;
         $obj = new $mc();
 
-        $s = new SG_DB_Select();
+        $s = new Octopus_DB_Select();
         $s->table($obj->getTableName());
 
         $sql = '';
@@ -327,7 +327,7 @@ class SG_Model_ResultSet implements Iterator, Countable {
     }
 
     /**
-     * Factory method used to generate an instance of SG_Model from the given
+     * Factory method used to generate an instance of Octopus_Model from the given
      * row of data.
      * @return Object A new model instance from the given row.
      */
@@ -426,7 +426,7 @@ class SG_Model_ResultSet implements Iterator, Countable {
 
         array_unshift($args, $operator);
 
-        $derivedSet = new SG_Model_ResultSet($this, $args, $this->_orderBy);
+        $derivedSet = new Octopus_Model_ResultSet($this, $args, $this->_orderBy);
         return $derivedSet;
     }
 

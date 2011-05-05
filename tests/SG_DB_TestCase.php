@@ -7,10 +7,10 @@ require_once('PHPUnit/Framework/TestCase.php');
 require_once('PHPUnit/Extensions/Database/TestCase.php');
 
 /**
- * Abstract base for writing a testcase that uses DB data and the SG_DB_*
+ * Abstract base for writing a testcase that uses DB data and the Octopus_DB_*
  * infrastructure.
  */
-abstract class SG_DB_TestCase extends PHPUnit_Extensions_Database_TestCase {
+abstract class Octopus_DB_TestCase extends PHPUnit_Extensions_Database_TestCase {
     private static $pdo = null;
     private $conn = null;
     private $_xmlFile;
@@ -23,7 +23,7 @@ abstract class SG_DB_TestCase extends PHPUnit_Extensions_Database_TestCase {
     {
         $this->_xmlFile = $xmlFile;
 
-        $db =& SG_DB::singleton();
+        $db =& Octopus_DB::singleton();
         $this->dropTables($db);
         $this->createTables($db);
     }
@@ -31,24 +31,24 @@ abstract class SG_DB_TestCase extends PHPUnit_Extensions_Database_TestCase {
     public function __destruct()
     {
         // Sometimes it might be nice to be able to inspect the DB after a failed test?
-        $this->dropTables(SG_DB::singleton());
+        $this->dropTables(Octopus_DB::singleton());
     }
 
     /**
      * Override to actually create the tables required by the testcase.
-     * @param $db Object SG_DB instance to use.
+     * @param $db Object Octopus_DB instance to use.
      */
     abstract protected function createTables(&$db);
 
     /**
      * Override to drop any tables you create in createTables()
-     * @param $db Object SG_DB instance to use.
+     * @param $db Object Octopus_DB instance to use.
      */
     abstract protected function dropTables(&$db);
 
     protected function getConnection()
     {
-        $db = SG_DB::singleton();
+        $db = Octopus_DB::singleton();
 
         if ($this->conn === null) {
             if (self::$pdo == null) {

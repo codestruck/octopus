@@ -1,8 +1,8 @@
 <?php
 
-class SG_Html_Header extends SG_Base {
+class Octopus_Html_Header extends Octopus_Base {
 
-    function SG_Html_Header() {
+    function Octopus_Html_Header() {
         $this->js = array();
         $this->css = array();
         $this->trackModified = true;
@@ -11,7 +11,7 @@ class SG_Html_Header extends SG_Base {
     }
 
     function &singleton() {
-        return SG_Base::base_singleton('SG_Html_Header');
+        return Octopus_Base::base_singleton('Octopus_Html_Header');
     }
 
     /**
@@ -186,7 +186,7 @@ class SG_Html_Header extends SG_Base {
 
     function useTabs() {
         $this->addJavascript('../includes/js/jquery/jquery.blockUI.js');
-        $this->addJavascript('../includes/js/sg_tabs.js');
+        $this->addJavascript('../includes/js/Octopus_tabs.js');
         $this->addCss('../includes/css/tabs.css');
         $this->addJavascript(JS_JQUERY_UI);
         $this->addCss(CSS_JQUERY_UI);

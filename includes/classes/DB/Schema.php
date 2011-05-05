@@ -1,12 +1,12 @@
 <?php
 
-SG::loadClass('SG_DB');
-SG::loadClass('SG_DB_Schema_Writer');
+Octopus::loadClass('Octopus_DB');
+Octopus::loadClass('Octopus_DB_Schema_Writer');
 
-class SG_DB_Schema {
+class Octopus_DB_Schema {
 
-    function SG_DB_Schema() {
-        $this->db =& SG_DB::singleton();
+    function Octopus_DB_Schema() {
+        $this->db =& Octopus_DB::singleton();
     }
 
     /**
@@ -32,11 +32,11 @@ class SG_DB_Schema {
     }
 
     /**
-     * @return SG_DB_Schema_Writer
+     * @return Octopus_DB_Schema_Writer
      * @param $tableName string db table name to create or update
      */
     function newTable($tableName) {
-        return new SG_DB_Schema_Writer($tableName);
+        return new Octopus_DB_Schema_Writer($tableName);
     }
 
     function removeTable($tableName) {

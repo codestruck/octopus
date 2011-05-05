@@ -1,6 +1,6 @@
 <?php
 
-SG::loadClass('SG_Logger_File');
+Octopus::loadClass('Octopus_Logger_File');
 
 if (!defined('DB_LOG_ERRORS')) {
     define('DB_NONE', 0);
@@ -20,9 +20,9 @@ if (!function_exists('db_error_reporting')) {
     }
 }
 
-class SG_DB_Error {
+class Octopus_DB_Error {
 
-    function SG_DB_Error($error, $sql) {
+    function Octopus_DB_Error($error, $sql) {
 
         $this->dateString = 'D, d M Y H:i:s T';
         $this->error = $error;
@@ -61,7 +61,7 @@ class SG_DB_Error {
 
         $msg = sprintf("%s DB ERROR: %s in query '%s'", date($this->dateString), $this->error, $this->sql);
 
-        $logger = new SG_Logger_File(LOG_DIR . 'db.txt');
+        $logger = new Octopus_Logger_File(LOG_DIR . 'db.txt');
         $logger->log($msg);
     }
 

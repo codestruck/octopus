@@ -81,7 +81,7 @@
      * Cancels any upcoming redirects.
      */
     function cancel_redirects($cancel = true) {
-        $GLOBALS['__SG_CANCEL_REDIRECT__'] = $cancel;
+        $GLOBALS['__Octopus_CANCEL_REDIRECT__'] = $cancel;
         return $cancel;
     }
 
@@ -160,11 +160,11 @@
         } else {
 
             // TODO: log?
-            if (DEV && class_exists('SG_Debug')) {
+            if (DEV && class_exists('Octopus_Debug')) {
 
                 $newLocation = h($newLocation);
 
-                $d = new SG_Debug('suppressedRedirect');
+                $d = new Octopus_Debug('suppressedRedirect');
                 $d->add('content', <<<END
             <div class="sgSquashedRedirectNotice">
                 Suppressed redirect to:
@@ -194,11 +194,11 @@ END
      */
     function should_redirect() {
 
-        if (!isset($GLOBALS['__SG_CANCEL_REDIRECT__'])) {
+        if (!isset($GLOBALS['__Octopus_CANCEL_REDIRECT__'])) {
             return true;
         }
 
-        return !$GLOBALS['__SG_CANCEL_REDIRECT__'];
+        return !$GLOBALS['__Octopus_CANCEL_REDIRECT__'];
     }
 
 ?>

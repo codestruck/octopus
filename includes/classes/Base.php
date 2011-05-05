@@ -5,7 +5,7 @@
  *
  * @package SG
  */
-class SG_Base {
+class Octopus_Base {
 
     /**
      * Common singleton function

@@ -3,7 +3,7 @@
 /**
  * Class that encapsulates an HTTP response.
  */
-class SG_Response {
+class Octopus_Response {
 
     private $_status = null;
     private $_headers = array();

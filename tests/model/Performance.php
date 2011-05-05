@@ -2,9 +2,9 @@
 
 require_once( dirname(dirname(__FILE__)) . '/TestConfig.php' );
 
-SG::loadClass('SG_Model');
+Octopus::loadClass('Octopus_Model');
 
-class Perf extends SG_Model {
+class Perf extends Octopus_Model {
     protected $fields = array(
         'title' => array(
             'required' => true,
@@ -47,7 +47,7 @@ $sql = "CREATE TABLE perfs (
                 )
                 ";
 
-$db =& SG_DB::singleton();
+$db =& Octopus_DB::singleton();
 $db->query($sql);
 
 function getTime() {
@@ -67,7 +67,7 @@ for ($i = 0; $i < $limit; $i++) {
 
 $end = getTime();
 $diff = $end - $start;
-print "SG_DB Inserting $limit rows: $diff seconds\n";
+print "Octopus_DB Inserting $limit rows: $diff seconds\n";
 
 $db->query('TRUNCATE perfs');
 $start = getTime();
@@ -81,7 +81,7 @@ for ($i = 0; $i < $limit; $i++) {
 $end = getTime();
 $insertMultiple = round(($end - $start) / $diff, 2);
 $diff = $end - $start;
-print "SG_Model Inserting $limit rows: $diff seconds\n";
+print "Octopus_Model Inserting $limit rows: $diff seconds\n";
 
 
 $start = getTime();
@@ -95,7 +95,7 @@ for ($i = 1; $i < $limit; $i++) {
 
 $end = getTime();
 $diff = $end - $start;
-print "SG_DB Selecting $limit rows: $diff seconds\n";
+print "Octopus_DB Selecting $limit rows: $diff seconds\n";
 
 $start = getTime();
 
@@ -107,7 +107,7 @@ for ($i = 1; $i < $limit; $i++) {
 $end = getTime();
 $selectMultiple = round(($end - $start) / $diff, 2);
 $diff = $end - $start;
-print "SG_Model Selecting $limit rows: $diff seconds\n";
+print "Octopus_Model Selecting $limit rows: $diff seconds\n";
 
 print "\n\n$insertMultiple times slower inserting\n";
 print "$selectMultiple times slower selecting\n";
@@ -123,7 +123,7 @@ foreach ($all as $item) {
 $end = getTime();
 $selectMultiple = round(($end - $start) / $diff, 2);
 $diff = $end - $start;
-print "SG_Model foreach $limit rows: $diff seconds\n";
+print "Octopus_Model foreach $limit rows: $diff seconds\n";
 
 
 $db->query('DROP TABLE IF EXISTS perfs');

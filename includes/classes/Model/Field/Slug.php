@@ -1,12 +1,12 @@
 <?php
 
-function to_unique_slug(SG_Model $model, SG_Model_Field $field) {
+function to_unique_slug(Octopus_Model $model, Octopus_Model_Field $field) {
     $str = $model->getDisplayValue();
 
     $slug = to_slug($str);
     $return = $slug;
 
-    $select = new SG_DB_Select();
+    $select = new Octopus_DB_Select();
     $select->table($model->getTableName(), array($model->getPrimaryKey()));
     $select->where($field->getFieldName() . ' = ?', $slug);
     $query = $select->query();
@@ -16,7 +16,7 @@ function to_unique_slug(SG_Model $model, SG_Model_Field $field) {
 
         $return = $slug . '-' . $appendValue;
 
-        $select = new SG_DB_Select();
+        $select = new Octopus_DB_Select();
         $select->table($model->getTableName(), array($model->getPrimaryKey()));
         $select->where($field->getFieldName() . ' = ?', $return);
         $query = $select->query();
@@ -28,7 +28,7 @@ function to_unique_slug(SG_Model $model, SG_Model_Field $field) {
 
 }
 
-class SG_Model_Field_Slug extends SG_Model_Field {
+class Octopus_Model_Field_Slug extends Octopus_Model_Field {
 }
 
 ?>

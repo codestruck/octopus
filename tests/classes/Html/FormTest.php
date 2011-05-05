@@ -1,14 +1,14 @@
 <?php
 
-SG::loadClass('SG_Html_TestCase');
+Octopus::loadClass('Octopus_Html_TestCase');
 
-SG::loadClass('SG_Html_Form');
+Octopus::loadClass('Octopus_Html_Form');
 
-class FormTest extends SG_Html_TestCase {
+class FormTest extends Octopus_Html_TestCase {
 
     function testBasicFormUsage() {
 
-        $form = new SG_Html_Form('testForm', 'post');
+        $form = new Octopus_Html_Form('testForm', 'post');
         $form->action = 'whatever.php';
 
         $form->add('name', 'text')
@@ -58,7 +58,7 @@ END
 
         $file = $this->saveTemplate('{name.label}');
 
-        $form = new SG_Html_Form('label');
+        $form = new Octopus_Html_Form('label');
         $form->template = $file;
         $form->add('name');
 
@@ -68,7 +68,7 @@ END
     function testTemplateFormFieldHtml() {
         $file = $this->saveTemplate('{name.html}');
 
-        $form = new SG_Html_Form('field');
+        $form = new Octopus_Html_Form('field');
         $form->template = $file;
         $form->add('name');
 
@@ -79,7 +79,7 @@ END
 
         $file = $this->saveTemplate('{name.attributes}');
 
-        $form = new SG_Html_Form('attributes');
+        $form = new Octopus_Html_Form('attributes');
         $form->template = $file;
         $form->add('name');
 
@@ -92,7 +92,7 @@ END
 
     function testTemplateFormFieldIteration() {
 
-        $form = new SG_Html_Form('iteration');
+        $form = new Octopus_Html_Form('iteration');
         $form->template = $this->saveTemplate(<<<END
 {foreach from=\$fields item=f}
 {\$f.name}
@@ -118,7 +118,7 @@ END
 
         $file = $this->saveTemplate('{name.errors}');
 
-        $form = new SG_Html_Form('errors');
+        $form = new Octopus_Html_Form('errors');
         $form->template = $file;
         $form->add('name')->required('Name is required.');
         $form->setValues(array());
@@ -137,7 +137,7 @@ END
 
     function testTemplateFormErrors() {
 
-        $form = new SG_Html_Form('errors');
+        $form = new Octopus_Html_Form('errors');
         $form->template = $this->saveTemplate('{$errors}');
         $form->add('name')->required('Name is required.');
         $form->add('email')->required('Email is required.');
@@ -168,7 +168,7 @@ END
 
         foreach($tests as $attr => $value) {
 
-            $form = new SG_Html_Form('attr');
+            $form = new Octopus_Html_Form('attr');
             $form->add('name')->autoFocus();
 
             $form->template = $this->saveTemplate("{\$name.$attr}");

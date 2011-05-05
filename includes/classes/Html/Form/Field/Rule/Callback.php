@@ -1,8 +1,8 @@
 <?php
 
-SG::loadClass('SG_Html_Form_Field_Rule');
+Octopus::loadClass('Octopus_Html_Form_Field_Rule');
 
-class SG_Html_Form_Field_Rule_Callback extends SG_Html_Form_Field_Rule {
+class Octopus_Html_Form_Field_Rule_Callback extends Octopus_Html_Form_Field_Rule {
 
     private $callback;
 

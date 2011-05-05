@@ -1,11 +1,11 @@
 <?php
 
-SG::loadClass('SG_DB');
-SG::loadClass('SG_Model');
+Octopus::loadClass('Octopus_DB');
+Octopus::loadClass('Octopus_Model');
 
 db_error_reporting(DB_PRINT_ERRORS);
 
-class Nail extends SG_Model {
+class Nail extends Octopus_Model {
     protected $fields = array(
         'name' => array(
             'required' => true
@@ -19,7 +19,7 @@ class Nail extends SG_Model {
     );
 }
 
-class Hammer extends SG_Model {
+class Hammer extends Octopus_Model {
     protected $fields = array(
         'name' => array(
             'required' => true,
@@ -42,7 +42,7 @@ class Hammer extends SG_Model {
     );
 }
 
-class Sledgehammer extends SG_Model {
+class Sledgehammer extends Octopus_Model {
     protected $fields = array(
         'name' => array(
             'required' => true,
@@ -57,7 +57,7 @@ class Sledgehammer extends SG_Model {
 /**
  * @group Model
  */
-class ModelOneToManyTest extends SG_DB_TestCase
+class ModelOneToManyTest extends Octopus_DB_TestCase
 {
     function __construct()
     {
@@ -101,7 +101,7 @@ class ModelOneToManyTest extends SG_DB_TestCase
 
     function dropTables(&$db)
     {
-        $db =& SG_DB::singleton();
+        $db =& Octopus_DB::singleton();
         $db->query('DROP TABLE IF EXISTS hammers');
         $db->query('DROP TABLE IF EXISTS nails');
         $db->query('DROP TABLE IF EXISTS sledgehammers');
@@ -187,19 +187,19 @@ class ModelOneToManyTest extends SG_DB_TestCase
         $this->assertEquals($nailsBefore + 1, $nailsAfter);
     }
 
-    
+
     function testUpdateNoNail()
     {
         $hammer = new Hammer(1);
         $this->assertEquals('Grape', $hammer->name);
-        
+
         $hammer->name = 'NEW NAME';
         $hammer->save();
        $this->assertEquals('NEW NAME', $hammer->name);
-        
+
         $newhammer = new Hammer(1);
         $this->assertEquals('NEW NAME', $newhammer->name);
-        
+
     }
 
     function testResultSetForeachFind() {
@@ -233,5 +233,5 @@ class ModelOneToManyTest extends SG_DB_TestCase
         $this->assertEquals(3, $i);
 
     }
-    
+
 }

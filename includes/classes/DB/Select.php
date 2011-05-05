@@ -1,12 +1,12 @@
 <?php
 
-SG::loadClass('SG_DB');
-SG::loadClass('SG_DB_Helper');
+Octopus::loadClass('Octopus_DB');
+Octopus::loadClass('Octopus_DB_Helper');
 
-class SG_DB_Select extends SG_DB_Helper {
+class Octopus_DB_Select extends Octopus_DB_Helper {
 
-    function SG_DB_Select($sql = null, $params = array()) {
-        parent::SG_DB_Helper($sql, $params);
+    function Octopus_DB_Select($sql = null, $params = array()) {
+        parent::Octopus_DB_Helper($sql, $params);
         $this->joins = array();
         $this->joinFields = array();
         $this->orderBy = array();

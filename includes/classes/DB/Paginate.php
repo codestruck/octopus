@@ -1,13 +1,13 @@
 <?php
 
-SG::loadClass('SG_Query_Arguments');
-SG::loadClass('SG_DB_Select');
+Octopus::loadClass('Octopus_Query_Arguments');
+Octopus::loadClass('Octopus_DB_Select');
 
-class SG_DB_Paginate {
+class Octopus_DB_Paginate {
 
-    function SG_DB_Paginate() {
+    function Octopus_DB_Paginate() {
 
-        $this->db =& SG_DB::singleton();
+        $this->db =& Octopus_DB::singleton();
 
         $this->info = array(
                                'results_per_page' => 10,
@@ -28,12 +28,12 @@ class SG_DB_Paginate {
 
     function query($sql, $sqlArgs = array()) {
 
-        $s = new SG_DB_Select($sql, $sqlArgs);
+        $s = new Octopus_DB_Select($sql, $sqlArgs);
         $sql = $s->getSql();
         $countSql = preg_replace('/select[ ]+\*[ ]+from/i', 'SELECT COUNT(*) FROM', $sql);
 
         if ($sql != $countSql) {
-            $s = new SG_DB_Select($countSql);
+            $s = new Octopus_DB_Select($countSql);
             $this->info['num_rows'] = $s->getOne();
         } else {
             $query = $s->query();
@@ -42,7 +42,7 @@ class SG_DB_Paginate {
 
         $sql = $this->_buildLimit($sql);
 
-        $s = new SG_DB_Select($sql, $sqlArgs);
+        $s = new Octopus_DB_Select($sql, $sqlArgs);
         $query = $s->query();
 
         return $query;
@@ -74,11 +74,11 @@ class SG_DB_Paginate {
             //$this->info['base_url_args'] = str_replace('"', '&quot;', $this->info['base_url_args']);
 
             $this->info['original_base_url_args'] = $this->info['base_url_args'];
-            $query_args = new SG_Query_Arguments($this->info['base_url_args']);
+            $query_args = new Octopus_Query_Arguments($this->info['base_url_args']);
             $query_args->remove('page');
             $this->info['base_url_args'] = $query_args->toString();
 
-            $query_args = new SG_Query_Arguments($this->info['base_url_args']);
+            $query_args = new Octopus_Query_Arguments($this->info['base_url_args']);
             $query_args->remove('page');
             $query_args->remove('orderBy');
             $query_args->remove('orderDir');

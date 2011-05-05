@@ -20,7 +20,7 @@ class Octopus {
             return true;
         }
 
-        $classname = str_replace('SG_', '', $classname);
+        $classname = str_replace('Octopus_', '', $classname);
 
         $filedir = str_replace('_', DIRECTORY_SEPARATOR, $classname);
         $file = $filedir . '.php';
@@ -61,8 +61,8 @@ class Octopus {
 
         $dir = '';
 
-        if (class_exists('SG_App') && SG_App::isStarted()) {
-            $dir = SG_App::singleton()->getOption('OCTOPUS_EXTERNALS_DIR');
+        if (class_exists('Octopus_App') && Octopus_App::isStarted()) {
+            $dir = Octopus_App::singleton()->getOption('OCTOPUS_EXTERNALS_DIR');
         } else if (defined('OCTOPUS_EXTERNALS_DIR')) {
             $dir = OCTOPUS_EXTERNALS_DIR;
         }
@@ -83,11 +83,11 @@ class Octopus {
      */
     public static function loadModel($classname) {
 
-        $classname = start_in('SG_Model_', $classname);
+        $classname = start_in('Octopus_Model_', $classname);
 
         if (!class_exists($classname)) {
 
-            $filedir = str_replace('SG_Model_', '', $classname);
+            $filedir = str_replace('Octopus_Model_', '', $classname);
             $file = $filedir . '.php';
 
             $dirs = array(OCTOPUS_DIR . 'models/');
@@ -99,7 +99,7 @@ class Octopus {
             $filepath = get_file($file, $dirs);
 
             if (!$filepath) {
-                trigger_error("SG::loadModel('$classname') - class not found", E_USER_WARNING);
+                trigger_error("Octopus::loadModel('$classname') - class not found", E_USER_WARNING);
             }
 
             require_once($filepath);
@@ -116,13 +116,13 @@ if (class_exists('SG')) {
 
     // We are running alongside solecms.
 
-    Octopus::loadClass('SG_Base');
+    Octopus::loadClass('Octopus_Base');
 
 } else {
 
     // We are running standalone.
     class SG extends Octopus {}
-    SG::loadClass('SG_Base');
+    Octopus::loadClass('Octopus_Base');
 
 }
 

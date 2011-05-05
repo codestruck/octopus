@@ -1,13 +1,13 @@
 <?php
 
-SG::loadClass('SG_Settings');
-SG::loadClass('SG_DB_Schema');
+Octopus::loadClass('Octopus_Settings');
+Octopus::loadClass('Octopus_DB_Schema');
 $DB_VERSIONS = array();
 
-class SG_DB_Upgrades {
+class Octopus_DB_Upgrades {
 
-    function SG_DB_Upgrades($dir) {
-        $this->settings =& SG_Settings::singleton();
+    function Octopus_DB_Upgrades($dir) {
+        $this->settings =& Octopus_Settings::singleton();
         $this->dir = $dir;
     }
 

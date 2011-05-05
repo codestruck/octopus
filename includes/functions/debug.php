@@ -1,11 +1,11 @@
 <?php /*:folding=explicit:collapseFolds=1:*/
 
-// SG_Debug Class {{{
+// Octopus_Debug Class {{{
 
 /**
  * Helper class used to render debug information on the client.
  */
-class SG_Debug {
+class Octopus_Debug {
 
     public static $css;
     private $_id;
@@ -370,24 +370,24 @@ END;
             cancel_redirects();
         }
 
-        if (SG_Debug::inWebContext()) {
+        if (Octopus_Debug::inWebContext()) {
 
-            $d = new SG_Debug('dump_r');
+            $d = new Octopus_Debug('dump_r');
             foreach($args as $arg) {
-                $html = '<pre>' . htmlspecialchars(SG_Debug::dumpToString($arg)) . '</pre>';
+                $html = '<pre>' . htmlspecialchars(Octopus_Debug::dumpToString($arg)) . '</pre>';
                 $d->add('var', $html);
             }
-            $d->add('context', SG_Debug::getArraysHtml());
+            $d->add('context', Octopus_Debug::getArraysHtml());
             $bt = debug_backtrace();
-            $d->add('context', SG_Debug::getBacktraceHtml($bt));
+            $d->add('context', Octopus_Debug::getBacktraceHtml($bt));
 
-            $d->add('footer', SG_Debug::getErrorReportingHtml());
+            $d->add('footer', Octopus_Debug::getErrorReportingHtml());
 
         } else {
 
-            $d = new SG_Debug('dump_r');
+            $d = new Octopus_Debug('dump_r');
             foreach($args as $arg) {
-                $d->add('var', SG_Debug::dumpToString($arg));
+                $d->add('var', Octopus_Debug::dumpToString($arg));
             }
 
         }

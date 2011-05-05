@@ -1,19 +1,19 @@
 <?php
 
-SG::loadClass('SG_Nav_Item');
-SG::loadClass('SG_Nav_Item_Directory');
+Octopus::loadClass('Octopus_Nav_Item');
+Octopus::loadClass('Octopus_Nav_Item_Directory');
 
 /**
  * Class that manages navigation structure and routing, and page options for
  * the app.
  */
-class SG_Nav {
+class Octopus_Nav {
 
     private $_root = null; // Item representing the root
     private $_aliases = array();
 
     public function __construct($options = null) {
-        $this->_root = new SG_Nav_Item_Directory(null, $this);
+        $this->_root = new Octopus_Nav_Item_Directory(null, $this);
     }
 
     /**

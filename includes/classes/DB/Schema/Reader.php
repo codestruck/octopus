@@ -1,10 +1,10 @@
 <?php
 
-class SG_DB_Schema_Reader {
+class Octopus_DB_Schema_Reader {
 
-    function SG_DB_Schema_Reader($tableName) {
+    function Octopus_DB_Schema_Reader($tableName) {
         $this->tableName = $tableName;
-        $this->db =& SG_DB::singleton();
+        $this->db =& Octopus_DB::singleton();
     }
 
     function getFields() {

@@ -2,7 +2,7 @@
 
 define('NO_INPUT', '--NO INPUT--');
 
-SG::loadClass('SG_Html_Form');
+Octopus::loadClass('Octopus_Html_Form');
 
 class FormValidationTest extends PHPUnit_Framework_TestCase {
 
@@ -20,7 +20,7 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
             'no @ no.com' => false
         );
 
-        $form = new SG_Html_Form('email');
+        $form = new Octopus_Html_Form('email');
         $form->add('foo')->mustBe('email');
 
         foreach($tests as $input => $expectedResult) {
@@ -52,7 +52,7 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
 
         );
 
-        $form = new SG_Html_Form('callback');
+        $form = new Octopus_Html_Form('callback');
         $form->add('foo')->mustPass(array($this, '_test_callback'));
 
         foreach($tests as $input => $expectedResult) {
@@ -82,7 +82,7 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
 
         );
 
-        $form = new SG_Html_Form('regex');
+        $form = new Octopus_Html_Form('regex');
         $form->add('foo')
             ->mustMatch('/^\s*\d+(-\d+)?\s*$/');
 
@@ -105,7 +105,7 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
             10 => true,
         );
 
-        $form = new SG_Html_Form('range');
+        $form = new Octopus_Html_Form('range');
         $form->add('foo')
             ->between(1, 10);
 
@@ -129,7 +129,7 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
             'false' => true
         );
 
-        $form = new SG_Html_Form('reqForm');
+        $form = new Octopus_Html_Form('reqForm');
         $field = $form->add('foo', 'text')->required();
         $this->assertTrue(count($field->getRules()) === 1, 'Field should have a required rule on it');
 
@@ -148,7 +148,7 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
 
     function testFormValidation() {
 
-        $form = new SG_Html_Form('validation');
+        $form = new Octopus_Html_Form('validation');
         $form->mustPass(array($this, '_test_validate_form'));
 
         $this->assertTrue($form->validate(array('x' => 'pass', 'y' => 'pass'))->success);
@@ -158,7 +158,7 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
 
     function _test_validate_form($form, $data) {
 
-        $this->assertTrue($form instanceof SG_Html_Form, '$form is not an SG_Html_Form');
+        $this->assertTrue($form instanceof Octopus_Html_Form, '$form is not an Octopus_Html_Form');
         $this->assertTrue(!!$data, '$data is empty.');
 
         return $data['x'] == 'pass' && $data['y'] == 'pass';

@@ -1,24 +1,24 @@
 <?php
 
-SG::loadClass('SG_DB');
-SG::loadClass('SG_Model');
+Octopus::loadClass('Octopus_DB');
+Octopus::loadClass('Octopus_Model');
 
 db_error_reporting(DB_PRINT_ERRORS);
 
-function trigger_onCreate(SG_Model $model, SG_Model_Field $field) {
+function trigger_onCreate(Octopus_Model $model, Octopus_Model_Field $field) {
     return 'created';
 }
-function trigger_onSave(SG_Model $model, SG_Model_Field $field) {
+function trigger_onSave(Octopus_Model $model, Octopus_Model_Field $field) {
     return 'everytime';
 }
-function trigger_onUpdate(SG_Model $model, SG_Model_Field $field) {
+function trigger_onUpdate(Octopus_Model $model, Octopus_Model_Field $field) {
     return 'updateonly';
 }
-function trigger_onEmpty(SG_Model $model, SG_Model_Field $field) {
+function trigger_onEmpty(Octopus_Model $model, Octopus_Model_Field $field) {
     return 'onlywhenempty';
 }
 
-class Trigger extends SG_Model {
+class Trigger extends Octopus_Model {
     protected $fields = array(
         'title' => array(),
         'a' => array(
@@ -46,7 +46,7 @@ class Trigger extends SG_Model {
 /**
  * @group Model
  */
-class ModelTriggerTest extends SG_DB_TestCase
+class ModelTriggerTest extends Octopus_DB_TestCase
 {
 
     function __construct()

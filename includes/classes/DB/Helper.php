@@ -2,9 +2,9 @@
 
 define_unless('SQL_DATE_FORMAT', 'Y-m-d H:i:s');
 
-class SG_DB_Helper {
+class Octopus_DB_Helper {
 
-    function SG_DB_Helper($sql, $params) {
+    function Octopus_DB_Helper($sql, $params) {
 
         $this->sql = $sql;
         $this->params = $params;
@@ -21,7 +21,7 @@ class SG_DB_Helper {
         $this->values = array();
         $this->rawValues = array();
 
-        $this->db =& SG_DB::singleton();
+        $this->db =& Octopus_DB::singleton();
 
     }
 
@@ -94,13 +94,13 @@ class SG_DB_Helper {
         return $query;
 
     }
-    
+
     /**
      * For DELETE, UPDATE, and INSERT queries, returns the # of rows
      * affected the last time the query was executed.
      */
     function affectedRows() {
-    	return $this->db->driver->affectedRows($this->query->query);
+        return $this->db->driver->affectedRows($this->query->query);
     }
 
     function getId() {

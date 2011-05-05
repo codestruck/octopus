@@ -1,11 +1,11 @@
 <?php
 
-SG::loadClass('SG_App');
+Octopus::loadClass('Octopus_App');
 
 /**
  * @group core
  */
-class RenderTests extends SG_App_TestCase
+class RenderTests extends Octopus_App_TestCase
 {
 
     function testBasicViewRendering() {
@@ -49,7 +49,7 @@ END
             "{$this->siteDir}/controllers/test.php",
             <<<END
 <?php
-class TestController extends SG_Controller {}
+class TestController extends Octopus_Controller {}
 ?>
 END
         );

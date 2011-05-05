@@ -1,6 +1,6 @@
 <?php
 
-class SG_Model_Field_String extends SG_Model_Field {
+class Octopus_Model_Field_String extends Octopus_Model_Field {
 
     public function getDefaultSearchOperator() {
         return 'LIKE';
@@ -10,7 +10,7 @@ class SG_Model_Field_String extends SG_Model_Field {
      * @param $operator string Operator (=, LIKE, etc) to use. If null, the
      * field's default operator will be used.
      * @param $value Mixed value to restrict this field to.
-     * @param $s Object SG_DB_Select being built, in case any joins are required.
+     * @param $s Object Octopus_DB_Select being built, in case any joins are required.
      * Don't call where() or anything on this.
      * @param $params Array Set of parameters that will be passed to $s via
      * the where() method.

@@ -3,7 +3,7 @@
 /**
  * Tests of the execution/rendering pipeline.
  */
-class PipelineTests extends SG_App_TestCase {
+class PipelineTests extends Octopus_App_TestCase {
 
     function testDefaultActionReceivesActionAndArgs() {
 
@@ -12,7 +12,7 @@ class PipelineTests extends SG_App_TestCase {
             <<<END
 <?php
 
-class DefaultActionController extends SG_Controller {
+class DefaultActionController extends Octopus_Controller {
 
     function defaultAction(\$action, \$args) {
         \$GLOBALS['action:' . \$action] = \$args;
@@ -43,7 +43,7 @@ END
             <<<END
 <?php
 
-class BeforeAndAfterController extends SG_Controller {
+class BeforeAndAfterController extends Octopus_Controller {
 
     var \$i = 0;
 
