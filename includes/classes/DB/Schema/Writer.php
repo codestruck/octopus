@@ -25,6 +25,10 @@ class SG_DB_Schema_Writer {
         $this->newField($fieldName, 'int', $size, 'NOT NULL');
     }
 
+    function newBigInt($fieldName) {
+        $this->newField($fieldName, 'bigint', null, 'NOT NULL');
+    }
+
     function newDate($fieldName) {
         $this->newField($fieldName, 'date', null, 'NOT NULL');
     }
