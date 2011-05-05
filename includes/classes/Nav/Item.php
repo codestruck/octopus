@@ -3,7 +3,7 @@
 /**
  * A single item in a nav hierarchy.
  */
-class SG_Nav_Item {
+class Octopus_Nav_Item {
 
     private static $_registry = array();
 
@@ -15,8 +15,8 @@ class SG_Nav_Item {
 
     /**
      * Creates a new nav item.
-     * @param $nav object The SG_Nav instance this item is working for.
-     * @param $parent object The SG_Nav_Item that is above this one in the
+     * @param $nav object The Octopus_Nav instance this item is working for.
+     * @param $parent object The Octopus_Nav_Item that is above this one in the
      * hierarchy.
      * @param $options array Custom options for this item.
      */
@@ -31,7 +31,7 @@ class SG_Nav_Item {
     }
 
     /**
-     * Factory method for creating an appropriate SG_Nav_Item instance
+     * Factory method for creating an appropriate Octopus_Nav_Item instance
      * based on the options passed in.
      */
     public static function create($options, $extra = null) {
@@ -58,15 +58,15 @@ class SG_Nav_Item {
         if (isset($options['type'])) {
             $class = self::$_registry[$options['type']];
         } else {
-            $class = 'SG_Nav_Item';
+            $class = 'Octopus_Nav_Item';
         }
 
-        SG::loadClass($class);
+        Octopus::loadClass($class);
         return new $class($options);
     }
 
     /**
-     * Registers an SG_Nav_Item subclass.
+     * Registers an Octopus_Nav_Item subclass.
      */
     public static function register($name, $class) {
         self::$_registry[$name] = $class;
@@ -196,7 +196,7 @@ class SG_Nav_Item {
             return $item;
         }
 
-        $item = ($options instanceof SG_Nav_Item) ? $options : SG_Nav_Item::create($options, $extra);
+        $item = ($options instanceof Octopus_Nav_Item) ? $options : Octopus_Nav_Item::create($options, $extra);
         $item->setParent($this);
         $this->_children[] = $item;
         $this->invalidateCaches();
@@ -336,7 +336,7 @@ class SG_Nav_Item {
      * @return The value of a named component of this item's path.
      */
     public function getArg($name, $default = null) {
-        // The real implementation is in SG_Nav_Item_Regex and SG_Nav_Item_Action
+        // The real implementation is in Octopus_Nav_Item_Regex and Octopus_Nav_Item_Action
         return $default;
     }
 
@@ -426,9 +426,9 @@ class SG_Nav_Item {
     }
 
     /**
-     * @return Object An SG_Nav_Item instance specific to the given path. In
+     * @return Object An Octopus_Nav_Item instance specific to the given path. In
      * most cases, this will be $this. Some subclasses that do virtual path
-     * mapping might return a specific SG_Nav_Item for that path.
+     * mapping might return a specific Octopus_Nav_Item for that path.
      */
     protected function &getFindResult($path) {
         return $this;
@@ -487,7 +487,7 @@ class SG_Nav_Item {
 
     /**
      * Place for subclasses to generate the default text/title for this item.
-     * See, for example, SG_Nav_Item_File.
+     * See, for example, Octopus_Nav_Item_File.
      */
     protected function getDefaultText() {
 
@@ -628,8 +628,8 @@ END;
 
 }
 
-SG_Nav_Item::register('regex', 'SG_Nav_Item_Regex');
-SG_Nav_Item::register('directory', 'SG_Nav_Item_Directory');
-SG_Nav_Item::register('file', 'SG_Nav_Item_File');
+Octopus_Nav_Item::register('regex', 'Octopus_Nav_Item_Regex');
+Octopus_Nav_Item::register('directory', 'Octopus_Nav_Item_Directory');
+Octopus_Nav_Item::register('file', 'Octopus_Nav_Item_File');
 
 ?>

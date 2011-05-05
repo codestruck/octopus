@@ -3,7 +3,7 @@
 /**
  * TestCase that creates its own sitedir to work within.
  */
-abstract class SG_App_TestCase extends PHPUnit_Framework_TestCase {
+abstract class Octopus_App_TestCase extends PHPUnit_Framework_TestCase {
 
     protected $siteDir;
 
@@ -57,7 +57,7 @@ abstract class SG_App_TestCase extends PHPUnit_Framework_TestCase {
             $options = array_merge($defaults, $options);
         }
 
-        return SG_App::start($options);
+        return Octopus_App::start($options);
     }
 
 }

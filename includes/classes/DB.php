@@ -1,22 +1,22 @@
 <?php
 
-SG::loadClass('SG_DB_Result');
-SG::loadClass('SG_DB_Error');
+Octopus::loadClass('Octopus_DB_Result');
+Octopus::loadClass('Octopus_DB_Error');
 
-if (class_exists('PDO')) {
-    SG::loadClass('SG_DB_Driver_Pdo');
+if (class_exists('PDO') && !defined('NO_PDO')) {
+    Octopus::loadClass('Octopus_DB_Driver_Pdo');
 } else {
-    SG::loadClass('SG_DB_Driver_Mysql');
+    Octopus::loadClass('Octopus_DB_Driver_Mysql');
 }
 
-class SG_DB extends SG_Base {
+class Octopus_DB extends Octopus_Base {
 
-    protected function SG_DB() {
+    protected function Octopus_DB() {
 
-        if (class_exists('PDO')) {
-            $this->driver = new SG_DB_Driver_Pdo();
+        if (class_exists('PDO') && !defined('NO_PDO')) {
+            $this->driver = new Octopus_DB_Driver_Pdo();
         } else {
-            $this->driver = new SG_DB_Driver_Mysql();
+            $this->driver = new Octopus_DB_Driver_Mysql();
         }
 
         $this->handle = null;
@@ -24,11 +24,11 @@ class SG_DB extends SG_Base {
     }
 
     /**
-     * @return SG_DB
+     * @return Octopus_DB
      */
     public static function &singleton() {
 
-        $obj =& SG_Base::base_singleton(get_class());
+        $obj =& Octopus_Base::base_singleton(get_class());
 
         if ($obj->driver->handle === null) {
             $obj->driver->connect();
@@ -62,7 +62,7 @@ class SG_DB extends SG_Base {
 
                 $loc = $this->getFileCall();
 
-                $log = new SG_Logger_File(LOG_DIR . 'app.txt');
+                $log = new Octopus_Logger_File(LOG_DIR . 'app.txt');
                 $log->log(sprintf('UNSAFE SQL: %s %s', $loc, $sql));
 
                 $sql = '/* UNSAFE */ ' . $sql;
@@ -74,9 +74,9 @@ class SG_DB extends SG_Base {
         $query = $this->driver->query($sql, $params);
 
         if ($this->driver->success) {
-            $result = new SG_DB_Result($this->driver, $query);
+            $result = new Octopus_DB_Result($this->driver, $query);
         } else {
-            $result = new SG_DB_Error($this->driver->getError($query), $sql);
+            $result = new Octopus_DB_Error($this->driver->getError($query), $sql);
         }
 
         return $result;

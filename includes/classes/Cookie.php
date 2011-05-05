@@ -1,6 +1,6 @@
 <?php
 
-class SG_Cookie {
+class Octopus_Cookie {
 
     function get($key) {
         return isset($_COOKIE[$key]) ? $_COOKIE[$key] : false;

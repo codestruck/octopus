@@ -1,16 +1,15 @@
 <?php
 
-SG::loadClass('SG_Html_TestCase');
+Octopus::loadClass('Octopus_Html_TestCase');
+Octopus::loadClass('Octopus_Html_Form');
 
-SG::loadClass('SG_Html_Form');
-
-class FormTest extends PHPUnit_Framework_TestCase {
+class FormTest extends Octopus_Html_TestCase {
 
     function testNothing() {}
 
     function dontTestBasicFormUsage() {
 
-        $form = new SG_Html_Form('testForm', 'post');
+        $form = new Octopus_Html_Form('testForm', 'post');
         $form->action = 'whatever.php';
 
         $form->add('name', 'text')
@@ -47,80 +46,11 @@ END
 
     }
 
-    function saveTemplate($text) {
-
-        $templateFile = '.form_template_test.tpl';
-        if (is_file($templateFile)) unlink($templateFile);
-
-        file_put_contents($templateFile, $text);
-        return $templateFile;
-    }
-
-    function dontTestTemplateFormFieldLabel() {
-
-        $file = $this->saveTemplate('{name.label}');
-
-        $form = new SG_Html_Form('label');
-        $form->template = $file;
-        $form->add('name');
-
-        $this->assertHtmlEquals('Name:', $form->render(true));
-    }
-
-    function dontTestTemplateFormFieldHtml() {
-        $file = $this->saveTemplate('{name.html}');
-
-        $form = new SG_Html_Form('field');
-        $form->template = $file;
-        $form->add('name');
-
-        $this->assertHtmlEquals('<input type="text" name="name" id="nameInput" class="name text" value="" />', $form->render(true));
-    }
-
-    function dontTestTemplateFormFieldAttributes() {
-
-        $file = $this->saveTemplate('{name.attributes}');
-
-        $form = new SG_Html_Form('attributes');
-        $form->template = $file;
-        $form->add('name');
-
-        $this->assertEquals(
-            'type="text" name="name" id="nameInput" class="name text" value=""',
-            $form->render(true)
-        );
-
-    }
-
-    function dontTestTemplateFormFieldIteration() {
-
-        $form = new SG_Html_Form('iteration');
-        $form->template = $this->saveTemplate(<<<END
-{foreach from=\$fields item=f}
-{\$f.name}
-{/foreach}
-END
-        );
-
-        $form->add('name');
-        $form->add('email');
-        $form->add('foo');
-
-        $this->assertEquals(<<<END
-name
-email
-foo
-END
-            ,
-            $form->render(true)
-        );
-
-    }
     function dontTestTemplateFormFieldErrors() {
 
         $file = $this->saveTemplate('{name.errors}');
 
-        $form = new SG_Html_Form('errors');
+        $form = new Octopus_Html_Form('errors');
         $form->template = $file;
         $form->add('name')->required('Name is required.');
         $form->setValues(array());
@@ -134,12 +64,11 @@ END
             ,
             $form->render(true)
         );
-
     }
 
     function dontTestTemplateFormErrors() {
 
-        $form = new SG_Html_Form('errors');
+        $form = new Octopus_Html_Form('errors');
         $form->template = $this->saveTemplate('{$errors}');
         $form->add('name')->required('Name is required.');
         $form->add('email')->required('Email is required.');
@@ -154,29 +83,6 @@ END
             ,
             $form->render(true)
         );
-
-    }
-
-    function dontTestTemplateFormIndividualAttributes() {
-
-        $tests = array(
-            'type' => 'text',
-            'id' => 'nameInput',
-            'name' => 'name',
-            'class' => 'name text',
-            'value' => '',
-            'autofocus' => 'autofocus'
-        );
-
-        foreach($tests as $attr => $value) {
-
-            $form = new SG_Html_Form('attr');
-            $form->add('name')->autoFocus();
-
-            $form->template = $this->saveTemplate("{\$name.$attr}");
-            $this->assertEquals($value, $form->render(true), 'failed on ' . $attr);
-        }
-
     }
 }
 

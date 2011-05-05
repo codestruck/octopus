@@ -1,8 +1,8 @@
 <?php
 
-SG::loadClass('SG_Settings');
+Octopus::loadClass('Octopus_Settings');
 
-class SettingsTest extends SG_DB_TestCase {
+class SettingsTest extends Octopus_DB_TestCase {
 
     public $testDir = '.settings-test';
 
@@ -54,7 +54,7 @@ class SettingsTest extends SG_DB_TestCase {
 
     function testReadFromDB() {
 
-        $settings = new SG_Settings();
+        $settings = new Octopus_Settings();
 
         $this->assertEquals('Project Octopus!', $settings->get('site_name'));
         $this->assertEquals(0.1, $settings->get('site_version'));
@@ -63,10 +63,10 @@ class SettingsTest extends SG_DB_TestCase {
 
     function testWriteToDB() {
 
-        $settings = new SG_Settings();
+        $settings = new Octopus_Settings();
         $settings->set('foo', 'bar');
 
-        $settings = new SG_Settings();
+        $settings = new Octopus_Settings();
         $this->assertEquals('bar', $settings->get('foo'));
 
     }
@@ -89,16 +89,16 @@ age:
 END
         );
 
-        $settings = new SG_Settings();
+        $settings = new Octopus_Settings();
         $settings->addFromFile($file);
 
         $settings->set('name', 'Matt');
-        $settings  = new SG_Settings();
+        $settings  = new Octopus_Settings();
 
         $this->assertEquals('Matt', $settings->get('name'));
 
         $settings->reset('name');
-        $settings = new SG_Settings();
+        $settings = new Octopus_Settings();
         $settings->addFromFile($file);
 
         $this->assertEquals('Joe Blow', $settings->get('name'));
@@ -124,7 +124,7 @@ age:
 END
         );
 
-        $settings = new SG_Settings();
+        $settings = new Octopus_Settings();
         $settings->addFromFile($file);
 
         $this->assertEquals(
@@ -159,7 +159,7 @@ age:
 END
         );
 
-        $settings = new SG_Settings();
+        $settings = new Octopus_Settings();
         $settings->addFromFile($file);
 
         $this->assertEquals(
@@ -187,7 +187,7 @@ END
 
     function testIteration() {
 
-        $settings = new SG_Settings();
+        $settings = new Octopus_Settings();
         $settings->addFromYaml(<<<END
 site_lang:
   default: en-us

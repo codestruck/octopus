@@ -3,7 +3,7 @@
 /**
  * Base class for implementing an Octopus controller.
  */
-abstract class SG_Controller {
+abstract class Octopus_Controller {
 
     public $template;
     public $view;

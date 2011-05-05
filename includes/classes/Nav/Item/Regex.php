@@ -2,9 +2,9 @@
 
 
 /**
- * SG_Nav_Item that uses a regular expression to match its path.
+ * Octopus_Nav_Item that uses a regular expression to match its path.
  */
-class SG_Nav_Item_Regex extends SG_Nav_Item {
+class Octopus_Nav_Item_Regex extends Octopus_Nav_Item {
 
     private $_original = null;
     private $_path = null;
@@ -86,7 +86,7 @@ class SG_Nav_Item_Regex extends SG_Nav_Item {
          */
 
         preg_match($this->getRegex(), $path, $matches);
-        $result = new SG_Nav_Item_Regex($this->options, $this, $path, $matches);
+        $result = new Octopus_Nav_Item_Regex($this->options, $this, $path, $matches);
         return $result;
     }
 

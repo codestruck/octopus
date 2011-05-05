@@ -1,8 +1,8 @@
 <?php
 
-SG::loadClass('SG_Html_Form_Rule');
+Octopus::loadClass('Octopus_Html_Form_Rule');
 
-class SG_Html_Form_Rule_Callback extends SG_Html_Form_Rule {
+class Octopus_Html_Form_Rule_Callback extends Octopus_Html_Form_Rule {
 
     public function __construct($callback, $message = null) {
         parent::__construct($message);

@@ -45,7 +45,7 @@ class ControllerDiscoveryTest extends PHPUnit_Framework_TestCase {
 
     function testDiscoverControllers() {
 
-        $app = SG_App::start(array(
+        $app = Octopus_App::start(array(
             'OCTOPUS_DIR' => self::$testDir . "/octopus",
             'SITE_DIR' => self::$testDir . "/site",
             'ROOT_DIR' => ROOT_DIR,

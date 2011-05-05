@@ -1,6 +1,6 @@
 <?php
 
-class SysController extends SG_Controller {
+class SysController extends Octopus_Controller {
 
     public function _before($action, $args) {
 

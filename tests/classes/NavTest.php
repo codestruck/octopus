@@ -1,11 +1,11 @@
 <?php
 
-SG::loadClass('SG_Nav');
+Octopus::loadClass('Octopus_Nav');
 
 /**
  * @group nav
  */
-class SG_Nav_Test extends PHPUnit_Framework_TestCase {
+class Octopus_Nav_Test extends PHPUnit_Framework_TestCase {
 
     static $testDir = 'nav_directory';
     static $files = array('a.php', 'b.html', 'c.txt');
@@ -44,7 +44,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
     function testAddAndFindSimpleItem() {
 
-        $nav = new SG_Nav();
+        $nav = new Octopus_Nav();
 
         $nav->add('foo', 'Foo!');
 
@@ -58,7 +58,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
     function testAddSimpleItemDeep() {
 
-        $nav = new SG_Nav();
+        $nav = new Octopus_Nav();
 
         $levels = array('some', 'item', 'really', 'deep');
         $nav->add('/' . implode('/', $levels));
@@ -79,7 +79,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
     function testAddAndFindChild() {
 
-        $nav = new SG_Nav();
+        $nav = new Octopus_Nav();
 
         $nav
             ->add('parent', 'Parent')
@@ -99,7 +99,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
     function testAddRegexItem() {
 
-        $nav = new SG_Nav();
+        $nav = new Octopus_Nav();
 
         $nav->add(array(
             'regex' => '/(?P<id>\d+)(?:-(?P<slug>.+))/',
@@ -112,22 +112,22 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
         $this->assertEquals('some-product.php', $item->getFile());
 
         $item = $nav->find('/some-product');
-        $this->assertFalse($item instanceof SG_Nav_Item_Regex, 'matching item found when it shouldnt be');
+        $this->assertFalse($item instanceof Octopus_Nav_Item_Regex, 'matching item found when it shouldnt be');
     }
 
     function testAddRegexItemAsChild() {
 
-        $nav = new SG_Nav();
+        $nav = new Octopus_Nav();
 
         $bar = $nav->add('foo/bar');
         $bar->add(array('regex' => '#^(?P<category>\w+)/(?P<id>\d+)#', 'file' => 'whatever.php'));
 
         $shouldNotBeRegexItem = $nav->find('category/42');
-        $this->assertFalse($shouldNotBeRegexItem instanceof SG_Nav_Item_Regex, 'Found deep regex item from root');
+        $this->assertFalse($shouldNotBeRegexItem instanceof Octopus_Nav_Item_Regex, 'Found deep regex item from root');
 
         $foo = $nav->find('foo');
         $shouldNotBeRegexItem = $foo->find('category/42');
-        $this->assertFalse($shouldNotBeRegexItem instanceof SG_Nav_Item_Regex, 'Found regex item under 1st level');
+        $this->assertFalse($shouldNotBeRegexItem instanceof Octopus_Nav_Item_Regex, 'Found regex item under 1st level');
 
         $bar = $nav->find('foo/bar');
         $shouldExist = $bar->find('category/42');
@@ -142,7 +142,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
     function testGetArgWithRegexItem() {
 
-        $nav = new SG_Nav();
+        $nav = new Octopus_Nav();
         $nav->add(array('regex' => '/^(?P<id>\d+)(-(?P<slug>[a-z0-9-]+))?/i'));
 
         $item = $nav->find('42-some-slug');
@@ -160,7 +160,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
     function testAlias() {
 
-        $nav = new SG_Nav();
+        $nav = new Octopus_Nav();
         $nav->add('home', 'Home');
 
         $nav->alias('home', '/');
@@ -174,7 +174,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
         $expected = 'expected value';
 
-        $nav = new SG_Nav();
+        $nav = new Octopus_Nav();
 
         $nav->add('one/two/three/four');
         $item = $nav->find('one');
@@ -227,7 +227,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
             touch("$dir/$f");
         }
 
-        $nav = new SG_Nav();
+        $nav = new Octopus_Nav();
 
         $nav->add(array('directory' => 'nav_directory'));
 
@@ -254,7 +254,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
             touch("$dir/$f");
         }
 
-        $nav = new SG_Nav();
+        $nav = new Octopus_Nav();
         $nav->addRootDirectory($dir);
 
         $a = $nav->find('a');
@@ -264,7 +264,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
     function testFindMissingThingsButTheyreInvisible() {
 
-        $nav = new SG_Nav();
+        $nav = new Octopus_Nav();
         $nav->add('foo');
         $item = $nav->find('foo/bar');
         $this->assertTrue($item !== false);
@@ -276,7 +276,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
         $dir = self::$testDir;
 
-        $nav = new SG_Nav();
+        $nav = new Octopus_Nav();
         $nav->add(array('directory' => $dir));
 
         $item = $nav->find($dir);
@@ -287,7 +287,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
     function testRegexWithDirectoryAtRoot() {
 
 
-        $nav = new SG_Nav();
+        $nav = new Octopus_Nav();
         $nav->addRootDirectory(self::$testDir);
         $nav->add(array('regex' => '/^(?P<id>\d+)-(?P<slug>[a-z0-9-]+)/i'));
 
@@ -303,7 +303,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
     function testDecorateExistingItem() {
 
-        $nav = new SG_Nav();
+        $nav = new Octopus_Nav();
         $nav->addRootDirectory(self::$testDir);
 
         $nav->add('a', array('text' => 'test text', 'title' => 'test title', 'test option' => true));
@@ -318,7 +318,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
     function testAddABunch() {
 
-        $nav = new SG_Nav();
+        $nav = new Octopus_Nav();
 
         $nav->addFromArray(array(
 
@@ -356,7 +356,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
     function dontTestBuriedControllers() {
 
-        $nav = new SG_Nav();
+        $nav = new Octopus_Nav();
         $nav->addControllers(self::$controllersDir);
 
         $tests = array(
@@ -415,7 +415,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
     function dontTestControllerDiscovery() {
 
-        $nav = new SG_Nav();
+        $nav = new Octopus_Nav();
 
         $tests = array(
 
@@ -454,7 +454,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
             $this->assertTrue($item !== false, "$path not found");
 
             if (strpos($path, '/') !== false) {
-                $this->assertEquals('SG_Nav_Item_Action', get_class($item), "$path is of the wrong class");
+                $this->assertEquals('Octopus_Nav_Item_Action', get_class($item), "$path is of the wrong class");
             }
 
             $this->assertEquals($path, $item->getFullPath(), "full path is wrong for $path");
@@ -476,7 +476,7 @@ class SG_Nav_Test extends PHPUnit_Framework_TestCase {
 
     function testGetFullPath() {
 
-        $nav = new SG_Nav();
+        $nav = new Octopus_Nav();
 
         $item = $nav->find('octopus/about');
         $this->assertEquals('octopus/about', $item->getFullPath());

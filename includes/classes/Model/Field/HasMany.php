@@ -1,6 +1,6 @@
 <?php
 
-class SG_Model_Field_HasMany extends SG_Model_Field {
+class Octopus_Model_Field_HasMany extends Octopus_Model_Field {
 
     public function save($model, $sqlQuery) {
         // do nothing
@@ -10,7 +10,7 @@ class SG_Model_Field_HasMany extends SG_Model_Field {
         $type = strtolower(get_class($model));
         $value = $model->id;
 
-        return new SG_Model_ResultSet($this->field, array($type => $value));
+        return new Octopus_Model_ResultSet($this->field, array($type => $value));
 
     }
 

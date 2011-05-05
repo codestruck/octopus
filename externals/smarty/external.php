@@ -2,13 +2,13 @@
 
 require_once(dirname(__FILE__) . '/Smarty-3.0.7/libs/Smarty.class.php');
 
-class SG_Smarty extends SG_Base {
+class Octopus_Smarty extends Octopus_Base {
 
     public $smarty;
 
     protected function __construct($templateDir = null, $compileDir = null) {
 
-        $app = (class_exists('SG_App') && SG_App::isStarted()) ? SG_App::singleton() : null;
+        $app = (class_exists('Octopus_App') && Octopus_App::isStarted()) ? Octopus_App::singleton() : null;
 
         if ($templateDir == null) {
 
@@ -48,7 +48,7 @@ class SG_Smarty extends SG_Base {
     }
 
     public static function &singleton() {
-        return SG_Base::base_singleton('SG_Smarty');
+        return Octopus_Base::base_singleton('Octopus_Smarty');
     }
 
 

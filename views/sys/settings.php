@@ -1,8 +1,8 @@
 <?php
 
-    SG::loadClass('SG_Html_Form');
+    Octopus::loadClass('Octopus_Html_Form');
 
-    $form = new SG_Html_Form('settings', array('method' => 'post', 'action' => 'settings'));
+    $form = new Octopus_Html_Form('settings', array('method' => 'post', 'action' => 'settings'));
 
     $data = array();
     foreach($settings as $key => $value) {

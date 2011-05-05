@@ -1,8 +1,8 @@
 <?php
 
-SG::loadClass('SG_Model');
+Octopus::loadClass('Octopus_Model');
 
-class Different extends SG_Model {
+class Different extends Octopus_Model {
     protected $table = 'nonstandard';
     protected $fields = array(
         'title' => array(),
@@ -11,7 +11,7 @@ class Different extends SG_Model {
     );
 }
 
-class Differentb extends SG_Model {
+class Differentb extends Octopus_Model {
     protected $primaryKey = 'id';
     protected $fields = array(
         'title' => array(),
@@ -20,7 +20,7 @@ class Differentb extends SG_Model {
     );
 }
 
-class Differentc extends SG_Model {
+class Differentc extends Octopus_Model {
     protected $primaryKey = 'foobar';
     protected $table = 'randomtable';
     protected $fields = array(
@@ -30,7 +30,7 @@ class Differentc extends SG_Model {
     );
 }
 
-class Differentd extends SG_Model {
+class Differentd extends Octopus_Model {
     protected $displayField = 'kazi';
     protected $fields = array(
         'kazi' => array(),
@@ -47,7 +47,7 @@ class ModelNonStandardTest extends PHPUnit_Framework_TestCase
 
     function __construct()
     {
-        $db =& SG_DB::singleton();
+        $db =& Octopus_DB::singleton();
 
         $sql = "CREATE TABLE IF NOT EXISTS nonstandard (
                 `different_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -92,7 +92,7 @@ class ModelNonStandardTest extends PHPUnit_Framework_TestCase
 
     function __destruct()
     {
-        $db =& SG_DB::singleton();
+        $db =& Octopus_DB::singleton();
         $db->query('DROP TABLE IF EXISTS nonstandard');
         $db->query('DROP TABLE IF EXISTS differentbs');
         $db->query('DROP TABLE IF EXISTS randomtable');

@@ -1,11 +1,11 @@
 <?php
 
-SG::loadClass('SG_DB');
-SG::loadClass('SG_Model');
+Octopus::loadClass('Octopus_DB');
+Octopus::loadClass('Octopus_Model');
 
 db_error_reporting(DB_PRINT_ERRORS);
 
-class Minpost extends SG_Model {
+class Minpost extends Octopus_Model {
     protected $fields = array(
         'title' => array(
             'required' => true,
@@ -38,7 +38,7 @@ class Minpost extends SG_Model {
 /**
  * @group Model
  */
-class ModelMinCrudLoadTest extends SG_DB_TestCase
+class ModelMinCrudLoadTest extends Octopus_DB_TestCase
 {
 
     function __construct()
@@ -66,7 +66,7 @@ class ModelMinCrudLoadTest extends SG_DB_TestCase
 
     function dropTables(&$db)
     {
-        $db =& SG_DB::singleton();
+        $db =& Octopus_DB::singleton();
         $db->query('DROP TABLE IF EXISTS minposts');
     }
 
@@ -93,7 +93,7 @@ class ModelMinCrudLoadTest extends SG_DB_TestCase
 
     function testDelete()
     {
-        $s = new SG_DB_Select();
+        $s = new Octopus_DB_Select();
         $s->table('minposts');
         $s->where('minpost_id = ?', 1);
         $query = $s->query();
@@ -102,7 +102,7 @@ class ModelMinCrudLoadTest extends SG_DB_TestCase
         $post = new Minpost(1);
         $post->delete();
 
-        $s = new SG_DB_Select();
+        $s = new Octopus_DB_Select();
         $s->table('minposts');
         $s->where('minpost_id = ?', 1);
         $query = $s->query();

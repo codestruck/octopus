@@ -1,8 +1,8 @@
 <?php
 
-SG::loadClass('SG_Html_Form_Field');
+Octopus::loadClass('Octopus_Html_Form_Field');
 
-class SG_Html_Form extends SG_Html_Element {
+class Octopus_Html_Form extends Octopus_Html_Element {
 
     private $_rules = array();
 
@@ -18,10 +18,10 @@ class SG_Html_Form extends SG_Html_Element {
 
         $field = null;
 
-        if ($nameOrElement instanceof SG_Html_Element) {
+        if ($nameOrElement instanceof Octopus_Html_Element) {
             $field = $nameOrElement;
         } else {
-            $field = SG_Html_Form_Field::create($nameOrElement, $type, $desc, $attributes);
+            $field = Octopus_Html_Form_Field::create($nameOrElement, $type, $desc, $attributes);
         }
 
         if ($field) {
@@ -70,8 +70,8 @@ class SG_Html_Form extends SG_Html_Element {
     }
 
     public function mustPass($callback, $message = null) {
-        SG::loadClass('SG_Html_Form_Rule_Callback');
-        return $this->addRule(new SG_Html_Form_Rule_Callback($callback, $message));
+        Octopus::loadClass('Octopus_Html_Form_Rule_Callback');
+        return $this->addRule(new Octopus_Html_Form_Rule_Callback($callback, $message));
     }
 
     /**
@@ -114,7 +114,7 @@ class SG_Html_Form extends SG_Html_Element {
 
     private function validateRecursive(&$el, &$values, &$result) {
 
-        if ($el instanceof SG_Html_Form_Field) {
+        if ($el instanceof Octopus_Html_Form_Field) {
 
             $fieldResult = $el->validate($values);
             $result->errors += $fieldResult->errors;

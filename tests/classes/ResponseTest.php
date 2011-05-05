@@ -18,7 +18,7 @@ class ResponseTest extends PHPUnit_Framework_TestCase {
 
         foreach($tests as $status => $continue) {
 
-            $r = new SG_Response();
+            $r = new Octopus_Response();
             $r->setStatus($status);
 
             $this->assertEquals($continue, $r->shouldContinueProcessing(), $status . ' ' . ($continue ? 'should continue' : 'should not continue'));
@@ -28,7 +28,7 @@ class ResponseTest extends PHPUnit_Framework_TestCase {
 
     function testTempRedirect() {
 
-        $r = new SG_Response();
+        $r = new Octopus_Response();
         $r->redirect('some/path');
 
         $this->assertEquals(
@@ -44,7 +44,7 @@ END
 
         $this->assertFalse($r->shouldContinueProcessing(), 'should stop processing.');
 
-        $r = new SG_Response();
+        $r = new Octopus_Response();
         $r->addHeader('X-Some-Header', 42);
         $r->append("Here is some fun content!");
 
@@ -65,7 +65,7 @@ END
 
     function testPermanentRedirect() {
 
-        $r = new SG_Response();
+        $r = new Octopus_Response();
         $r->redirect('some/path', true);
 
         $this->assertEquals(
@@ -79,7 +79,7 @@ END
             $r->__toString()
         );
 
-        $r = new SG_Response();
+        $r = new Octopus_Response();
         $r->addHeader('X-Some-Header', 42);
         $r->append("Here is some fun content!");
 

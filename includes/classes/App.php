@@ -1,21 +1,21 @@
 <?php
 
-SG::loadClass('SG_Model');
-SG::loadClass('SG_Nav');
-SG::loadClass('SG_Dispatcher');
-SG::loadClass('SG_Response');
-SG::loadClass('SG_Controller');
-SG::loadClass('SG_Settings');
+Octopus::loadClass('Octopus_Model');
+Octopus::loadClass('Octopus_Nav');
+Octopus::loadClass('Octopus_Dispatcher');
+Octopus::loadClass('Octopus_Response');
+Octopus::loadClass('Octopus_Controller');
+Octopus::loadClass('Octopus_Settings');
 
 // Shortcut functions
 function app_error($error, $level = E_USER_WARNING) {
-    SG_App::singleton()->error($error, $level);
+    Octopus_App::singleton()->error($error, $level);
 }
 
 /**
  * Central class for an app instance.
  */
-class SG_App {
+class Octopus_App {
 
     public static $defaults = array(
 
@@ -75,7 +75,7 @@ class SG_App {
 
         $o =& $this->_options;
 
-        $this->_settings = new SG_Settings();
+        $this->_settings = new Octopus_Settings();
 
         foreach(array($o['OCTOPUS_DIR'], $o['SITE_DIR']) as $dir) {
 
@@ -104,7 +104,7 @@ class SG_App {
 
     private function _initNav() {
 
-        $this->_nav = new SG_Nav();
+        $this->_nav = new Octopus_Nav();
 
     }
 
@@ -122,10 +122,10 @@ class SG_App {
             )
         );
 
-        SG::loadClass('SG_DB_Schema');
+        Octopus::loadClass('Octopus_DB_Schema');
 
-        $db = SG_DB::singleton();
-        $schema = new SG_DB_Schema();
+        $db = Octopus_DB::singleton();
+        $schema = new Octopus_DB_Schema();
 
         foreach($modules as $name => $root) {
 
@@ -163,7 +163,7 @@ class SG_App {
     public function find($path, $options = null) {
 
         if (!$this->_nav) {
-            $this->_nav = new SG_Nav();
+            $this->_nav = new Octopus_Nav();
         }
 
         return $this->_nav->find($path, $options);
@@ -266,7 +266,7 @@ class SG_App {
     public function getNav() {
 
         if (!$this->_nav) {
-            $this->_nav = new SG_Nav();
+            $this->_nav = new Octopus_Nav();
         }
 
         return $this->_nav;
@@ -275,7 +275,7 @@ class SG_App {
 
     /**
      * Returns a response for the given path.
-     * @return Object An SG_Response instance.
+     * @return Object An Octopus_Response instance.
      */
     public function getResponse($path = null) {
 
@@ -285,7 +285,7 @@ class SG_App {
             unset($_GET[$arg]);
         }
 
-        $dispatch = new SG_Dispatcher($this);
+        $dispatch = new Octopus_Dispatcher($this);
         $response = $dispatch->getResponse($path);
 
         return $response;
@@ -343,7 +343,7 @@ class SG_App {
      */
     public static function start($options = array()) {
 
-        $app = new SG_App($options);
+        $app = new Octopus_App($options);
         if (!self::$_instance) {
             self::$_instance = $app;
         }

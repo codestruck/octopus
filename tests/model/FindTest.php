@@ -1,8 +1,8 @@
 <?php
 
-require_once(dirname(dirname(__FILE__)) . '/SG_DB_TestCase.php');
+require_once(dirname(dirname(__FILE__)) . '/Octopus_DB_TestCase.php');
 
-class FindAuthor extends SG_Model {
+class FindAuthor extends Octopus_Model {
 
     protected $fields = array(
         'name' => array('type' => 'string')
@@ -10,7 +10,7 @@ class FindAuthor extends SG_Model {
 
 }
 
-class FindPost extends SG_Model {
+class FindPost extends Octopus_Model {
 
     protected $fields = array(
         'title' => array(
@@ -54,7 +54,7 @@ class FindPost extends SG_Model {
 /**
  * @group find
  */
-class FindTest extends SG_DB_TestCase {
+class FindTest extends Octopus_DB_TestCase {
 
     function __construct() {
         parent::__construct('model/find-data.xml');
@@ -96,7 +96,7 @@ class FindTest extends SG_DB_TestCase {
 
 
     function numberOfTestPosts($criteria = null) {
-        $db = SG_DB::singleton();
+        $db = Octopus_DB::singleton();
 
         $sql = 'SELECT COUNT(*) FROM find_posts';
 

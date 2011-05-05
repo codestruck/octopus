@@ -1,16 +1,16 @@
 <?php
 
-SG::loadClass('SG_DB_Schema_Reader');
+Octopus::loadClass('Octopus_DB_Schema_Reader');
 
-class SG_DB_Schema_Writer {
+class Octopus_DB_Schema_Writer {
 
-    function SG_DB_Schema_Writer($tableName) {
+    function Octopus_DB_Schema_Writer($tableName) {
         $this->tableName = $tableName;
         $this->fields = array();
         $this->indexes = array();
         $this->hasIndexes = array();
 
-        $this->db =& SG_DB::singleton();
+        $this->db =& Octopus_DB::singleton();
     }
 
     function newBool($fieldName) {
@@ -282,7 +282,7 @@ class SG_DB_Schema_Writer {
 
     function alterTable() {
 
-        $reader = new SG_DB_Schema_Reader($this->tableName);
+        $reader = new Octopus_DB_Schema_Reader($this->tableName);
 
         $sql = array();
 
