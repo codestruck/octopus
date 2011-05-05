@@ -1,17 +1,81 @@
 <?php
 
+define('NO_INPUT', '--NO INPUT--');
 Octopus::loadClass('Octopus_Html_Form');
 
 class FormValidationTest extends PHPUnit_Framework_TestCase {
 
-    /*
+    function testEmailValidation() {
+
+        $tests = array(
+            NO_INPUT => true,
+            '' => true,
+            '    ' => true,
+            'matthinz@solegraphics.com' => true,
+            'matthinz+test@gmail.com' => true,
+            'aasdf' => false,
+            'asd23@' => false,
+            'no@no' => false,
+            'no @ no.com' => false
+        );
+
+        $form = new Octopus_Html_Form('email');
+        $form->add('foo')->mustBe('email');
+
+        foreach($tests as $input => $expectedResult) {
+            $this->runValidationTest($form, $input, $expectedResult);
+        }
+
+    }
+
+    function runValidationTest($form, $input, $expectedResult) {
+
+        $data = array();
+        if ($input !== NO_INPUT) $data['foo'] = $input;
+
+        $result = $form->validate($data);
+
+        $input = ($input === NO_INPUT ? $input : "'$input'");
+
+        $this->assertEquals($expectedResult, $result->success, "Failed on $input");
+    }
+
     function testCallbackValidation() {
 
         $form = new Octopus_Html_Form('callback');
-        $form->add('foo')->passesCallback();
+        $form->add('foo')->mustPass(array($this, '_test_callback'));
+
+        $tests = array(
+
+            NO_INPUT => true,
+            'pass' => true,
+            'fail' => false,
+            '  pass' => false
+
+        );
+
+        foreach($tests as $input => $expectedResult) {
+            $this->runValidationTest($form, $input, $expectedResult);
+        }
+    }
+
+    function _test_callback($field, $value, $data) {
+
+        $this->assertTrue(!!$field, '$field should be present');
+        $this->assertTrue($value !== null, '$value should not be null');
+        $this->assertTrue(is_array($data), '$data should be an array');
+
+        if (isset($data[$field->name])) {
+            $this->assertEquals($value, $data[$field->name], 'value is off');
+        }
+
+        if (!isset($data[$field->name])) {
+            return true;
+        }
+
+        return $data[$field->name] == 'pass';
 
     }
-    */
 
     function testRegexValidate() {
 
@@ -30,7 +94,6 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
         );
 
         foreach($tests as $input => $expectedResult) {
-
             $result = $form->validate(array('foo' => $input));
             $this->assertEquals($expectedResult, $result->success, "Failed on '$input'");
 
@@ -54,6 +117,7 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
             0 => false,
             10 => true,
         );
+
 
         foreach($tests as $input => $expectedResult) {
 
@@ -103,6 +167,25 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
             $result = $form->validate(array('name' => $input));
             $this->assertEquals(true, $result->success, "Failed on '$input' w/ no rule");
         }
+
+    }
+
+    function testFormValidation() {
+
+        $form = new Octopus_Html_Form('validation');
+        $form->mustPass(array($this, '_test_validate_form'));
+
+        $this->assertTrue($form->validate(array('x' => 'pass', 'y' => 'pass'))->success);
+        $this->assertFalse($form->validate(array('x' => 'fail', 'y' => 'fail'))->success);
+
+    }
+
+    function _test_validate_form($form, $data) {
+
+        $this->assertTrue($form instanceof Octopus_Html_Form, '$form is not an Octopus_Html_Form');
+        $this->assertTrue(!!$data, '$data is empty.');
+
+        return $data['x'] == 'pass' && $data['y'] == 'pass';
 
     }
 

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * A validation rule.
+ * A validation rule run against an entire form.
  */
 abstract class Octopus_Html_Form_Rule {
 
@@ -12,12 +12,12 @@ abstract class Octopus_Html_Form_Rule {
     }
 
     /**
-     * @return The error message to use for the given field/data combo.
+     * @return The error message to use for the given form/data combo.
      */
-    public function getMessage($field, $data) {
+    public function getMessage($form, $data) {
 
         if ($this->message === null) {
-            return $this->getDefaultMessage($field, $data);
+            return $this->getDefaultMessage($form, $data);
         }
 
         return $this->message;
@@ -29,28 +29,14 @@ abstract class Octopus_Html_Form_Rule {
 
     /**
      * Performs validation.
-     * @param $field Object The Octopus_Form_Field being validated.
+     * @param $form Object The Octopus_Html_Form being validated.
      * @param $data Array All data posted for the form.
      */
     public abstract function validate($field, $data);
 
-    /**
-     * @return String The input for the given field.
-     */
-    protected function getInput($field, $data) {
-
-        if (!isset($data[$field->name])) {
-            return '';
-        }
-
-        return $data[$field->name];
-
+    protected function getDefaultMessage($form, $data) {
+        return "Validation failed";
     }
-
-    protected function getDefaultMessage($field, $data) {
-        return "Validation failed on {$field->name}";
-    }
-
 }
 
 ?>

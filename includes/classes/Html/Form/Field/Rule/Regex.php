@@ -1,8 +1,8 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Form_Rule');
+Octopus::loadClass('Octopus_Html_Form_Field_Rule');
 
-class Octopus_Html_Form_Rule_Regex extends Octopus_Html_Form_Rule {
+class Octopus_Html_Form_Field_Rule_Regex extends Octopus_Html_Form_Field_Rule {
 
     private $pattern;
 

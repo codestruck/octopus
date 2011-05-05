@@ -6,6 +6,10 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
 
     private static $_registry = array();
 
+    private static $_formats = array(
+        'email' => '/^\s*[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\s*$/i'
+    );
+
     public $label;
     public $help;
 
@@ -82,16 +86,32 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
      * Validates that input in this field is between two numbers.
      */
     public function between($inclusiveMin, $inclusiveMax, $message = null) {
-        Octopus::loadClass('Octopus_Html_Form_Rule_Range');
-        return $this->addRule(new Octopus_Html_Form_Rule_Range($inclusiveMin, $inclusiveMax, $message));
+        Octopus::loadClass('Octopus_Html_Form_Field_Rule_Range');
+        return $this->addRule(new Octopus_Html_Form_Field_Rule_Range($inclusiveMin, $inclusiveMax, $message));
+    }
+
+    /**
+     * Validates input against one of a known set of data formats, e.g.
+     * email, zip code, etc.
+     */
+    public function mustBe($format, $message = null) {
+        return $this->mustMatch(self::$_formats[$format], $message);
     }
 
     /**
      * Adds a regular expression rule to this field.
      */
     public function mustMatch($pattern, $message = null) {
-        Octopus::loadClass('Octopus_Html_Form_Rule_Regex');
-        return $this->addRule(new Octopus_Html_Form_Rule_Regex($pattern, $message));
+        Octopus::loadClass('Octopus_Html_Form_Field_Rule_Regex');
+        return $this->addRule(new Octopus_Html_Form_Field_Rule_Regex($pattern, $message));
+    }
+
+    /**
+     * Adds a callback rule to this field.
+     */
+    public function mustPass($callback, $message = null) {
+        Octopus::loadClass('Octopus_Html_Form_Field_Rule_Callback');
+        return $this->addRule(new Octopus_Html_Form_Field_Rule_Callback($callback, $message));
     }
 
     /**
@@ -107,8 +127,8 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
         if ($required) {
 
             if (!$this->_requiredRule) {
-                Octopus::loadClass('Octopus_Html_Form_Rule_Required');
-                $this->_requiredRule = new Octopus_Html_Form_Rule_Required();
+                Octopus::loadClass('Octopus_Html_Form_Field_Rule_Required');
+                $this->_requiredRule = new Octopus_Html_Form_Field_Rule_Required();
             }
 
             $this->_requiredRule->setMessage($message);

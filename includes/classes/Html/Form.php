@@ -4,6 +4,8 @@ Octopus::loadClass('Octopus_Html_Form_Field');
 
 class Octopus_Html_Form extends Octopus_Html_Element {
 
+    private $_rules = array();
+
     public function __construct($id, $attributes = null) {
 
         $attributes = $attributes ? $attributes : array();
@@ -30,6 +32,49 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     }
 
     /**
+     * Adds a validation rule to this form.
+     */
+    public function addRule($rule) {
+
+        if (!$rule) {
+            return $this;
+        }
+
+        $this->_rules[] = $rule;
+        return $this;
+    }
+
+    public function getRules() {
+        return $this->_rules;
+    }
+
+    public function removeRule($rule) {
+
+        if (!$rule) {
+            return $this;
+        }
+
+        $newRules = array();
+
+        foreach($this->_rules as $r) {
+
+            if ($rule !== $r) {
+                $newRules[] = $r;
+            }
+        }
+
+        $this->_rules = $newRules;
+
+        return $this;
+
+    }
+
+    public function mustPass($callback, $message = null) {
+        Octopus::loadClass('Octopus_Html_Form_Rule_Callback');
+        return $this->addRule(new Octopus_Html_Form_Rule_Callback($callback, $message));
+    }
+
+    /**
      * Validates data in this form.
      * @param $values Array Data to validate. If not specified, then either
      * $_GET or $_POST will be used as appropriate.
@@ -44,6 +89,20 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
         foreach($this->children() as $c) {
             $this->validateRecursive($c, $values, $result);
+        }
+
+        foreach($this->_rules as $r) {
+
+            $ruleResult = $r->validate($this, $values);
+
+            if ($ruleResult === true) {
+                continue;
+            } else if ($ruleResult === false) {
+                $result->errors[] = $r->getMessage($this, $values);
+            } else {
+                $result->errors += $ruleResult;
+            }
+
         }
 
         $result->success = (count($result->errors) == 0);
