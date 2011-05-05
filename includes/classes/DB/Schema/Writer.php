@@ -226,6 +226,22 @@ class Octopus_DB_Schema_Writer {
     }
 
     function create() {
+<<<<<<< HEAD
+=======
+
+        $modificationFile = SITE_DIR . 'upgrades/' . $this->tableName . '.php';
+        $fnc = 'modify_database_upgrade_' . $this->tableName;
+
+        if (is_file($modificationFile)) {
+            require_once($modificationFile);
+
+            if (function_exists($fnc)) {
+                $obj = $fnc($this);
+                $this->fields = $obj->fields;
+            }
+        }
+
+>>>>>>> 5d276c3... - add back schema files
         $sql = $this->toSql();
         if (trim($sql) != '') {
             $this->db->query($sql, true);
