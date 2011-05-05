@@ -75,11 +75,10 @@ class SG_Html_Form_Field extends SG_Html_Element {
     public function autoFocus($focus = true) {
 
         if ($focus) {
-            $this->setAttribute('autofocus', '');
+            return $this->setAttribute('autofocus', '');
         } else {
-            $this->removeAttribute('autofocus');
+            return $this->removeAttribute('autofocus');
         }
-
     }
 
     /**

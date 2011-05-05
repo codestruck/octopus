@@ -220,6 +220,46 @@ END
 
     }
 
+    function testLoadFromPHP() {
+
+        $phpFile = $this->testDir . '/php_test.php';
+
+        file_put_contents(
+            $phpFile,
+            <<<END
+<?php
+
+    return array(
+
+        'setting1' => array(
+            'default' => 'foo',
+        ),
+
+        'setting2' => array(
+            'default' => 'bar'
+        )
+
+    );
+
+?>
+END
+        );
+
+        $settings = new SG_Settings();
+        $settings->addFromFile($phpFile);
+
+        $ar = $settings->toArray();
+
+        $this->assertEquals(
+            array(
+                'setting1' => 'foo',
+                'setting2' => 'bar'
+            ),
+            $ar
+        );
+
+    }
+
 }
 
 ?>

@@ -5,8 +5,18 @@ SG::loadClass('SG_Html_Form_Field');
 class SG_Html_Form extends SG_Html_Element {
 
     private $_rules = array();
+    private $_values = null;
+
+    /**
+     * Custom template to use when rendering this form.
+     */
+    public $template = null;
 
     public function __construct($id, $attributes = null) {
+
+        if (is_string($attributes)) {
+            $attributes = array('method' => $attributes);
+        }
 
         $attributes = $attributes ? $attributes : array();
         $attributes['id'] = $id;
@@ -67,6 +77,39 @@ class SG_Html_Form extends SG_Html_Element {
 
         return $this;
 
+    }
+
+    /**
+     * @return Array The set of values posted for this form.
+     */
+    public function getValues() {
+
+        if ($this->_values !== null) {
+            return $this->_values;
+        }
+
+        $method = strtolower($this->getAttribute('method', 'get'));
+
+        switch($method) {
+
+            case 'get':
+                $this->_values = $_GET;
+                break;
+
+            case 'post':
+                $this->_values = $_POST;
+                break;
+        }
+
+
+        return $this->_values;
+    }
+
+    /**
+     * Sets the data in this form.
+     */
+    public function setValues($values) {
+        $this->_values = $values;
     }
 
     public function mustPass($callback, $message = null) {

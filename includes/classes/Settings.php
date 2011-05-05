@@ -17,8 +17,10 @@ class SG_Settings extends SG_Base implements Iterator {
      */
     public function addFromFile($file) {
 
-        if (preg_match('/\.yaml/i', $file)) {
+        if (preg_match('/\.yaml$/i', $file)) {
             $this->addFromYaml(file_get_contents($file));
+        } else if (preg_match('/\.php$/i', $file)) {
+            $this->addFromPHP($file);
         } else {
             die("Can't load settings from file: $file");
         }

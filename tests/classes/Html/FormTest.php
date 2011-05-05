@@ -4,11 +4,9 @@ SG::loadClass('SG_Html_TestCase');
 
 SG::loadClass('SG_Html_Form');
 
-class FormTest extends PHPUnit_Framework_TestCase {
+class FormTest extends SG_Html_TestCase {
 
-    function testNothing() {}
-
-    function dontTestBasicFormUsage() {
+    function testBasicFormUsage() {
 
         $form = new SG_Html_Form('testForm', 'post');
         $form->action = 'whatever.php';
@@ -56,7 +54,7 @@ END
         return $templateFile;
     }
 
-    function dontTestTemplateFormFieldLabel() {
+    function testTemplateFormFieldLabel() {
 
         $file = $this->saveTemplate('{name.label}');
 
@@ -67,7 +65,7 @@ END
         $this->assertHtmlEquals('Name:', $form->render(true));
     }
 
-    function dontTestTemplateFormFieldHtml() {
+    function testTemplateFormFieldHtml() {
         $file = $this->saveTemplate('{name.html}');
 
         $form = new SG_Html_Form('field');
@@ -77,7 +75,7 @@ END
         $this->assertHtmlEquals('<input type="text" name="name" id="nameInput" class="name text" value="" />', $form->render(true));
     }
 
-    function dontTestTemplateFormFieldAttributes() {
+    function testTemplateFormFieldAttributes() {
 
         $file = $this->saveTemplate('{name.attributes}');
 
@@ -92,7 +90,7 @@ END
 
     }
 
-    function dontTestTemplateFormFieldIteration() {
+    function testTemplateFormFieldIteration() {
 
         $form = new SG_Html_Form('iteration');
         $form->template = $this->saveTemplate(<<<END
@@ -116,7 +114,7 @@ END
         );
 
     }
-    function dontTestTemplateFormFieldErrors() {
+    function testTemplateFormFieldErrors() {
 
         $file = $this->saveTemplate('{name.errors}');
 
@@ -137,7 +135,7 @@ END
 
     }
 
-    function dontTestTemplateFormErrors() {
+    function testTemplateFormErrors() {
 
         $form = new SG_Html_Form('errors');
         $form->template = $this->saveTemplate('{$errors}');
@@ -157,7 +155,7 @@ END
 
     }
 
-    function dontTestTemplateFormIndividualAttributes() {
+    function testTemplateFormIndividualAttributes() {
 
         $tests = array(
             'type' => 'text',
