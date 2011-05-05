@@ -23,7 +23,7 @@ function createPassword($length) {
 
 class Octopus_Auth_Base extends Octopus_Base {
 
-    function Octopus_Auth_Base() {
+    function __construct() {
         $this->user_id = null;
         $this->password_algo_strength = 8;
         $this->portable_passwords = TRUE;

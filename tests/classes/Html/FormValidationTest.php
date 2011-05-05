@@ -1,7 +1,6 @@
 <?php
 
 define('NO_INPUT', '--NO INPUT--');
-
 Octopus::loadClass('Octopus_Html_Form');
 
 class FormValidationTest extends PHPUnit_Framework_TestCase {
@@ -43,35 +42,44 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
 
     function testCallbackValidation() {
 
-        $tests = array(
-            NO_INPUT => true,
-            '' => true,
-            '      ' => true,
-            'pass' => true,
-            'fail' => false
-
-        );
-
         $form = new Octopus_Html_Form('callback');
         $form->add('foo')->mustPass(array($this, '_test_callback'));
+
+        $tests = array(
+
+            NO_INPUT => true,
+            'pass' => true,
+            'fail' => false,
+            '  pass' => false
+
+        );
 
         foreach($tests as $input => $expectedResult) {
             $this->runValidationTest($form, $input, $expectedResult);
         }
     }
 
-    function _test_callback($field, $input, $data) {
+    function _test_callback($field, $value, $data) {
 
-        $this->assertTrue(!!$field, "Field is missing");
-        $this->assertTrue(!!$data, "Data is missing");
+        $this->assertTrue(!!$field, '$field should be present');
+        $this->assertTrue($value !== null, '$value should not be null');
+        $this->assertTrue(is_array($data), '$data should be an array');
 
-        $this->assertEquals('foo', $field->name, "field name is wrong");
-        $this->assertTrue(isset($data['foo']), 'no key in data');
+        if (isset($data[$field->name])) {
+            $this->assertEquals($value, $data[$field->name], 'value is off');
+        }
 
-        return $input == 'pass';
+        if (!isset($data[$field->name])) {
+            return true;
+        }
+
+        return $data[$field->name] == 'pass';
     }
 
     function testRegexValidate() {
+
+        $form = new Octopus_Html_Form('regex');
+        $form->add('foo')->mustMatch('/^\d{5}(-\d+)?$/');
 
         $tests = array(
             NO_INPUT => true,
@@ -82,11 +90,6 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
 
         );
 
-        $form = new Octopus_Html_Form('regex');
-        $form->add('foo')
-            ->mustMatch('/^\s*\d+(-\d+)?\s*$/');
-
-
         foreach($tests as $input => $expectedResult) {
             $this->runValidationTest($form, $input, $expectedResult);
         }
@@ -94,6 +97,11 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
     }
 
     function testRangeValidation() {
+
+        $form = new Octopus_Html_Form('range');
+
+        $form->add('foo')
+            ->between(1, 10);
 
         $tests = array(
             NO_INPUT => true,
@@ -104,10 +112,6 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
             0 => false,
             10 => true,
         );
-
-        $form = new Octopus_Html_Form('range');
-        $form->add('foo')
-            ->between(1, 10);
 
         foreach($tests as $input => $expectedResult) {
             $this->runValidationTest($form, $input, $expectedResult);
@@ -121,6 +125,11 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
 
     function testRequiredValidation() {
 
+        $form = new Octopus_Html_Form('reqForm');
+        $field = $form->add('foo', 'text')->required();
+
+        $this->assertTrue(count($field->getRules()) === 1, 'Field should have a required rule on it');
+
         $tests = array(
             NO_INPUT => false,
             '' => false,
@@ -128,10 +137,6 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
             '0' => true,
             'false' => true
         );
-
-        $form = new Octopus_Html_Form('reqForm');
-        $field = $form->add('foo', 'text')->required();
-        $this->assertTrue(count($field->getRules()) === 1, 'Field should have a required rule on it');
 
         foreach($tests as $input => $expectedResult) {
             $this->runValidationTest($form, $input, $expectedResult);

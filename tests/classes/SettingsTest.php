@@ -220,7 +220,7 @@ END
 
     }
 
-    function testLoadFromPHP() {
+    function dontTestLoadFromPHP() {
 
         $phpFile = $this->testDir . '/php_test.php';
 

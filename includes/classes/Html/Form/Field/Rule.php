@@ -39,7 +39,7 @@ abstract class Octopus_Html_Form_Field_Rule {
      */
     protected function getInput($field, $data) {
 
-        if (!isset($data[$field->name])) {
+        if (!array_key_exists($field->name, $data)) {
             return '';
         }
 

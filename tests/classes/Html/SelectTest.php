@@ -1,7 +1,6 @@
 <?php
 
 Octopus::loadClass('Octopus_Html_TestCase');
-
 Octopus::loadClass('Octopus_Html_Form');
 Octopus::loadClass('Octopus_Html_Form_Field_Select');
 
@@ -34,7 +33,6 @@ END;
     }
 
     function testSelectValue() {
-
         $s = new Octopus_Html_Form_Field_Select('test');
         $s->addOptions(array(
            1 => 'Foo',

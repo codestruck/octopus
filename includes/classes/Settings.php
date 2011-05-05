@@ -19,8 +19,10 @@ class Octopus_Settings extends Octopus_Base implements Iterator {
 
         if (preg_match('/\.yaml$/i', $file)) {
             $this->addFromYaml(file_get_contents($file));
+        /*
         } else if (preg_match('/\.php$/i', $file)) {
-            $this->addFromPHP($file);
+           $this->addFromPHP($file);
+        */
         } else {
             die("Can't load settings from file: $file");
         }

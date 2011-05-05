@@ -1,5 +1,7 @@
 <?php
 
+Octopus::loadClass('Base');
+
 /**
  * Class locator.
  */
@@ -107,22 +109,6 @@ class Octopus {
         }
 
     }
-
-
-}
-
-
-if (class_exists('SG')) {
-
-    // We are running alongside solecms.
-
-    Octopus::loadClass('Octopus_Base');
-
-} else {
-
-    // We are running standalone.
-    class SG extends Octopus {}
-    Octopus::loadClass('Octopus_Base');
 
 }
 

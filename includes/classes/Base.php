@@ -1,10 +1,5 @@
 <?php
 
-/**
- * Base class that common classes inherit from
- *
- * @package SG
- */
 class Octopus_Base {
 
     /**

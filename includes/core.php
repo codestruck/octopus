@@ -14,12 +14,6 @@
         define('ROOT_DIR', dirname(OCTOPUS_DIR) . '/');
     }
 
-    if (defined('PRIVATE_DIR')) {
-        define('OCTOPUS_PRIVATE_DIR', PRIVATE_DIR);
-    } else {
-        define('OCTOPUS_PRIVATE_DIR', ROOT_DIR . '_private/');
-    }
-
     ////////////////////////////////////////////////////////////////////////
     // Core function includes
     ////////////////////////////////////////////////////////////////////////
@@ -53,12 +47,17 @@
 
         $options = $options ? array_merge($defaults, $options) : $defaults;
 
+        if (defined('PRIVATE_DIR')) {
+            define('OCTOPUS_PRIVATE_DIR', PRIVATE_DIR);
+        } else {
+            define('OCTOPUS_PRIVATE_DIR', ROOT_DIR . '_private/');
+        }
 
         ////////////////////////////////////////////////////////////////////////
         // Core class includes
         ////////////////////////////////////////////////////////////////////////
 
-        require_once(OCTOPUS_DIR . 'includes/classes/SG.php');
+        require_once(OCTOPUS_DIR . 'includes/classes/Octopus.php');
 
         ////////////////////////////////////////////////////////////////////////
         // Spin up an App instance

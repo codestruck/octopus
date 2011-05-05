@@ -13,6 +13,7 @@ class Octopus_DB_Select extends Octopus_DB_Helper {
         $this->groupBy = array();
         $this->having = null;
         $this->funcs = array();
+        $this->havingParams = array();
 
         $this->db->debugBacktraceLevel = 2;
     }
@@ -131,7 +132,9 @@ class Octopus_DB_Select extends Octopus_DB_Helper {
     function having($cond, $args = null) {
 
         if (is_array($args)) {
-            array_merge($this->params, $args);
+            $this->havingParams = array_merge($this->havingParams, $args);
+        } else if ($args) {
+            $this->havingParams[] = $args;
         }
 
         $this->having = $cond;
@@ -345,6 +348,7 @@ class Octopus_DB_Select extends Octopus_DB_Helper {
 
         if ($this->having) {
             $sql .= ' HAVING ' . $this->having;
+            $this->passParams = array_merge($this->passParams, $this->havingParams);
         }
 
         if (count($this->orderBy) > 0) {
