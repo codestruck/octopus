@@ -226,8 +226,6 @@ class Octopus_DB_Schema_Writer {
     }
 
     function create() {
-<<<<<<< HEAD
-=======
 
         $modificationFile = SITE_DIR . 'upgrades/' . $this->tableName . '.php';
         $fnc = 'modify_database_upgrade_' . $this->tableName;
@@ -241,7 +239,6 @@ class Octopus_DB_Schema_Writer {
             }
         }
 
->>>>>>> 5d276c3... - add back schema files
         $sql = $this->toSql();
         if (trim($sql) != '') {
             $this->db->query($sql, true);
