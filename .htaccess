@@ -1,4 +1,4 @@
-Options -Indexes
+Options -Indexes FollowSymLinks
 
 <IfModule mod_rewrite.c>
 
@@ -10,5 +10,8 @@ Options -Indexes
 
 </IfModule>
 
+<IfModule mod_php.c>
 php_value error_reporting E_ALL
 php_flag display_errors 1
+</IfModule>
+

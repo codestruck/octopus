@@ -41,6 +41,7 @@ class SG_Smarty extends SG_Base {
 
 
         $this->smarty = new Smarty();
+        $this->smarty->error_reporting = E_ALL & ~E_NOTICE;
         $this->smarty->template_dir = $templateDir;
         $this->smarty->compile_dir = $compileDir;
 
