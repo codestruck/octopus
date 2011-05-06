@@ -42,12 +42,19 @@ abstract class Octopus_Controller {
     protected function renderJson($data = array(), $options = null) {
 
         header('Content-type: application/json');
-
         echo json_encode($data);
-
         exit();
 
     }
+
+    protected function renderJsonp($data = array(), $function, $options = null) {
+
+        header('Content-type: application/javascript');
+        echo $function . '(' . json_encode($data) . ');';
+        exit();
+
+    }
+
 }
 
 ?>

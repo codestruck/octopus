@@ -2,3 +2,6 @@
 Model
 - when a model has a relationship, should the related model be auto included?
 - schema generation from model class
+
+Controller
+- way for actions to trigger 404s
