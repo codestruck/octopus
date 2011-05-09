@@ -2,6 +2,9 @@
 
 Octopus::loadClass('Octopus_Html_Element');
 
+/**
+ * A field on a form.
+ */
 class Octopus_Html_Form_Field extends Octopus_Html_Element {
 
     private static $_registry = array();
@@ -10,8 +13,9 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
         'email' => '/^\s*[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\s*$/i'
     );
 
-    public $label;
-    public $help;
+    public $label = null;
+    public $help = null;
+    public $wrapper = null;
 
     private $_rules = array();
     private $_requiredRule = null;
@@ -26,9 +30,6 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
 
         $this->addClass(to_css_class($name))
              ->addClass(to_css_class($type));
-
-        $this->label = $this->createLabel();
-
     }
 
     /**
@@ -111,6 +112,49 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
     public function mustPass($callback, $message = null) {
         Octopus::loadClass('Octopus_Html_Form_Field_Rule_Callback');
         return $this->addRule(new Octopus_Html_Form_Field_Rule_Callback($callback, $message));
+    }
+
+    /**
+     * Generates the HTML for this form field.
+     */
+    public function render($return = false) {
+
+        $labelHtml = empty($this->label) ? '' : $this->label->render(true);
+
+        if (empty($this->help)) {
+            $helpHtml = '';
+        } else if (is_string($this->help)) {
+            $h = new Octopus_Html_Element('span', array('class' => 'help'), $this->help);
+            $helpHtml = $h->render(true);
+        } else {
+            $helpHtml = $this->help->render(true);
+        }
+
+        $fieldHtml = parent::render(true);
+
+        $result = '';
+
+        if (empty($this->wrapper)) {
+            $result = trim($labelHtml . "\n" . $fieldHtml . "\n" . $helpHtml);
+        } else {
+
+            // Display this field inside a wrapper.
+            $w = $this->wrapper;
+
+            $w
+                ->append($labelHtml)
+                ->append($fieldHtml)
+                ->append($helpHtml);
+
+            $result = $w->render(true);
+        }
+
+        if ($return) {
+            return $result;
+        } else {
+            echo $result;
+            return $this;
+        }
     }
 
     /**
@@ -204,17 +248,6 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
             return parent::setAttribute($attr, $value);
         }
 
-    }
-
-    /**
-     * Creates the <label> element used by this field.
-     */
-    protected function createLabel() {
-
-        $label = new Octopus_Html_Element('label', array('for' => $this->name));
-        $label->text(humanize($this->name) . ':');
-
-        return $label;
     }
 
     /**

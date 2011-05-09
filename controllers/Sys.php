@@ -21,6 +21,12 @@ class SysController extends Octopus_Controller {
 
     }
 
+    public function index() {
+
+        $this->redirect('sys/about');
+
+    }
+
     /**
      * Installs the system.
      */

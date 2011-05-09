@@ -13,9 +13,11 @@ class Octopus_Html_Element {
     protected static $attributeWeights = array(
         'type' => -10,
         'name' => -9,
+        'value' => -8,
+        'href' => -9,
         'id' => -8,
-        'class' => -7,
-        'style' => -6,
+        'class' => -6,
+        'style' => -5,
         'alt' => 1,
         'selected' => 8,
         'checked' => 8,
@@ -63,7 +65,19 @@ class Octopus_Html_Element {
     /**
      * Adds one or more CSS classes to this element.
      */
-    public function addClass($class) {
+    public function addClass() {
+
+        $args = func_get_args();
+        if (empty($args)) return $this;
+
+        if (count($args) == 1) {
+            $class = array_shift($args);
+        } else {
+            foreach($args as $arg) {
+                $this->addClass($arg);
+            }
+            return $this;
+        }
 
         if (!is_array($class)) {
 
@@ -97,6 +111,8 @@ class Octopus_Html_Element {
         }
 
         $this->_content[] = $item;
+
+        return $this;
     }
 
     /**

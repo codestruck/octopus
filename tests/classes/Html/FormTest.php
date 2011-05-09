@@ -5,7 +5,66 @@ Octopus::loadClass('Octopus_Html_Form');
 
 class FormTest extends Octopus_Html_TestCase {
 
-    function testNothing() {}
+    function testAddButtons() {
+
+        $tests = array(
+
+            array(
+                'args' => array('submit'),
+                'expected' => '<button type="submit" class="submit button" />'
+            ),
+
+            array(
+                'args' => array('reset'),
+                'expected' => '<button type="reset" class="reset button" />'
+            ),
+
+            array(
+                'args' => array('submit-link', 'foo', 'bar', 'Test'),
+                'expected' => '<a href="#" class="submit button">Test</a>'
+            ),
+
+            array(
+                'args' => array('reset-link', 'Reset the Form'),
+                'expected' => '<a href="#" class="reset button">Reset the Form</a>'
+            ),
+
+            array(
+                'args' => array(array('type' => 'submit', 'name' => 'foo', 'value' => 'bar', 'label' => 'Test')),
+                'expected' => '<button type="submit" name="foo" value="bar" class="submit button">Test</button>'
+            ),
+
+            array(
+                'args' => array('submit', 'Submit the Form'),
+                'expected' => '<button type="submit" class="submit button">Submit the Form</button>',
+            ),
+
+            array(
+                'args' => array('reset', 'Reset the Form'),
+                'expected' => '<button type="reset" class="reset button">Reset the Form</button>',
+            ),
+
+            array(
+                'args' => array('submit', array('name' => 'foo', 'value' => 'bar', 'label' => 'Test')),
+                'expected' => '<button type="submit" name="foo" value="bar" class="submit button">Test</button>'
+            )
+
+
+        );
+
+        foreach($tests as $test) {
+
+            $form = new Octopus_Html_Form('buttons');
+            call_user_func_array(array($form, 'addButton'), $test['args']);
+
+            $html = $form->render(true);
+            $html = preg_replace('#<form[^>]*><div[^>]*>#', '', $html);
+            $html = preg_replace('#</(div|form)>#', '', $html);
+
+            $this->assertHtmlEquals($test['expected'], $html, var_export($test['args'], true));
+        }
+
+    }
 
     function dontTestBasicFormUsage() {
 
@@ -20,7 +79,7 @@ class FormTest extends Octopus_Html_TestCase {
             ->required()
             ->mustBe('email');
 
-        $form->add('submit');
+        $form->addButton('submit');
 
         $form->setValues(array('name' => 'Joe Blow', 'email' => 'joe@blow.com'));
 
