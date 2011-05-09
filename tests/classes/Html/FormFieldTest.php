@@ -1,14 +1,18 @@
 <?php
 
+Octopus::loadClass('Octopus_Html_Form');
 Octopus::loadClass('Octopus_Html_Form_Field');
-
 Octopus::loadClass('Octopus_Html_TestCase');
 
 class FormFieldTest extends Octopus_Html_TestCase {
 
     function testRenderTextField() {
 
-        $name = Octopus_Html_Form_Field::create('name', 'text', array('autofocus' => true));
+        $form = new Octopus_Html_Form('text');
+        $name = $form->add('name', 'text', array('autofocus' => true));
+
+        $label = $name->label;
+        $name->label = $name->wrapper = null;
 
         $this->assertHtmlEquals(
             '<input type="text" name="name" id="nameInput" class="name text" autofocus />',
@@ -17,7 +21,7 @@ class FormFieldTest extends Octopus_Html_TestCase {
 
         $this->assertHtmlEquals(
             '<label for="name">Name:</label>',
-            $name->label->render(true)
+            $label->render(true)
         );
 
     }

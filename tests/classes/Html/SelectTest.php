@@ -20,11 +20,11 @@ class SelectTest extends Octopus_Html_TestCase {
 
         $expected = <<<END
 <select name="test" id="testInput" class="test select">
-    <option class="ultimateQuestion" value="42">The Answer</option>
+    <option value="42" class="ultimateQuestion">The Answer</option>
     <option value="1">One</option>
     <option value="2">Two</option>
     <option value="3">Three</option>
-    <option class="sameTextAndValue" value="Hi There">Hi There</option>
+    <option value="Hi There" class="sameTextAndValue">Hi There</option>
 </select>
 END;
 

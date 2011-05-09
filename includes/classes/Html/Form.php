@@ -6,6 +6,7 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
     private $_rules = array();
     private $_values = null;
+    private $_buttonsDiv = null;
 
     /**
      * Custom template to use when rendering this form.
@@ -21,6 +22,10 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         $attributes = $attributes ? $attributes : array();
         $attributes['id'] = $id;
 
+        if (empty($attributes['method'])) {
+            $attributes['method'] = 'post';
+        }
+
         parent::__construct('form', $attributes);
     }
 
@@ -32,6 +37,7 @@ class Octopus_Html_Form extends Octopus_Html_Element {
             $field = $nameOrElement;
         } else {
             $field = Octopus_Html_Form_Field::create($nameOrElement, $type, $desc, $attributes);
+            $this->initializeField($field);
         }
 
         if ($field) {
@@ -39,6 +45,29 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         }
 
         return $field;
+    }
+
+    /**
+     * Adds a button to this form. Buttons added with this method (as opposed
+     * to add()) will be gathered together in a single 'buttons' <div>.
+     */
+    public function addButton($type, $name = null, $value = null, $text = null, $attributes = null) {
+
+        // Fix for multiple <button> elements in IE6: http://www.kopz.org/public/documents/css/multiple_buttons_ie_workaround.html
+
+        $button = $this->createButton($type, $name, $value, $text, $attributes);
+
+        if (!$button) {
+            return false;
+        }
+
+        if (!$this->_buttonsDiv) {
+            $this->_buttonsDiv = new Octopus_Html_Element('div', array('class' => 'buttons'));
+            $this->append($this->_buttonsDiv);
+        }
+
+        $this->_buttonsDiv->append($button);
+        return $button;
     }
 
     /**
@@ -152,6 +181,111 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         $result->hasErrors = !$result->success;
 
         return $result;
+
+    }
+
+    /**
+     * Creates a new <button> element.
+     */
+    protected function createButton($type, $name = null, $value = null, $text = null, $attributes = null) {
+
+        $attributes = $attributes ? $attributes : array();
+
+        if (is_array($type)) {
+            $attributes = array_merge($type, $attributes);
+            $type = isset($attributes['type']) ? $attributes['type'] : 'button';
+        }
+
+        if (is_array($name)) {
+            $attributes = array_merge($name, $attributes);
+            $name = null;
+        }
+
+        if (is_array($value)) {
+            $attributes = array_merge($value, $attributes);
+            $value = null;
+        }
+
+        if (is_array($text)) {
+            $attributes = array_merge($text, $attributes);
+            $text = null;
+        }
+
+
+        if (is_string($name)) {
+
+            if ($value === null && $text === null) {
+
+                // createButton($type, $text)
+                $text = $name;
+                $name = null;
+
+            }
+
+        }
+
+
+
+        if ($text === null && isset($attributes['label'])) {
+            $text = $attributes['label'];
+        }
+
+        if ($value === null && isset($attributes['value'])) {
+            $value = $attributes['value'];
+        }
+
+        if ($name === null && isset($attributes['name'])) {
+            $name = $attributes['name'];
+        }
+
+        unset($attributes['type']);
+        unset($attributes['name']);
+        unset($attributes['value']);
+        unset($attributes['label']);
+
+        $type = $type ? strtolower($type) : $type;
+
+        switch($type) {
+
+            case 'button':
+            case 'submit':
+            case 'reset':
+
+                $attributes['type'] = $type;
+                if ($name !== null) $attributes['name'] = $name;
+                if ($value !== null) $attributes['value'] = $value;
+
+                $button = new Octopus_Html_Element('button', $attributes);
+                $button->addClass($type, 'button');
+                if ($text !== null) $button->html($text);
+
+                return $button;
+
+            case 'link':
+            case 'submit-link':
+            case 'reset-link':
+
+                $attributes['href'] = '#';
+                $link = new Octopus_Html_Element('a', $attributes);
+                $link->addClass(preg_replace('/-?link/', '', $type), 'button');
+
+                if ($text !== null) $link->html($text);
+
+                return $link;
+
+        }
+    }
+
+    /**
+     * Preps a field that is added to the form.
+     */
+    protected function initializeField($field) {
+
+        $field->wrapper = new Octopus_Html_Element('div', array('class' => 'field'));
+        $field->wrapper->addClass(to_css_class($field->name), $field->type);
+
+        $field->label = new Octopus_Html_Element('label', array('for' => $field->name));
+        $field->label->text(humanize($field->name) . ':');
 
     }
 
