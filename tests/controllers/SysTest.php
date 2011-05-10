@@ -18,7 +18,7 @@ class SysControllerTests extends Octopus_App_TestCase {
 
             $app = $this->startApp(array($state => true));
 
-            $resp = $app->getResponse('sys/about');
+            $resp = $app->getResponse('sys/about', true);
 
             if ($available) {
                 $this->assertEquals(200, $resp->getStatus(), "sys/about should be available under $state");

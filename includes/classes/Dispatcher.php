@@ -23,7 +23,7 @@ class Octopus_Dispatcher {
      * @param $path String A path in the app.
      * @return Object An Octopus_Response instance.
      */
-    public function &getResponse($path) {
+    public function &getResponse($path, $buffer = false) {
 
         $originalPath = trim($path);
         $path = trim($path, '/');
@@ -49,7 +49,7 @@ class Octopus_Dispatcher {
             }
         }
 
-        $response = new Octopus_Response();
+        $response = new Octopus_Response($buffer);
 
         if (empty($info['action'])) {
 
@@ -120,7 +120,9 @@ class Octopus_Dispatcher {
             app_error("Found controller file, but class $className does not exist.");
             $info['action'] = 'error';
         } else {
-            $controller = new $className($this->_app, $response);
+            $controller = new $className();
+            $controller->app = $this->_app;
+            $controller->response = $response;
             $this->configureController($controller, $info);
         }
 
