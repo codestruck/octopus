@@ -5,7 +5,7 @@
  */
 class Octopus_Html_Element {
 
-    private $_tag;
+    protected $_tag;
     protected $_attributes;
     private $_content;
 
@@ -34,6 +34,8 @@ class Octopus_Html_Element {
         'required' => true,
         'selected' => true
     );
+
+    protected $requireCloseTag = false;
 
     public function __construct($tag, $attrs = null, $content = null) {
 
@@ -300,7 +302,7 @@ class Octopus_Html_Element {
 
     protected function renderCloseTag(&$renderedContent) {
 
-        if ($renderedContent) {
+        if ($renderedContent || $this->requireCloseTag) {
             return '</' . $this->_tag . '>';
         } else {
             return ' />';
@@ -313,6 +315,10 @@ class Octopus_Html_Element {
         $content = '';
 
         if (empty($this->_content)) {
+            if ($this->requireCloseTag) {
+                $content = '>';
+            }
+
             return $content;
         }
 
