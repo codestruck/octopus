@@ -71,6 +71,17 @@ class Octopus_Response {
         return $this;
     }
 
+    public function contentType(/* $contentType */) {
+
+        if (func_num_args() == 0) {
+            return $this->getHeader('Content-type', 'text/html');
+        } else {
+            $contentType = func_get_arg(0);
+            return $this->addHeader('Content-type', $contentType);
+        }
+
+    }
+
     /**
      * Writes any pending headers and content.
      */
