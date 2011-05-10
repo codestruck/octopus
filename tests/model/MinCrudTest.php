@@ -302,4 +302,17 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
         $this->assertEquals('is Required', $error['message']);
     }
 
+    function testSetBoolToZero()
+    {
+        $post = new Minpost(1);
+        $this->assertEquals(1, $post->active);
+
+        $post->active = 0;
+        $post->save();
+
+        $checkPost = new Minpost(1);
+        $this->assertEquals(0, $checkPost->active);
+
+    }
+
 }

@@ -25,7 +25,7 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         $obj = $model->getInternalValue($field);
 
         // we may not have an object?
-        if (!$obj) {
+        if (!$obj || !$obj->validate()) {
             return;
         }
 
@@ -51,7 +51,11 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
 
     public function validate($model) {
         $obj = $this->accessValue($model);
-        return $obj->validate();
+        if ($this->getOption('required')) {
+            return $obj->validate();
+        } else {
+            return true;
+        }
     }
 
     public function restrict($operator, $value, &$s, &$params, $model) {
