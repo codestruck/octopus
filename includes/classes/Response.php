@@ -152,7 +152,11 @@ class Octopus_Response {
             $status = 'HTTP/1.1 ' . $status;
         }
 
-        $this->_status = $status;
+        if ($this->_buffer) {
+            $this->_status = $status;
+        } else {
+            header($status);
+        }
 
         return $this;
     }
