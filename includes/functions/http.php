@@ -14,7 +14,7 @@
     function u($url, $args = null, $options = null) {
 
         // Prepend URL_BASE if it's not e.g. an http:// url
-        if (!preg_match('#^[a-z0-9]+://#i', $url)) {
+        if (!preg_match('#^[a-z0-9-]*://#i', $url)) {
 
             $url_base = defined('URL_BASE') ? URL_BASE : false;
 
@@ -159,27 +159,37 @@
             header('Location: ' . u($newLocation));
         } else {
 
-            // TODO: log?
-            if (DEV && class_exists('Octopus_Debug')) {
-
-                $newLocation = h($newLocation);
-
-                $d = new Octopus_Debug('suppressedRedirect');
-                $d->add('content', <<<END
-            <div class="sgSquashedRedirectNotice">
-                Suppressed redirect to:
-                <a href="$newLocation"><strong>$newLocation</strong></a>
-            </div>
-END
-                );
-
-                $d->render();
-            }
-
+            notify_of_squashed_redirect($newLocation);
             return false;
         }
 
         exit();
+    }
+
+    function notify_of_squashed_redirect($location, $resp = null) {
+
+        // TODO: log?
+
+        if (defined('DEV') && DEV && class_exists('Octopus_Debug')) {
+
+            $location = h($location);
+
+            $d = new Octopus_Debug('suppressedRedirect');
+            $d->add('content', <<<END
+        <div class="sgSquashedRedirectNotice">
+            Suppressed redirect to:
+            <a href="$location"><strong>$location</strong></a>
+        </div>
+END
+            );
+
+            if ($resp) {
+                $resp->append($d->render(true));
+            } else {
+                $d->render();
+            }
+        }
+
     }
 
     /**
