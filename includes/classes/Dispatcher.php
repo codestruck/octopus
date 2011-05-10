@@ -68,9 +68,7 @@ class Octopus_Dispatcher {
             $controller = $this->createDefaultController($info, $response);
         }
 
-        $data = $this->execute(
-            $response,
-            $controller,
+        $data = $controller->__execute(
             empty($info['action']) ? 'index' : $info['action'],
             empty($info['args']) ? array() : $info['args']
         );
@@ -193,99 +191,6 @@ class Octopus_Dispatcher {
           'action' => $action,
           'args' => $parts ? $parts : array()
         );
-    }
-
-    /**
-     * Actually executes an action on a controller and returns the results.
-     */
-    protected function execute($resp, $controller, $action, $args) {
-
-        $originalAction = $action;
-
-        if (!$args) $args = array();
-
-        if (!method_exists($controller, $action)) {
-
-            $action = camel_case($action);
-            if (!method_exists($controller, $action)) {
-                $action = 'defaultAction';
-            }
-        }
-
-        if (method_exists($controller, '_before')) {
-            $controller->_before($originalAction, $args);
-        }
-
-        $beforeMethod = 'before_' . $originalAction;
-        if (method_exists($controller, $beforeMethod)) {
-            $result = $controller->$beforeMethod($args);
-            if ($result === false) {
-                // Short-circuit out
-                return;
-            }
-        }
-
-        if ($originalAction != $action) {
-
-            // Support before_defaultAction as well
-            $beforeMethod = 'before_' . $action;
-            if (method_exists($controller, $beforeMethod)) {
-                $result = $controller->$beforeMethod($args);
-                if ($result === false) {
-                    // Short-circuit
-                    return;
-                }
-            }
-        }
-
-        if ($action == 'defaultAction') {
-            // Special case-- pass args as an array along w/ action
-            $data = $controller->defaultAction($originalAction, $args);
-        } else {
-
-            $haveArgs = !!count($args);
-
-            if (!$haveArgs) {
-
-                // Easy enough
-                $data = $controller->$action();
-
-            } else {
-
-                /* If args is an associative array, pass in as a single
-                 * argument. Otherwise, assume each value in the array maps
-                 * to a corresponding argument in the action.
-                 */
-
-                if (is_associative_array($args)) {
-                    $data = $controller->$action($args);
-                } else {
-                    $data = call_user_func_array(array($controller, $action), $args);
-                }
-            }
-        }
-
-        // Call the after_ actions
-
-        if ($originalAction != $action) {
-
-            $afterMethod = 'after_' . $action;
-            if (method_exists($controller, $afterMethod)) {
-                $data = $controller->$afterMethod($args, $data);
-            }
-
-        }
-
-        $afterMethod = 'after_'. $originalAction;
-        if (method_exists($controller, $afterMethod)) {
-            $data = $controller->$afterMethod($args, $data);
-        }
-
-        if (method_exists($controller, '_after')) {
-            $data = $controller->_after($originalAction, $args, $data);
-        }
-
-        return $data;
     }
 
     /**

@@ -16,6 +16,98 @@ abstract class Octopus_Controller {
     }
 
     /**
+     * Executes an action on this controller.
+     * @return Mixed The result of the action.
+     */
+    public function __execute($action, $args) {
+
+        $originalAction = $action;
+        if (!$args) $args = array();
+
+        if (!method_exists($this, $action)) {
+            $action = camel_case($action);
+            if (!method_exists($this, $action)) {
+                $action = 'defaultAction';
+            }
+        }
+
+        // Execute the global _before action
+        if (method_exists($this, '_before')) {
+            $result = $this->_before($originalAction, $args);
+            if ($result === false) {
+                return;
+            }
+        }
+
+        // Execute the action-specific _before
+        $beforeMethod = 'before_' . $originalAction;
+        if (method_exists($this, $beforeMethod)) {
+            $result = $this->$beforeMethod($args);
+            if ($result === false) {
+                return;
+            }
+        }
+
+        if ($originalAction != $action) {
+            // Support before_defaultAction as well
+            $beforeMethod = 'before_' . $action;
+            if (method_exists($this, $beforeMethod)) {
+                $result = $this->$beforeMethod($args);
+                if ($result === false) {
+                    // Short-circuit
+                    return;
+                }
+            }
+        }
+
+        if ($action == 'defaultAction') {
+            // Special case-- pass args as an array along w/ action
+            $data = $this->defaultAction($originalAction, $args);
+        } else {
+
+            $haveArgs = !!count($args);
+
+            if (!$haveArgs) {
+
+                // Easy enough
+                $data = $this->$action();
+
+            } else {
+
+                /* If args is an associative array, pass in as a single
+                 * argument. Otherwise, assume each value in the array maps
+                 * to a corresponding argument in the action.
+                 */
+
+                if (is_associative_array($args)) {
+                    $data = $this->$action($args);
+                } else {
+                    $data = call_user_func_array(array($this, $action), $args);
+                }
+            }
+        }
+
+        // Support after_defaultAction
+        if ($originalAction != $action) {
+            $afterMethod = 'after_' . $action;
+            if (method_exists($this, $afterMethod)) {
+                $data = $this->$afterMethod($args, $data);
+            }
+        }
+
+        $afterMethod = 'after_'. $originalAction;
+        if (method_exists($this, $afterMethod)) {
+            $data = $this->$afterMethod($args, $data);
+        }
+
+        if (method_exists($this, '_after')) {
+            $data = $this->_after($originalAction, $args, $data);
+        }
+
+        return $data;
+    }
+
+    /**
      * Redirects the user to a new path.
      */
     protected function redirect($path) {
