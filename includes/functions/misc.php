@@ -1,5 +1,17 @@
 <?php
 
+    function octopus_api_key($scope = '') {
+
+        $sessionKey = 'OCTOPUS_API_KEY';
+        if ($scope) $sessionKey .= '_' . strtoupper($scope);
+
+        if (isset($_SESSION[$sessionKey])) {
+            return $_SESSION[$sessionKey];
+        }
+
+        return ($_SESSION[$sessionKey] = md5(uniqid()));
+    }
+
     if (!function_exists('define_unless')) {
 
         /**

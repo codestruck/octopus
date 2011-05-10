@@ -20,9 +20,32 @@ class ControllerTestController extends Octopus_Controller {
         }
     }
 
+    public function test404() {
+        $this->notFound('404view');
+    }
+
 }
 
 class ControllerTest extends Octopus_App_TestCase {
+
+    function test404() {
+
+        $app = $this->startApp();
+        $resp = new Octopus_Response(true);
+        $controller = new ControllerTestController($app, $resp);
+
+        $controller->__execute('test_404', array());
+        $this->assertEquals('404view', $controller->view);
+
+        $this->assertEquals(
+            <<<END
+HTTP/1.1 404 Not Found
+END
+            ,
+            trim($resp)
+        );
+
+    }
 
     function testRedirectCancelable() {
 
