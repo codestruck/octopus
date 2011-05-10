@@ -309,5 +309,6 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
 }
 
 Octopus_Html_Form_Field::register('email', 'Octopus_Html_Form_Field', array('type' => 'email', 'class' => 'text'));
+Octopus::loadClass('Octopus_Html_Form_Field_Textarea');
 
 ?>
