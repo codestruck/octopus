@@ -55,11 +55,11 @@ class BeforeAndAfterController extends Octopus_Controller {
         \$GLOBALS[__METHOD__] = array(\$this->i++, \$action, \$args);
     }
 
-    function before_defaultAction(\$args) {
+    function before_defaultAction(\$action, \$args) {
         \$GLOBALS[__METHOD__] = array(\$this->i++, \$args);
     }
 
-    function after_defaultAction(\$args, \$data) {
+    function after_defaultAction(\$action, \$args, \$data) {
         \$GLOBALS[__METHOD__] = array(\$this->i++, \$args);
     }
 

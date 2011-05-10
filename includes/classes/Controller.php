@@ -34,8 +34,8 @@ abstract class Octopus_Controller {
         // Execute the global _before action
         if (method_exists($this, '_before')) {
             $result = $this->_before($originalAction, $args);
-            if ($result === false) {
-                return;
+            if ($this->isFailure($result)) {
+                return $result;
             }
         }
 
@@ -43,8 +43,8 @@ abstract class Octopus_Controller {
         $beforeMethod = 'before_' . $originalAction;
         if (method_exists($this, $beforeMethod)) {
             $result = $this->$beforeMethod($args);
-            if ($result === false) {
-                return;
+            if ($this->isFailure($result)) {
+                return $result;
             }
         }
 
@@ -52,59 +52,70 @@ abstract class Octopus_Controller {
             // Support before_defaultAction as well
             $beforeMethod = 'before_' . $action;
             if (method_exists($this, $beforeMethod)) {
-                $result = $this->$beforeMethod($args);
-                if ($result === false) {
+                $result = $this->$beforeMethod($originalAction, $args);
+                if ($this->isFailure($result)) {
                     // Short-circuit
-                    return;
+                    return $result;
                 }
             }
         }
+
+        $originalArgs = $args;
 
         if ($action == 'defaultAction') {
-            // Special case-- pass args as an array along w/ action
-            $data = $this->defaultAction($originalAction, $args);
-        } else {
-
-            $haveArgs = !!count($args);
-
-            if (!$haveArgs) {
-
-                // Easy enough
-                $data = $this->$action();
-
-            } else {
-
-                /* If args is an associative array, pass in as a single
-                 * argument. Otherwise, assume each value in the array maps
-                 * to a corresponding argument in the action.
-                 */
-
-                if (is_associative_array($args)) {
-                    $data = $this->$action($args);
-                } else {
-                    $data = call_user_func_array(array($this, $action), $args);
-                }
-            }
+            $args = array($originalAction, $args);
         }
+
+        $data = $this->__executeAction($action, $args);
 
         // Support after_defaultAction
         if ($originalAction != $action) {
             $afterMethod = 'after_' . $action;
             if (method_exists($this, $afterMethod)) {
-                $data = $this->$afterMethod($args, $data);
+                $data = $this->$afterMethod($originalAction, $originalArgs, $data);
             }
         }
 
         $afterMethod = 'after_'. $originalAction;
         if (method_exists($this, $afterMethod)) {
-            $data = $this->$afterMethod($args, $data);
+            $data = $this->$afterMethod($originalArgs, $data);
         }
 
         if (method_exists($this, '_after')) {
-            $data = $this->_after($originalAction, $args, $data);
+            $data = $this->_after($originalAction, $originalArgs, $data);
         }
 
         return $data;
+    }
+
+    private function isFailure($result) {
+
+        return ($result === false) ||
+               (is_array($result) && isset($result['success']) && $result['success'] === false);
+    }
+
+    protected function __executeAction($action, $args) {
+
+        $haveArgs = !!count($args);
+
+        if (!$haveArgs) {
+
+            // Easy enough
+            return $this->$action();
+
+        } else {
+
+            /* If args is an associative array, pass in as a single
+             * argument. Otherwise, assume each value in the array maps
+             * to a corresponding argument in the action.
+             */
+
+            if (is_associative_array($args)) {
+                return $this->$action($args);
+            } else {
+                return call_user_func_array(array($this, $action), $args);
+            }
+        }
     }
 
     /**
