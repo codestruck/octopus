@@ -194,7 +194,7 @@ END;
     }
 
     public static function inWebContext() {
-        return isset($_SERVER['HTTP_USER_AGENT']);
+        return isset($_SERVER['HTTP_USER_AGENT']) && !isset($_GET['callback']) && !isset($_SERVER['X-Requested-With']);
     }
 
     /**
@@ -388,7 +388,13 @@ END;
 
             $d = new Octopus_Debug('dump_r');
             foreach($args as $arg) {
-                $html = '<pre>' . htmlspecialchars(Octopus_Debug::dumpToString($arg)) . '</pre>';
+
+                $output = Octopus_Debug::dumpToString($arg);
+                if (!function_exists('xdebug_call_class')) {
+                    $output = htmlspecialchars($output);
+                }
+
+                $html = '<pre>' . $output . '</pre>';
                 $d->add('var', $html);
             }
             $d->add('context', Octopus_Debug::getArraysHtml());
@@ -398,6 +404,8 @@ END;
             $d->add('footer', Octopus_Debug::getErrorReportingHtml());
 
         } else {
+
+            ini_set('html_errors', 0);
 
             $d = new Octopus_Debug('dump_r');
             foreach($args as $arg) {
