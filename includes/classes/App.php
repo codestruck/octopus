@@ -277,7 +277,7 @@ class Octopus_App {
      * Returns a response for the given path.
      * @return Object An Octopus_Response instance.
      */
-    public function getResponse($path = null) {
+    public function getResponse($path = null, $buffer = false) {
 
         if ($path === null) {
             $arg = $this->_options['path_querystring_arg'];
@@ -286,7 +286,7 @@ class Octopus_App {
         }
 
         $dispatch = new Octopus_Dispatcher($this);
-        $response = $dispatch->getResponse($path);
+        $response = $dispatch->getResponse($path, $buffer);
 
         return $response;
     }

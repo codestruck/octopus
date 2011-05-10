@@ -28,7 +28,7 @@ END
 
             $app = $this->startApp();
 
-            $resp = $app->getResponse('/controller/action');
+            $resp = $app->getResponse('/controller/action', true);
             $this->assertTrue(!!$resp, 'No response returned. loc: ' . $viewLoc);
 
             $this->assertEquals(
@@ -61,7 +61,7 @@ END
 
         $app = $this->startApp();
 
-        $resp = $app->getResponse('test/foo');
+        $resp = $app->getResponse('test/foo', true);
         $this->assertEquals('SUCCESS!', $resp->getContent());
 
     }
@@ -78,7 +78,7 @@ END
 
         $app = $this->startApp();
 
-        $resp = $app->getResponse('/controller/action');
+        $resp = $app->getResponse('/controller/action', true);
         $this->assertTrue(!!$resp, 'No response returned.');
 
         $this->assertEquals(

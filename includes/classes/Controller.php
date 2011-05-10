@@ -10,7 +10,7 @@ abstract class Octopus_Controller {
     public $app;
     public $response;
 
-    public function __construct($app, $response) {
+    public function __construct($app = null, $response = null) {
         $this->app = $app;
         $this->response = $response;
     }
@@ -19,14 +19,33 @@ abstract class Octopus_Controller {
      * Redirects the user to a new path.
      */
     protected function redirect($path) {
-        $this->response->redirect(u($path));
+
+        $path = u($path);
+
+        if (should_redirect()) {
+            $this->response->redirect($path);
+        } else {
+            notify_of_squashed_redirect($path, $this->response);
+        }
     }
 
     /**
      * Redirects the user to the current URL.
      */
     protected function reload() {
+        $this->redirect($_SERVER['REQUEST_URI']);
+    }
 
+    /**
+     * Sends the browser a 404 error.
+     */
+    protected function notFound($newView = null) {
+
+        if ($newView !== null) {
+            $this->view = $newView;
+        }
+
+        $this->response->notFound();
     }
 
     /**
@@ -41,17 +60,19 @@ abstract class Octopus_Controller {
      */
     protected function renderJson($data = array(), $options = null) {
 
-        header('Content-type: application/json');
-        echo json_encode($data);
-        exit();
+        $this->response
+            ->contentType('application/json')
+            ->append(json_encode($data))
+            ->stop();
 
     }
 
     protected function renderJsonp($data = array(), $function, $options = null) {
 
-        header('Content-type: application/javascript');
-        echo $function . '(' . json_encode($data) . ');';
-        exit();
+        $this->response
+            ->contentType('application/javascript')
+            ->append($function . '(' . json_encode($data) . ');')
+            ->stop();
 
     }
 

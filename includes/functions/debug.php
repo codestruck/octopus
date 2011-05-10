@@ -92,28 +92,37 @@ END;
         $this->_content[$name][] = $content;
     }
 
-    public function render() {
+    public function render($return = false) {
         if (self::inWebContext()) {
-            $this->renderHtml();
+            return $this->renderHtml($return);
         } else {
-            $this->renderText();
+            return $this->renderText($return);
         }
     }
 
-    public function renderHtml() {
+    public function renderHtml($return = false) {
 
-        if (!self::$_renderedCss) {
-            echo self::$css;
-            self::$_renderedCss = true;
+        $result = '';
+
+        if (!self::$_renderedCss || $return) {
+            $result .= self::$css;
+            if (!$return) self::$_renderedCss = true;
         }
 
         $content = $this->getContentHtml();
 
-        echo <<<END
+        $result .= <<<END
         <div id="{$this->_id}" class="sgDebug">
             $content
         </div>
 END;
+
+        if ($return) {
+            return $result;
+        } else {
+            echo $result;
+        }
+
     }
 
     private function getContentHtml() {
@@ -163,20 +172,25 @@ END;
         return $html;
     }
 
-    public function renderText() {
+    public function renderText($return = false) {
 
         $line = str_repeat('-', 80);
+        $result = "\n$line";
 
-        echo "\n$line";
         foreach($this->_content as $name => $c) {
 
             foreach($c as $text) {
-                echo "\n$text";
+                $result .= "\n$text";
             }
 
         }
-        echo "\n$line";
+        $result .= "\n$line";
 
+        if ($return) {
+            return $result;
+        } else {
+            echo $result;
+        }
     }
 
     public static function inWebContext() {

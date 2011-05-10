@@ -5,28 +5,76 @@
  */
 class Octopus_Response {
 
+    private $_active = true;
+    private $_buffer = false;
     private $_status = null;
     private $_headers = array();
     private $_content = array();
     private $_flushedHeaders = array();
 
+    public function __construct($buffer = false) {
+        $this->_buffer = $buffer;
+    }
+
     /**
      * Adds content to the response.
      */
-    public function &append($content) {
-        $this->_content[] = $content;
+    public function append(/* $content */) {
+
+        if (!$this->_active) {
+            return $this;
+        }
+
+        $args = func_get_args();
+        foreach($args as $arg) {
+
+            if ($this->_buffer) {
+                $this->_content[] = $arg;
+            } else {
+                echo $arg;
+            }
+        }
+
         return $this;
     }
 
-    public function &addHeader($name, $value) {
-        $this->_headers[$name] = $value;
+    public function addHeader($name, $value) {
+
+        if (!$this->_active) {
+            return $this;
+        }
+
+        if ($this->_buffer) {
+            $this->_headers[$name] = $value;
+        } else {
+            header("$name: $value");
+        }
+
+        return $this;
+    }
+
+    /**
+     * Turns buffering on and off.
+     */
+    public function buffer(/* $buffer */) {
+
+        if (func_num_args() == 0) {
+            return $this->_buffer;
+        }
+
+        $buffer = func_get_args(0);
+        if (!$buffer && $this->_buffer) {
+            $this->flush();
+        }
+
+        $this->_buffer = !!$buffer;
         return $this;
     }
 
     /**
      * Writes any pending headers and content.
      */
-    public function &flush() {
+    public function flush() {
 
         foreach($this->_headers as $key => $value) {
             if (!isset($this->_flushedHeaders[$key])) {
@@ -45,11 +93,12 @@ class Octopus_Response {
     /**
      * Sets the status header to 403/Forbidden and clears the output buffer.
      */
-    public function &forbidden() {
+    public function forbidden() {
         return
             $this
                 ->reset()
-                ->setStatus('HTTP/1.1 403 Forbidden');
+                ->setStatus('HTTP/1.1 403 Forbidden')
+                ->stop();
     }
 
     /**
@@ -82,7 +131,11 @@ class Octopus_Response {
     /**
      * Sets the status line for this response.
      */
-    public function &setStatus($status) {
+    public function setStatus($status) {
+
+        if (!$this->_active) {
+            return $this;
+        }
 
         if (is_numeric($status)) {
             $status = 'HTTP/1.1 ' . $status;
@@ -114,7 +167,7 @@ class Octopus_Response {
         return !empty($this->_headers);
     }
 
-    public function &removeHeader($name) {
+    public function removeHeader($name) {
         unset($this->_headers[$name]);
         return $this;
     }
@@ -122,7 +175,7 @@ class Octopus_Response {
     /**
      * Helper that marks the response as a 404.
      */
-    public function &notFound() {
+    public function notFound() {
         return $this
             ->reset()
             ->setStatus('HTTP/1.1 404 Not Found');
@@ -147,20 +200,19 @@ class Octopus_Response {
      * @param $to string URL to redirect to.
      * @param $permanent bool Whether this is a permanent redirect.
      */
-    public function &redirect($to, $permanent = false) {
+    public function redirect($to, $permanent = false) {
 
-        $this
+        return $this
             ->reset()
             ->setStatus('HTTP/1.1 ' . ($permanent ? '301 Moved Permanently' : '302 Found'))
-            ->addHeader('Location', $to);
-
-        return $this;
+            ->addHeader('Location', $to)
+            ->stop();
     }
 
     /**
      * Clears the response.
      */
-    private function &reset() {
+    private function reset() {
         $this->_status = null;
         $this->_headers = array();
         $this->_content = array();
@@ -173,18 +225,18 @@ class Octopus_Response {
      * request.
      */
     public function shouldContinueProcessing() {
+        return $this->_active;
+    }
 
-        $status = $this->getStatus();
-
-        switch($status) {
-
-            case 301:
-            case 302:
-            case 307:
-                return false;
-
-            default:
-                return true;
+    /**
+     * Stops processing. For buffered responses, this sets a flag and marks the
+     * response as read-only. For unbuffered responses, calls exit().
+     */
+    public function stop() {
+        if ($this->_buffer) {
+            $this->_active = false;
+        } else {
+            exit();
         }
     }
 

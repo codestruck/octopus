@@ -27,7 +27,7 @@ END
 
         $app = $this->startApp();
         unset($GLOBALS['action:foo']);
-        $response = $app->getResponse('default-action/foo/arg1/arg2');
+        $response = $app->getResponse('default-action/foo/arg1/arg2', true);
 
         $this->assertEquals(
             array('arg1', 'arg2'),
@@ -104,7 +104,7 @@ END
 
         $app = $this->startApp();
 
-        $resp = $app->getResponse('before-and-after/foo/arg1/arg2');
+        $resp = $app->getResponse('before-and-after/foo/arg1/arg2', true);
 
         $this->assertEquals(array(0, 'foo', array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::_before'], '_before is wrong');
         $this->assertEquals(array(1, array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::before_foo'], 'before_foo is wrong');
@@ -116,7 +116,7 @@ END
         unset($GLOBALS['BeforeAndAfterController::_before']);
         unset($GLOBALS['BeforeAndAfterController::_after']);
 
-        $resp = $app->getResponse('before-and-after/missing/arg1/arg2');
+        $resp = $app->getResponse('before-and-after/missing/arg1/arg2', true);
         $this->assertEquals(array(0, 'missing', array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::_before'], '_before is wrong');
         $this->assertEquals(array(1, array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::before_missing'], 'before_missing is wrong');
         $this->assertEquals(array(2, array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::before_defaultAction'], 'before_defaultAction is wrong');
@@ -128,7 +128,7 @@ END
         unset($GLOBALS['BeforeAndAfterController::_after']);
         unset($GLOBALS['BeforeAndAfterController::cancel']);
 
-        $resp = $app->getResponse('before-and-after/cancel/arg1/arg2');
+        $resp = $app->getResponse('before-and-after/cancel/arg1/arg2', true);
         $this->assertEquals(array(0, 'cancel', array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::_before'], '_before is wrong');
         $this->assertEquals(array(1, array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::before_cancel'], 'before_cancel is wrong');
         $this->assertFalse(isset($GLOBALS['BeforeAndAfterController::cancel']), 'cancel should not have been called');
@@ -140,7 +140,7 @@ END
 
         $app = $this->startApp();
 
-        $resp = $app->getResponse('/controller');
+        $resp = $app->getResponse('/controller', true);
 
         $this->assertEquals(
             <<<END
@@ -151,7 +151,7 @@ END
             trim($resp)
         );
 
-        $resp = $app->getResponse('/controller/');
+        $resp = $app->getResponse('/controller/', true);
         $this->assertEquals(200, $resp->getStatus());
 
     }
