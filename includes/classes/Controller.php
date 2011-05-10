@@ -67,7 +67,13 @@ abstract class Octopus_Controller {
 
     }
 
-    protected function renderJsonp($data = array(), $function, $options = null) {
+    protected function renderJsonp($data = array(), $function = null, $options = null) {
+
+        if ($function === null) {
+            // jQuery specifies the name of the callback function via the
+            // 'callback' argument.
+            $function = $_GET['callback'];
+        }
 
         $this->response
             ->contentType('application/javascript')

@@ -8,6 +8,18 @@ class ControllerTestController extends Octopus_Controller {
         $this->redirect($url);
     }
 
+    public function test_renderJson($data) {
+        $this->renderJson($data);
+    }
+
+    public function test_renderJsonp($data, $callback = null) {
+        if ($callback) {
+            $this->renderJsonp($data, $callback);
+        } else {
+            $this->renderJsonp($data);
+        }
+    }
+
 }
 
 class ControllerTest extends Octopus_App_TestCase {
@@ -42,6 +54,88 @@ END
             'HTTP/1.1 200 OK <div class="sgSquashedRedirectNotice"> Suppressed redirect to: <a href="foo"><strong>foo</strong></a></div>',
             $resp
         );
+    }
+
+    function testRenderJson() {
+
+        $data = array(
+            'foo' => 'bar',
+            'active' => true
+        );
+
+        $app = $this->startApp();
+        $resp = new Octopus_Response(true);
+        $controller = new ControllerTestController($app, $resp);
+
+        $controller->test_renderJson($data);
+
+        $this->assertEquals(
+            <<<END
+HTTP/1.1 200 OK
+Content-type: application/json
+
+{"foo":"bar","active":true}
+END
+            ,
+            trim($resp)
+        );
+
+    }
+
+    function testRenderJsonp() {
+
+        $data = array(
+            'foo' => 'bar',
+            'active' => true
+        );
+
+        $app = $this->startApp();
+        $resp = new Octopus_Response(true);
+        $controller = new ControllerTestController($app, $resp);
+
+        $controller->test_renderJsonp($data, 'callbackFunc');
+
+        $this->assertEquals(
+            <<<END
+HTTP/1.1 200 OK
+Content-type: application/javascript
+
+callbackFunc({"foo":"bar","active":true});
+END
+            ,
+            trim($resp)
+        );
+
+    }
+
+    function testRenderJsonpUsingCallbackFromGet() {
+
+        global $_GET;
+
+        $data = array(
+            'foo' => 'bar',
+            'active' => true
+        );
+
+        $app = $this->startApp();
+        $resp = new Octopus_Response(true);
+        $controller = new ControllerTestController($app, $resp);
+
+        $_GET['callback'] = 'callbackFuncFromGet';
+
+        $controller->test_renderJsonp($data);
+
+        $this->assertEquals(
+            <<<END
+HTTP/1.1 200 OK
+Content-type: application/javascript
+
+callbackFuncFromGet({"foo":"bar","active":true});
+END
+            ,
+            trim($resp)
+        );
+
     }
 
 }
