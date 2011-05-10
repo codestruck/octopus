@@ -29,7 +29,8 @@ class Hammer extends Octopus_Model {
             'onEmpty' => 'to_unique_slug',
         ),
         'nail' => array(
-            'type' => 'hasOne'
+            'type' => 'hasOne',
+            'required' => true
         ),
         'active' => array(
             'type' => 'boolean',
