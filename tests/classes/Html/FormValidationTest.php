@@ -126,7 +126,7 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
     function testRequiredValidation() {
 
         $form = new Octopus_Html_Form('reqForm');
-        $field = $form->add('foo', 'text')->required();
+        $field = $form->add('foo')->required();
 
         $this->assertTrue(count($field->getRules()) === 1, 'Field should have a required rule on it');
 

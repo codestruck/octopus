@@ -6,9 +6,22 @@ Octopus::loadClass('Octopus_Html_Form_Field_Select');
 
 class SelectTest extends Octopus_Html_TestCase {
 
+    function testAddToForm() {
+
+        $form = new Octopus_Html_Form('select');
+
+        $form->add('select', 'foo');
+
+        $this->assertHtmlEquals(
+            '<form id="select" method="post"><div class="field"><label for="foo">Foo:</label><select name="foo" id="fooInput" class="foo select"></select></div></form>',
+            $form->render(true)
+        );
+
+    }
+
     function testSelectExplicitOptions() {
 
-        $s = new Octopus_Html_Form_Field_Select('test');
+        $s = Octopus_Html_Form_Field::create('select', 'test');
 
         $s->addOption(42, 'The Answer')->addClass('ultimateQuestion');
         $s->addOptions(array(
@@ -33,7 +46,7 @@ END;
     }
 
     function testSelectValue() {
-        $s = new Octopus_Html_Form_Field_Select('test');
+        $s = Octopus_Html_Form_Field::create('select', 'test');
         $s->addOptions(array(
            1 => 'Foo',
            2 => 'Bar'
@@ -75,7 +88,7 @@ END;
 
     function testSelectUsingFunctionForOptions() {
 
-        $sel = new Octopus_Html_Form_Field_Select('test');
+        $sel = Octopus_Html_Form_Field::create('select', 'test');
         $sel->addOptions(array($this, '_test_get_options'));
 
         $expected = <<<END
@@ -116,7 +129,7 @@ END;
             $foo = array($idField => 1, $textField => 'Foo');
             $bar = array($idField => 2, $textField => 'Bar');
 
-            $sel = new Octopus_Html_Form_Field_Select('test');
+            $sel = Octopus_Html_Form_Field::create('select', 'test');
             $sel->addOptions(array($foo, $bar));
 
             $expected = <<<END
@@ -156,7 +169,7 @@ $this->assertHtmlEquals($expected, $sel->render(true), "failed on {$idField}, {$
             $bar->$idField = 2;
             $bar->$textField = 'Bar';
 
-            $sel = new Octopus_Html_Form_Field_Select('test');
+            $sel = Octopus_Html_Form_Field::create('select', 'test');
             $sel->addOptions(array($foo, $bar));
 
             $expected = <<<END

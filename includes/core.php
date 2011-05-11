@@ -42,7 +42,9 @@
 
             'path_querystring_arg' => '__path',
 
-            'start_app' => true
+            'start_app' => true,
+
+            'handle_exceptions' => true
         );
 
         $options = $options ? array_merge($defaults, $options) : $defaults;
@@ -64,6 +66,13 @@
         ////////////////////////////////////////////////////////////////////////
 
         if ($options['start_app']) {
+
+            if ($options['handle_exceptions']) {
+                if (null !== set_exception_handler('octopus_handle_exception')) {
+                    restore_exception_handler();
+                }
+            }
+
             Octopus::loadClass('Octopus_App');
             Octopus_App::start($options);
         }
@@ -81,6 +90,14 @@
         $response = $app->getResponse($path);
         $response->flush();
 
+    }
+
+    /**
+     * Global exception handler.
+     */
+    function octopus_handle_exception($ex) {
+        dump_r($ex);
+        die();
     }
 
 ?>

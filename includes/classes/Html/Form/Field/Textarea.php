@@ -10,9 +10,9 @@ class Octopus_Html_Form_Field_Textarea extends Octopus_Html_Form_Field {
     protected $valueField = null;
     protected $textField = null;
 
-    public function __construct($name, $type = null, $attributes = null) {
+    public function __construct($type, $name, $label, $attributes = null) {
         $this->requireCloseTag = true;
-        parent::__construct('textarea', $name, $type ? $type : 'textarea', $attributes);
+        parent::__construct('textarea', $type, $name, $label, $attributes);
         $this->setAttribute('name', $name);
         $this->removeAttribute('type');
     }
@@ -39,7 +39,5 @@ class Octopus_Html_Form_Field_Textarea extends Octopus_Html_Form_Field {
     }
 
 }
-
-Octopus_Html_Form_Field::register('textarea', 'Octopus_Html_Form_Field_Textarea');
 
 ?>

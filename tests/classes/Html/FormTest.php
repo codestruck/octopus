@@ -66,12 +66,12 @@ class FormTest extends Octopus_Html_TestCase {
 
     }
 
-    function dontTestBasicFormUsage() {
+    function testBasicFormUsage() {
 
         $form = new Octopus_Html_Form('testForm', 'post');
         $form->action = 'whatever.php';
 
-        $form->add('name', 'text')
+        $form->add('name')
             ->autoFocus()
             ->required();
 
@@ -233,6 +233,12 @@ END
             $form->template = $this->saveTemplate("{\$name.$attr}");
             $this->assertEquals($value, $form->render(true), 'failed on ' . $attr);
         }
+
+    }
+
+    function toArrayTest() {
+
+        $form = new SG_Html_Form('toArray');
 
     }
 }
