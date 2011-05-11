@@ -158,4 +158,30 @@ class ModelNonStandardTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(2, $other->differentd_id);
     }
 
+    function testRowNotFound()
+    {
+        $item = new Different(5);
+        $this->assertEquals(null, $item->different_id);
+    }
+
+    /**
+     * @expectedException Octopus_Model_Exception
+     */
+    function testUnknownPropertyGet()
+    {
+        $item = new Different();
+        $try = $item->nonexisting;
+
+    }
+
+    /**
+     * @expectedException Octopus_Model_Exception
+     */
+    function testUnknownPropertySet()
+    {
+        $item = new Different();
+        $item->nonexisting = 'foo';
+
+    }
+
 }

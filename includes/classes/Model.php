@@ -8,6 +8,8 @@ Octopus::loadClass('Octopus_DB_Delete');
 Octopus::loadClass('Octopus_Model_Field');
 Octopus::loadClass('Octopus_Model_ResultSet');
 
+class Octopus_Model_Exception extends Octopus_Exception {}
+
 abstract class Octopus_Model {
 
     /**
@@ -31,6 +33,7 @@ abstract class Octopus_Model {
     private static $fieldHandles = array();
 
     protected $data = array();
+    private $errors = array();
 
     public function __construct($id = null) {
 
@@ -39,7 +42,10 @@ abstract class Octopus_Model {
             $this->setData($id);
         } else if ($id) {
             if ($id) {
-                $this->setData(self::get($id));
+                $item = self::get($id);
+                if ($item) {
+                    $this->setData($item);
+                }
             }
         }
     }
@@ -56,7 +62,12 @@ abstract class Octopus_Model {
         if ($field) {
             return $field->accessValue($this);
         } else {
-            return null;
+            $pk = $this->getPrimaryKey();
+            if ($var === $pk) {
+                return null;
+            } else {
+                throw new Octopus_Model_Exception('Cannot access field ' . $var . ' on Model ' . $this->_getClassName());
+            }
         }
     }
 
@@ -65,7 +76,12 @@ abstract class Octopus_Model {
         if ($field) {
             $field->setValue($this, $value);
         } else {
-            $this->$var = $value;
+            $pk = $this->getPrimaryKey();
+            if ($var === $pk || preg_match('/_id$/', $var)) {
+                $this->$var = $value;
+            } else {
+                throw new Octopus_Model_Exception('Cannot set field ' . $var . ' on Model ' . $this->_getClassName());
+            }
         }
     }
 
@@ -81,7 +97,7 @@ abstract class Octopus_Model {
             }
         }
 
-        trigger_error('Invalid call to ' . $name);
+        throw new Octopus_Model_Exception('Cannot call  ' . $name . ' on Model ' . $this->_getClassName());
 
     }
 
