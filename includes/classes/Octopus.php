@@ -1,5 +1,6 @@
 <?php
 
+Octopus::loadClass('Octopus_Exception');
 Octopus::loadClass('Base');
 
 /**
