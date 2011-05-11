@@ -10,10 +10,11 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
     protected $valueField = null;
     protected $textField = null;
 
-    public function __construct($name, $type = null, $attributes = null) {
-        parent::__construct('select', $name, $type ? $type : 'select', $attributes);
+    public function __construct($type, $name, $label, $attributes = null) {
+        parent::__construct('select', $type, $name, $label, $attributes);
         $this->setAttribute('name', $name);
         $this->removeAttribute('type');
+        $this->requireCloseTag = true;
     }
 
     /**
@@ -287,7 +288,5 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
     }
 
 }
-
-Octopus_Html_Form_Field::register('select', 'Octopus_Html_Form_Field_Select');
 
 ?>

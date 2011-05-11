@@ -11,13 +11,15 @@ class Octopus_Html_Element {
 
     // Helper for displaying attributes in a standard order.
     protected static $attributeWeights = array(
-        'type' => -10,
-        'name' => -9,
-        'value' => -8,
-        'href' => -9,
-        'id' => -8,
-        'class' => -6,
-        'style' => -5,
+        'type' => -15,
+        'name' => -14,
+        'href' => -13,
+        'id' => -12,
+        'value' => -12,
+        'method' => -10,
+        'action' => -9,
+        'class' => -8,
+        'style' => -7,
         'alt' => 1,
         'selected' => 8,
         'checked' => 8,
@@ -112,7 +114,9 @@ class Octopus_Html_Element {
             $this->_content = array();
         }
 
-        $this->_content[] = $item;
+        if ($item) {
+            $this->_content[] = $item;
+        }
 
         return $this;
     }

@@ -8,11 +8,17 @@ abstract class Octopus_Html_TestCase extends PHPUnit_Framework_TestCase {
     /**
      * Asserts two chunks of HTML are equal.
      */
-    public function assertHtmlEquals($expected, $actual, $message = '') {
+    public function assertHtmlEquals($expected, $actual, $strict = false, $message = '') {
+
+        if (is_string($strict)) {
+            $temp = $strict;
+            $message = $strict;
+            $strict =  !!$message;
+        }
 
         $this->assertEquals(
-            self::normalizeHtml($expected),
-            self::normalizeHtml($actual),
+            self::normalizeHtml($expected, $strict),
+            self::normalizeHtml($actual, $strict),
             $message
         );
     }
@@ -20,15 +26,24 @@ abstract class Octopus_Html_TestCase extends PHPUnit_Framework_TestCase {
     /**
      * Compares two chunks of HTML.
      */
-    public static function normalizeHtml($html) {
+    public static function normalizeHtml($html, $strict = false) {
 
         $html = trim(preg_replace('/\s+/m', ' ', $html));
 
-        // Consume whitespace before some elements
-        $html = preg_replace('#\s*(<option(\s|>))#i', '$1', $html);
+        if ($strict) {
 
-        // Consume whitespace before the close of other elements
-        $html = preg_replace('#\s*(</(select)>)#', '$1', $html);
+            // Consume whitespace before some elements
+            $html = preg_replace('#\s*(<option(\s|>))#i', '$1', $html);
+
+            // Consume whitespace before the close of other elements
+            $html = preg_replace('#\s*(</(select)>)#', '$1', $html);
+
+        } else {
+
+            // Consume all whitespace between elements
+            $html = preg_replace('#>\s+<#', '><', $html);
+
+        }
 
         return $html;
     }

@@ -9,18 +9,23 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
 
     private static $_registry = array();
 
+    /**
+     * Regexes used for mustBe.
+     */
     private static $_formats = array(
         'email' => '/^\s*[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\s*$/i'
     );
 
-    public $label = null;
     public $help = null;
     public $wrapper = null;
 
     private $_rules = array();
     private $_requiredRule = null;
 
-    public function __construct($tag, $name, $type, $attributes) {
+    private $_label = null;
+    private $_labelElements = array();
+
+    public function __construct($tag, $type, $name, $label, $attributes) {
 
         parent::__construct($tag, $attributes);
 
@@ -28,8 +33,8 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
         $this->name = $name;
         $this->id = $name . 'Input';
 
-        $this->addClass(to_css_class($name))
-             ->addClass(to_css_class($type));
+        $this->addClass(to_css_class($name), to_css_class($type))
+             ->label($label);
     }
 
     /**
@@ -71,6 +76,15 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
     }
 
     /**
+     * Makes this field aware of a <label> element for it.
+     */
+    public function addLabel($label) {
+        $this->_labelElements[] = $label;
+        $this->updateLabels();
+        return $this;
+    }
+
+    /**
      * Sets the 'autofocus' attribute on this element.
      */
     public function autoFocus($focus = true) {
@@ -88,6 +102,26 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
     public function between($inclusiveMin, $inclusiveMax, $message = null) {
         Octopus::loadClass('Octopus_Html_Form_Field_Rule_Range');
         return $this->addRule(new Octopus_Html_Form_Field_Rule_Range($inclusiveMin, $inclusiveMax, $message));
+    }
+
+    /**
+     * Gets/sets the label for this attribute.
+     */
+    public function label(/* $label */) {
+
+        switch(func_num_args()) {
+
+            case 0:
+                return $this->_label;
+
+            default:
+
+                $this->_label = func_get_arg(0);
+                $this->updateLabels();
+
+                return $this;
+        }
+
     }
 
     /**
@@ -112,49 +146,6 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
     public function mustPass($callback, $message = null) {
         Octopus::loadClass('Octopus_Html_Form_Field_Rule_Callback');
         return $this->addRule(new Octopus_Html_Form_Field_Rule_Callback($callback, $message));
-    }
-
-    /**
-     * Generates the HTML for this form field.
-     */
-    public function render($return = false) {
-
-        $labelHtml = empty($this->label) ? '' : $this->label->render(true);
-
-        if (empty($this->help)) {
-            $helpHtml = '';
-        } else if (is_string($this->help)) {
-            $h = new Octopus_Html_Element('span', array('class' => 'help'), $this->help);
-            $helpHtml = $h->render(true);
-        } else {
-            $helpHtml = $this->help->render(true);
-        }
-
-        $fieldHtml = parent::render(true);
-
-        $result = '';
-
-        if (empty($this->wrapper)) {
-            $result = trim($labelHtml . "\n" . $fieldHtml . "\n" . $helpHtml);
-        } else {
-
-            // Display this field inside a wrapper.
-            $w = $this->wrapper;
-
-            $w
-                ->append($labelHtml)
-                ->append($fieldHtml)
-                ->append($helpHtml);
-
-            $result = $w->render(true);
-        }
-
-        if ($return) {
-            return $result;
-        } else {
-            echo $result;
-            return $this;
-        }
     }
 
     /**
@@ -250,6 +241,16 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
 
     }
 
+    protected function updateLabels() {
+
+        $text = $this->_label;
+        foreach($this->_labelElements as $l) {
+            $l->setAttribute('for', $this->name)
+              ->text($text ? $text : '');
+        }
+
+    }
+
     /**
      * Registers a form field type.
      * @param $name String The unique name of this field type.
@@ -269,23 +270,35 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
     /**
      * Factory method for creating new form fields.
      */
-    public static function create($name, $type = null, $desc = null, $attributes = null) {
+    public static function create($type, $name = null, $label = null, $attributes = null) {
 
-        if (is_array($desc) && $attributes === null) {
-            $attributes = $desc;
-            $desc = null;
+        if ($type && ($name === null && $label === null && $attributes === null)) {
+            // create([implied 'text'], $type);
+            $name = $type;
+            if (!isset(self::$_registry[$type])) $type = 'text';
         }
 
-        if (is_array($type) && $desc === null && $attributes === null) {
-            $attributes = $type;
-            $type = empty($attributes['type']) ? 'text' : $attributes['type'];
-            unset($attributes['type']);
+        if (is_array($label) && $attributes === null) {
+            // create($type, $name, $attributes)
+            $attributes = $label;
+            $label = null;
         }
 
-        $attributes = $attributes ? $attributes : array();
+        if (is_array($name) && $label === null && $attributes === null) {
+            // create($type, $attributes)
+            $attributes = $name;
+        }
 
-        if ($type === null) {
-            $type = empty($attributes['type']) ? $name : $attributes['type'];
+        if (!$attributes) $attributes = array();
+
+        if ($name === null) {
+            $name = isset($attributes['name']) ? $attributes['name'] : $type;
+            unset($attributes['name']);
+        }
+
+        if ($label === null) {
+            $label = isset($attributes['label']) ? $attributes['label'] : humanize($name) . ':';
+            unset($attributes['label']);
         }
 
         $class = 'Octopus_Html_Form_Field';
@@ -296,19 +309,19 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
             $attributes = array_merge(empty($entry['attributes']) ? array() : $entry['attributes'], $attributes);
         }
 
-
         Octopus::loadClass($class);
 
         if ($class == 'Octopus_Html_Form_Field') {
-            return new Octopus_Html_Form_Field('input', $name, $type, $attributes);
+            return new Octopus_Html_Form_Field('input', $type, $name, $label, $attributes);
         } else {
-            return new $class($name, $type, $attributes);
+            return new $class($type, $name, $label, $attributes);
         }
     }
 
 }
 
 Octopus_Html_Form_Field::register('email', 'Octopus_Html_Form_Field', array('type' => 'email', 'class' => 'text'));
-Octopus::loadClass('Octopus_Html_Form_Field_Textarea');
+Octopus_Html_Form_Field::register('textarea', 'Octopus_Html_Form_Field_Textarea');
+Octopus_Html_Form_Field::register('select', 'Octopus_Html_Form_Field_Select');
 
 ?>

@@ -29,19 +29,20 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         parent::__construct('form', $attributes);
     }
 
-    public function &add($nameOrElement, $type = 'text', $desc = null, $attributes = null) {
+    public function &add($typeOrElement, $name = null, $label = null, $attributes = null) {
 
         $field = null;
+        $wrapper = null;
 
-        if ($nameOrElement instanceof Octopus_Html_Element) {
-            $field = $nameOrElement;
-        } else {
-            $field = Octopus_Html_Form_Field::create($nameOrElement, $type, $desc, $attributes);
-            $this->initializeField($field);
-        }
-
-        if ($field) {
+        if ($typeOrElement instanceof Octopus_Html_Element) {
+            $field = $typeOrElement;
             $this->append($field);
+        } else {
+            $field = Octopus_Html_Form_Field::create($typeOrElement, $name, $label, $attributes);
+            if ($field) {
+                $wrapper = $this->wrapField($field);
+                if ($wrapper) $this->append($wrapper);
+            }
         }
 
         return $field;
@@ -277,31 +278,38 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     }
 
     /**
-     * Preps a field that is added to the form.
+     * Fields added like add('type', 'name', array()), wraps in a div and adds
+     * a label.
      */
-    protected function initializeField($field) {
+    protected function wrapField($field) {
 
-        $field->wrapper = new Octopus_Html_Element('div', array('class' => 'field'));
-        $field->wrapper->addClass(to_css_class($field->name), $field->type);
+        $label = new Octopus_Html_Element('label');
+        $field->addLabel($label);
 
-        $field->label = new Octopus_Html_Element('label', array('for' => $field->name));
-        $field->label->text(humanize($field->name) . ':');
+        $wrapper = new Octopus_Html_Element('div');
+        $wrapper->addClass('field');
+        $wrapper->append($label);
+        $wrapper->append($field);
 
+        return $wrapper;
     }
 
     private function validateRecursive(&$el, &$values, &$result) {
 
-        if ($el instanceof Octopus_Html_Form_Field) {
+        if ($el instanceof Octopus_Html_Element) {
 
-            $fieldResult = $el->validate($values);
-            $result->errors += $fieldResult->errors;
+            if ($el instanceof Octopus_Html_Form_Field) {
+
+                $fieldResult = $el->validate($values);
+                $result->errors += $fieldResult->errors;
+
+            }
+
+            foreach($el->children() as $c) {
+                $this->validateRecursive($c, $values, $result);
+            }
 
         }
-
-        foreach($el->children() as $c) {
-            $this->validateRecursive($c, $values, $result);
-        }
-
     }
 
 
