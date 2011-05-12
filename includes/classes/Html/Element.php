@@ -6,7 +6,7 @@
 class Octopus_Html_Element {
 
     protected $_tag;
-    protected $_attributes;
+    private $_attributes;
     private $_content;
 
     // Helper for displaying attributes in a standard order.
@@ -182,6 +182,18 @@ class Octopus_Html_Element {
         return $this->_content;
     }
 
+    /**
+     * @return Array All attributes on this element.
+     */
+    public function getAttributes() {
+
+        // Put attributes in a standard order (for aesthetics as well as
+        // to help the gzipper reduce page size).
+        uksort($this->_attributes, array($this, '_compareAttributes'));
+
+        return $this->_attributes;
+    }
+
     public function getAttribute($key, $default = null) {
         return isset($this->_attributes[$key]) ? $this->_attributes[$key] : $default;
     }
@@ -194,10 +206,32 @@ class Octopus_Html_Element {
     }
 
     public function setAttribute($key, $value) {
+
+        $alreadySet = isset($this->_attributes[$key]);
+
         if ($value === null) {
+
+            if (!$alreadySet) {
+                // No change
+                return $this;
+            }
+
+            $oldValue = $this->_attributes[$key];
             unset($this->_attributes[$key]);
+
+            $this->attributeChanged($key, $oldValue, $value);
+
         } else {
+
+            if ($alreadySet && $this->_attributes[$key] === $value) {
+                // No change
+                return $this;
+            }
+
+            $oldValue = $alreadySet ? $this->_attributes[$key] : null;
             $this->_attributes[$key] = $value;
+            $this->attributeChanged($key, $oldValue, $value);
+
         }
 
         return $this;
@@ -285,23 +319,42 @@ class Octopus_Html_Element {
 
         $result = '<' . $this->_tag;
 
-        uksort($this->_attributes, array($this, '_compareAttributes'));
+        foreach($this->getAttributes() as $key => $value) {
 
-        foreach($this->_attributes as $key => $value) {
-
-            // Support e.g., 'autofocus' and 'required', which are rendered
-            // without values.
-            $hasValue = empty(self::$noValueAttrs[$key]);
-
-            if ($hasValue) {
-                $result .= ' ' . htmlspecialchars($key) . '="' . htmlspecialchars($value) . '"';
-            } else if ($value) {
-                $result .= ' ' . htmlspecialchars($key);
+            $rendered = self::renderAttribute($key, $value);
+            if ($rendered) {
+                $result .= ' ' . $rendered;
             }
-
         }
 
         return $result;
+    }
+
+    /**
+     * @return string HTML representation of the given attribute/value combo.
+     */
+    protected static function renderAttribute($attr, $value, $alreadyEscaped = false) {
+
+        // Support e.g., 'autofocus' and 'required', which are rendered
+        // without values.
+        $hasValue = empty(self::$noValueAttrs[$attr]);
+
+        if (!($hasValue || $value)) {
+            return '';
+        }
+
+        if (!$alreadyEscaped) {
+            $attr = htmlspecialchars($attr);
+            $value = htmlspecialchars($value);
+        }
+
+        if ($hasValue) {
+            return $attr . '="' . $value . '"';
+        } else if ($value) {
+            return $attr;
+        } else {
+            return '';
+        }
     }
 
     protected function renderCloseTag(&$renderedContent) {
@@ -345,8 +398,41 @@ class Octopus_Html_Element {
     /**
      * Sets the inner text of this element.
      */
-    public function text($text) {
-        $this->_content = array(htmlspecialchars($text));
+    public function text(/* $text */) {
+
+        switch(func_num_args()) {
+
+            case 0:
+                return $this->getText();
+
+            default:
+                $this->_content = array_map('htmlspecialchars', func_get_args());
+                return $this;
+        }
+    }
+
+    private function getText() {
+
+        $text = '';
+
+        foreach($this->children() as $child) {
+
+            $childText = '';
+
+            if (is_string($child)) {
+                $childText = $child;
+            } else if ($child instanceof Octopus_Html_Element) {
+                $childText = $child->text();
+            }
+
+            if ($childText) {
+                $text .= ($text ? ' ' : '') . $childText;
+            }
+
+        }
+
+        return htmlspecialchars_decode($text);
+
     }
 
     public function toggleClass($class) {
@@ -391,6 +477,12 @@ class Octopus_Html_Element {
         return $this->render(true);
     }
 
+    /**
+     * Hook that is called whenever an attribute changes.
+     */
+    protected function attributeChanged($attr, $oldValue, $newValue) {
+    }
+
     private static function _compareAttributes($x, $y) {
 
         $xWeight = (isset(self::$attributeWeights[$x]) ? self::$attributeWeights[$x] : 0);
@@ -404,7 +496,6 @@ class Octopus_Html_Element {
         // compression benefits?
         return strcasecmp($x, $y);
     }
-
 
 }
 

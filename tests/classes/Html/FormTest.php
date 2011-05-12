@@ -105,142 +105,75 @@ END
 
     }
 
-    function saveTemplate($text) {
+    function testToArrayBasic() {
 
-        $templateFile = '.form_template_test.tpl';
-        if (is_file($templateFile)) unlink($templateFile);
+        $form = new Octopus_Html_Form('toArray');
+        $name = $form->add('name')->required();
 
-        file_put_contents($templateFile, $text);
-        return $templateFile;
-    }
-
-    function dontTestTemplateFormFieldLabel() {
-
-        $file = $this->saveTemplate('{name.label}');
-
-        $form = new Octopus_Html_Form('label');
-        $form->template = $file;
-        $form->add('name');
-
-        $this->assertHtmlEquals('Name:', $form->render(true));
-    }
-
-    function dontTestTemplateFormFieldHtml() {
-        $file = $this->saveTemplate('{name.html}');
-
-        $form = new Octopus_Html_Form('field');
-        $form->template = $file;
-        $form->add('name');
-
-        $this->assertHtmlEquals('<input type="text" name="name" id="nameInput" class="name text" value="" />', $form->render(true));
-    }
-
-    function dontTestTemplateFormFieldAttributes() {
-
-        $file = $this->saveTemplate('{name.attributes}');
-
-        $form = new Octopus_Html_Form('attributes');
-        $form->template = $file;
-        $form->add('name');
+        $form->validate(array('name' => ''));
 
         $this->assertEquals(
-            'type="text" name="name" id="nameInput" class="name text" value=""',
-            $form->render(true)
+            array(
+
+                'form' => array(
+                    'attributes' => 'id="toArray" method="post"',
+                    'id' => 'toArray',
+                    'method' => 'post',
+                    'valid' => false,
+                    'errors' => array('Name is required.')
+                ),
+
+                'name' => array(
+
+                    'attributes' => 'type="text" id="nameInput" class="name text required" name="name" value="" required',
+                    'type' => 'text',
+                    'id' => 'nameInput',
+                    'class' => 'name text required',
+                    'name' => 'name',
+                    'value' => '',
+                    'required' => 'required',
+                    'html' => $name->render(true),
+                    'valid' => false,
+                    'errors' => array('Name is required.')
+
+                )
+            ),
+            $form->toArray()
+        );
+
+        $form->validate(array('name' => 'something <b>with markup</b>'));
+
+        $this->assertEquals(
+            array(
+
+                'form' => array(
+                    'attributes' => 'id="toArray" method="post"',
+                    'id' => 'toArray',
+                    'method' => 'post',
+                    'valid' => true,
+                    'errors' => array()
+                ),
+
+                'name' => array(
+
+                    'attributes' => 'type="text" id="nameInput" class="name text required" name="name" value="something &lt;b&gt;with markup&lt;/b&gt;" required',
+                    'type' => 'text',
+                    'id' => 'nameInput',
+                    'class' => 'name text required',
+                    'name' => 'name',
+                    'value' => 'something &lt;b&gt;with markup&lt;/b&gt;',
+                    'required' => 'required',
+                    'html' => $name->render(true),
+                    'valid' => true,
+                    'errors' => array()
+
+                )
+            ),
+            $form->toArray()
         );
 
     }
 
-    function dontTestTemplateFormFieldIteration() {
-
-        $form = new Octopus_Html_Form('iteration');
-        $form->template = $this->saveTemplate(<<<END
-{foreach from=\$fields item=f}
-{\$f.name}
-{/foreach}
-END
-        );
-
-        $form->add('name');
-        $form->add('email');
-        $form->add('foo');
-
-        $this->assertEquals(<<<END
-name
-email
-foo
-END
-            ,
-            $form->render(true)
-        );
-
-    }
-
-    function dontTestTemplateFormFieldErrors() {
-
-        $file = $this->saveTemplate('{name.errors}');
-
-        $form = new Octopus_Html_Form('errors');
-        $form->template = $file;
-        $form->add('name')->required('Name is required.');
-        $form->setValues(array());
-
-        $this->assertHtmlEquals(
-<<<END
-<ul class="errors">
-    <li>Name is required.</li>
-</ul>
-END
-            ,
-            $form->render(true)
-        );
-    }
-
-    function dontTestTemplateFormErrors() {
-
-        $form = new Octopus_Html_Form('errors');
-        $form->template = $this->saveTemplate('{$errors}');
-        $form->add('name')->required('Name is required.');
-        $form->add('email')->required('Email is required.');
-
-        $this->assertHtmlEquals(
-<<<END
-<ul class="errors">
-    <li>Name is required.</li>
-    <li>Email is required.</li>
-</ul>
-END
-            ,
-            $form->render(true)
-        );
-    }
-
-    function dontTestTemplateFormIndividualAttributes() {
-
-        $tests = array(
-            'type' => 'text',
-            'id' => 'nameInput',
-            'name' => 'name',
-            'class' => 'name text',
-            'value' => '',
-            'autofocus' => 'autofocus'
-        );
-
-        foreach($tests as $attr => $value) {
-
-            $form = new Octopus_Html_Form('attr');
-            $form->add('name')->autoFocus();
-
-            $form->template = $this->saveTemplate("{\$name.$attr}");
-            $this->assertEquals($value, $form->render(true), 'failed on ' . $attr);
-        }
-
-    }
-
-    function toArrayTest() {
-
-        $form = new SG_Html_Form('toArray');
-
-    }
 }
 
 ?>

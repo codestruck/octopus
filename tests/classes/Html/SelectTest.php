@@ -192,6 +192,28 @@ END;
 
         }
     }
+
+    function testToArray() {
+
+        $form = new Octopus_Html_Form('toArray');
+        $select = $form->add('select', 'foo');
+        $select->addOptions(array(1 => 'Option 1', 2 => 'Option 2'));
+
+        $this->assertEquals(
+            array(
+                'attributes' => 'id="fooInput" class="foo select" name="foo"',
+                'id' => 'fooInput',
+                'class' => 'foo select',
+                'name' => 'foo',
+                'html' => $select->render(true),
+                'valid' => true,
+                'errors' => array(),
+                'options' => array(1 => 'Option 1', 2 => 'Option 2')
+            ),
+            $select->toArray()
+        );
+
+    }
 }
 
 ?>

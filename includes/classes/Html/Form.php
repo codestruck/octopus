@@ -5,8 +5,11 @@ Octopus::loadClass('Octopus_Html_Form_Field');
 class Octopus_Html_Form extends Octopus_Html_Element {
 
     private $_rules = array();
-    private $_values = null;
     private $_buttonsDiv = null;
+
+    private $_values = null;
+    private $_validationResult = null;
+
 
     /**
      * Custom template to use when rendering this form.
@@ -140,6 +143,9 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      */
     public function setValues($values) {
 
+        $this->_values = $values;
+        $this->_validationResult = null;
+
         foreach($this->children() as $child) {
             $this->setValuesRecursive($child, $values);
         }
@@ -169,10 +175,53 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
     }
 
-
+    /**
+     * Adds a callback rule to this form.
+     */
     public function mustPass($callback, $message = null) {
         Octopus::loadClass('Octopus_Html_Form_Rule_Callback');
         return $this->addRule(new Octopus_Html_Form_Rule_Callback($callback, $message));
+    }
+
+    /**
+     * Generates an array containing all data necessary to render this form in
+     * a template.
+     */
+    public function toArray() {
+
+        $result = array('form' => array());
+
+        self::attributesToArray($this->getAttributes(), $result['form']);
+
+        if ($this->_validationResult) {
+            $result['form']['valid'] = $this->_validationResult->success;
+            $result['form']['errors'] = $this->_validationResult->errors;
+        } else {
+            $result['form']['valid'] = true;
+            $result['form']['errors'] = array();
+        }
+
+        foreach($this->children() as $child) {
+            $this->toArrayRecursive($child, $result);
+        }
+
+        return $result;
+
+    }
+
+    private function toArrayRecursive($el, &$result) {
+
+        if (!$el || !($el instanceof Octopus_Html_Element)) {
+            return;
+        }
+
+        if ($el instanceof Octopus_Html_Form_Field) {
+            $result[$el->name] = $el->toArray();
+        }
+
+        foreach($el->children() as $child) {
+            $this->toArrayRecursive($child, $result);
+        }
     }
 
     /**
@@ -183,7 +232,11 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      */
     public function validate($values = null) {
 
-        $values = ($values === null ? $_POST : $values);
+        if ($values === null) {
+            $values = $this->getValues();
+        } else {
+            $this->setValues($values);
+        }
 
         $result = new StdClass();
         $result->errors = array();
@@ -208,6 +261,8 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
         $result->success = (count($result->errors) == 0);
         $result->hasErrors = !$result->success;
+
+        $this->_validationResult = $result;
 
         return $result;
 
@@ -339,6 +394,38 @@ class Octopus_Html_Form extends Octopus_Html_Element {
             }
 
         }
+    }
+
+    /**
+     * Copies the given set of attributes into the given array, and builds
+     * a key called 'attributes' in $ar that contains the full attribute html
+     * string.
+     */
+    public static function attributesToArray($attributes, &$ar) {
+
+        $ar['attributes'] = '';
+
+        foreach($attributes as $attr => $value) {
+
+            $safeAttr = htmlspecialchars($attr);
+            $safeValue = htmlspecialchars($value);
+
+            $rendered = Octopus_Html_Element::renderAttribute($safeAttr, $safeValue, true);
+
+            if ($rendered) {
+
+                $ar['attributes'] .= ($ar['attributes'] ? ' ' : '') . $rendered;
+
+                if (strpos($rendered, '=') == false) {
+                    // Attribute has no value
+                    $ar[$attr] = $safeAttr;
+                } else {
+                    $ar[$attr] = $safeValue;
+                }
+
+            }
+        }
+
     }
 
 
