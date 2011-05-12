@@ -9,17 +9,15 @@ abstract class Octopus_App_TestCase extends PHPUnit_Framework_TestCase {
 
     public function __construct() {
         parent::__construct();
-        $this->siteDir =  '.' . get_class() . '-sitedir';
+        $this->siteDir =  dirname(__FILE__) . '/.working/' . get_called_class() . '-sitedir';
     }
 
     function setUp() {
-
         $this->initSiteDir();
-
     }
 
     function tearDown() {
-        $this->cleanUpSiteDir();
+        //$this->cleanUpSiteDir();
     }
 
     function initSiteDir() {
@@ -27,9 +25,10 @@ abstract class Octopus_App_TestCase extends PHPUnit_Framework_TestCase {
         $this->cleanUpSiteDir();
 
         $s = $this->siteDir;
-        mkdir($s);
+        mkdir($s, 0777, true);
         mkdir("$s/controllers");
         mkdir("$s/views");
+        mkdir("$s/models");
         mkdir("$s/themes/default/templates/html", 0777, true);
         file_put_contents("$s/themes/default/templates/html/page.php", '<?php echo $view_content; ?>');
 
