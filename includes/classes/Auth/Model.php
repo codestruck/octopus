@@ -9,6 +9,7 @@ Octopus::loadClass('Octopus_DB_Select');
 Octopus::loadClass('Octopus_DB_Update');
 Octopus::loadClass('Octopus_Mail');
 Octopus::loadClass('Octopus_Settings');
+Octopus::loadClass('Octopus_Model');
 
 function createPassword($length) {
     $chars = "234567890abcdefghijkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -21,21 +22,32 @@ function createPassword($length) {
     return $password;
 }
 
-class Octopus_Auth_Base extends Octopus_Base {
+abstract class Octopus_Auth_Model extends Octopus_Model {
 
-    function __construct() {
+    protected $password_algo_strength = 8;
+    protected $portable_passwords = FALSE;
+    protected $cookiePath = '/';
+    protected $cookieSsl = false;
+    protected $hiddenField = 'hidden';
+    protected $rememberDays = 14;
+    protected $rememberSeconds;
+    protected $realm;
+    protected $cookieName;
+    protected $usernameField = 'email';
+    protected $info = array();
+
+    protected $groups = array();
+    protected $created;
+    protected $last_login;
+    protected $total_logins;
+    protected $last_host;
+    protected $last_ip;
+
+    function __construct($arg = null) {
         $this->user_id = null;
-        $this->password_algo_strength = 8;
-        $this->portable_passwords = TRUE;
-        $this->cookiePath = '/';
-        $this->cookieSsl = false;
         $this->hiddenField = 'hidden';
-
-        if (!isset($this->rememberDays)) {
-            $this->rememberDays = 14;
-        }
-
         $this->rememberSeconds = 60*60*24 * $this->rememberDays;
+        parent::__construct($arg);
     }
 
     function afterAuth() {
