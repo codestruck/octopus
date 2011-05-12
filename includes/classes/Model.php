@@ -63,10 +63,10 @@ abstract class Octopus_Model {
             return $field->accessValue($this);
         } else {
             $pk = $this->getPrimaryKey();
-            if ($var === $pk) {
+            if ($var === $pk || preg_match('/_id$/', $var)) {
                 return null;
             } else {
-                throw new Octopus_Model_Exception('Cannot access field ' . $var . ' on Model ' . $this->_getClassName());
+                throw new Octopus_Model_Exception('Cannot access field ' . $var . ' on Model ' . self::_getClassName());
             }
         }
     }
@@ -80,7 +80,7 @@ abstract class Octopus_Model {
             if ($var === $pk || preg_match('/_id$/', $var)) {
                 $this->$var = $value;
             } else {
-                throw new Octopus_Model_Exception('Cannot set field ' . $var . ' on Model ' . $this->_getClassName());
+                throw new Octopus_Model_Exception('Cannot set field ' . $var . ' on Model ' . self::_getClassName());
             }
         }
     }
