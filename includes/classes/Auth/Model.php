@@ -43,11 +43,11 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
     protected $last_host;
     protected $last_ip;
 
-    function __construct() {
+    function __construct($arg = null) {
         $this->user_id = null;
         $this->hiddenField = 'hidden';
         $this->rememberSeconds = 60*60*24 * $this->rememberDays;
-        parent::__construct();
+        parent::__construct($arg);
     }
 
     function afterAuth() {

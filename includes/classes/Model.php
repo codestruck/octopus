@@ -95,9 +95,19 @@ abstract class Octopus_Model {
             if ($field) {
                 return $field->handleRelation($action, $arguments, $this);
             }
+        } else if (preg_match('/^(has)(.*)$/', $name, $matches)) {
+            $action = $matches[1];
+            $type = $matches[1];
+            $fieldname = pluralize(strtolower($matches[2]));
+
+            $field = $this->getField($fieldname);
+            if ($field) {
+                return $field->checkHas(array_shift($arguments), $this);
+            }
         }
 
-        throw new Octopus_Model_Exception('Cannot call  ' . $name . ' on Model ' . $this->_getClassName());
+
+        throw new Octopus_Model_Exception('Cannot call ' . $name . ' on Model ' . $this->_getClassName());
 
     }
 
