@@ -43,6 +43,28 @@ class FormFieldTest extends Octopus_Html_TestCase {
 
     }
 
+    function testTextareaToArray() {
+
+        $form = new Octopus_Html_Form('textarea');
+        $textarea = $form->add('textarea', 'foo');
+        $textarea->val('<b>test</b>');
+
+        $this->assertEquals(
+            array(
+                'attributes' => 'id="fooInput" class="foo textarea" name="foo"',
+                'id' => 'fooInput',
+                'class' => 'foo textarea',
+                'name' => 'foo',
+                'html' => $textarea->render(true),
+                'valid' => true,
+                'errors' => array(),
+                'value' => '&lt;b&gt;test&lt;/b&gt;',
+            ),
+            $textarea->toArray()
+        );
+
+    }
+
 }
 
 ?>
