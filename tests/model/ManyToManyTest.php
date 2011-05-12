@@ -197,5 +197,47 @@ class ModelManyToManyTest extends Octopus_DB_TestCase
         $this->assertEquals(0, count($g->products));
     }
 
+    function testHasProductId()
+    {
+        $group = new Group(1);
+        $this->assertTrue($group->hasProduct(1));
+
+        $group = new Group(2);
+        $this->assertFalse($group->hasProduct(1));
+    }
+
+    function testHasGroupId()
+    {
+        $product = new Product(1);
+        $this->assertTrue($product->hasGroup(1));
+        $this->assertFalse($product->hasGroup(2));
+
+        $product = new Product(3);
+        $this->assertTrue($product->hasGroup(1));
+        $this->assertFalse($product->hasGroup(2));
+    }
+
+    function testHasProductObject()
+    {
+        $product = new Product(1);
+
+        $group = new Group(1);
+        $this->assertTrue($group->hasProduct($product));
+
+        $group = new Group(2);
+        $this->assertFalse($group->hasProduct($product));
+    }
+
+    function testHasGroupObject()
+    {
+        $product = new Product(1);
+        $this->assertTrue($product->hasGroup(new Group(1)));
+        $this->assertFalse($product->hasGroup(new Group(2)));
+
+        $product = new Product(3);
+        $this->assertTrue($product->hasGroup(new Group(1)));
+        $this->assertFalse($product->hasGroup(new Group(2)));
+    }
+
 }
 

@@ -68,5 +68,23 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
 
     }
 
+    public function checkHas($obj, $model) {
+
+        $type = strtolower(get_class($model));
+        $table = $this->getJoinTableName(array($this->field, $type));
+
+        if (is_object($obj)) {
+            $obj = $obj->id;
+        }
+
+        $s = new Octopus_DB_Select();
+        $s->table($table);
+        $s->where($model->to_id($this->field) . ' = ?', $obj);
+        $s->where($model->to_id($type) . ' = ?', $model->id);
+        $query = $s->query();
+        return $query->numRows() > 0;
+
+    }
+
 }
 
