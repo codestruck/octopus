@@ -90,7 +90,7 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
     public function autoFocus($focus = true) {
 
         if ($focus) {
-            return $this->setAttribute('autofocus', '');
+            return $this->setAttribute('autofocus', true);
         } else {
             return $this->removeAttribute('autofocus');
         }

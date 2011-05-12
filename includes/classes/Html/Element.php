@@ -12,14 +12,14 @@ class Octopus_Html_Element {
     // Helper for displaying attributes in a standard order.
     protected static $attributeWeights = array(
         'type' => -15,
-        'name' => -14,
         'href' => -13,
         'id' => -12,
-        'value' => -12,
         'method' => -10,
         'action' => -9,
         'class' => -8,
         'style' => -7,
+        'name' => -6,
+        'value' => -5,
         'alt' => 1,
         'selected' => 8,
         'checked' => 8,
