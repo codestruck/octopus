@@ -139,8 +139,36 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      * Sets the data in this form.
      */
     public function setValues($values) {
-        $this->_values = $values;
+
+        foreach($this->children() as $child) {
+            $this->setValuesRecursive($child, $values);
+        }
+
+        return $this;
     }
+
+    private function setValuesRecursive($el, &$values) {
+
+        if (!$el || !($el instanceof Octopus_Html_Element)) {
+            return;
+        }
+
+        if ($el instanceof Octopus_Html_Form_Field) {
+
+            if (isset($values[$el->name])) {
+                $el->val($values[$el->name]);
+            } else {
+                $el->val(null);
+            }
+
+        }
+
+        foreach($el->children() as $child) {
+            $this->setValuesRecursive($child, $values);
+        }
+
+    }
+
 
     public function mustPass($callback, $message = null) {
         Octopus::loadClass('Octopus_Html_Form_Rule_Callback');
@@ -287,7 +315,8 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         $field->addLabel($label);
 
         $wrapper = new Octopus_Html_Element('div');
-        $wrapper->addClass('field');
+        $wrapper->id = $field->name . 'Field';
+        $wrapper->addClass('field', $field->class);
         $wrapper->append($label);
         $wrapper->append($field);
 

@@ -31,7 +31,7 @@ class FormTest extends Octopus_Html_TestCase {
 
             array(
                 'args' => array(array('type' => 'submit', 'name' => 'foo', 'value' => 'bar', 'label' => 'Test')),
-                'expected' => '<button type="submit" name="foo" value="bar" class="submit button">Test</button>'
+                'expected' => '<button type="submit" class="submit button" name="foo" value="bar">Test</button>'
             ),
 
             array(
@@ -46,7 +46,7 @@ class FormTest extends Octopus_Html_TestCase {
 
             array(
                 'args' => array('submit', array('name' => 'foo', 'value' => 'bar', 'label' => 'Test')),
-                'expected' => '<button type="submit" name="foo" value="bar" class="submit button">Test</button>'
+                'expected' => '<button type="submit" class="submit button" name="foo" value="bar">Test</button>'
             )
 
 
@@ -86,16 +86,16 @@ class FormTest extends Octopus_Html_TestCase {
         $this->assertHtmlEquals(
 <<<END
 <form id="testForm" method="post" action="whatever.php">
-    <div id="nameField" class="name text field required">
+    <div id="nameField" class="field name text">
         <label for="name">Name:</label>
         <input type="text" id="nameInput" class="name text required" name="name" value="Joe Blow" autofocus required />
     </div>
-    <div id="emailField" class="email text field required">
+    <div id="emailField" class="field text email">
         <label for="email">Email:</label>
-        <input type="email" id="emailInput" class="email text required" name="email" value="joe@blow.com" required />
+        <input type="email" id="emailInput" class="text email required" name="email" value="joe@blow.com" required />
     </div>
     <div class="buttons">
-        <input type="submit" />
+        <button type="submit" class="submit button" />
     </div>
 </form>
 END

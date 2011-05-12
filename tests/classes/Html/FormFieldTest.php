@@ -12,7 +12,7 @@ class FormFieldTest extends Octopus_Html_TestCase {
         $name = $form->add('text', 'name', array('autofocus' => true));
 
         $this->assertHtmlEquals(
-            '<input type="text" name="name" id="nameInput" class="name text" autofocus />',
+            '<input type="text" id="nameInput" class="name text" name="name" autofocus />',
             $name->render(true)
         );
 
@@ -24,9 +24,22 @@ class FormFieldTest extends Octopus_Html_TestCase {
         $email = Octopus_Html_Form_Field::create('email');
 
         $this->assertHtmlEquals(
-            '<input type="email" name="email" id="emailInput" class="text email" />',
+            '<input type="email" id="emailInput" class="text email" name="email" />',
             $email->render(true)
         );
+
+    }
+
+    function testAutofocus() {
+
+        $form = new Octopus_Html_Form('autofocus');
+        $field = $form->add('foo')->autoFocus();
+
+        $this->assertHtmlEquals(
+            '<input type="text" id="fooInput" class="foo text" name="foo" autofocus />',
+            $field->render(true)
+        );
+
 
     }
 

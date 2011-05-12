@@ -13,7 +13,16 @@ class SelectTest extends Octopus_Html_TestCase {
         $form->add('select', 'foo');
 
         $this->assertHtmlEquals(
-            '<form id="select" method="post"><div class="field"><label for="foo">Foo:</label><select name="foo" id="fooInput" class="foo select"></select></div></form>',
+            <<<END
+<form id="select" method="post">
+    <div id="fooField" class="field foo select">
+        <label for="foo">Foo:</label>
+        <select id="fooInput" class="foo select" name="foo">
+        </select>
+    </div>
+</form>
+END
+            ,
             $form->render(true)
         );
 
@@ -32,12 +41,12 @@ class SelectTest extends Octopus_Html_TestCase {
         $s->addOption('Hi There', array('class' => 'sameTextAndValue'));
 
         $expected = <<<END
-<select name="test" id="testInput" class="test select">
-    <option value="42" class="ultimateQuestion">The Answer</option>
+<select id="testInput" class="test select" name="test">
+    <option class="ultimateQuestion" value="42">The Answer</option>
     <option value="1">One</option>
     <option value="2">Two</option>
     <option value="3">Three</option>
-    <option value="Hi There" class="sameTextAndValue">Hi There</option>
+    <option class="sameTextAndValue" value="Hi There">Hi There</option>
 </select>
 END;
 
@@ -56,7 +65,7 @@ END;
         $this->assertEquals(2, $s->val());
 
         $expected = <<<END
-<select name="test" id="testInput" class="test select">
+<select id="testInput" class="test select" name="test">
     <option value="1">Foo</option>
     <option value="2" selected>Bar</option>
 </select>
@@ -66,7 +75,7 @@ END;
 
         $s->val(1);
         $expected = <<<END
-<select name="test" id="testInput" class="test select">
+<select id="testInput" class="test select" name="test">
     <option value="1" selected>Foo</option>
     <option value="2">Bar</option>
 </select>
@@ -76,7 +85,7 @@ END;
 
         $s->setAttribute('value', 'missing');
         $expected = <<<END
-<select name="test" id="testInput" class="test select">
+<select id="testInput" class="test select" name="test">
     <option value="1">Foo</option>
     <option value="2">Bar</option>
 </select>
@@ -92,7 +101,7 @@ END;
         $sel->addOptions(array($this, '_test_get_options'));
 
         $expected = <<<END
-<select name="test" id="testInput" class="test select">
+<select id="testInput" class="test select" name="test">
     <option value="1">Foo</option>
     <option value="2">Bar</option>
 </select>
@@ -133,7 +142,7 @@ END;
             $sel->addOptions(array($foo, $bar));
 
             $expected = <<<END
-<select name="test" id="testInput" class="test select">
+<select id="testInput" class="test select" name="test">
     <option value="{$foo[$idField]}">{$foo[$textField]}</option>
     <option value="{$bar[$idField]}">{$bar[$textField]}</option>
 </select>
@@ -173,7 +182,7 @@ $this->assertHtmlEquals($expected, $sel->render(true), "failed on {$idField}, {$
             $sel->addOptions(array($foo, $bar));
 
             $expected = <<<END
-<select name="test" id="testInput" class="test select">
+<select id="testInput" class="test select" name="test">
     <option value="{$foo->$idField}">{$foo->$textField}</option>
     <option value="{$bar->$idField}">{$bar->$textField}</option>
 </select>
