@@ -97,7 +97,7 @@ class ElementTests extends PHPUnit_Framework_TestCase {
 
     }
 
-    function testSetInnerText() {
+    function testInnerText() {
 
         $e = new Octopus_Html_Element('span');
         $e->text('<escape> & <test>');
@@ -106,6 +106,21 @@ class ElementTests extends PHPUnit_Framework_TestCase {
             $e->render(true)
         );
 
+        $e->text('foo and bar');
+        $this->assertEquals('foo and bar', $e->text());
+
+
+        $child1 = new Octopus_Html_Element('span');
+        $child2 = new Octopus_Html_Element('span');
+
+        $child1->text('foo');
+        $child2->text('bar');
+
+        $e->clear();
+        $e->append($child1);
+        $e->append($child2);
+
+        $this->assertEquals('foo bar', $e->text());
     }
 
     function testSetInnerHtml() {

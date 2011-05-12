@@ -68,6 +68,16 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
         return $this;
     }
 
+    public function getAttribute($attr, $default = null) {
+
+        if (strcasecmp($attr, 'value') == 0) {
+            return $this->getValue();
+        } else {
+            return parent::getAttribute($attr, $default);
+        }
+
+    }
+
     public function setAttribute($attr, $value) {
 
         if (strcasecmp($attr, 'value') == 0) {
@@ -78,58 +88,19 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
 
     }
 
-    public function val($value = null) {
+    public function &toArray() {
 
-        if ($value === null) {
-            return $this->getValue();
-        } else {
-            $this->setValue($value);
-            return $this;
-        }
+        $result = parent::toArray();
+        $result['options'] = array();
 
-    }
-
-    private function getValue() {
-
-        $result = null;
-
-        foreach($this->children() as $o) {
-
-            if ($o->selected) {
-                return $o->value === null ? $o->text() : $o->value;
-            } else if ($result === null) {
-
-                // by default, 1st option is selected
-                $result = $o->value === null ? $o->text() : $o->value;
-            }
+        foreach($this->children() as $option) {
+            $value = $option->getAttribute('value', null);
+            if ($value === null) $value = $option->text();
+            $result['options'][$value] = $option->text();
         }
 
         return $result;
-
     }
-
-    private function setValue($value) {
-
-        // TODO: is value case-sensitive?
-
-        $options = $this->children();
-        foreach($options as $o) {
-
-            $val = $o->value;
-            if ($val === null) $val = $o->text();
-
-            if (strcasecmp($val, $value) == 0) {
-                $o->selected = true;
-            } else {
-                $o->selected = false;
-            }
-
-        }
-
-        return $this;
-
-    }
-
 
     /**
      * Factory method for creating <options>
@@ -160,6 +131,52 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
         $opt->text($text);
 
         return $opt;
+    }
+
+    private function getValue() {
+
+        $result = null;
+
+        foreach($this->children() as $o) {
+
+            if ($o->selected) {
+                return $o->value === null ? $o->text() : $o->value;
+            } else if ($result === null) {
+
+                // by default, 1st option is selected
+                $result = $o->value === null ? $o->text() : $o->value;
+            }
+        }
+
+        return $result;
+
+    }
+
+    private function setValue($value) {
+
+        // TODO: is value case-sensitive?
+
+        $options = $this->children();
+        $set = false;
+
+        foreach($options as $o) {
+
+            $val = $o->value;
+            if ($val === null) $val = $o->text();
+
+            if (strcasecmp($val, $value) == 0) {
+                $o->selected = true;
+                $set = true;
+            } else {
+                $o->selected = false;
+            }
+
+        }
+
+        if ($set) $this->valueChanged();
+
+        return $this;
+
     }
 
     /**

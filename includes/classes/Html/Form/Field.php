@@ -1,6 +1,7 @@
 <?php
 
 Octopus::loadClass('Octopus_Html_Element');
+Octopus::loadClass('Octopus_Html_Form');
 
 /**
  * A field on a form.
@@ -24,6 +25,8 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
 
     private $_label = null;
     private $_labelElements = array();
+
+    private $_validationResult = null;
 
     public function __construct($tag, $type, $name, $label, $attributes) {
 
@@ -162,7 +165,7 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
 
             if (!$this->_requiredRule) {
                 Octopus::loadClass('Octopus_Html_Form_Field_Rule_Required');
-                $this->_requiredRule = new Octopus_Html_Form_Field_Rule_Required();
+                $this->_requiredRule = new Octopus_Html_Form_Field_Rule_Required($this);
             }
 
             $this->_requiredRule->setMessage($message);
@@ -176,6 +179,28 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
         parent::setAttribute('required', $required);
 
         return $this;
+    }
+
+    /**
+     * @return Array An array of details about this field suitable for use
+     * in rendering via a template.
+     */
+    public function &toArray() {
+
+        $result = array();
+        Octopus_Html_Form::attributesToArray($this->getAttributes(), $result);
+
+        $result['html'] = $this->render(true);
+
+        if ($this->_validationResult) {
+            $result['valid'] = $this->_validationResult->success;
+            $result['errors'] = $this->_validationResult->errors;
+        } else {
+            $result['valid'] = true;
+            $result['errors'] = array();
+        }
+
+        return $result;
     }
 
     /**
@@ -228,6 +253,8 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
         $result->success = !$errorCount;
         $result->hasErrors = !!$errorCount;
 
+        $this->_validationResult = $result;
+
         return $result;
     }
 
@@ -249,6 +276,22 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
               ->text($text ? $text : '');
         }
 
+    }
+
+    protected function attributeChanged($attr, $oldValue, $newValue) {
+
+        parent::attributeChanged($attr, $oldValue, $newValue);
+
+        if (strcasecmp($attr, 'value') == 0) {
+            $this->valueChanged();
+        }
+    }
+
+    /**
+     * Hook that's called whenever this field's value changes.
+     */
+    protected function valueChanged() {
+        $this->_validationResult = null;
     }
 
     /**
