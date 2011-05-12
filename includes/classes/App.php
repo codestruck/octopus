@@ -46,6 +46,11 @@ class Octopus_App {
          */
         'use_site_config' => true,
 
+        /**
+         * Whether or not to load all model classes by default.
+         */
+        'load_models' => true,
+
     );
 
     private static $_instance = null;
@@ -64,11 +69,22 @@ class Octopus_App {
         $this->_figureOutSecurity();
         $this->_figureOutLocation();
         $this->_initNav();
+        $this->_loadSystemModels();
         $this->_loadSiteConfig();
         $this->_setEnvironmentFlags();
         $this->_ensurePrivateDir();
         $this->_initSettings();
 
+    }
+
+    private function _loadSystemModels() {
+
+        $o =& $this->_options;
+        if (!$o['load_models']) {
+            return;
+        }
+
+        $this->_loadFilesFromDirectory($o['OCTOPUS_DIR'] . 'models');
     }
 
     private function _initSettings() {
@@ -512,7 +528,7 @@ class Octopus_App {
 
         if (! (file_exists($configFile) || file_exists($hostConfigFile))) {
             //$this->error('No config file found.', E_USER_NOTICE);
-            return false;
+            //return false;
         }
 
         if (file_exists($configFile)) {
@@ -530,8 +546,20 @@ class Octopus_App {
         } else {
             require_once($navFile);
         }
+
+        // Models
+        if ($o['load_models']) {
+            $this->_loadFilesFromDirectory($o['SITE_DIR'] . 'models');
+        }
     }
 
+    private function _loadFilesFromDirectory($dir) {
+
+        foreach(glob(rtrim($dir, '/') . '/*.php') as $file) {
+            require_once($file);
+        }
+
+    }
 
     private function _setEnvironmentFlags() {
 
