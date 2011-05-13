@@ -132,7 +132,7 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      */
     public function getValues() {
 
-        if ($this->_values !== null) {
+        if (!empty($this->_values)) {
             return $this->_values;
         }
 
@@ -141,16 +141,49 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         switch($method) {
 
             case 'get':
-                $this->_values = $_GET;
+                $sourceArray =& $_GET;
                 break;
 
-            case 'post':
-                $this->_values = $_POST;
+            default:
+                $sourceArray =& $_POST;
                 break;
         }
 
+        $this->_values = array();
+
+        if (!empty($sourceArray)) {
+
+            foreach($this->children() as $child) {
+                self::getValuesRecursive($child, $sourceArray, $this->_values);
+            }
+
+        }
 
         return $this->_values;
+    }
+
+    /**
+     * Scans through the form and fills an array with actual data meant for
+     * the form.
+     */
+    private static function getValuesRecursive($el, &$sourceArray, &$values) {
+
+        if (!$el || !($el instanceof Octopus_Html_Element)) {
+            return;
+        }
+
+        if ($el instanceof Octopus_Html_Form_Field) {
+
+            if (isset($sourceArray[$el->name])) {
+                $values[$el->name] = $sourceArray[$el->name];
+            }
+
+        }
+
+        foreach($el->children() as $child) {
+            self::getValuesRecursive($child, $sourceArray, $values);
+        }
+
     }
 
     /**
@@ -447,8 +480,8 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      * @return Bool Whether the form has been submitted.
      */
     public function wasSubmitted() {
-        $values =& $this->getValues();
-        return !empty($values);
+        $this->getValues();
+        return !empty($this->_values);
     }
 
 }

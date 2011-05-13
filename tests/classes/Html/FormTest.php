@@ -174,6 +174,22 @@ END
 
     }
 
+    function testWasSubmitted() {
+
+        $form = new Octopus_Html_Form('wasSubmitted', 'post');
+        $this->assertFalse($form->wasSubmitted());
+
+        $form->add('foo');
+        $this->assertFalse($form->wasSubmitted());
+
+        $_POST['bar'] = 'foo';
+        $this->assertFalse($form->wasSubmitted());
+
+        $_POST['foo'] = 'bar';
+        $this->assertTrue($form->wasSubmitted());
+
+    }
+
 }
 
 ?>
