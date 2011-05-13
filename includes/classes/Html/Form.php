@@ -113,6 +113,21 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     }
 
     /**
+     * @return Mixed the value for the given field.
+     */
+    public function getValue($field, $default = null) {
+
+        $values =& $this->getValues();
+
+        if (isset($values[$field])) {
+            return $values[$field];
+        } else {
+            return $default;
+        }
+
+    }
+
+    /**
      * @return Array The set of values posted for this form.
      */
     public function getValues() {
@@ -428,6 +443,13 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
     }
 
+    /**
+     * @return Bool Whether the form has been submitted.
+     */
+    public function wasSubmitted() {
+        $values =& $this->getValues();
+        return !empty($values);
+    }
 
 }
 
