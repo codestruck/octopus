@@ -188,7 +188,7 @@ abstract class Octopus_Model {//implements ArrayAccess {
         $ar[$pk] = $this->$pk;
 
         foreach($this->getFields() as $name => $field) {
-            $ar[$pk] = $this->$field;
+            $ar[$name] = $this->$name;
         }
 
         return $ar;
@@ -357,12 +357,22 @@ abstract class Octopus_Model {//implements ArrayAccess {
         $class = self::_getClassName();
         $obj = new $class();
 
-        $displayField = $obj->getDisplayField()->getFieldName();
 
-        $result = self::find(array($displayField => $idOrName));
-        if ($orderBy) $result = $result->orderBy($orderBy);
+        $displayField = $obj->getDisplayField();
+        $result = null;
 
-        return $result->first();
+        if ($displayField) {
+
+            $displayField = $displayField->getFieldName();
+
+            $result = self::find(array($displayField => $idOrName));
+            if ($orderBy) $result = $result->orderBy($orderBy);
+
+            $result = $result->first();
+        }
+
+        return $result;
+
     }
 
     // ArrayAccess Implementation {{{
