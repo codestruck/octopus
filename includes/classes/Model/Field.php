@@ -62,6 +62,10 @@ abstract class Octopus_Model_Field {
         $sqlQuery->set($this->getFieldName(), $this->accessValue($model, true));
     }
 
+    public function afterSave($model) {
+        $this->handleTrigger('afterSave', $model);
+    }
+
     public function setValue($model, $value) {
         $model->setInternalValue($this->getFieldName(), $value);
     }

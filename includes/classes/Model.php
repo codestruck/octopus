@@ -161,6 +161,10 @@ abstract class Octopus_Model {//implements ArrayAccess {
             $this->$pk = $i->getId();
         }
 
+        foreach($this->getFields() as $field) {
+            $field->afterSave($this);
+        }
+
         return true;
     }
 
