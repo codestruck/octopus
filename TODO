@@ -3,6 +3,7 @@ Model
 - when a model has a relationship, should the related model be auto included?
 - schema generation from model class
 - result set ArrayAccess
+- Model ArrayAccess and Iterator
 
 Controller
 - way for actions to trigger 404s

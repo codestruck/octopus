@@ -10,7 +10,7 @@ Octopus::loadClass('Octopus_Model_ResultSet');
 
 class Octopus_Model_Exception extends Octopus_Exception {}
 
-abstract class Octopus_Model {
+abstract class Octopus_Model {//implements ArrayAccess {
 
     /**
      * Name of column that stores the primary key. If not set in a subclass,
@@ -41,11 +41,9 @@ abstract class Octopus_Model {
             // We're receiving a row of data
             $this->setData($id);
         } else if ($id) {
-            if ($id) {
-                $item = self::get($id);
-                if ($item) {
-                    $this->setData($item);
-                }
+            $item = self::get($id);
+            if ($item) {
+                $this->setData($item);
             }
         }
     }
@@ -72,6 +70,13 @@ abstract class Octopus_Model {
     }
 
     public function __set($var, $value) {
+
+        if ($var == 'id') {
+            $pk = $this->getPrimaryKey();
+            $this->$pk = $value;
+            return;
+        }
+
         $field = $this->getField($var);
         if ($field) {
             $field->setValue($this, $value);
@@ -120,9 +125,13 @@ abstract class Octopus_Model {
     }
 
     protected function setData($data) {
+
+        // TODO WHY THE FUCK DOES THIS WORK
+
         foreach ($data as $key => $value) {
             $this->$key = $value;
         }
+
     }
 
     public function save() {
@@ -282,6 +291,17 @@ abstract class Octopus_Model {
         return isset($fields[$name]) ? $fields[$name] : null;
     }
 
+    private function getFieldNameByIndex($index) {
+        $fields = $this->getFields();
+        foreach($fields as $name => $field) {
+            if ($index == 0) {
+                return $name;
+            }
+            $index--;
+        }
+        return null;
+    }
+
     /**
      * @return Object An Octopus_Model_ResultSet containing all records.
      */
@@ -328,6 +348,85 @@ abstract class Octopus_Model {
 
         return $result->first();
     }
+
+    // ArrayAccess Implementation {{{
+
+    /*
+    public function offsetExists($offset) {
+        return ($offset == $this->getPrimaryKey() || $this->getField($offset) !== null);
+    }
+
+    public function offsetGet($offset) {
+        return $this->$offset;
+    }
+
+    public function offsetSet($offset, $value) {
+        $this->$offset = $value;
+    }
+
+    public function offsetUnset($offset) {
+        $this->$offset = null;
+    }
+    */
+
+    // }}}
+
+    // Iterator Implementation {{{
+
+    /*
+    private $_iteratorIndex = -1;
+    private $_iteratorFieldName = null;
+
+    public function current() {
+        dump_r('current');
+        if ($this->_iteratorIndex < 0) {
+            return null;
+        } else if ($this->_iteratorIndex == 0) {
+            return $this->id;
+        } else if ($this->_iteratorFieldName) {
+            return $this->{$this->_iteratorFieldName};
+        }
+
+    }
+
+    public function key() {
+        dump_r('key');
+        if ($this->_iteratorIndex == 0) {
+            return $this->getPrimaryKey();
+        } else {
+            return $this->_iteratorFieldName;
+        }
+    }
+
+    public function next() {
+        dump_r('next');
+        $this->_iteratorIndex++;
+
+        if ($this->_iteratorIndex > 0) {
+            $this->_iteratorFieldName = $this->getFieldNameByIndex($this->_iteratorIndex - 1);
+        } else {
+            $this->_iteratorFieldName = null;
+        }
+
+    }
+
+    public function rewind() {
+        file_put_contents(
+            'backtrace',
+            Octopus_Debug::dumpToString(debug_backtrace())
+        );
+        exit();
+        $this->_iteratorIndex = -1;
+        $this->_iteratorFieldName = null;
+    }
+
+    public function valid() {
+        dump_r('valid');
+        return ($this->_iteratorIndex == 0) || $this->_iteratorFieldName;
+    }
+    */
+
+    // }}}
 
 }
 
