@@ -178,6 +178,22 @@ abstract class Octopus_Model {//implements ArrayAccess {
         return true; // ?
     }
 
+    public function toArray() {
+
+        // TODO eliminate this an have model implement ArrayAccess
+
+        $ar = array();
+
+        $pk = $this->getPrimaryKey();
+        $ar[$pk] = $this->$pk;
+
+        foreach($this->getFields() as $name => $field) {
+            $ar[$pk] = $this->$field;
+        }
+
+        return $ar;
+    }
+
     public function validate() {
 
         $pass = true;
