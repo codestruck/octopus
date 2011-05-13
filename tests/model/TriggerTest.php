@@ -35,11 +35,19 @@ class Trigger extends Octopus_Model {
         ),
         'e' => array(
             'onSave' => 'trigger_member',
-        )
+        ),
+        'v' => array(
+            'type' => 'virtual',
+            'onAccess' => 'onAccess',
+        ),
     );
 
     public function trigger_member($model, $field) {
         return 'fromMemberClass';
+    }
+
+    public function onAccess($model, $field) {
+        return 'onAccess';
     }
 }
 
@@ -163,5 +171,12 @@ class ModelTriggerTest extends Octopus_DB_TestCase
         $item->save();
         $this->assertEquals('fromMemberClass', $item->e);
     }
+
+    function testVirtualOnAccess()
+    {
+        $item = new Trigger(1);
+        $this->assertEquals('onAccess', $item->v);
+    }
+
 
 }

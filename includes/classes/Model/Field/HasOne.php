@@ -29,7 +29,11 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
             return;
         }
 
-        $obj->save();
+        // MJE: this is to avoid a circular save loop with references
+        // Can probably be fixed by implementing dirty detection to avoid saving unneccessarily
+        if (!$this->getOption('skipsave')) {
+            $obj->save();
+        }
 
         $primaryKey = $obj->getPrimaryKey();
         $value = $obj->$primaryKey;
