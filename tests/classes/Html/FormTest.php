@@ -215,6 +215,25 @@ END
 
     }
 
+    function testGetFieldByName() {
+
+        $form = new Octopus_Html_Form('getfield');
+
+        $textarea = $form->add('textarea', 'foo');
+
+        $this->assertEquals($textarea, $form->getField('foo'));
+        $this->assertNull($form->getField('missing'));
+
+        $field = new Octopus_Html_Form_Field('input', 'password', 'password', '', array());
+        $customWrapper1 = new Octopus_Html_Element('div');
+        $customWrapper2 = new Octopus_Html_Element('div');
+        $customWrapper2->append($field);
+        $customWrapper1->append($customWrapper2);
+        $form->add($customWrapper1);
+
+        $this->assertEquals($field, $form->getField('password'));
+    }
+
 }
 
 ?>
