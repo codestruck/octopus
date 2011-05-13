@@ -7,3 +7,6 @@ Model
 
 Controller
 - way for actions to trigger 404s
+
+Forms
+-When upload field is added to a form, automatically set enctype=multipart/form-data
