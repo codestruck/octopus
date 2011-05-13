@@ -191,6 +191,10 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      */
     public function setValues($values) {
 
+        if (is_object($values)) {
+            $values = get_object_vars($values);
+        }
+
         $this->_values = $values;
         $this->_validationResult = null;
 

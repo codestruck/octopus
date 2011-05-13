@@ -190,6 +190,32 @@ END
 
     }
 
+    function testSetValuesWithObject() {
+
+        $obj = new StdClass();
+        $obj->foo = 'bar';
+        $obj->name = 'Joe';
+
+        $form = new Octopus_Html_Form('setValuesWithObject');
+        $form->add('foo')->required();
+        $form->add('name')->required();
+
+        $this->assertFalse($form->validate()->success, 'should not validate w/ no data');
+
+        $form->setValues($obj);
+        $this->assertTrue($form->validate()->success, 'should validate after setValues() call');
+
+        $values = $form->getValues();
+        $this->assertEquals(
+            array(
+                'foo' => 'bar',
+                'name' => 'Joe'
+            ),
+            $values
+        );
+
+    }
+
 }
 
 ?>
