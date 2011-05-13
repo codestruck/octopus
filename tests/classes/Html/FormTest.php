@@ -171,6 +171,47 @@ END
             ),
             $form->toArray()
         );
+    }
+
+    function testWasSubmitted() {
+
+        $form = new Octopus_Html_Form('wasSubmitted', 'post');
+        $this->assertFalse($form->wasSubmitted());
+
+        $form->add('foo');
+        $this->assertFalse($form->wasSubmitted());
+
+        $_POST['bar'] = 'foo';
+        $this->assertFalse($form->wasSubmitted());
+
+        $_POST['foo'] = 'bar';
+        $this->assertTrue($form->wasSubmitted());
+
+    }
+
+    function testSetValuesWithObject() {
+
+        $obj = new StdClass();
+        $obj->foo = 'bar';
+        $obj->name = 'Joe';
+
+        $form = new Octopus_Html_Form('setValuesWithObject');
+        $form->add('foo')->required();
+        $form->add('name')->required();
+
+        $this->assertFalse($form->validate()->success, 'should not validate w/ no data');
+
+        $form->setValues($obj);
+        $this->assertTrue($form->validate()->success, 'should validate after setValues() call');
+
+        $values = $form->getValues();
+        $this->assertEquals(
+            array(
+                'foo' => 'bar',
+                'name' => 'Joe'
+            ),
+            $values
+        );
 
     }
 

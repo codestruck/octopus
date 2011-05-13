@@ -113,11 +113,26 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     }
 
     /**
+     * @return Mixed the value for the given field.
+     */
+    public function getValue($field, $default = null) {
+
+        $values =& $this->getValues();
+
+        if (isset($values[$field])) {
+            return $values[$field];
+        } else {
+            return $default;
+        }
+
+    }
+
+    /**
      * @return Array The set of values posted for this form.
      */
     public function getValues() {
 
-        if ($this->_values !== null) {
+        if (!empty($this->_values)) {
             return $this->_values;
         }
 
@@ -126,22 +141,59 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         switch($method) {
 
             case 'get':
-                $this->_values = $_GET;
+                $sourceArray =& $_GET;
                 break;
 
-            case 'post':
-                $this->_values = $_POST;
+            default:
+                $sourceArray =& $_POST;
                 break;
         }
 
+        $this->_values = array();
+
+        if (!empty($sourceArray)) {
+
+            foreach($this->children() as $child) {
+                self::getValuesRecursive($child, $sourceArray, $this->_values);
+            }
+
+        }
 
         return $this->_values;
+    }
+
+    /**
+     * Scans through the form and fills an array with actual data meant for
+     * the form.
+     */
+    private static function getValuesRecursive($el, &$sourceArray, &$values) {
+
+        if (!$el || !($el instanceof Octopus_Html_Element)) {
+            return;
+        }
+
+        if ($el instanceof Octopus_Html_Form_Field) {
+
+            if (isset($sourceArray[$el->name])) {
+                $values[$el->name] = $sourceArray[$el->name];
+            }
+
+        }
+
+        foreach($el->children() as $child) {
+            self::getValuesRecursive($child, $sourceArray, $values);
+        }
+
     }
 
     /**
      * Sets the data in this form.
      */
     public function setValues($values) {
+
+        if (is_object($values)) {
+            $values = get_object_vars($values);
+        }
 
         $this->_values = $values;
         $this->_validationResult = null;
@@ -428,6 +480,13 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
     }
 
+    /**
+     * @return Bool Whether the form has been submitted.
+     */
+    public function wasSubmitted() {
+        $this->getValues();
+        return !empty($this->_values);
+    }
 
 }
 
