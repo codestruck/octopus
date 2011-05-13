@@ -344,6 +344,12 @@ abstract class Octopus_Model {//implements ArrayAccess {
      */
     public static function &get($idOrName, $orderBy = null) {
 
+        if (is_array($idOrName)) {
+            $result = self::find($idOrName);
+            if ($orderBy) $result = $result->orderBy($orderBy);
+            return $result->first();
+        }
+
         if (is_numeric($idOrName)) {
 
             $result = self::find(array('id' => $idOrName));
