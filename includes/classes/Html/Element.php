@@ -406,7 +406,8 @@ class Octopus_Html_Element {
                 return $this->getText();
 
             default:
-                $this->_content = array_map('htmlspecialchars', func_get_args());
+                $args = func_get_args();
+                $this->_content = array_map('htmlspecialchars', $args);
                 return $this;
         }
     }
