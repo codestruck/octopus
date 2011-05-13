@@ -73,6 +73,10 @@ class Octopus {
         $EXTERNAL_DIR = "{$dir}{$name}/";
 
         $file = "{$EXTERNAL_DIR}external.php";
+        if (!is_file($file)) {
+            $file = ROOT_DIR . 'site/externals/' . $name . '/external.php';
+        }
+
         require_once($file);
 
         $func = "external_{$name}";
