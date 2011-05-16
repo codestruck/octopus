@@ -188,6 +188,17 @@ class ModelManyToManyTest extends Octopus_DB_TestCase
         $this->assertEquals(1, count($g->products));
     }
 
+    function testRemoveAllProducts()
+    {
+
+        $group = new Group(1);
+        $this->assertEquals(3, count($group->products));
+        $group->removeAllProducts();
+
+        $g = new Group(1);
+        $this->assertEquals(0, count($g->products));
+    }
+
     function testRemoveProductById()
     {
         $group = new Group(2);

@@ -32,38 +32,48 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
 
     public function handleRelation($action, $obj, $model) {
 
+        $type = strtolower(get_class($model));
+        $joinTable = $this->getJoinTableName(array($this->field, $type));
+
+        if ($action == 'removeAll') {
+            $d = new Octopus_DB_Delete();
+            $d->table($joinTable);
+            $d->where($model->getPrimaryKey() . ' = ?', $model->id);
+            $d->execute();
+            return;
+        }
+
         // handle array of objects
         if (!is_object($obj) && is_array($obj)) {
             foreach ($obj as $item) {
                 $this->handleRelation($action, $item, $model);
             }
+            return;
+        }
+
+        if (!is_object($obj) && is_numeric($obj)) {
+            $class = ucfirst($this->field);
+            $obj = new $class($obj);
         } else {
+            // TODO: always save? Check for dirty state?
+            $obj->save();
+        }
 
-            if (!is_object($obj) && is_numeric($obj)) {
-                $class = ucfirst($this->field);
-                $obj = new $class($obj);
-            } else {
-                // TODO: always save? Check for dirty state?
-                $obj->save();
-            }
+        $type = strtolower(get_class($model));
+        $joinTable = $this->getJoinTableName(array($this->field, $type));
 
-            $type = strtolower(get_class($model));
-            $joinTable = $this->getJoinTableName(array($this->field, $type));
+        $d = new Octopus_DB_Delete();
+        $d->table($joinTable);
+        $d->where($model->getPrimaryKey() . ' = ?', $model->id);
+        $d->where($obj->getPrimaryKey() . ' = ?', $obj->id);
+        $d->execute();
 
-            $d = new Octopus_DB_Delete();
-            $d->table($joinTable);
-            $d->where($model->getPrimaryKey() . ' = ?', $model->id);
-            $d->where($obj->getPrimaryKey() . ' = ?', $obj->id);
-            $d->execute();
-
-            if ($action == 'add') {
-                $i = new Octopus_DB_Insert();
-                $i->table($joinTable);
-                $i->set($model->getPrimaryKey(), $model->id);
-                $i->set($obj->getPrimaryKey(), $obj->id);
-                $i->execute();
-            }
-
+        if ($action == 'add') {
+            $i = new Octopus_DB_Insert();
+            $i->table($joinTable);
+            $i->set($model->getPrimaryKey(), $model->id);
+            $i->set($obj->getPrimaryKey(), $obj->id);
+            $i->execute();
         }
 
     }

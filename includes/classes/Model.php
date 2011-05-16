@@ -91,11 +91,10 @@ abstract class Octopus_Model {//implements ArrayAccess {
     }
 
     public function __call($name, $arguments) {
-        if (preg_match('/^(add|remove)(.*)$/', $name, $matches)) {
+        if (preg_match('/^(add|remove(All)?)(.*?)$/', $name, $matches)) {
             $action = $matches[1];
-            $type = $matches[1];
-            $fieldname = pluralize(strtolower($matches[2]));
-
+            $type = $matches[3];
+            $fieldname = pluralize(camel_case($type));
             $field = $this->getField($fieldname);
             if ($field) {
                 return $field->handleRelation($action, $arguments, $this);
@@ -120,8 +119,8 @@ abstract class Octopus_Model {//implements ArrayAccess {
         $this->data[$field] = $value;
     }
 
-    public function getInternalValue($field) {
-        return isset($this->data[$field]) ? $this->data[$field] : '';
+    public function getInternalValue($field, $default = '') {
+        return isset($this->data[$field]) ? $this->data[$field] : $default;
     }
 
     protected function setData($data) {
