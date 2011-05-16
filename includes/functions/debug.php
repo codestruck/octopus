@@ -249,7 +249,7 @@ END;
         $i = 0;
         $count = count($bt);
 
-        foreach($bt as $b) {
+        foreach(self::saneBacktrace($bt) as $b) {
 
             $class = '';
             if ($i == 0) $class = ' sgDebugFirst';
@@ -257,18 +257,18 @@ END;
             $class = $class ? ' class="' . $class . '"' : '';
 
             $func = '';
-            if (isset($b['function'])) {
+            if ($b['function']) {
                 $func = '<span class="sgDebugBacktraceFunction">' . $b['function'] . '()</span>';
 
             }
 
             $file = '';
-            if (isset($b['file'])) {
+            if ($b['file']) {
                 $file = '<span class="sgDebugBacktraceFile">' . htmlspecialchars($b['file']) . '</span>';
             }
 
             $line = '';
-            if (isset($b['line'])) {
+            if ($b['line']) {
                 $line = '<span class="sgDebugBacktraceLine">Line ' . $b['line'] . '</span>';
             }
 
@@ -360,6 +360,30 @@ END;
         return ob_get_clean();
     }
 
+    public static function saneBacktrace($bt = null) {
+
+        if ($bt === null) {
+            $bt = debug_backtrace();
+        }
+
+        $result = array();
+
+        foreach($bt as $b) {
+
+            $result[] = array(
+
+                'function' => isset($b['function']) ? $b['function'] : null,
+                'file' => isset($b['file']) ? $b['file'] : null,
+                'line' => isset($b['line']) ? $b['line'] : null,
+
+            );
+
+        }
+
+        return $result;
+
+    }
+
 }
 
 // }}}
@@ -428,6 +452,25 @@ END;
         $args = func_get_args();
         call_user_func_array('dump_r', $args);
         exit();
+    }
+
+    /**
+     * Prints out a slightly saner backtrace.
+     */
+    function print_backtrace($limit = 0) {
+
+        $bt = debug_backtrace();
+
+        $count = 0;
+
+        echo "\n";
+        foreach(Octopus_Debug::saneBacktrace($bt) as $item) {
+            if ($limit && $count >= $limit) {
+                break;
+            }
+            echo "{$item['function']} at {$item['file']}, line {$item['line']}\n";
+        }
+
     }
 
 ?>
