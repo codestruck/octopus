@@ -171,6 +171,21 @@
         return $x . 's';
     }
 
+    /**
+     * Converts a plural back into a singular noun.
+     */
+    function singularize($x) {
+
+        if (substr($x, -1) != 's') {
+            return $x;
+        }
+
+        $x = preg_replace('/ies$/i', 'y', $x, 1, $count);
+        if ($count) return $x;
+
+        return substr($x, 0, strlen($x) - 1);
+    }
+
     function start_in($start, $str) {
 
         if (strncmp($start, $str, strlen($start)) != 0) {
