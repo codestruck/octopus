@@ -67,13 +67,17 @@
         switch($count) {
 
             case 0: return '';
-            case 1: return htmlspecialchars(func_get_arg(0));
+
+            case 1:
+                $arg = func_get_arg(0);
+                return htmlspecialchars($arg);
 
         }
 
         $result = '';
         for($i = 0; $i < $count; $i++) {
-            $result .= htmlspecialchars(func_get_arg($i));
+            $arg = func_get_arg($i);
+            $result .= htmlspecialchars($arg);
         }
 
         return $result;

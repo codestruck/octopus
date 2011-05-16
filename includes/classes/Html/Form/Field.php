@@ -218,7 +218,8 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
                 return $val;
 
             default:
-                $this->setAttribute('value', func_get_arg(0));
+                $value = func_get_arg(0);
+                $this->setAttribute('value', $value);
                 return $this;
         }
     }
