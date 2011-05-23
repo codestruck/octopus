@@ -30,6 +30,17 @@ class FormFieldTest extends Octopus_Html_TestCase {
 
     }
 
+    function testRenderPasswordField() {
+
+        $password = Octopus_Html_Form_Field::create('password', 'my_password');
+
+        $this->assertHtmlEquals(
+            '<input type="password" id="my_passwordInput" class="text my-password" name="my_password" />',
+            $password->render(true)
+        );
+
+    }
+
     function testAutofocus() {
 
         $form = new Octopus_Html_Form('autofocus');
