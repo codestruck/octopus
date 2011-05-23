@@ -24,6 +24,9 @@ function createPassword($length) {
 
 abstract class Octopus_Auth_Model extends Octopus_Model {
 
+    public $cookieName;
+    public $realm;
+
     protected $password_algo_strength = 8;
     protected $portable_passwords = FALSE;
     protected $cookiePath = '/';
@@ -31,8 +34,6 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
     protected $hiddenField = 'hidden';
     protected $rememberDays = 14;
     protected $rememberSeconds;
-    protected $realm;
-    protected $cookieName;
     protected $usernameField = 'email';
     protected $info = array();
 
@@ -336,8 +337,6 @@ END;
                 foreach ($result as $k => $v) {
                     $this->$k = $v;
                 }
-
-                $this->data = $result;
 
                 $this->afterAuth();
 

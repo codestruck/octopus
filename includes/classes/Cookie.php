@@ -6,10 +6,17 @@ class Octopus_Cookie {
         return isset($_COOKIE[$key]) ? $_COOKIE[$key] : false;
     }
 
-    function set($key, $value, $expires = null, $path = null, $domain = null, $secure = false) {
+    function set($key, $value, $expires = null, $path = null, $domain = null, $secure = false, $httpOnly = true) {
 
         if (isset($_SERVER['HTTP_USER_AGENT'])) {
-            setcookie($key, $value, $expires, $path, $domain, $secure, true);
+
+            if (version_compare(phpversion(), '5.2.0', '>=')) {
+                // 7th parameter, 'httponly', was added in 5.2
+                setcookie($key, $value, $expires, $path, $domain, $secure, $httpOnly);
+            } else {
+                setcookie($key, $value, $expires, $path, $domain, $secure);
+            }
+
         } else {
             $_COOKIE[$key] = $value;
         }
