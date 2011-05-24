@@ -534,6 +534,22 @@ class FindTest extends Octopus_DB_TestCase {
 
     }
 
+    function testWherePrimaryKeyArray() {
+        $all = FindPost::all();
+        $result = $all->where(array('find_post_id' => 2));
+
+        $this->assertEquals(1, count($result));
+        $this->assertEquals('Title for Post 2', $result->first()->title);
+    }
+
+    function testWherePrimaryKeyArguments() {
+        $all = FindPost::all();
+        $result = $all->where('find_post_id', 2);
+
+        $this->assertEquals(1, count($result));
+        $this->assertEquals('Title for Post 2', $result->first()->title);
+    }
+
     function assertTrueish($condition, $message = null) {
         $this->assertTrue($condition == true, $message);
     }

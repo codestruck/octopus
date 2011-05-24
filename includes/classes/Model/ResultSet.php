@@ -200,7 +200,7 @@ class Octopus_Model_ResultSet implements Iterator, Countable {
 
                     $lastFieldName = null;
 
-                } else if (is_string($value)) {
+                } else {
 
                     // Could be 'AND' or 'OR'
                     if (strcasecmp($value, 'or') == 0 || strcasecmp($value, 'and') == 0) {
@@ -234,7 +234,6 @@ class Octopus_Model_ResultSet implements Iterator, Countable {
                 // standard field = whatever syntax
                 self::_readCriteriaKey($key, $fieldName, $operator);
 
-
                 // HACK: special-case id
                 if (strcasecmp($fieldName, 'id') == 0) {
                     $mc = $this->_modelClass;
@@ -243,15 +242,15 @@ class Octopus_Model_ResultSet implements Iterator, Countable {
                     $criteriaSql = Octopus_Model_Field::defaultRestrict($fieldName, $operator, '=', $value, $s, $params, $obj);
                 } else {
                     $field = $this->_getField($fieldName);
-                    if (!$field) {
-                        //dump_r("Field not found: $fieldName");
-                        continue;
-                    }
 
                     $mc = $this->_modelClass;
                     $obj = new $mc();
 
-                    $criteriaSql = $field->restrict($operator, $value, $s, $params, $obj);
+                    if ($field) {
+                        $criteriaSql = $field->restrict($operator, $value, $s, $params, $obj);
+                    } else {
+                        $criteriaSql = Octopus_Model_Field::defaultRestrict($fieldName, $operator, '=', $value, $s, $params, $obj);
+                    }
                 }
             }
 
