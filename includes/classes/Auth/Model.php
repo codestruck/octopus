@@ -35,17 +35,18 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
     protected $rememberDays = 14;
     protected $rememberSeconds;
     protected $usernameField = 'email';
+    protected $primaryKey = 'user_id';
     protected $info = array();
 
     protected $groups = array();
-    protected $created;
     protected $last_login;
     protected $total_logins;
     protected $last_host;
     protected $last_ip;
 
     function __construct($arg = null) {
-        $this->user_id = null;
+        $pk = $this->primaryKey;
+        $this->$pk = null;
         $this->hiddenField = 'hidden';
         $this->rememberSeconds = 60*60*24 * $this->rememberDays;
         parent::__construct($arg);
@@ -69,7 +70,7 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
 
             $i = new Octopus_DB_Insert();
             $i->table('user_auth');
-            $i->set('user_id', $this->info['user_id']);
+            $i->set('user_id', $this->info[$this->primaryKey]);
             $i->set('auth_hash', $hash);
             $i->setNow('created');
             $i->setNow('last_activity');
@@ -91,7 +92,7 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
 
             if ($u) {
 
-                $u->where('user_id = ?', $this->info['user_id']);
+                $u->where($this->primaryKey . ' = ?', $this->info[$this->primaryKey]);
                 $u->where($this->hiddenField . ' = 0');
                 $u->execute();
             }
@@ -135,9 +136,10 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
                     $this->info = $result;
 
                     // update password to new style
-                    $this->user_id = $result['user_id'];
+                    $pk = $this->primaryKey;
+                    $this->$pk = $result[$this->primaryKey];
                     $this->changePassword($password);
-                    $this->user_id = null;
+                    $this->$pk = null;
 
                     return true;
                 }
@@ -163,7 +165,8 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
 
     function changePassword($password) {
 
-        if ($this->user_id < 1) {
+        $pk = $this->primaryKey;
+        if ($this->$pk < 1) {
             return false;
         }
 
@@ -183,7 +186,7 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
             $u->set('password_salt', '');
         }
 
-        $u->where('user_id = ?', $this->user_id);
+        $u->where($this->primaryKey . ' = ?', $this->$pk);
         $u->where($this->hiddenField . ' = 0');
         $u->execute();
 
@@ -192,7 +195,8 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
 
     function resetPassword() {
 
-        if ($this->user_id < 1) {
+        $pk = $this->primaryKey;
+        if ($this->$pk < 1) {
             return false;
         }
 
@@ -205,13 +209,13 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
         $u->table($this->table);
         $u->set('password', $hash);
         $u->set('password_salt', '');
-        $u->where('user_id = ?', $this->user_id);
+        $u->where($this->primaryKey . ' = ?', $this->$pk);
         $u->where($this->hiddenField . ' = 0');
         $u->execute();
 
         $s = new Octopus_DB_Select();
         $s->table($this->table, array('email'));
-        $s->where('user_id = ?', $this->user_id);
+        $s->where($this->primaryKey . ' = ?', $this->$pk);
         $email = $s->getOne();
 
         if ($email) {
@@ -248,8 +252,10 @@ END;
 
     function logout() {
 
+        $pk = $this->primaryKey;
+
         $hash = Octopus_Cookie::get($this->cookieName);
-        $this->user_id = null;
+        $this->$pk = null;
         Octopus_Cookie::destroy($this->cookieName);
 
         if (!$hash) {
@@ -266,7 +272,8 @@ END;
 
     function auth() {
 
-        if ($this->user_id > 0) {
+        $pk = $this->primaryKey;
+        if ($this->$pk > 0) {
             return true;
         }
 
@@ -324,7 +331,7 @@ END;
             $s = new Octopus_DB_Select();
             $s->comment('Octopus_Auth_Base::auth');
             $s->table($this->table);
-            $s->where('user_id = ?', $user_id);
+            $s->where($this->primaryKey . ' = ?', $user_id);
             $result = $s->fetchRow();
 
             if (!$result) {
