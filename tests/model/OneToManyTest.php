@@ -15,7 +15,12 @@ class Nail extends Octopus_Model {
         ),
         'active' => array(
             'type' => 'boolean',
-        )
+        ),
+        'favorite' => array(
+            'type' => 'hasMany',
+            'model' => 'sledgehammer',
+            'key' => 'favorite_nail',
+        ),
     );
 }
 
@@ -233,6 +238,13 @@ class ModelOneToManyTest extends Octopus_DB_TestCase
         }
         $this->assertEquals(3, $i);
 
+    }
+
+    function testHasManyKey() {
+        $nail = Nail::get(1);
+
+        $favs = $nail->favorites;
+        $this->assertEquals(2, count($favs));
     }
 
 }
