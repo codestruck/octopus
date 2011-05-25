@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<dataset>
+  <cars
+    car_id="1"
+    name="Car 1"
+  />
+  <cars
+    car_id="2"
+    name="Car 2"
+  />
+  <boats
+    boat_id="1"
+    name="Boat 1"
+  />
+  <boats
+    boat_id="2"
+    name="Boat 2"
+  />
+  <comments
+    comment_id="1"
+    content="car 1 comment 1"
+    item_type="car"
+    item_id="1"
+  />
+  <comments
+    comment_id="2"
+    content="car 1 comment 2"
+    item_type="car"
+    item_id="1"
+  />
+  <comments
+    comment_id="3"
+    content="car 2 comment 1"
+    item_type="car"
+    item_id="2"
+  />
+  <comments
+    comment_id="4"
+    content="boat 1 comment 1"
+    item_type="boat"
+    item_id="1"
+  />
+  <comments
+    comment_id="5"
+    content="boat 2 comment 1"
+    item_type="boat"
+    item_id="2"
+  />
+  <comments
+    comment_id="6"
+    content="boat 2 comment 2"
+    item_type="boat"
+    item_id="2"
+  />
+
+</dataset>
+

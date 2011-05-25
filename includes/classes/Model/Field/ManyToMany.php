@@ -32,6 +32,7 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
 
     public function handleRelation($action, $obj, $model) {
 
+        //delete next row?
         $type = strtolower(get_class($model));
         $joinTable = $this->getJoinTableName(array($this->field, $type));
 

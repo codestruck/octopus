@@ -252,12 +252,12 @@ abstract class Octopus_Model {//implements ArrayAccess {
         if (isset($this->primaryKey)) {
             return $this->primaryKey;
         } else {
-            return underscore($this->to_id(self::_getClassName()));
+            return $this->to_id(self::_getClassName());
         }
     }
 
     public function to_id($name) {
-        return $name . '_id';
+        return underscore($name) . '_id';
     }
 
     public function getTableName() {

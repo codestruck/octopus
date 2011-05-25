@@ -53,6 +53,7 @@ class FindPost extends Octopus_Model {
 
 /**
  * @group find
+ * @group Model
  */
 class FindTest extends Octopus_DB_TestCase {
 

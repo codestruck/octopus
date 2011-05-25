@@ -11,7 +11,57 @@ class Octopus_Model_Field_HasMany extends Octopus_Model_Field {
         $key = $this->getOption('key', strtolower(get_class($model)));
         $value = $model->id;
 
-        return new Octopus_Model_ResultSet($type, array($key => $value));
+        $search = array($key => $value);
+
+        $filtering = $this->getOption('filter', false);
+        if ($filtering) {
+            $search = array(
+                'item_type' => $key,
+                'item_id' => $value,
+            );
+        }
+
+        return new Octopus_Model_ResultSet($type, $search);
+
+    }
+
+
+    public function handleRelation($action, $obj, $model) {
+
+        if ($action !== 'add') {
+            throw new Octopus_Model_Exception('Can not call ' . $action . ' on model ' . $model::_getClassName());
+        }
+
+        // handle array of objects
+        if (!is_object($obj) && is_array($obj)) {
+            foreach ($obj as $item) {
+                $this->handleRelation($action, $item, $model);
+            }
+            return;
+        }
+
+        if (!is_object($obj) && is_numeric($obj)) {
+            $class = ucfirst($this->field);
+            $obj = new $class($obj);
+        }
+
+        // TODO: always save? Check for dirty state?
+
+        $key = strtolower(get_class($model));
+        $value = $model->id;
+
+        if ($value < 1) {
+            throw new Octopus_Model_Exception('Can not add ' . ucfirst($this->field) . ' to unsaved ' . get_class($model));
+        }
+
+        $filtering = $this->getOption('filter', false);
+        if ($filtering) {
+            $obj->item_type = $key;
+            $key = 'item_id';
+        }
+
+        $obj->$key = $value;
+        $obj->save();
 
     }
 

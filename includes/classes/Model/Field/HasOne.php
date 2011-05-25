@@ -14,7 +14,14 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         $class = $this->getItemClass();
         $dataField = $model->to_id($field);
 
+        $filtering = $this->getOption('filter', false);
+        if ($filtering) {
+            $class = ucfirst($model->item_type);
+            $dataField = 'item_id';
+        }
+
         $value = $model->$dataField; // seems scary to access the join id as a var on the model
+
         return new $class($value);
     }
 
