@@ -39,6 +39,12 @@ class Differentd extends Octopus_Model {
     );
 }
 
+class Category extends Octopus_Model {
+    protected $fields = array(
+        'name' => array(),
+    );
+}
+
 /**
  * @group Model
  */
@@ -88,6 +94,16 @@ class ModelNonStandardTest extends PHPUnit_Framework_TestCase
                 ";
 
         $db->query($sql);
+
+
+        $sql = "CREATE TABLE IF NOT EXISTS categories (
+                `category_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                `name` varchar ( 255 ) NOT NULL
+                )
+                ";
+
+        $db->query($sql);
+
     }
 
     function __destruct()
@@ -97,6 +113,7 @@ class ModelNonStandardTest extends PHPUnit_Framework_TestCase
         $db->query('DROP TABLE IF EXISTS differentbs');
         $db->query('DROP TABLE IF EXISTS randomtable');
         $db->query('DROP TABLE IF EXISTS differentds');
+        $db->query('DROP TABLE IF EXISTS categories');
     }
 
     function testDifferentTableName()
@@ -181,6 +198,17 @@ class ModelNonStandardTest extends PHPUnit_Framework_TestCase
     {
         $item = new Different();
         $item->nonexisting = 'foo';
+
+    }
+
+    function testPluralize() {
+
+        $cat = new Category();
+        $cat->name = 'foo';
+        $cat->save();
+
+        $cat = new Category(1);
+        $this->assertEquals('foo', $cat->name);
 
     }
 

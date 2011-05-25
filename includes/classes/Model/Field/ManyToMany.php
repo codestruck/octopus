@@ -7,10 +7,13 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
     }
 
     public function accessValue($model, $saving = false) {
-        $type = strtolower(get_class($model));
+        $type = $this->field;
+        $key = pluralize(strtolower(get_class($model)));
         $value = $model->id;
 
-        return new Octopus_Model_ResultSet($this->field, array(pluralize($type) => $value));
+        $search = array($key => $value);
+
+        return new Octopus_Model_ResultSet($type, $search);
     }
 
     public function restrict($operator, $value, &$s, &$params, $model) {
@@ -25,7 +28,7 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
         return pluralize($this->field);
     }
 
-    private function getJoinTableName($tables) {
+    public function getJoinTableName($tables) {
         sort($tables);
         return sprintf('%s_%s_join', $tables[0], $tables[1]);
     }
