@@ -165,7 +165,7 @@
             return $x;
         }
 
-        $x = preg_replace('/y$/i', 'ies', $x, 1, $count);
+        $x = preg_replace('/([^aeiou])y$/i', '$1ies', $x, 1, $count);
         if ($count) return $x;
 
         return $x . 's';

@@ -2,6 +2,7 @@
 
 /**
  * @group core
+ * @group string
  */
 class StringTests extends PHPUnit_Framework_TestCase
 {
@@ -126,6 +127,8 @@ class StringTests extends PHPUnit_Framework_TestCase
             'category' => 'categories',
             'products' => 'products',
             'categories' => 'categories',
+            'boy' => 'boys',
+            'way' => 'ways',
 
          );
 
