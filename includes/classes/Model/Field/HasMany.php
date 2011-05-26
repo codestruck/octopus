@@ -29,7 +29,7 @@ class Octopus_Model_Field_HasMany extends Octopus_Model_Field {
     public function handleRelation($action, $obj, $model) {
 
         if ($action !== 'add') {
-            throw new Octopus_Model_Exception('Can not call ' . $action . ' on model ' . $model::_getClassName());
+            throw new Octopus_Model_Exception('Can not call ' . $action . ' on model ' . get_class($model));
         }
 
         // handle array of objects

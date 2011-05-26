@@ -102,7 +102,7 @@ class ModelRelationFilterTest extends Octopus_DB_TestCase
         $comment = new Comment(6);
         $boat = $comment->parent;
 
-        $this->assertTrue(is_a($boat, 'Boat'));
+        $this->assertTrue($boat instanceof Boat);
         $this->assertEquals(2, $boat->boat_id);
     }
 
