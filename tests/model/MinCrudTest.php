@@ -315,4 +315,34 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
 
     }
 
+    function testResultSetArrayAccess() {
+        $all = Minpost::all();
+        $this->assertEquals('My Title', $all[0]->title);
+        $this->assertEquals('My Other Title', $all[1]->title);
+        $this->assertEquals(null, $all[2]);
+    }
+
+    function testResultSetArrayAccessExists() {
+        $all = Minpost::all();
+        $this->assertEquals(true, isset($all[0]));
+        $this->assertEquals(true, isset($all[1]));
+        $this->assertEquals(false, isset($all[2]));
+    }
+
+    /**
+     * @expectedException Octopus_Model_Exception
+     */
+    function testResultSetArrayAccessSetFail() {
+        $all = Minpost::all();
+        $all[0] = 'foo';
+    }
+
+    /**
+     * @expectedException Octopus_Model_Exception
+     */
+    function testResultSetArrayAccessUnSetFail() {
+        $all = Minpost::all();
+        unset($all[0]);
+    }
+
 }

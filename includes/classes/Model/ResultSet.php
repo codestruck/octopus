@@ -3,7 +3,7 @@
 /**
  * Class that handles searching for Octopus_Model instances.
  */
-class Octopus_Model_ResultSet implements Iterator, Countable {
+class Octopus_Model_ResultSet implements Iterator, Countable, ArrayAccess {
 
     private $_parent;
     private $_modelClass;
@@ -13,6 +13,7 @@ class Octopus_Model_ResultSet implements Iterator, Countable {
     private $_query;
     private $_currentQuery = null;
     private $_current = null;
+    private $_arrayAccessResults = null;
 
     /**
      * Map of magic method name patterns to handler functions.
@@ -345,9 +346,6 @@ class Octopus_Model_ResultSet implements Iterator, Countable {
             return $this->_query;
         }
 
-        if ($this->_query) {
-        }
-
         $s = $this->_buildSelect();
         $this->_query = $s->query();
 
@@ -495,6 +493,43 @@ class Octopus_Model_ResultSet implements Iterator, Countable {
      */
     public function count() {
         return $this->_query()->numRows();
+    }
+
+    // }}}
+
+    // ArrayAccess Implementation {{{
+
+    private function getArrayAccessResult() {
+        if (!$this->_arrayAccessResults) {
+            $query = $this->_query(true);
+            $this->_arrayAccessResults = $query->fetchAll();
+        }
+
+        return $this->_arrayAccessResults;
+    }
+
+    public function offsetExists($offset) {
+        $all = $this->getArrayAccessResult();
+        return isset($all[$offset]);
+    }
+
+    public function offsetGet($offset) {
+        $all = $this->getArrayAccessResult();
+        if (isset($all[$offset])) {
+            return $this->_createModelInstance($all[$offset]);
+        }
+
+        return null;
+    }
+
+    public function offsetSet($offset, $value) {
+        // no, you can't do this
+        throw new Octopus_Model_Exception('You cannot set this, that does not make sense.');
+    }
+
+    public function offsetUnset($offset) {
+        // no, you can't do this
+        throw new Octopus_Model_Exception('You cannot unset this, that does not make sense.');
     }
 
     // }}}
