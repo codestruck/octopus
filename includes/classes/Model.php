@@ -10,7 +10,7 @@ Octopus::loadClass('Octopus_Model_ResultSet');
 
 class Octopus_Model_Exception extends Octopus_Exception {}
 
-abstract class Octopus_Model {//implements ArrayAccess {
+abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
 
     /**
      * Name of column that stores the primary key. If not set in a subclass,
@@ -40,6 +40,17 @@ abstract class Octopus_Model {//implements ArrayAccess {
         if (is_array($id)) {
             // We're receiving a row of data
             $this->setData($id);
+        } else if (is_numeric($id)) {
+
+            // when fetching by id, don't call out to find and ResultSet
+            $s = new Octopus_DB_Select();
+            $s->table($this->getTableName());
+            $s->where($this->getPrimaryKey() . ' = ?', $id);
+            $row = $s->fetchRow();
+
+            if ($row) {
+                $this->setData($row);
+            }
         } else if ($id) {
             $item = self::get($id);
             if ($item) {
@@ -353,6 +364,7 @@ abstract class Octopus_Model {//implements ArrayAccess {
             return $result->first();
         }
 
+
         if (is_numeric($idOrName)) {
 
             $result = self::find(array('id' => $idOrName));
@@ -386,7 +398,6 @@ abstract class Octopus_Model {//implements ArrayAccess {
 
     // ArrayAccess Implementation {{{
 
-    /*
     public function offsetExists($offset) {
         return ($offset == $this->getPrimaryKey() || $this->getField($offset) !== null);
     }
@@ -400,9 +411,8 @@ abstract class Octopus_Model {//implements ArrayAccess {
     }
 
     public function offsetUnset($offset) {
-        $this->$offset = null;
+        $this->$offset = '';
     }
-    */
 
     // }}}
 
@@ -446,11 +456,7 @@ abstract class Octopus_Model {//implements ArrayAccess {
     }
 
     public function rewind() {
-        file_put_contents(
-            'backtrace',
-            Octopus_Debug::dumpToString(debug_backtrace())
-        );
-        exit();
+
         $this->_iteratorIndex = -1;
         $this->_iteratorFieldName = null;
     }
@@ -458,6 +464,10 @@ abstract class Octopus_Model {//implements ArrayAccess {
     public function valid() {
         dump_r('valid');
         return ($this->_iteratorIndex == 0) || $this->_iteratorFieldName;
+    }
+
+    public function count() {
+        return 7;
     }
     */
 

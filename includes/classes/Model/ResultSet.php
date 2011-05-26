@@ -3,7 +3,7 @@
 /**
  * Class that handles searching for Octopus_Model instances.
  */
-class Octopus_Model_ResultSet implements Iterator, Countable, ArrayAccess {
+class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
 
     private $_parent;
     private $_modelClass;

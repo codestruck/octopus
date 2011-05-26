@@ -109,7 +109,14 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
         $this->assertEquals(0, $query->numRows());
     }
 
-    function testUpdate()
+    function testPostLoad()
+    {
+        $post = new Minpost(1);
+        $this->assertEquals('My Title', $post->title);
+        $this->assertEquals('My Body.', $post->body);
+    }
+
+    function testPostUpdate()
     {
         $post = new Minpost(1);
         $this->assertEquals('My Title', $post->title);
@@ -126,6 +133,19 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
         $this->assertEquals($post_id, $post->minpost_id);
         $this->assertEquals('Test Update', $post->title);
         $this->assertEquals('Contents of post.', $post->body);
+    }
+
+    function testPostUpdateBlank()
+    {
+        $post = new Minpost(1);
+        $this->assertEquals('My Title', $post->title);
+        $this->assertEquals('My Body.', $post->body);
+
+        $post->body = '';
+        $post->save();
+
+        $post = new Minpost(1);
+        $this->assertEquals('', $post->body);
     }
 
     function testAttribute()
@@ -315,6 +335,7 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
 
     }
 
+
     function testResultSetArrayAccess() {
         $all = Minpost::all();
         $this->assertEquals('My Title', $all[0]->title);
@@ -343,6 +364,29 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
     function testResultSetArrayAccessUnSetFail() {
         $all = Minpost::all();
         unset($all[0]);
+    }
+
+    function testModelArrayAccess() {
+        $post = new Minpost(1);
+        $this->assertEquals('My Title', $post['title']);
+    }
+
+    function testModelArrayAccessSet() {
+        $post = new Minpost(1);
+        $post['title'] = 'Changed Title';
+        $post->save();
+
+        $post = new Minpost(1);
+        $this->assertEquals('Changed Title', $post['title']);
+    }
+
+    function testModelArrayAccessUnSet() {
+        $post = new Minpost(1);
+        unset($post['body']);
+        $post->save();
+
+        $post = new Minpost(1);
+        $this->assertEquals('', $post['body']);
     }
 
 }
