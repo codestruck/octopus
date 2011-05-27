@@ -43,16 +43,7 @@ class Octopus_Nav {
      */
     public function &find($path, $options = null) {
 
-        $path = trim($path, '/');
-        $pathLen = strlen($path);
-
-        foreach($this->_aliases as $newPath => $oldPath) {
-
-            if ($newPath == $path) {
-                $path = $oldPath;
-                break;
-            }
-        }
+        $path = $this->resolve($path);
 
         // HACK: special case '/'
         if ($path == '') return $this->_root;
@@ -71,6 +62,24 @@ class Octopus_Nav {
 
         $this->_aliases[$newPath] = $oldPath;
         return $this;
+    }
+
+    /**
+     * Looks for any aliases and returns the actual path that should be used
+     * for the given path.
+     */
+    public function resolve($path) {
+
+        $path = trim($path, '/');
+
+        foreach($this->_aliases as $newPath => $oldPath) {
+
+            if ($newPath == $path) {
+                return $oldPath;
+            }
+        }
+
+        return $path;
     }
 
     public function toHtml() {

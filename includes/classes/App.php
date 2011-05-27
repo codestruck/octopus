@@ -378,13 +378,8 @@ class Octopus_App {
         // 'real' requested path is.
 
         $nav = $this->getNav();
-        $navItem = $nav->find($path);
 
-        if ($navItem) {
-            $path = $navItem->getFullPath();
-        }
-
-        return new Octopus_Request($path, $originalPath, $options);
+        return new Octopus_Request($originalPath, $nav->resolve($path), $options);
     }
 
     /**
