@@ -47,6 +47,11 @@ class FormTest extends Octopus_Html_TestCase {
             array(
                 'args' => array('submit', array('name' => 'foo', 'value' => 'bar', 'label' => 'Test')),
                 'expected' => '<button type="submit" class="submit button" name="foo" value="bar">Test</button>'
+            ),
+
+            array(
+                'args' => array('some_image.gif', 'foo', 'bar'),
+                'expected' => '<input type="image" class="image button" name="foo" value="bar" src="some_image.gif" />'
             )
 
 

@@ -405,6 +405,17 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         unset($attributes['value']);
         unset($attributes['label']);
 
+        // Support <input type="image" />
+        if (preg_match('/\.(png|gif|jpe?g)$/i', $type)) {
+            $attributes['src'] = $type;
+            $type = 'image';
+
+            if ($text && !isset($attributes['alt'])) {
+                $attributes['alt'] = $text;
+            }
+
+        }
+
         $type = $type ? strtolower($type) : $type;
 
         switch($type) {
@@ -434,6 +445,17 @@ class Octopus_Html_Form extends Octopus_Html_Element {
                 if ($text !== null) $link->html($text);
 
                 return $link;
+
+            default:
+
+                $attributes['type'] = $type;
+                if ($name !== null) $attributes['name'] = $name;
+                if ($value !== null) $attributes['value'] = $value;
+
+                $input = new Octopus_Html_Element('input', $attributes);
+                $input->addClass($type, 'button');
+
+                return $input;
 
         }
     }
