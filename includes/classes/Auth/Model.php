@@ -47,7 +47,6 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
     function __construct($arg = null) {
         $pk = $this->primaryKey;
         $this->$pk = null;
-        $this->hiddenField = 'hidden';
         $this->rememberSeconds = 60*60*24 * $this->rememberDays;
         parent::__construct($arg);
     }
