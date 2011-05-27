@@ -101,6 +101,7 @@ class Octopus {
 
             if (defined('SITE_DIR')) {
                 array_unshift($dirs, SITE_DIR . 'models/');
+                array_unshift($dirs, SITE_DIR . 'includes/models/');
             }
 
             $filepath = get_file($file, $dirs);
