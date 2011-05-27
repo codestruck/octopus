@@ -45,6 +45,11 @@ class Octopus_Smarty extends Octopus_Base {
         $this->smarty->template_dir = $templateDir;
         $this->smarty->compile_dir = $compileDir;
 
+        if (DEV) {
+            $this->smarty->_file_perms = 0666;
+            $this->smarty->_dir_perms = 0777;
+        }
+
     }
 
     public static function &singleton() {
