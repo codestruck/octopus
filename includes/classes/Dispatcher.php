@@ -18,34 +18,32 @@ class Octopus_Dispatcher {
     }
 
     /**
-     * Given a path, renders the page and generates an Octopus_Response
-     * instance for it.
-     * @param $path String A path in the app.
+     * Given an Octopus_Request, renders the page and generates an
+     * Octopus_Response instance for it.
+     * @param $request Object An Octopus_Request instance.
      * @return Object An Octopus_Response instance.
      */
-    public function &getResponse($path, $buffer = false) {
+    public function &getResponse($request, $buffer = false) {
 
-        $originalPath = trim($path);
-        $path = trim($path, '/');
+        $path = $request->getResolvedPath();
+        $originalPath = $request->getPath();
 
-        $info = $this->getControllerInfo($path);
+        $pathParts = array_filter(explode('/', $path), 'trim');
 
-        if (!$info) $info = array();
+        $info = $this->getControllerInfo($pathParts);
 
         if (empty($info['controller']) || empty($info['action'])) {
 
-            $parts = explode('/', $path);
-
-            if (empty($info['controller'])) {
-                $info['controller'] = array_shift($parts);
+            if (empty($info['controller']) && $pathParts) {
+                $info['controller'] = array_shift($pathParts);
             }
 
-            if (empty($info['action'])) {
-                $info['action'] = array_shift($parts);
+            if (empty($info['action']) && $pathParts) {
+                $info['action'] = array_shift($pathParts);
             }
 
-            if (empty($info['args'])) {
-                $info['args'] = $parts;
+            if (empty($info['args']) && $pathParts) {
+                $info['args'] = $pathParts;
             }
         }
 
@@ -55,8 +53,8 @@ class Octopus_Dispatcher {
 
             // No action specified == index, but we need to make sure the
             // path ends with a '/'.
-            if (substr($originalPath, strlen($originalPath) - 1, 1) != '/') {
-                $response->redirect($this->_app->makeUrl('/' . $path . '/'));
+            if (substr($originalPath, -1) != '/') {
+                $response->redirect($this->_app->makeUrl('/' . trim($path, '/') . '/'));
                 return $response;
             }
 
@@ -156,19 +154,14 @@ class Octopus_Dispatcher {
      * Given a path, figure out what controller it should use, what action
      * should be called, and what args should be passed.
      */
-    private function getControllerInfo($path) {
+    private function getControllerInfo($pathParts) {
 
         $controllers = $this->_app->getControllers(true);
-        $parts = explode('/', $path);
 
         // Find the most specific controller we can
         $controller = '';
         $found = false;
-        while(($p = array_shift($parts))) {
-
-            if (!$p) {
-                continue;
-            }
+        while(($p = array_shift($pathParts))) {
 
             $controller .= ($controller ? '_' : '') . camel_case($p, true);
 
@@ -180,16 +173,19 @@ class Octopus_Dispatcher {
         }
 
         if (!$found) {
-            return false;
+            return array(
+                'controller' => '',
+                'action' => '',
+                'args' => array()
+            );
         }
 
-        $action = array_shift($parts);
-        if (!$action) $action = 'index';
+        $action = array_shift($pathParts);
 
         return array(
           'controller' => $controller,
-          'action' => $action,
-          'args' => $parts ? $parts : array()
+          'action' => $action ? $action : 'index',
+          'args' => $pathParts ? $pathParts : array()
         );
     }
 

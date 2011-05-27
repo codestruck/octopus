@@ -49,7 +49,7 @@ class Octopus_Nav_Test extends PHPUnit_Framework_TestCase {
         $nav->add('foo', 'Foo!');
 
         $item = $nav->find('/foo');
-        $this->assertTrue($item == true, "Item not found!");
+        $this->assertTrue(!!$item, "Item not found!");
 
         $this->assertEquals('foo', $item->getPath());
         $this->assertEquals('Foo!', $item->getText());
@@ -262,14 +262,12 @@ class Octopus_Nav_Test extends PHPUnit_Framework_TestCase {
 
     }
 
-    function testFindMissingThingsButTheyreInvisible() {
+    function testDontFindMissingThings() {
 
         $nav = new Octopus_Nav();
         $nav->add('foo');
         $item = $nav->find('foo/bar');
-        $this->assertTrue($item !== false);
-
-        $this->assertFalse($item->getOption('visible'));
+        $this->assertFalse($item, 'Found something that should not exist');
     }
 
     function testDirectoryIndexFile() {
@@ -477,7 +475,7 @@ class Octopus_Nav_Test extends PHPUnit_Framework_TestCase {
     function testGetFullPath() {
 
         $nav = new Octopus_Nav();
-
+        $nav->add('octopus/about');
         $item = $nav->find('octopus/about');
         $this->assertEquals('octopus/about', $item->getFullPath());
 

@@ -3,6 +3,7 @@
 Octopus::loadClass('Octopus_Model');
 Octopus::loadClass('Octopus_Nav');
 Octopus::loadClass('Octopus_Dispatcher');
+Octopus::loadClass('Octopus_Request');
 Octopus::loadClass('Octopus_Response');
 Octopus::loadClass('Octopus_Controller');
 Octopus::loadClass('Octopus_Settings');
@@ -59,6 +60,8 @@ class Octopus_App {
     private $_nav;
     private $_settings;
     private $_controllers = null, $_flatControllers = null;
+
+    private $_currentRequest = null;
 
     private function __construct($options = array()) {
 
@@ -122,6 +125,12 @@ class Octopus_App {
 
         $this->_nav = new Octopus_Nav();
 
+    }
+
+    public function alias($what, $toWhat) {
+        $nav = $this->getNav();
+        $nav->alias($what, $toWhat);
+        return $this;
     }
 
     /**
@@ -246,6 +255,14 @@ class Octopus_App {
     }
 
     /**
+     * @return Object The Octopus_Request instance generated the last time
+     * getResponse() was called on this app instance.
+     */
+    public function getCurrentRequest() {
+        return $this->_currentRequest;
+    }
+
+    /**
      * Calls get_file using the options specified for this app instance.
      * @return Mixed The path to the file, if found, or false if it is not
      * found.
@@ -262,6 +279,33 @@ class Octopus_App {
         if (!$this->isDevEnvironment()) $options['debug'] = false;
 
         return get_file($paths, $dirs, $options);
+    }
+
+    /**
+     * @param $request Octopus_Request The request to use when figuring out the
+     * theme.
+     * @return String The current theme to use.
+     */
+    public function getTheme($request = null) {
+
+        if ($request === null) $request = $this->getCurrentRequest();
+
+        if (is_object($request)) {
+            $request = $request->getPath();
+        }
+
+        $key = 'site.theme';
+
+        $theme = $this->getSetting($key);
+        if (!$request) return $theme;
+
+        $parts = array_filter(explode('/', $request), 'trim');
+
+        if (empty($parts)) {
+            return $theme;
+        }
+
+        return $key . '.' . implode('.', $parts);
     }
 
     public function getHostname() {
@@ -290,23 +334,75 @@ class Octopus_App {
     }
 
     /**
-     * Returns a response for the given path.
+     * Returns an <b>Octopus_Response</b> for the given path.
+     * @param $path String The path being requested.
+     * @param $options Array Options dictating how the request should be
+     * processed.
      * @return Object An Octopus_Response instance.
      */
-    public function getResponse($path = null, $buffer = false) {
+    public function getResponse($path = null, $options = null) {
+
+        if (is_array($path) && $options === null) {
+            // Support getResponse(array('option' => 'value'));
+            $options = $path;
+            $path = null;
+        }
+
+        if (is_bool($options)) {
+            // Support getResponse($path, $buffer)
+            $options = array('buffer' => $options);
+        }
 
         if ($path === null) {
+            // Path not specified, so see if mod_rewrite can tell us.
             $arg = $this->_options['path_querystring_arg'];
             $path = isset($_GET[$arg]) ? $_GET[$arg] : '/';
             unset($_GET[$arg]);
         }
 
         $dispatch = new Octopus_Dispatcher($this);
-        $response = $dispatch->getResponse($path, $buffer);
+
+        $this->_currentRequest = $this->createRequest($path, $options);
+        $response = $dispatch->getResponse($this->_currentRequest, !empty($options['buffer']));
 
         return $response;
     }
 
+    /**
+     * Generates an Octopus_Request for the given path/options.
+     * @param $path String Path being requested.
+     * @param $options Array Options for this request.
+     * @return Object An <b>Octopus_Request</b> instance.
+     */
+    protected function createRequest($path, $options) {
+
+        $originalPath = $path;
+
+        // Octopus_Nav handles aliasing etc, so it can tell us what the
+        // 'real' requested path is.
+
+        $nav = $this->getNav();
+        $navItem = $nav->find($path);
+
+        if ($navItem) {
+            $path = $navItem->getFullPath();
+        }
+
+        return new Octopus_Request($path, $originalPath, $options);
+    }
+
+    /**
+     * @param $name String The name of the setting to get the value for.
+     * @return Mixed the value of a setting.
+     */
+    public function getSetting($name) {
+        return $this->_settings->get($name);
+    }
+
+    /**
+     * @return Object The Octopus_Settings instance managing this
+     * app's settings.
+     */
     public function getSettings() {
         return $this->_settings;
     }
@@ -344,7 +440,9 @@ class Octopus_App {
             return self::$_instance;
         }
 
-        return self::start();
+        $instance = self::start();
+
+        return $instance;
     }
 
     /**
