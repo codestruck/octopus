@@ -24,6 +24,7 @@
     require_once(OCTOPUS_FUNCTIONS_DIR . 'files.php');
     require_once(OCTOPUS_FUNCTIONS_DIR . 'http.php');
     require_once(OCTOPUS_FUNCTIONS_DIR . 'html.php');
+    require_once(OCTOPUS_FUNCTIONS_DIR . 'themes.php');
     require_once(OCTOPUS_FUNCTIONS_DIR . 'compat.php');
 
     /**

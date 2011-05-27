@@ -2,13 +2,12 @@
 
 class AppTests extends Octopus_App_TestCase {
 
-    function testShutUpPHPUnit() {
-    }
-
-    function dontTestGetTheme() {
+    function testGetTheme() {
 
         $app = $this->startApp();
         $settings = $app->getSettings();
+
+        $settings->reset('site.theme');
 
         $this->assertEquals('default', $app->getTheme());
 

@@ -295,17 +295,13 @@ class Octopus_App {
         }
 
         $key = 'site.theme';
-
-        $theme = $this->getSetting($key);
-        if (!$request) return $theme;
-
         $parts = array_filter(explode('/', $request), 'trim');
-
-        if (empty($parts)) {
-            return $theme;
+        if (!empty($parts)) {
+            $key .= '.' . implode('.', $parts);
         }
 
-        return $key . '.' . implode('.', $parts);
+
+        return $this->getSetting($key);
     }
 
     public function getHostname() {
