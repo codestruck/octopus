@@ -16,7 +16,6 @@ class SettingsTest extends Octopus_DB_TestCase {
 
         $this->deleteTestDir();
         mkdir($this->testDir);
-
     }
 
     function deleteTestDir() {
@@ -48,7 +47,7 @@ class SettingsTest extends Octopus_DB_TestCase {
 
     function dropTables(&$db) {
 
-        $db->query('DROP TABLE IF EXISTS settings');
+        //$db->query('DROP TABLE IF EXISTS settings');
 
     }
 
@@ -141,50 +140,6 @@ END
 
     }
 
-    function testToArray() {
-
-        $file = $this->testDir . '/' . to_slug(__METHOD__) . '.yaml';
-
-        file_put_contents(
-            $file,
-            <<<END
-name:
-  desc: "Your Name"
-  type: text
-  default: Joe Blow
-age:
-  desc: "Your Age"
-  type: numeric
-  default: 20
-END
-        );
-
-        $settings = new Octopus_Settings();
-        $settings->addFromFile($file);
-
-        $this->assertEquals(
-            array(
-                'age' => 20,
-                'name' => 'Joe Blow',
-                'site_name' => 'Project Octopus!',
-                'site_version' => 0.1
-            ),
-            $settings->toArray()
-        );
-
-        $settings->set('name', 'Matt');
-        $this->assertEquals(
-            array(
-                'age' => 20,
-                'name' => 'Matt',
-                'site_name' => 'Project Octopus!',
-                'site_version' => 0.1
-            ),
-            $settings->toArray()
-        );
-
-    }
-
     function testIteration() {
 
         $settings = new Octopus_Settings();
@@ -257,6 +212,51 @@ END
             ),
             $ar
         );
+
+    }
+
+    function testWildcards() {
+
+        $ar = array(
+            'wildcard.setting.*' => array(
+                'default' => 'foo'
+            )
+        );
+
+        $settings = new Octopus_Settings($ar);
+
+        $this->assertEquals('foo', $settings->get('wildcard.setting'));
+        $this->assertEquals('foo', $settings->get('wildcard.setting.something'));
+        $this->assertEquals('foo', $settings->get('wildcard.setting.something.else'));
+        $this->assertEquals(null, $settings->get('wildcard'));
+
+        $settings->set('wildcard.setting', 'bar');
+
+        $this->assertEquals('bar', $settings->get('wildcard.setting'));
+        $this->assertEquals('bar', $settings->get('wildcard.setting.something'));
+        $this->assertEquals('bar', $settings->get('wildcard.setting.something.else'));
+        $this->assertEquals(null, $settings->get('wildcard'));
+
+        $settings->reload();
+
+        $this->assertEquals('bar', $settings->get('wildcard.setting'));
+        $this->assertEquals('bar', $settings->get('wildcard.setting.something'));
+        $this->assertEquals('bar', $settings->get('wildcard.setting.something.else'));
+        $this->assertEquals(null, $settings->get('wildcard'));
+
+
+        $settings->set('wildcard.setting.something', 'baz');
+        $this->assertEquals('bar', $settings->get('wildcard.setting'));
+        $this->assertEquals('baz', $settings->get('wildcard.setting.something'));
+        $this->assertEquals('baz', $settings->get('wildcard.setting.something.else'));
+        $this->assertEquals(null, $settings->get('wildcard'));
+
+        $settings->reload();
+
+        $this->assertEquals('bar', $settings->get('wildcard.setting'));
+        $this->assertEquals('baz', $settings->get('wildcard.setting.something'));
+        $this->assertEquals('baz', $settings->get('wildcard.setting.something.else'));
+        $this->assertEquals(null, $settings->get('wildcard'));
 
     }
 
