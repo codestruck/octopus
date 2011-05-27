@@ -80,6 +80,7 @@ class Octopus_Dispatcher {
         $view = $controller->view;
 
         $this->render(
+            $originalPath,
             isset($info['controller']) ? $info['controller'] : '',
             $template, $view, $data, $response
         );
@@ -192,7 +193,7 @@ class Octopus_Dispatcher {
     /**
      * Renders out the result of an action.
      */
-    protected function render($controller, $template, $view, $data, $response) {
+    protected function render($path, $controller, $template, $view, $data, $response) {
 
         $app = $this->_app;
 
@@ -201,7 +202,7 @@ class Octopus_Dispatcher {
 
         $templateFile = $viewFile = false;
 
-        // TODO Theme support
+        $theme = $app->getTheme($path);
 
         if (strncmp($template, '/', 1) == 0) {
 
@@ -211,7 +212,7 @@ class Octopus_Dispatcher {
         } else if ($template) {
             $templateFile = $app->getFile(
                 $template,
-                array($siteDir . 'themes/default/templates/', $octopusDir . 'themes/default/templates/'),
+                array($siteDir . 'themes/' . $theme . '/templates/', $octopusDir . 'themes/' . $theme . '/templates/'),
                 array(
                     'extensions' => array('.php', '.tpl')
                 )
@@ -289,8 +290,6 @@ class Octopus_Dispatcher {
             return;
             // die("Template not found: $template");
         }
-
-
 
         $response->append($templateContent);
 
