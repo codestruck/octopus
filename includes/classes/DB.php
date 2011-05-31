@@ -76,7 +76,7 @@ class Octopus_DB extends Octopus_Base {
         if ($this->driver->success) {
             $result = new Octopus_DB_Result($this->driver, $query);
         } else {
-            $result = new Octopus_DB_Error($this->driver->getError($query), $sql);
+            $result = new Octopus_DB_Error($this->driver->getError($query), $sql, $params);
         }
 
         return $result;

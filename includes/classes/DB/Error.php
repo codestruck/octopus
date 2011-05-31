@@ -22,11 +22,12 @@ if (!function_exists('db_error_reporting')) {
 
 class Octopus_DB_Error {
 
-    function Octopus_DB_Error($error, $sql) {
+    function Octopus_DB_Error($error, $sql, $params) {
 
         $this->dateString = 'D, d M Y H:i:s T';
         $this->error = $error;
         $this->sql = $sql;
+        $this->params = $params;
         $this->success = false;
 
         $this->handleError();
@@ -67,7 +68,15 @@ class Octopus_DB_Error {
 
     function printError() {
 
-        $msg = "<b>DB Error:</b> <code>$this->error</code><br><b>Query:</b> <code>$this->sql</code><br>";
+        $sql = $this->sql;
+        $sql = str_replace(array(',', 'SET'), array(',<br>', 'SET<br>'), $sql);
+
+        $msg = "<b>DB Error:</b> <code>$this->error</code><br><b>Query:</b> <code>$sql</code><br>" . print_r($this->params, true) . "<br>";
+
+        if (!isset($_SERVER['HTTP_USER_AGENT'])) {
+            $msg = strip_tags(str_replace('<br>', "\n", $msg));
+        }
+
         trigger_error($msg, E_USER_WARNING);
 
     }
