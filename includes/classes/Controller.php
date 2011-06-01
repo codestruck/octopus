@@ -8,10 +8,12 @@ abstract class Octopus_Controller {
     public $template;
     public $view;
     public $app;
+    public $request;
     public $response;
 
-    public function __construct($app = null, $response = null) {
+    public function __construct($app = null, $request = null, $response = null) {
         $this->app = $app;
+        $this->request = $request;
         $this->response = $response;
     }
 

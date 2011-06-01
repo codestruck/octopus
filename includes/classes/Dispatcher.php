@@ -61,10 +61,10 @@ class Octopus_Dispatcher {
             $info['action'] = 'index';
         }
 
-        $controller = $this->createController($info, $response);
+        $controller = $this->createController($info, $request, $response);
 
         if (!$controller) {
-            $controller = $this->createDefaultController($info, $response);
+            $controller = $this->createDefaultController($info, $request, $response);
         }
 
 
@@ -95,7 +95,7 @@ class Octopus_Dispatcher {
      * appropriate controller instance.
      * @return Object An Octopus_Controller if found, otherwise NULL.
      */
-    protected function &createController(&$info, $response) {
+    protected function &createController(&$info, $request, $response) {
 
         $controller = null;
 
@@ -121,6 +121,7 @@ class Octopus_Dispatcher {
         } else {
             $controller = new $className();
             $controller->app = $this->_app;
+            $controller->request = $request;
             $controller->response = $response;
             $this->configureController($controller, $info);
         }
@@ -129,10 +130,10 @@ class Octopus_Dispatcher {
 
     }
 
-    protected function &createDefaultController($info, $response) {
+    protected function &createDefaultController($info, $request, $response) {
         require_once($this->_app->getOption('OCTOPUS_DIR') . 'controllers/Default.php');
 
-        $controller = new DefaultController($this->_app, $response);
+        $controller = new DefaultController($this->_app, $request, $response);
         $controller->requestedController = $info['controller'];
         $this->configureController($controller, $info);
 

@@ -23,7 +23,7 @@ class ApiControllerTest extends Octopus_App_TestCase {
 
         $app = $this->startApp();
         $resp = new Octopus_Response(true);
-        $controller = new TestApiController($app, $resp);
+        $controller = new TestApiController($app, new Octopus_Request(''), $resp);
 
         $args = array('name' => 'Matt', 'password' => 'test', 'favoriteColor' => 'green');
         $data = $controller->__execute('add-member', $args);
@@ -41,7 +41,7 @@ class ApiControllerTest extends Octopus_App_TestCase {
             unset($args[$missingArg]);
 
             $resp = new Octopus_Response(true);
-            $controller = new TestApiController($app, $resp);
+            $controller = new TestApiController($app, new Octopus_Request(''), $resp);
 
             $data = $controller->__execute('add-member', $args);
 
@@ -59,7 +59,7 @@ class ApiControllerTest extends Octopus_App_TestCase {
         $app = $this->startApp();
         $resp = new Octopus_Response(true);
 
-        $controller = new TestApiController($app, $resp);
+        $controller = new TestApiController($app, new Octopus_Request(''), $resp);
 
 
         $result = $controller->__execute('protected-add-member', array('name' => 'Matt', 'password' => 'test', 'favoriteColor' => 'green'));

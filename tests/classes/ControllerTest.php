@@ -32,7 +32,7 @@ class ControllerTest extends Octopus_App_TestCase {
 
         $app = $this->startApp();
         $resp = new Octopus_Response(true);
-        $controller = new ControllerTestController($app, $resp);
+        $controller = new ControllerTestController($app, new Octopus_Request(''), $resp);
 
         $controller->__execute('test_404', array());
         $this->assertEquals('404view', $controller->view);
@@ -51,7 +51,7 @@ END
 
         $app = $this->startApp();
         $resp = new Octopus_Response(true);
-        $controller = new ControllerTestController($app, $resp);
+        $controller = new ControllerTestController($app, new Octopus_Request(''), $resp);
 
         $controller->test_redirect('foo');
         $this->assertEquals(<<<END
@@ -65,7 +65,7 @@ END
         cancel_redirects();
 
         $resp = new Octopus_Response(true);
-        $controller = new ControllerTestController($app, $resp);
+        $controller = new ControllerTestController($app, new Octopus_Request(''), $resp);
         $controller->test_redirect('foo');
 
         $resp = preg_replace('/-+/', '', trim($resp));
@@ -88,7 +88,7 @@ END
 
         $app = $this->startApp();
         $resp = new Octopus_Response(true);
-        $controller = new ControllerTestController($app, $resp);
+        $controller = new ControllerTestController($app, new Octopus_Request(''), $resp);
 
         $controller->test_renderJson($data);
 
@@ -114,7 +114,7 @@ END
 
         $app = $this->startApp();
         $resp = new Octopus_Response(true);
-        $controller = new ControllerTestController($app, $resp);
+        $controller = new ControllerTestController($app, new Octopus_Request(''), $resp);
 
         $controller->test_renderJsonp($data, 'callbackFunc');
 
@@ -142,7 +142,7 @@ END
 
         $app = $this->startApp();
         $resp = new Octopus_Response(true);
-        $controller = new ControllerTestController($app, $resp);
+        $controller = new ControllerTestController($app, new Octopus_Request(''), $resp);
 
         $_GET['callback'] = 'callbackFuncFromGet';
 
