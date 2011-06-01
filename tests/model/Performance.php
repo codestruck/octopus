@@ -109,9 +109,25 @@ $selectMultiple = round(($end - $start) / $diff, 2);
 $diff = $end - $start;
 print "Octopus_Model Selecting $limit rows: $diff seconds\n";
 
+$start = getTime();
+
+for ($i = 1; $i < $limit; $i++) {
+    $p = new Perf($i);
+}
+
+$end = getTime();
+$selectMultiple = round(($end - $start) / $diff, 2);
+$diff = $end - $start;
+print "Octopus_Model LAZY Selecting $limit rows: $diff seconds\n";
+
+
+
+
+
+/*
 print "\n\n$insertMultiple times slower inserting\n";
 print "$selectMultiple times slower selecting\n";
-
+*/
 
 $start = getTime();
 
@@ -125,5 +141,16 @@ $selectMultiple = round(($end - $start) / $diff, 2);
 $diff = $end - $start;
 print "Octopus_Model foreach $limit rows: $diff seconds\n";
 
+
+$start = getTime();
+
+$all = Perf::all();
+foreach ($all as $item) {
+}
+
+$end = getTime();
+$selectMultiple = round(($end - $start) / $diff, 2);
+$diff = $end - $start;
+print "Octopus_Model LAZY foreach $limit rows: $diff seconds\n";
 
 $db->query('DROP TABLE IF EXISTS perfs');

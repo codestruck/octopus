@@ -112,6 +112,7 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
     function testPostLoad()
     {
         $post = new Minpost(1);
+        $this->assertEquals(1, $post->minpost_id);
         $this->assertEquals('My Title', $post->title);
         $this->assertEquals('My Body.', $post->body);
     }
@@ -133,6 +134,21 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
         $this->assertEquals($post_id, $post->minpost_id);
         $this->assertEquals('Test Update', $post->title);
         $this->assertEquals('Contents of post.', $post->body);
+    }
+
+    function testJustUpdate()
+    {
+        $post = new Minpost(1);
+        $post->title = 'Just Update';
+        $post->save();
+
+        $s = new Octopus_DB_Select();
+        $s->table('minposts');
+        $s->where('minpost_id = ?', 1);
+        $result = $s->fetchRow();
+
+        $this->assertEquals('Just Update', $result['title']);
+        $this->assertEquals('My Body.', $result['body']);
     }
 
     function testPostUpdateBlank()
@@ -157,6 +173,7 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
     function testCreateTimestampsOnCreate()
     {
         $post = new Minpost();
+        $this->assertFalse($post->exists());
         $post->title = 'Create Timestamps';
         $post->body = 'Contents of post.';
         $post->save();

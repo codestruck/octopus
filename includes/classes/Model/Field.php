@@ -41,17 +41,17 @@ abstract class Octopus_Model_Field {
         if ($saving) {
 
             $primaryKey = $model->getPrimaryKey();
-            if ($model->$primaryKey === null) {
-                $value = $this->handleTrigger('onCreate', $model);
+            if (!$model->exists()) {
+                $value = $this->handleTrigger('onCreate', $model, $value);
             } else {
-                $value = $this->handleTrigger('onUpdate', $model);
+                $value = $this->handleTrigger('onUpdate', $model, $value);
             }
 
             if (!$value) {
-                $value = $this->handleTrigger('onEmpty', $model);
+                $value = $this->handleTrigger('onEmpty', $model, $value);
             }
 
-            $value = $this->handleTrigger('onSave', $model);
+            $value = $this->handleTrigger('onSave', $model, $value);
 
         }
 
@@ -96,7 +96,7 @@ abstract class Octopus_Model_Field {
         return true;
     }
 
-    protected function handleTrigger($type, $model) {
+    protected function handleTrigger($type, $model, $default = null) {
 
         $fnc = $this->getOption($type);
 
@@ -121,7 +121,7 @@ abstract class Octopus_Model_Field {
             return $newValue;
         }
 
-        return $this->accessValue($model);
+        return $default;
 
     }
 
