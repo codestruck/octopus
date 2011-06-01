@@ -3,23 +3,38 @@
 class Octopus_Settings_Key {
 
     public $name;
-    public $options = array();
+    public $options;
 
     public function __construct($name, $options = array()) {
         $this->name = $name;
-        $this->applyOptions($options);
+        $this->options = $options;
     }
 
     /**
-     * Layers more configuration options on top of what's already there.
+     * Applies options for another key to this one.
      */
-    public function applyOptions($options) {
+    public function overlay($name, $options) {
 
-        if (!empty($options)) {
-            $this->options = array_merge($this->options, $options);
+        if (empty($options)) {
+            return;
         }
 
+        if (!$this->isWildcard()) {
+            $this->options = array_merge($this->options, $options);
+            return;
+        }
+
+        // For wildcard keys, scope the options to the specific key
+
+        $name = $this->removeWildcardSuffix($name);
+        $suffix = trim($this->removeWildcardPrefix($name), '.');
+        if ($suffix) $suffix = '.' . $suffix;
+
+        foreach($options as $opt => $value) {
+            $this->options[$opt . $suffix] = $value;
+        }
     }
+
 
     public function createEditor() {
 
@@ -39,14 +54,79 @@ class Octopus_Settings_Key {
     /**
      * @return Mixed The default value for this setting.
      */
-    public function getDefaultValue() {
-        if (isset($this->options['default_value'])) {
-            return $this->options['default_value'];
-        } else if (isset($this->options['default'])) {
-            return $this->options['default'];
+    public function getDefaultValue($name) {
+
+        if ($this->isWildcard()) {
+            return $this->getWildcardDefaultValue($name);
+        }
+
+        return $this->getDefaultValueRaw();
+    }
+
+    private function getDefaultValueRaw($suffix = '', &$found = false) {
+
+        $o =& $this->options;
+
+        if (isset($o['default_value' . $suffix])) {
+            $found = true;
+            return $o['default_value' . $suffix];
+        } else if (isset($o['default' . $suffix])) {
+            $found = true;
+            return $o['default' . $suffix];
         } else {
+            $found = false;
             return null;
         }
+
+    }
+
+    private function getWildcardDefaultValue($name) {
+
+        $name = $this->removeWildcardPrefix($name);
+        $parts = array_filter(explode('.', $name), 'trim');
+        $suffix = '';
+
+        do {
+
+            $suffix = implode('.', $parts);
+            if ($suffix) $suffix = '.' . $suffix;
+
+            $value = $this->getDefaultValueRaw($suffix, $found);
+            if ($found) return $value;
+
+            array_pop($parts);
+
+        } while(!empty($parts));
+
+        return $this->getDefaultValueRaw();
+    }
+
+    private function removeWildcardSuffix($input) {
+
+        if (substr($input, -2) == '.*') {
+            $input = substr($input, 0, strlen($input) - 2);
+        }
+
+        return $input;
+    }
+
+    private function removeWildcardPrefix($input) {
+
+        $prefix = $this->removeWildcardSuffix($this->name);
+
+        $inputLen = strlen($input);
+        $prefixLen = strlen($prefix);
+
+        if ($inputLen < $prefixLen) {
+            return $input;
+        }
+
+        if (substr($input, 0, $prefixLen) == $prefix) {
+            $input = substr($input, $prefixLen);
+            return ($input === false ? '' : $input);
+        }
+
+        return $input;
     }
 
     /**
@@ -64,14 +144,14 @@ class Octopus_Settings_Key {
         if (isset($values[$name])) {
             return $values[$name];
         } else {
-            return $this->getDefaultValue();
+            return $this->getDefaultValue($name);
         }
 
     }
 
     private function getWildcardValue($name, &$values) {
 
-        $bestValue = $this->getDefaultValue();
+        $bestValue = $this->getDefaultValue($name);
         $longest = 0;
 
         foreach($values as $keyName => &$value) {

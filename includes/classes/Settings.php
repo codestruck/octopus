@@ -59,10 +59,23 @@ class Octopus_Settings extends Octopus_Base implements Iterator {
 
         foreach($ar as $name => $options) {
 
-            $key = isset($this->_keys[$name]) ? $this->_keys[$name] : new Octopus_Settings_Key($name);
-            $key->applyOptions($options);
+            $found = false;
 
-            $this->_keys[$name] = $key;
+            foreach($this->_keys as $kname => $key) {
+
+                if ($key->matches($name)) {
+
+                    $found = true;
+                    $key->overlay($name, $options);
+
+                }
+
+            }
+
+            if (!$found) {
+                $key = new Octopus_Settings_Key($name, $options);
+                $this->_keys[$name] = $key;
+            }
         }
 
         return $this;
@@ -190,7 +203,7 @@ class Octopus_Settings extends Octopus_Base implements Iterator {
 
         $defaults = array();
         foreach($this->_keys as $name => $key) {
-            $defaults[$name] = $key->getDefaultValue();
+            $defaults[$name] = $key->getDefaultValue($name);
         }
 
         $this->loadFromDB();

@@ -6,9 +6,7 @@
     function current_theme() {
 
         $app = Octopus_App::singleton();
-        $settings = $app->getSettings();
-        return $settings->get('site.theme');
-
+        return $app->getTheme();
     }
 
     /**

@@ -260,6 +260,85 @@ END
 
     }
 
+    function testAddingSubkeyOfWildcardModfiesOriginalKey() {
+
+        $settings = new Octopus_Settings();
+        $settings->addFromArray(
+            array(
+                'my.key.*' => array('default' => 'foo'),
+                'my.key.something.somethingelse' => array('default' => 'bar'),
+                'my.key.something.somethingelse.andagain.andagain' => array('default' => 'baz')
+            )
+        );
+
+        $tests = array(
+            'my.key' => 'foo',
+            'my.key.something' => 'foo',
+            'my.key.blarg' => 'foo',
+            'my.key.something.somethingelse' => 'bar',
+            'my.key.something.somethingelse.andagain' => 'bar',
+            'my.key.something.somethingelse.andagain.andagain' => 'baz',
+            'my.key.something.somethingelse.andagain.andagain.thisisnuts' => 'baz',
+        );
+
+        foreach($tests as $input => $expected) {
+            $this->assertEquals($expected, $settings->get($input), "Failed on $input");
+        }
+
+    }
+
+    function testOverwriteWildcard() {
+
+        $settings = new Octopus_Settings();
+        $settings->addFromArray(array(
+            'my.setting.*' => array('default' => 'foo'),
+        ));
+        $settings->addFromArray(
+            array(
+                'my.setting.*' => array('default' => 'bar')
+            )
+        );
+
+        $tests = array(
+            'my' => null,
+            'my.setting' => 'bar',
+            'my.setting.foo' => 'bar'
+        );
+
+        foreach($tests as $input => $expected) {
+            $this->assertEquals($expected, $settings->get($input), "Failed on $input");
+        }
+
+    }
+
+    function testGetThemeForSubDir() {
+
+        $settings = new Octopus_Settings();
+        $settings->addFromArray(
+            array(
+                'site.theme.*' => array('default' => 'foo'),
+                'site.theme.admin' => array('default' => 'admin')
+            )
+        );
+
+        $tests = array(
+
+            'site.theme' => 'foo',
+            'site.theme.whatever' => 'foo',
+            'site.theme.admin' => 'admin',
+            'site.theme.admin.subdir' => 'admin',
+            'site.theme.whatever.admin' => 'foo'
+
+        );
+
+        foreach($tests as $input => $expected) {
+
+            $this->assertEquals($expected, $settings->get($input), "Failed on $input");
+
+        }
+
+    }
+
 }
 
 ?>
