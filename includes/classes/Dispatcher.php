@@ -58,6 +58,7 @@ class Octopus_Dispatcher {
                 return $response;
             }
 
+            $info['action'] = 'index';
         }
 
         $controller = $this->createController($info, $response);
@@ -66,8 +67,9 @@ class Octopus_Dispatcher {
             $controller = $this->createDefaultController($info, $response);
         }
 
+
         $data = $controller->__execute(
-            empty($info['action']) ? 'index' : $info['action'],
+            $info['action'],
             empty($info['args']) ? array() : $info['args']
         );
 
@@ -259,6 +261,7 @@ class Octopus_Dispatcher {
                 );
             }
         }
+
 
         if (!$viewFile) {
             $viewFile = $app->getFile(
