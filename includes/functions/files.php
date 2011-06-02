@@ -137,4 +137,13 @@
 
     }
 
+    function get_site_file_url($file, $options = array()) {
+
+        $siteDir = isset($options['SITE_DIR']) ? $options['SITE_DIR'] : SITE_DIR;
+        $siteDir = rtrim($siteDir, '/') . '/';
+        $file = ltrim($file, '/');
+
+        return u($siteDir . $file, $options);
+    }
+
 ?>
