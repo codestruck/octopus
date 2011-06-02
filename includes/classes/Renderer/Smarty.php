@@ -14,6 +14,7 @@ class Octopus_Renderer_Smarty extends Octopus_Renderer {
                 $smartyData->assign($key, $value);
             }
         }
+        $smartyData->assign('OCTOPUS_VIEW_DATA', $data);
 
         $tpl = $smarty->createTemplate($this->_file, $smartyData);
         return $tpl->fetch();
