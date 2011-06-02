@@ -15,6 +15,9 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
     private $_current = null;
     private $_arrayAccessResults = null;
 
+    private $_offset = null;
+    private $_maxRecords = null;
+
     /**
      * Map of magic method name patterns to handler functions.
      */
@@ -78,6 +81,38 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
         if (!$row) return $row;
 
         return $this->_createModelInstance($row);
+    }
+
+    /**
+     * @param $offset Number Record at which to start returning results.
+     * @param $maxRecords Mixed Number of records to return. If null, all records are returned.
+     * @return Octopus_ResultSet A result set that starts returning records
+     * at $offset, and returns at most $maxRecords.
+     */
+    public function limit($offset, $maxRecords = null) {
+
+        if ($offset === $this->_offset && $count === $this->_maxRecords) {
+            return $this;
+        }
+
+        $result = new Octopus_Model_ResultSet($this);
+        $result->_offset = $offset;
+        $result->_maxRecords = $maxRecords;
+        return $result;
+
+    }
+
+    /**
+     * @return Octopus_ResultSet A copy of this resultset with any limiting
+     * restrictions removed.
+     */
+    public function unlimit() {
+
+        if ($this->_offset === null && $this->_maxRecords === null) {
+            return $this;
+        }
+
+        return new Octopus_Model_ResultSet($this);
     }
 
     /**
@@ -322,6 +357,10 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
 
         $this->_applyOrderByClause($s, $this->_orderBy);
 
+        if ($this->_offset !== null || $this->_maxRecords !== null) {
+            $s->limit(($this->_offset === null ? 0 : $this->_offset), $this->_maxRecords);
+        }
+
         $this->_select = $s;
         return $this->_select;
     }
@@ -447,6 +486,8 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
                 return $this->$handler($m);
             }
         }
+
+        throw new Octopus_Exception("'$name' is not a valid method on Octopus_ResultSet");
 
     }
 

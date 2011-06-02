@@ -95,6 +95,19 @@ class FindTest extends Octopus_DB_TestCase {
         $db->query("DROP TABLE IF EXISTS findauthors");
     }
 
+    function testLimit() {
+
+        $posts = FindPost::all()->where('title', 'foo');
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE (`title` LIKE 'foo')", $posts);
+
+        $posts = $posts->limit(10, 30);
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE (`title` LIKE 'foo') LIMIT 10, 30", $posts);
+
+        $posts = $posts->unlimit();
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE (`title` LIKE 'foo')", $posts);
+
+    }
+
 
     function numberOfTestPosts($criteria = null) {
         $db = Octopus_DB::singleton();
