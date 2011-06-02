@@ -92,11 +92,11 @@ class FormTest extends Octopus_Html_TestCase {
 <<<END
 <form id="testForm" method="post" action="whatever.php">
     <div id="nameField" class="field name text">
-        <label for="name">Name:</label>
+        <label for="nameInput">Name:</label>
         <input type="text" id="nameInput" class="name text required" name="name" value="Joe Blow" autofocus required />
     </div>
     <div id="emailField" class="field text email">
-        <label for="email">Email:</label>
+        <label for="emailInput">Email:</label>
         <input type="email" id="emailInput" class="text email required" name="email" value="joe@blow.com" required />
     </div>
     <div class="buttons">
@@ -196,16 +196,23 @@ END
     function testWasSubmitted() {
 
         $form = new Octopus_Html_Form('wasSubmitted', 'post');
-        $this->assertFalse($form->wasSubmitted());
-
         $form->add('foo');
+
         $this->assertFalse($form->wasSubmitted());
 
-        $_POST['bar'] = 'foo';
-        $this->assertFalse($form->wasSubmitted());
+
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $this->assertFalse($form->reset()->wasSubmitted(), 'should be false w/ wrong request method');
 
         $_POST['foo'] = 'bar';
-        $this->assertTrue($form->wasSubmitted());
+        $this->assertFalse($form->reset()->wasSubmitted(), 'should be false w/ wrong request method, even if data is present');
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->assertTrue($form->reset()->wasSubmitted(), 'should be true w/ proper request method');
+
+        unset($_POST['foo']);
+        $_POST['bar'] = 'foo';
+        $this->assertFalse($form->reset()->wasSubmitted(), 'should be false w/ proper request method but no data');
 
     }
 

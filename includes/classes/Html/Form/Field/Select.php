@@ -71,7 +71,7 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
     public function getAttribute($attr, $default = null) {
 
         if (strcasecmp($attr, 'value') == 0) {
-            return $this->getValue();
+            return $this->getSelectedValue();
         } else {
             return parent::getAttribute($attr, $default);
         }
@@ -81,7 +81,7 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
     public function setAttribute($attr, $value) {
 
         if (strcasecmp($attr, 'value') == 0) {
-            return $this->setValue($value);
+            return $this->setSelectedValue($value);
         } else {
             return parent::setAttribute($attr, $value);
         }
@@ -133,7 +133,7 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
         return $opt;
     }
 
-    private function getValue() {
+    private function getSelectedValue() {
 
         $result = null;
 
@@ -152,7 +152,7 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
 
     }
 
-    private function setValue($value) {
+    private function setSelectedValue($value) {
 
         // TODO: is value case-sensitive?
 

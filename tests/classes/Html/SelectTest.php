@@ -16,7 +16,7 @@ class SelectTest extends Octopus_Html_TestCase {
             <<<END
 <form id="select" method="post">
     <div id="fooField" class="field foo select">
-        <label for="foo">Foo:</label>
+        <label for="fooInput">Foo:</label>
         <select id="fooInput" class="foo select" name="foo">
         </select>
     </div>

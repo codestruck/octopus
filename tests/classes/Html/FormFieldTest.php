@@ -76,6 +76,78 @@ class FormFieldTest extends Octopus_Html_TestCase {
 
     }
 
+    function testCheckboxChecked() {
+
+        $form = new Octopus_Html_Form('checkbox');
+        $checkbox = $form->add('checkbox', 'foo');
+
+        $this->assertFalse($checkbox->checked(), 'checked should be false');
+        $this->assertFalse($checkbox->val(), 'val should be false');
+        $this->assertNull($checkbox->getAttribute('checked'), 'getAttribute should return null');
+
+        $checkbox->val(true);
+        $this->assertTrue($checkbox->checked(), 'checked should be true');
+        $this->assertTrue($checkbox->val(), 'val should be true');
+        $this->assertTrue($checkbox->getAttribute('checked'), 'getAttribute should return true');
+        $checkbox->val(false);
+        $this->assertFalse($checkbox->checked(), 'checked should be false');
+        $this->assertFalse($checkbox->val(), 'val should be false');
+        $this->assertNull($checkbox->getAttribute('checked'), 'getAttribute should return null');
+
+
+        $checkbox->checked(true);
+        $this->assertTrue($checkbox->checked(), 'checked should be true');
+        $this->assertTrue($checkbox->val(), 'val should be true');
+        $this->assertTrue($checkbox->getAttribute('checked'), 'getAttribute should return true');
+        $checkbox->checked(false);
+        $this->assertFalse($checkbox->checked(), 'checked should be false');
+        $this->assertFalse($checkbox->val(), 'val should be false');
+        $this->assertNull($checkbox->getAttribute('checked'), 'getAttribute should return null');
+
+
+        $checkbox->setAttribute('value', true);
+        $this->assertTrue($checkbox->checked(), 'checked should be true');
+        $this->assertTrue($checkbox->val(), 'val should be true');
+        $this->assertTrue($checkbox->getAttribute('checked'), 'getAttribute should return true');
+        $checkbox->setAttribute('value', false);
+        $this->assertFalse($checkbox->checked(), 'checked should be false');
+        $this->assertFalse($checkbox->val(), 'val should be false');
+        $this->assertNull($checkbox->getAttribute('checked'), 'getAttribute should return null');
+
+        $checkbox->setAttribute('checked', true);
+        $this->assertTrue($checkbox->checked(), 'checked should be true');
+        $this->assertTrue($checkbox->val(), 'val should be true');
+        $this->assertTrue($checkbox->getAttribute('checked'), 'getAttribute should return true');
+        $checkbox->setAttribute('checked', false);
+        $this->assertFalse($checkbox->checked(), 'checked should be false');
+        $this->assertFalse($checkbox->val(), 'val should be false');
+        $this->assertFalse($checkbox->getAttribute('checked'), 'getAttribute should return false');
+
+
+    }
+
+    function testCheckboxValuesAreBoolean() {
+
+        $form = new Octopus_Html_Form('checkbox', 'post');
+        $check = $form->add('checkbox', 'foo')->val(true);
+
+        $this->assertEquals(
+            '<input type="checkbox" id="fooInput" class="foo checkbox" name="foo" checked />',
+            $check->render(true)
+        );
+
+        $_POST['foo'] = 'on';
+        $vals = $form->getValues(true);
+        $this->assertTrue($vals['foo'], 'when on, checkbox value should be true');
+
+        $form = new Octopus_Html_Form('checkbox');
+        $check = $form->add('checkbox', 'foo')->val(true);
+        unset($_POST['foo']);
+        $vals = $form->getValues(true);
+        $this->assertFalse($vals['foo'], 'when no value posted, checkbox value should be false');
+
+    }
+
 }
 
 ?>

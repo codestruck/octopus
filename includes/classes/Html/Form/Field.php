@@ -26,6 +26,9 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
     private $_label = null;
     private $_labelElements = array();
 
+    private $_longDesc = '';
+    private $_longDescLabelElements = array();
+
     private $_validationResult = null;
 
     public function __construct($tag, $type, $name, $label, $attributes) {
@@ -88,6 +91,15 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
     }
 
     /**
+     * Makes this field aware of a <label> used for its long description.
+     */
+    public function addLongDescriptionLabel($label) {
+        $this->_longDescLabelElements[] = $label;
+        $this->updateLongDescLabels();
+        return $this;
+    }
+
+    /**
      * Sets the 'autofocus' attribute on this element.
      */
     public function autoFocus($focus = true) {
@@ -125,6 +137,15 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
                 return $this;
         }
 
+    }
+
+    public function getLongDescription() {
+        return $this->_longDesc;
+    }
+
+    public function setLongDescription($text) {
+        $this->_longDesc = $text;
+        $this->updateLongDescLabels();
     }
 
     /**
@@ -269,14 +290,44 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
 
     }
 
+    /**
+     * Reads this field's value into a final array of values.
+     * @param $posted Array The data posted, e.g. $_POST
+     * @param $values Array Array being populated w/ form data.
+     */
+    public function readValue(&$posted, &$values) {
+        if (isset($posted[$this->name])) {
+            $values[$this->name] = $posted[$this->name];
+        }
+    }
+
     protected function updateLabels() {
 
         $text = $this->_label;
         foreach($this->_labelElements as $l) {
-            $l->setAttribute('for', $this->name)
+            $l->setAttribute('for', $this->id)
               ->text($text ? $text : '');
         }
 
+    }
+
+    protected function updateLongDescLabels() {
+
+        $text = $this->_longDesc;
+
+        // HACK: this is ugly, but most fields won't have a long description,
+        // so only add one if needed.
+
+        if ($text && $this->wrapper && empty($this->_longDescLabelElements)) {
+            $label = new Octopus_Html_Element('div');
+            $this->wrapper->append($label);
+            $this->_longDescLabelElements[] = $label;
+        }
+
+        foreach($this->_longDescLabelElements as $l) {
+            $l->addClass('fieldDescription')
+              ->text($text);
+        }
     }
 
     protected function attributeChanged($attr, $oldValue, $newValue) {
@@ -368,5 +419,6 @@ Octopus_Html_Form_Field::register('email', 'Octopus_Html_Form_Field', array('typ
 Octopus_Html_Form_Field::register('password', 'Octopus_Html_Form_Field', array('type' => 'password', 'class' => 'text'));
 Octopus_Html_Form_Field::register('textarea', 'Octopus_Html_Form_Field_Textarea');
 Octopus_Html_Form_Field::register('select', 'Octopus_Html_Form_Field_Select');
+Octopus_Html_Form_Field::register('checkbox', 'Octopus_Html_Form_Field_Checkbox');
 
 ?>

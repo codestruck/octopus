@@ -154,15 +154,24 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     }
 
     /**
+     * @param $force bool Whether to process even when the request method
+     * doesn't match the form's 'method' attribute.
      * @return Array The set of values posted for this form.
      */
-    public function getValues() {
+    public function getValues($force = false) {
 
         if (!empty($this->_values)) {
             return $this->_values;
         }
 
         $method = strtolower($this->getAttribute('method', 'get'));
+
+        if (strcasecmp($method, isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'get') != 0) {
+
+            // The form's method does not match the request type.
+            if (!$force) return array();
+
+        }
 
         switch($method) {
 
@@ -177,12 +186,8 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
         $this->_values = array();
 
-        if (!empty($sourceArray)) {
-
-            foreach($this->children() as $child) {
-                self::getValuesRecursive($child, $sourceArray, $this->_values);
-            }
-
+        foreach($this->children() as $child) {
+            self::getValuesRecursive($child, $sourceArray, $this->_values);
         }
 
         return $this->_values;
@@ -199,11 +204,7 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         }
 
         if ($el instanceof Octopus_Html_Form_Field) {
-
-            if (isset($sourceArray[$el->name])) {
-                $values[$el->name] = $sourceArray[$el->name];
-            }
-
+            $el->readValue($sourceArray, $values);
         }
 
         foreach($el->children() as $child) {
@@ -259,6 +260,15 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     public function mustPass($callback, $message = null) {
         Octopus::loadClass('Octopus_Html_Form_Rule_Callback');
         return $this->addRule(new Octopus_Html_Form_Rule_Callback($callback, $message));
+    }
+
+    /**
+     * Clears out the form.
+     */
+    public function reset() {
+        $this->setValues(array());
+        $this->_validationResult = null;
+        return $this;
     }
 
     /**
@@ -467,8 +477,8 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     }
 
     /**
-     * Fields added like add('type', 'name', array()), wraps in a div and adds
-     * a label.
+     * For fields added like add('type', 'name', array()), wraps in a div and
+     * adds a label.
      */
     protected function wrapField($field) {
 
@@ -478,8 +488,11 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         $wrapper = new Octopus_Html_Element('div');
         $wrapper->id = $field->name . 'Field';
         $wrapper->addClass('field', $field->class);
+
         $wrapper->append($label);
         $wrapper->append($field);
+
+        $field->wrapper = $wrapper;
 
         return $wrapper;
     }

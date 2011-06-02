@@ -15,7 +15,7 @@ class Octopus_Html_Form_Field_Textarea extends Octopus_Html_Form_Field {
     public function getAttribute($attr, $default = null) {
 
         if (strcasecmp($attr, 'value') == 0) {
-            return $this->getValue();
+            return $this->text();
         } else {
             return parent::getAttribute($attr, $default);
         }
@@ -25,7 +25,7 @@ class Octopus_Html_Form_Field_Textarea extends Octopus_Html_Form_Field {
     public function setAttribute($attr, $value) {
 
         if (strcasecmp($attr, 'value') == 0) {
-            return $this->setValue($value);
+            return $this->text($value);
         } else {
             return parent::setAttribute($attr, $value);
         }
@@ -42,17 +42,6 @@ class Octopus_Html_Form_Field_Textarea extends Octopus_Html_Form_Field {
         $result['value'] = htmlspecialchars($value);
 
         return $result;
-    }
-
-    private function getValue() {
-        return $this->text();
-    }
-
-    private function setValue($value) {
-
-        $this->text($value);
-        return $this;
-
     }
 
 }
