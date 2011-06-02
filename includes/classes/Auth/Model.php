@@ -51,8 +51,6 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
     protected $last_ip;
 
     function __construct($arg = null) {
-        $pk = $this->primaryKey;
-        $this->$pk = null;
         $this->rememberSeconds = 60*60*24 * $this->rememberDays;
         parent::__construct($arg);
     }
