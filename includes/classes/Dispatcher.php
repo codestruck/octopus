@@ -104,6 +104,7 @@ class Octopus_Dispatcher {
         }
 
         $name = preg_replace('/Controller$/', '', $info['controller']);
+
         $controllerFile = $this->_app->getFile('controllers/' . $name . '.php');
 
         if (!$controllerFile) {
@@ -113,6 +114,11 @@ class Octopus_Dispatcher {
         require_once($controllerFile);
 
         $className = $name . 'Controller';
+
+        if (!class_exists($className)) {
+            // For Contollers_In_Subdirs, don't require _ in controller class name
+            $className = str_replace('_', '', $className);
+        }
 
         if (!class_exists($className)) {
             $response->notFound();
