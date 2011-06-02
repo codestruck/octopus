@@ -116,6 +116,40 @@ class Octopus {
 
     }
 
+    /**
+     * Loads a controller. Searches the site dir first, then the octopus dir.
+     */
+    public static function loadController($name) {
+
+        $classname = $name;
+        if (!preg_match('/Controller$/', $classname)) {
+            $classname .= 'Controller';
+            if (class_exists($classname)) {
+                return false;
+            }
+        }
+
+        $filename = 'controllers/' . preg_replace('/Controller$/', '', $name) . '.php';
+        $dirs = array();
+
+        if (defined('SITE_DIR')) {
+            $dirs[] = SITE_DIR;
+        }
+
+        $dirs[] = OCTOPUS_DIR;
+
+        $path = get_file($filename, $dirs);
+
+        if (!$path) {
+            trigger_error("Octopus::loadController('$name') - Controller not found", E_USER_WARNING);
+        }
+
+        require_once($path);
+
+        return true;
+
+    }
+
 }
 
 ?>
