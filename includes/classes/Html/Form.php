@@ -267,9 +267,11 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      */
     public function toArray() {
 
-        $result = array('form' => array());
-
+        $result = array('form' => array('open_tag' => '', 'close_tag' => ''));
         self::attributesToArray($this->getAttributes(), $result['form']);
+
+        $result['form']['open_tag'] = '<form ' . $result['form']['attributes'] . '>';
+        $result['form']['close_tag'] = '</form>';
 
         $result['form']['fields'] = array();
 

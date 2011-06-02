@@ -120,6 +120,8 @@ END
         $expected = array(
 
             'form' => array(
+                'open_tag' => '<form id="toArray" method="post">',
+                'close_tag' => '</form>',
                 'attributes' => 'id="toArray" method="post"',
                 'id' => 'toArray',
                 'method' => 'post',
@@ -157,6 +159,8 @@ END
         $expected = array(
 
                 'form' => array(
+                    'open_tag' => '<form id="toArray" method="post">',
+                    'close_tag' => '</form>',
                     'attributes' => 'id="toArray" method="post"',
                     'id' => 'toArray',
                     'method' => 'post',
