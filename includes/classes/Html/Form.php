@@ -271,6 +271,8 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
         self::attributesToArray($this->getAttributes(), $result['form']);
 
+        $result['form']['fields'] = array();
+
         if ($this->_validationResult) {
             $result['form']['valid'] = $this->_validationResult->success;
             $result['form']['errors'] = $this->_validationResult->errors;
@@ -294,7 +296,9 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         }
 
         if ($el instanceof Octopus_Html_Form_Field) {
-            $result[$el->name] = $el->toArray();
+            $ar = $el->toArray();
+            $result[$el->name] = $ar;
+            $result['form']['fields'][$el->name] = $ar;
         }
 
         foreach($el->children() as $child) {

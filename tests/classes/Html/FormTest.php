@@ -117,46 +117,52 @@ END
 
         $form->validate(array('name' => ''));
 
-        $this->assertEquals(
-            array(
+        $expected = array(
 
-                'form' => array(
-                    'attributes' => 'id="toArray" method="post"',
-                    'id' => 'toArray',
-                    'method' => 'post',
-                    'valid' => false,
-                    'errors' => array('Name is required.')
-                ),
-
-                'name' => array(
-
-                    'attributes' => 'type="text" id="nameInput" class="name text required" name="name" value="" required',
-                    'type' => 'text',
-                    'id' => 'nameInput',
-                    'class' => 'name text required',
-                    'name' => 'name',
-                    'value' => '',
-                    'required' => 'required',
-                    'html' => $name->render(true),
-                    'valid' => false,
-                    'errors' => array('Name is required.')
-
-                )
+            'form' => array(
+                'attributes' => 'id="toArray" method="post"',
+                'id' => 'toArray',
+                'method' => 'post',
+                'valid' => false,
+                'errors' => array('Name is required.'),
+                'fields' => array()
             ),
+
+            'name' => array(
+
+                'attributes' => 'type="text" id="nameInput" class="name text required" name="name" value="" required',
+                'type' => 'text',
+                'id' => 'nameInput',
+                'class' => 'name text required',
+                'name' => 'name',
+                'value' => '',
+                'required' => 'required',
+                'html' => $name->render(true),
+                'valid' => false,
+                'errors' => array('Name is required.')
+
+            )
+        );
+
+        $expected['form']['fields']['name'] = $expected['name'];
+
+
+        $this->assertEquals(
+            $expected,
             $form->toArray()
         );
 
         $form->validate(array('name' => 'something <b>with markup</b>'));
 
-        $this->assertEquals(
-            array(
+        $expected = array(
 
                 'form' => array(
                     'attributes' => 'id="toArray" method="post"',
                     'id' => 'toArray',
                     'method' => 'post',
                     'valid' => true,
-                    'errors' => array()
+                    'errors' => array(),
+                    'fields' => array()
                 ),
 
                 'name' => array(
@@ -173,7 +179,12 @@ END
                     'errors' => array()
 
                 )
-            ),
+            );
+
+        $expected['form']['fields']['name'] = $expected['name'];
+
+        $this->assertEquals(
+            $expected,
             $form->toArray()
         );
     }
