@@ -31,12 +31,18 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
     protected $portable_passwords = FALSE;
     protected $cookiePath = '/';
     protected $cookieSsl = false;
-    protected $hiddenField = 'hidden';
     protected $rememberDays = 14;
     protected $rememberSeconds;
-    protected $usernameField = 'email';
-    protected $primaryKey = 'user_id';
     protected $info = array();
+
+    protected $primaryKey = 'user_id';
+    protected $usernameField = 'email';
+
+    // By default, the model will check for a field called 'active' or a field
+    // called 'hidden'.
+    protected $hiddenField = null;
+    protected $activeField = null;
+
 
     protected $groups = array();
     protected $last_login;
@@ -64,6 +70,7 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
 
         if ($this->checkLogin($username, $password)) {
 
+
             $hash = md5(uniqid(rand(), true));
             $ip = $this->getUserAddress();
 
@@ -85,14 +92,14 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
             Octopus_Cookie::set($this->cookieName, $hash, $expire, $this->cookiePath, null, $this->cookieSsl);
 
             $u = new Octopus_DB_Update();
-            $u->table($this->table);
+            $u->table($this->getTableName());
 
             $u = $this->updateLoginFields($u);
 
             if ($u) {
 
                 $u->where($this->primaryKey . ' = ?', $this->info[$this->primaryKey]);
-                $u->where($this->hiddenField . ' = 0');
+                $this->filterActive($u, true);
                 $u->execute();
             }
 
@@ -120,9 +127,11 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
 
         $s = new Octopus_DB_Select();
         $s->comment('Octopus_Admin_User_Auth::checkLogin');
-        $s->table($this->table);
+        $s->table($this->getTableName());
         $s->where($this->usernameField . ' = ?', $username);
-        $s->where($this->hiddenField . ' = 0');
+
+        $this->filterActive($s, true);
+
         $result = $s->fetchRow();
 
         if ($result) {
@@ -173,12 +182,12 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
         $hash = $checker->HashPassword($password);
 
         $s = new Octopus_DB_Select();
-        $s->table($this->table);
+        $s->table($this->getTableName());
         $s->limit(1);
         $row = $s->fetchRow();
 
         $u = new Octopus_DB_Update();
-        $u->table($this->table);
+        $u->table($this->getTableName());
         $u->set('password', $hash);
 
         if (isset($row['password_salt'])) {
@@ -186,10 +195,56 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
         }
 
         $u->where($this->primaryKey . ' = ?', $this->$pk);
-        $u->where($this->hiddenField . ' = 0');
+
+        $this->filterActive($u, true);
+
         $u->execute();
 
         return true;
+    }
+
+    /**
+     * Modifies a query to include or exclude active / hidden users.
+     */
+    protected function filterActive($q, $active) {
+
+        if ($activeField = $this->getActiveField()) {
+            $q->where($activeField . ' = ?', $active ? 1 : 0);
+            return;
+        }
+
+        if ($hiddenField = $this->getHiddenField()) {
+            $q->where($hiddenField . ' = ?', $active ? 0 : 1);
+            return;
+        }
+
+        throw new Octopus_Exception("No 'active' or 'hidden' field defined on model " . get_class($this));
+    }
+
+    protected function getActiveField() {
+
+        // Support the $activeField instance variable
+        if (isset($this->activeField)) {
+            return $this->activeField;
+        }
+
+        $f = $this->getField('active');
+        if ($f) return ($this->activeField = $f->getFieldName());
+
+        return false;
+    }
+
+    protected function getHiddenField() {
+
+        // Support the $hiddenField instance variable
+        if (isset($this->hiddenField)) {
+            return $this->hiddenField;
+        }
+
+        $f = $this->getField('hidden');
+        if ($f) return ($this->hiddenField = $f->getFieldName());
+
+        return false;
     }
 
     function resetPassword() {
@@ -205,15 +260,17 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
         $hash = $checker->HashPassword($password);
 
         $u = new Octopus_DB_Update();
-        $u->table($this->table);
+        $u->table($this->getTableName());
         $u->set('password', $hash);
         $u->set('password_salt', '');
         $u->where($this->primaryKey . ' = ?', $this->$pk);
-        $u->where($this->hiddenField . ' = 0');
+
+        $this->filterActive($u, true);
+
         $u->execute();
 
         $s = new Octopus_DB_Select();
-        $s->table($this->table, array('email'));
+        $s->table($this->getTableName(), array('email'));
         $s->where($this->primaryKey . ' = ?', $this->$pk);
         $email = $s->getOne();
 
@@ -271,6 +328,10 @@ END;
 
     function auth() {
 
+        if (empty($this->cookieName)) {
+            throw new Octopus_Exception("Cookie name has not been configured on auth class " . get_class($this));
+        }
+
         $pk = $this->primaryKey;
         if ($this->$pk > 0) {
             return true;
@@ -279,12 +340,19 @@ END;
         $hash = Octopus_Cookie::get($this->cookieName);
 
         if ($hash) {
-            $log = new Octopus_Logger_File(LOG_DIR . 'auth.log');
+
+            if (defined('LOG_DIR')) {
+                $logFile = LOG_DIR . 'auth.log';
+            } else {
+                $logFile = OCTOPUS_PRIVATE_DIR . 'auth.log';
+            }
+
+            $log = new Octopus_Logger_File($logFile);
 
             $ip = $this->getUserAddress();
 
             $s = new Octopus_DB_Select();
-            $s->comment('Octopus_Auth_Base::auth');
+            $s->comment('Octopus_Auth_Model::auth');
             $s->table('user_auth');
             $s->where('auth_hash = ?', $hash);
             $s->where('realm = ?', $this->realm);
@@ -328,8 +396,8 @@ END;
 
             // check if user exists
             $s = new Octopus_DB_Select();
-            $s->comment('Octopus_Auth_Base::auth');
-            $s->table($this->table);
+            $s->comment('Octopus_Auth_Model::auth');
+            $s->table($this->getTableName());
             $s->where($this->primaryKey . ' = ?', $user_id);
             $result = $s->fetchRow();
 
