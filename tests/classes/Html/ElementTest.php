@@ -14,6 +14,23 @@ class ElementTests extends PHPUnit_Framework_TestCase {
 
     }
 
+    function testAttrMethod() {
+
+        $e = new Octopus_Html_Element('span', 'content');
+        $e->attr('id', 'foo');
+        $this->assertEquals('<span id="foo">content</span>', $e->render(true));
+
+        $this->assertEquals('foo', $e->attr('id'));
+
+        $e->attr(array(
+            'class' => 'testClass',
+            'title' => 'test title'
+        ));
+
+        $this->assertEquals('<span id="foo" class="testClass" title="test title">content</span>', $e->render(true));
+
+    }
+
     function testAttributes() {
 
         $e = new Octopus_Html_Element('span');

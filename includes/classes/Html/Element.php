@@ -41,6 +41,11 @@ class Octopus_Html_Element {
 
     public function __construct($tag, $attrs = null, $content = null) {
 
+        if (is_string($attrs) && $content === null) {
+            $content = $attrs;
+            $attrs = null;
+        }
+
         $this->_tag = $tag;
         $this->_attributes = ($attrs ? $attrs : array());
 
@@ -64,6 +69,43 @@ class Octopus_Html_Element {
 
     public function __unset($key) {
         $this->removeAttribute($key);
+    }
+
+    /**
+     * Get or set attributes, like jQuery's .attr() method.
+     */
+    public function attr(/* variable */) {
+
+        $args = func_get_args();
+
+        switch(count($args)) {
+
+            case 1:
+
+                $arg = array_shift($args);
+
+                if (is_array($arg)) {
+                    foreach($arg as $attr => $value) {
+                        $this->setAttribute($attr, $value);
+                    }
+                    return $this;
+                } else {
+                    return $this->getAttribute($arg);
+                }
+
+            case 2:
+
+                $attr = array_shift($args);
+                $value = array_shift($args);
+                $this->setAttribute($attr, $value);
+
+                return $this;
+
+            default:
+
+                throw new Octopus_Exception('attr can only be called with 1 or 2 arguments, not ' . count($args));
+        }
+
     }
 
     /**
