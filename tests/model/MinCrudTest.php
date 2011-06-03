@@ -406,4 +406,14 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
         $this->assertEquals('', $post['body']);
     }
 
+    function testModelIsSet() {
+
+        // TODO: Should it be possible to unset fields?
+
+        $post = new Minpost();
+        $this->assertTrue(isset($post->title), 'title should be set');
+        $this->assertFalse(isset($post->invalidField), 'invalid field should not be set');
+
+    }
+
 }

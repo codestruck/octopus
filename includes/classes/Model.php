@@ -482,9 +482,15 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
         return $this->getDisplayValue();
     }
 
+    public function __isset($name) {
+        return $name == $this->getPrimaryKey() ||
+               $this->getField($name);
+    }
+
     // ArrayAccess Implementation {{{
 
     public function offsetExists($offset) {
+        dump_r($offset);
         return ($offset == $this->getPrimaryKey() || $this->getField($offset) !== null);
     }
 
