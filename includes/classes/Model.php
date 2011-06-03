@@ -151,7 +151,24 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
         $info = array();
 
         foreach($this->getFields() as $name => $field) {
-            $info[$name] = $this->$name;
+
+            $value = $this->$name;
+
+            if ($value instanceof Octopus_Model_ResultSet) {
+
+                $summary = 'ResultSet (' . $value->getModel();
+
+                try {
+                    $count = $value->count();
+                    $summary .= ', ' . $count . ' ' . ($count == 1 ? 'item' : 'items');
+                } catch (Exception $ex) {
+                    $summary .= ', exception during count';
+                }
+
+                $value = $summary . ')';
+            }
+
+            $info[$name] = $value;
         }
 
         dump_r($info);
