@@ -41,7 +41,7 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
 
         if (is_array($id)) {
             // We're receiving a row of data
-            $this->setData($id);
+            $this->_setData($id);
         } else if (is_numeric($id)) {
 
             $this->load_id = $id;
@@ -51,7 +51,7 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
         } else if ($id) {
             $item = self::get($id);
             if ($item) {
-                $this->setData($item);
+                $this->_setData($item);
             }
         }
     }
@@ -150,7 +150,7 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
         $row = $s->fetchRow();
 
         if ($row) {
-            $this->setData($row);
+            $this->_setData($row);
         }
 
         $this->load_id = null;
@@ -169,7 +169,14 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
         return isset($this->data[$field]) ? $this->data[$field] : $default;
     }
 
-    protected function setData($data) {
+    protected function _setData($data) {
+        foreach ($data as $key => $value) {
+            $this->$key = $value;
+        }
+    }
+
+    public function setData($data) {
+        // TODO filter to only fields that exist. 
         foreach ($data as $key => $value) {
             $this->$key = $value;
         }
