@@ -148,7 +148,9 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
             return $this;
         }
 
-        $info = array();
+        $info = array(
+            $this->getPrimaryKey() => $this->id
+        );
 
         foreach($this->getFields() as $name => $field) {
 
