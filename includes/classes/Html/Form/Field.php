@@ -19,6 +19,7 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
 
     public $help = null;
     public $wrapper = null;
+    public $wrapperId = null;
 
     private $_rules = array();
     private $_requiredRule = null;
@@ -38,6 +39,7 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
         $this->type = $type;
         $this->name = $name;
         $this->id = $name . 'Input';
+        $this->wrapperId = $name . 'Field';
 
         $this->addClass(to_css_class($name), to_css_class($type))
              ->label($label);

@@ -12,6 +12,7 @@
 
     require_once('Octopus_DB_TestCase.php');
     require_once('Octopus_App_TestCase.php');
+    require_once('Octopus_Html_TestCase.php');
 
     // put testing helpers somewhere
     function table_count($table) {

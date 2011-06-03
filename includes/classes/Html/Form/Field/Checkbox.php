@@ -6,6 +6,16 @@ class Octopus_Html_Form_Field_Checkbox extends Octopus_Html_Form_Field {
 
     public function __construct($type, $name, $label, $attributes = null) {
         parent::__construct('input', $type, $name, $label, $attributes);
+
+        if (substr($name, -2) === '[]') {
+            $cssName = substr($name, 0, -2);
+            $this->class = to_css_class($cssName);
+            $this->id = to_css_class($cssName . ucfirst($attributes['value']) . 'Input');
+            $this->wrapperId = to_css_class($cssName . ucfirst($attributes['value']) . 'Field');
+
+            $this->addClass($attributes['value'])->addClass($type);
+        }
+
     }
 
 
