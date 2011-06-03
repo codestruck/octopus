@@ -148,6 +148,47 @@ class FormFieldTest extends Octopus_Html_TestCase {
 
     }
 
+    function testRenderCheckboxesNormal() {
+
+        $form = new Octopus_Html_Form('test');
+        $form->add('checkbox', 'optin', 'Are you in');
+
+        $expect = <<<END
+
+<form id="test" method="post">
+<div id="optinField" class="field optin checkbox">
+<label for="optinInput">Are you in</label>
+<input type="checkbox" id="optinInput" class="optin checkbox" name="optin" /></div></form>
+END;
+
+        $this->assertEquals(
+            $expect,
+            $form->render(true)
+        );
+
+    }
+
+    function testRenderCheckboxesMultiple() {
+
+        $form = new Octopus_Html_Form('test');
+        $form->add('checkbox', 'colors[]', 'Colors', array('value' => 'blue'));
+        //$form->add('checkbox', 'colors[]', 'green');
+
+        $expect = <<<END
+
+<form id="test" method="post">
+<div id="colorsBlueField" class="field colors blue checkbox">
+<label for="colorsBlueInput">Colors</label>
+<input type="checkbox" id="colorsBlueInput" class="colors blue checkbox" name="colors[]" value="blue" /></div></form>
+END;
+
+        $this->assertEquals(
+            $expect,
+            $form->render(true)
+        );
+
+    }
+
 }
 
 ?>

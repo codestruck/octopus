@@ -486,7 +486,7 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         $field->addLabel($label);
 
         $wrapper = new Octopus_Html_Element('div');
-        $wrapper->id = $field->name . 'Field';
+        $wrapper->id = $field->wrapperId;
         $wrapper->addClass('field', $field->class);
 
         $wrapper->append($label);
