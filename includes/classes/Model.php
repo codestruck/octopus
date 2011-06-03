@@ -138,7 +138,7 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
     }
 
     /**
-     * Writes out some debugging information about this model.
+     * Writes out some debugging information about this model using dump_r.
      * @param $modelName If provided, only models with this name will be dumped.
      * @return $this To continue the chain.
      */
