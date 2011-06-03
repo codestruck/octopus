@@ -357,6 +357,14 @@ class Octopus_Html_Element {
 
     }
 
+    /**
+     * Clears all attributes and removes all content.
+     */
+    public function reset() {
+        $this->_attributes = array();
+        $this->_content = array();
+    }
+
     protected function renderOpenTag() {
 
         $result = '<' . $this->_tag;
