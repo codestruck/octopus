@@ -45,7 +45,7 @@
 
             'start_app' => true,
 
-            'handle_exceptions' => true
+            'handle_exceptions' => true,
         );
 
         $options = $options ? array_merge($defaults, $options) : $defaults;

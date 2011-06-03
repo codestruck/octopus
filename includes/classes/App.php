@@ -52,6 +52,8 @@ class Octopus_App {
          */
         'load_models' => true,
 
+        'session_name' => 'octopus',
+
     );
 
     private static $_instance = null;
@@ -693,17 +695,14 @@ class Octopus_App {
     private function _setUpPHP() {
 
         if (!session_id()) {
-            session_start('octopus');
+            session_start($this->getOption('session_name'));
         }
 
-        // TODO: figure out a better way to do this?
         $tz = @date_default_timezone_get();
-        $err = error_get_last();
-        if ($err) {
-            if (strstr($err['message'], 'date_default_timezone_get')) {
-                date_default_timezone_set('America/Los_Angeles');
-            }
+        if (!$tz) {
+            $tz = 'America/Los_Angeles';
         }
+        date_default_timezone_set($tz);
 
     }
 
