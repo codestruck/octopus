@@ -214,7 +214,9 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
                 $field->save($this, $i);
             }
 
-            $i->execute();
+            if ($this->$pk === null || !empty($i->values)) {
+                $i->execute();
+            }
 
             foreach ($this->touchedFields as $field) {
                 $this->getField($field)->afterSave($this);
@@ -238,7 +240,10 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
             $field->save($this, $i);
         }
 
-        $i->execute();
+        // Don't run UPDATEs if there's nothing to update.
+        if ($this->$pk === null || !empty($i->values)) {
+            $i->execute();
+        }
 
         if ($this->$pk === null) {
             $this->$pk = $i->getId();
