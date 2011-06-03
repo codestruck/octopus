@@ -490,7 +490,6 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
     // ArrayAccess Implementation {{{
 
     public function offsetExists($offset) {
-        dump_r($offset);
         return ($offset == $this->getPrimaryKey() || $this->getField($offset) !== null);
     }
 
