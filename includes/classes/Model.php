@@ -137,6 +137,28 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
 
     }
 
+    /**
+     * Writes out some debugging information about this model.
+     * @param $modelName If provided, only models with this name will be dumped.
+     * @return $this To continue the chain.
+     */
+    public function dump($modelName = '') {
+
+        if ($modelName && $modelName != get_class($this)) {
+            return $this;
+        }
+
+        $info = array();
+
+        foreach($this->getFields() as $name => $field) {
+            $info[$name] = $this->$name;
+        }
+
+        dump_r($info);
+
+        return $this;
+    }
+
     public function exists() {
         $primaryKey = $this->getPrimaryKey();
         return ($this->load_id !== null || $this->$primaryKey !== null);
@@ -196,62 +218,57 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
             return false;
         }
 
-        $pk = $this->getPrimaryKey();
+        if ($this->load_id === null) {
+            $fields = $this->getFields();
+            return $this->internalSave($this->id, $fields);
+        } else {
+            return $this->internalSave($this->load_id, $this->touchedFields);
+        }
 
-        if ($this->load_id !== null) {
+    }
 
-            // shortcut the save if no fields have been set
-            if (!count($this->touchedFields)) {
-                return true;
-            }
+    /**
+     * Saves the contents of the given fields.
+     * @param $id Mixed ID of record being saved, if known.
+     * @param $fields Array Fields to save.
+     * @return Number ID of saved record.
+     */
+    protected function internalSave($id, &$fields) {
 
-            $i = new Octopus_DB_Update();
-            $i->where($pk . ' = ?', $this->load_id);
-            $i->table($this->getTableName());
-
-            foreach ($this->touchedFields as $field) {
-                $field = $this->getField($field);
-                $field->save($this, $i);
-            }
-
-            if ($this->$pk === null || !empty($i->values)) {
-                $i->execute();
-            }
-
-            foreach ($this->touchedFields as $field) {
-                $this->getField($field)->afterSave($this);
-            }
-
-            $this->touchedFields = array();
-
+        if (empty($fields)) {
             return true;
         }
 
-        if ($this->$pk !== null) {
+        $pk = $this->getPrimaryKey();
+
+        if ($id !== null) {
             $i = new Octopus_DB_Update();
-            $i->where($pk . ' = ?', $this->$pk);
+            $i->where($pk . ' = ?', $id);
         } else {
             $i = new Octopus_DB_Insert();
         }
 
         $i->table($this->getTableName());
 
-        foreach ($this->getFields() as $field) {
+        $workingFields = array();
+
+        foreach ($fields as $field) {
+            $field = $workingFields[] = (is_string($field) ? $this->getField($field) : $field);
             $field->save($this, $i);
         }
 
         // Don't run UPDATEs if there's nothing to update.
-        if ($this->$pk === null || !empty($i->values)) {
+        if ($id === null || !empty($i->values)) {
             $i->execute();
         }
 
-        if ($this->$pk === null) {
+        if ($id === null) {
             $this->$pk = $i->getId();
         }
 
         $this->touchedFields = array();
 
-        foreach($this->getFields() as $field) {
+        foreach($workingFields as $field) {
             $field->afterSave($this);
         }
 
