@@ -317,7 +317,7 @@ class Octopus_Html_Element {
 
     protected function renderOpenTag() {
 
-        $result = '<' . $this->_tag;
+        $result = "\n<" . $this->_tag;
 
         foreach($this->getAttributes() as $key => $value) {
 

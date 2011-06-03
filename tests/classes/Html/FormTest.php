@@ -63,6 +63,7 @@ class FormTest extends Octopus_Html_TestCase {
             call_user_func_array(array($form, 'addButton'), $test['args']);
 
             $html = $form->render(true);
+            $html = str_replace("\n", '', $html);
             $html = preg_replace('#<form[^>]*><div[^>]*>#', '', $html);
             $html = preg_replace('#</(div|form)>#', '', $html);
 

@@ -131,7 +131,7 @@ class FormFieldTest extends Octopus_Html_TestCase {
         $form = new Octopus_Html_Form('checkbox', 'post');
         $check = $form->add('checkbox', 'foo')->val(true);
 
-        $this->assertEquals(
+        $this->assertHtmlEquals(
             '<input type="checkbox" id="fooInput" class="foo checkbox" name="foo" checked />',
             $check->render(true)
         );
