@@ -176,9 +176,11 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
     }
 
     public function setData($data) {
-        // TODO filter to only fields that exist. 
+        $fields = $this->getFields();
         foreach ($data as $key => $value) {
-            $this->$key = $value;
+            if (isset($fields[$key])) {
+                $this->$key = $value;
+            }
         }
     }
 
