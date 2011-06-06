@@ -194,8 +194,14 @@ abstract class Octopus_Model_Field {
      * @param $dir string Direction to order this field by.
      */
     public function orderBy(&$s, $dir = 'ASC') {
-        $n = $this->getFieldName();
-        $s->orderBy("`$n` $dir");
+        self::defaultOrderBy($s, $this->getFieldName(), $dir);
+    }
+
+    /**
+     * Helper to support ordering by ids, which don't have associated fields.
+     */
+    public static function defaultOrderBy(&$s, $fieldName, $dir) {
+        $s->orderBy("`$fieldName` $dir");
     }
 
     /**

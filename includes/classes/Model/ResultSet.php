@@ -116,6 +116,13 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
     }
 
     /**
+     * @return String The model this result set holds.
+     */
+    public function getModel() {
+        return $this->_modelClass;
+    }
+
+    /**
      * @param $params Array array into which to put the parameters.
      * @return string The SQL for the current query.
      */
@@ -187,12 +194,31 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
                 $dir = strtoupper($dir);
             }
 
+            // Special-case id
+            $pk = $this->getModelPrimaryKey();
+            if ($fieldName == 'id' || $fieldName == $pk) {
+                Octopus_Model_Field::defaultOrderBy($s, $pk, $dir);
+            }
+
             $field = $this->_getField($fieldName);
             if ($field) {
                 $field->orderBy($s, $dir);
             }
         }
 
+    }
+
+    private $_hackyModelInstance = null;
+    private function getModelPrimaryKey() {
+
+        // TODO Octopus_Model::getPrimaryKey() should be static
+
+        if (!$this->_hackyModelInstance) {
+            $class = $this->getModel();
+            $this->_hackyModelInstance = new $class();
+        }
+
+        return $this->_hackyModelInstance->getPrimaryKey();
     }
 
     /**

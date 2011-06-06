@@ -164,6 +164,13 @@ class FindTest extends Octopus_DB_TestCase {
         }
     }
 
+    function testOrderByID() {
+
+        $posts = FindPost::all()->orderBy(array('id' => 'desc'));
+        $this->assertSqlEquals("SELECT * FROM find_posts ORDER BY `find_post_id` DESC", $posts);
+
+    }
+
     function testFindByStringField() {
 
         $fooExpr = '/Case Test - Foo/i';
