@@ -58,6 +58,8 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
 
     public function __get($var) {
 
+        // TODO: always store primary key in a 'real' var?
+
         if ($var == 'id') {
             // special case for id
             $pk = $this->getPrimaryKey();
@@ -533,6 +535,12 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
     }
 
     public function __isset($name) {
+
+        if ($name == 'id' || $name == $this->getPrimaryKey())  {
+
+        }
+
+        dump_r($name, $this->getPrimaryKey(), $this->getField($name));
         return $name == $this->getPrimaryKey() ||
                $this->getField($name);
     }

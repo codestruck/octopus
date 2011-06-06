@@ -18,7 +18,7 @@ class ElementTests extends Octopus_Html_TestCase {
 
         $e = new Octopus_Html_Element('span', 'content');
         $e->attr('id', 'foo');
-        $this->assertEquals('<span id="foo">content</span>', $e->render(true));
+        $this->assertEquals('<span id="foo">content</span>', trim($e->render(true)));
 
         $this->assertEquals('foo', $e->attr('id'));
 
@@ -27,7 +27,7 @@ class ElementTests extends Octopus_Html_TestCase {
             'title' => 'test title'
         ));
 
-        $this->assertEquals('<span id="foo" class="testClass" title="test title">content</span>', $e->render(true));
+        $this->assertEquals('<span id="foo" class="testClass" title="test title">content</span>', trim($e->render(true)));
 
     }
 

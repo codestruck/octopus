@@ -116,7 +116,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
     }
 
     /**
-     * @return String The model this result set holds.
+     * @return String The model class this result set holds.
      */
     public function getModel() {
         return $this->_modelClass;
