@@ -395,7 +395,7 @@ class Octopus_Html_Element {
 
         if (!$alreadyEscaped) {
             $attr = htmlspecialchars($attr);
-            $value = htmlspecialchars($value);
+            $value = htmlspecialchars($value, ENT_QUOTES);
         }
 
         if ($hasValue) {
