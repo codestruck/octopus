@@ -62,7 +62,7 @@ END;
             <td class="name firstCell">Joe Blow</td>
             <td class="age">50</td>
             <td class="actions lastCell">
-                <a href="/toggle/active/1" class="toggle active toggleActive">Active</a>
+                <a href="/toggle/active/1" class="toggle active toggleActive" data-alt="Inactive">Active</a>
                 <a href="/edit/1" class="action edit">Edit</a>
                 <a href="/delete/1" class="action delete">Delete</a>
             </td>
@@ -70,6 +70,63 @@ END;
         <tr class="even">
             <td class="name firstCell">Joe Smith</td>
             <td class="age">99</td>
+            <td class="actions lastCell">
+                <a href="/toggle/active/2" class="toggle active toggleInactive" data-alt="Active">Inactive</a>
+                <a href="/edit/2" class="action edit">Edit</a>
+                <a href="/delete/2" class="action delete">Delete</a>
+            </td>
+        </tr>
+    </tbody>
+</table>
+END;
+
+        $table = new Octopus_Html_Table('complexTable', array('pager' => false ));
+
+        $table->addColumn('name', array('sortable' => true));
+        $table->addColumn('age', array('sortable' => true));
+
+        $col = $table->addColumn('actions');
+        $col->addToggle('active', array('Inactive', 'Active'), '/toggle/active/{$person_id}');
+        $col->addAction('edit', '/edit/{$person_id}');
+        $col->addAction('delete', '/delete/{$person_id}');
+
+        $table->setDataSource(
+            array(
+                array('person_id' => 1, 'name' => 'Joe Blow', 'age' => 50, 'active' => true),
+                array('person_id' => 2, 'name' => 'Joe Smith', 'age' => 99, 'active' => false)
+            )
+        );
+
+        $this->assertHtmlEquals(
+            $expected,
+            $table->render(true)
+        );
+
+
+
+    }
+
+    function xtestImageActionsAndToggles() {
+
+        $expected = <<<END
+<table id="complexTable" border="0" cellpadding="0" cellspacing="0">
+    <thead>
+        <tr>
+            <th class="name firstCell sortable"><a href="?sort=name">Name</a></th>
+            <th class="actions lastCell">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr class="odd">
+            <td class="name firstCell">Joe Blow</td>
+            <td class="actions lastCell">
+                <a href="/toggle/active/1" class="toggle active toggleActive"></a>
+                <a href="/edit/1" class="action edit">Edit</a>
+                <a href="/delete/1" class="action delete">Delete</a>
+            </td>
+        </tr>
+        <tr class="even">
+            <td class="name firstCell">Joe Smith</td>
             <td class="actions lastCell">
                 <a href="/toggle/active/2" class="toggle active toggleInactive">Active</a>
                 <a href="/edit/2" class="action edit">Edit</a>
@@ -80,7 +137,7 @@ END;
 </table>
 END;
 
-$table = new Octopus_Html_Table('complexTable', array('pager' => false ));
+        $table = new Octopus_Html_Table('complexTable', array('pager' => false ));
 
         $table->addColumn('name', array('sortable' => true));
         $table->addColumn('age', array('sortable' => true));
