@@ -152,7 +152,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
                 $options['function'] = $function;
             }
 
-            $column = new Octopus_Html_Table_Column($id, $options);
+            $column = new Octopus_Html_Table_Column($id, $options, $this);
         }
 
 
@@ -336,7 +336,7 @@ END;
      */
     protected function getSortingUrl(&$column) {
 
-        $newSorting = array($column['name'] => 'asc');
+        $newSorting = array($column->id => 'asc');
         $first = true;
         foreach($this->_sortColumns as $name => $dir) {
 
@@ -344,7 +344,7 @@ END;
                 continue;
             }
 
-            if ($name == $column['name']) {
+            if ($name == $column->id) {
 
                 if ($first) {
 
@@ -520,6 +520,7 @@ END;
      */
     protected function prepareHeaderCell($th, $column, $columnIndex, $columnCount) {
         $this->prepareCell($th, $column, $columnIndex, $columnCount);
+        if ($column->isSortable()) $th->addClass('sortable');
     }
 
     /**

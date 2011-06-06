@@ -1,6 +1,7 @@
 <?php
 
 Octopus::loadClass('Octopus_Html_Element');
+Octopus::loadClass('Octopus_Html_Table_Content');
 
 define('OCTOPUS_SORT_ASC', 'asc');
 define('OCTOPUS_SORT_DESC', 'desc');
@@ -23,10 +24,15 @@ class Octopus_Html_Table_Column {
     public $id;
     public $options;
 
+    protected $table;
+
     private $_sorting = false;
     private $_cell;
+    private $_content = array();
+    private $_actions = array();
 
-    public function __construct($id, $options) {
+    public function __construct($id, $options, $table) {
+        $this->table = $table;
         $this->id = $id;
         $this->options = empty($options) ? self::$defaults : array_merge(self::$defaults, $options);
         $this->_cell = new Octopus_Html_Element('td');
@@ -35,17 +41,33 @@ class Octopus_Html_Table_Column {
         $this->addClass($id);
     }
 
-    public function addAction() {
-        return $this;
+    public function addAction($id, $label, $url = null, $options = null) {
+
+        Octopus::loadClass('Octopus_Html_Table_Action');
+
+        $action = new Octopus_Html_Table_Action($id, $label, $url, $options);
+
+        $this->_content[] = $action;
+        $this->_actions[$id] = $action;
+
+        return $action;
     }
 
-    public function addToggle() {
+    public function addToggle($id, $label, $url = null, $options = null) {
+
+        Octopus::loadClass('Octopus_Html_Table_Toggle');
+
+        $toggle = new Octopus_Html_Table_Toggle($id, $label, $url, $options);
+
+        $this->_content[] = $toggle;
+        $this->_actions[$id] = $toggle;
+
         return $this;
     }
 
 
     public function append($content) {
-        $this->_cell->append($content);
+        $this->_content[] = $content;
         return $this;
     }
 
@@ -185,6 +207,19 @@ class Octopus_Html_Table_Column {
         if (!$obj) {
             return;
         }
+
+        if (empty($this->_content)) {
+            $this->fillCellDefault($td, $obj);
+            return;
+        }
+
+        foreach($this->_content as $item) {
+            $item->fillCell($this->table, $this, $td, $obj);
+        }
+
+    }
+
+    private function fillCellDefault($td, &$obj) {
 
         $value = null;
         $id = $this->id;

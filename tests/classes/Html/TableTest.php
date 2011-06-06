@@ -46,32 +46,32 @@ END;
 
     }
 
-    function xtestComplexTable() {
+    function testComplexTable() {
 
         $expected = <<<END
-<table id="complexTable" cellpadding="0" cellspacing="0" border="0">
+<table id="complexTable" border="0" cellpadding="0" cellspacing="0">
     <thead>
         <tr>
-            <th class="name sortable firstCell"><a href="?sort=name">Name</a></th>
+            <th class="name firstCell sortable"><a href="?sort=name">Name</a></th>
             <th class="age sortable"><a href="?sort=age">Age</a></th>
             <th class="actions lastCell">Actions</th>
         </tr>
     </thead>
     <tbody>
-        <tr>
+        <tr class="odd">
             <td class="name firstCell">Joe Blow</td>
             <td class="age">50</td>
             <td class="actions lastCell">
-                <a href="/toggle/active/1" class="toggle active toggleStateActive"><img src="active.png" data-alt-src="inactive.png" /></a>
+                <a href="/toggle/active/1" class="toggle active toggleActive">Active</a>
                 <a href="/edit/1" class="action edit">Edit</a>
                 <a href="/delete/1" class="action delete">Delete</a>
             </td>
         </tr>
-        <tr>
+        <tr class="even">
             <td class="name firstCell">Joe Smith</td>
             <td class="age">99</td>
             <td class="actions lastCell">
-                <a href="/toggle/active/2" class="toggle active toggleStateInactive"><img src="inactive.png" data-alt-src="active.png" /></a>
+                <a href="/toggle/active/2" class="toggle active toggleInactive">Active</a>
                 <a href="/edit/2" class="action edit">Edit</a>
                 <a href="/delete/2" class="action delete">Delete</a>
             </td>
@@ -80,15 +80,15 @@ END;
 </table>
 END;
 
-        $table = new Octopus_Html_Table('complexTable');
+$table = new Octopus_Html_Table('complexTable', array('pager' => false ));
 
-        $table->addColumn('name');
-        $table->addColumn('age');
+        $table->addColumn('name', array('sortable' => true));
+        $table->addColumn('age', array('sortable' => true));
 
-        $col = $table->addColumn('Actions');
-        $col->addToggle('active');
-        $col->addAction('edit');
-        $col->addAction('delete');
+        $col = $table->addColumn('actions');
+        $col->addToggle('active', '/toggle/active/{$person_id}');
+        $col->addAction('edit', '/edit/{$person_id}');
+        $col->addAction('delete', '/delete/{$person_id}');
 
         $table->setDataSource(
             array(
