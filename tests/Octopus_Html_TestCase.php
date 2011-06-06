@@ -10,13 +10,19 @@ abstract class Octopus_Html_TestCase extends PHPUnit_Framework_TestCase {
      */
     public function assertHtmlEquals($expected, $actual, $strict = false, $message = '') {
 
+        self::staticAssertHtmlEquals($this, $expected, $actual, $strict, $message);
+
+    }
+
+    public static function staticAssertHtmlEquals($testCase, $expected, $actual, $strict = false, $message = '') {
+
         if (is_string($strict)) {
             $temp = $strict;
             $message = $strict;
             $strict =  !!$message;
         }
 
-        $this->assertEquals(
+        $testCase->assertEquals(
             self::normalizeHtml($expected, $strict),
             self::normalizeHtml($actual, $strict),
             $message

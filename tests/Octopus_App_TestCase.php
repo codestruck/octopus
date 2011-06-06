@@ -38,6 +38,14 @@ abstract class Octopus_App_TestCase extends PHPUnit_Framework_TestCase {
         `rm -rf {$this->siteDir}`;
     }
 
+    /**
+     * Asserts two chunks of HTML are equal.
+     */
+    public function assertHtmlEquals() {
+        $args = func_get_args();
+        array_unshift($args, $this);
+        call_user_func_array(array('Octopus_Html_TestCase', 'staticAssertHtmlEquals'), $args);
+    }
 
     /**
      * Starts an app instance for testing.
