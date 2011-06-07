@@ -4,11 +4,7 @@ Octopus::loadClass('Octopus_Html_Table_Content');
 
 class Octopus_Html_Table_Action extends Octopus_Html_Table_Content {
 
-    protected $_id;
-
-    public function __construct($id, $label, $url = null, $options = null) {
-
-        $this->_id = $id;
+    public function __construct($id, $label = null, $url = null, $options = null) {
 
         if ($url === null && $options === null) {
 
@@ -32,8 +28,7 @@ class Octopus_Html_Table_Action extends Octopus_Html_Table_Content {
             $label = humanize($id);
         }
 
-        parent::__construct('a', array('href' => $url), $label);
-
+        parent::__construct($id, 'a', array('href' => $url), $label);
         $this->addClass('action', $id);
     }
 

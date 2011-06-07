@@ -58,6 +58,11 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         'pagerDelta' => 10,
 
         /**
+         * Current page we are on. Used to generate links for sorting/paging/etc.
+         */
+        'requestURI' => null,
+
+        /**
          * Whether sorting should put the user back on the 1st page.
          */
         'resetPageOnSort' => true,
@@ -190,8 +195,56 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         return isset($this->_columns[$id]) ? $this->_columns[$id] : false;
     }
 
+    /**
+     * @return Array The columns in this table.
+     */
+    public function getColumns() {
+        return $this->_columns;
+    }
+
     public function getCurrentPage() {
         return $this->getPagerData('page_numbers.current');
+    }
+
+    public function getPageSize() {
+        return $this->_options['pageSize'];
+    }
+
+    public function setPageSize($size) {
+        $this->_options['pageSize'] = $this->_pagerOptions['perPage'] = $size;
+        return $this->resetData();;
+    }
+
+    public function getPage() {
+        return $this->getPagerData('page_numbers.current');
+    }
+
+    public function getPageCount() {
+        return $this->getPagerData('page_numbers.total');
+    }
+
+    public function setPage($page) {
+        $this->_pagerOptions['currentPage'] = $page;
+        $this->resetData();
+        return $this;
+    }
+
+    public function nextPage() {
+        $page = $this->getPage();
+        $page++;
+        if ($page <= $this->getPageCount()) {
+            $this->setPage($page);
+        }
+        return $this;
+    }
+
+    public function prevPage() {
+        $page = $this->getPage();
+        $page--;
+        if ($page >= 1) {
+            $this->setPage($page);
+        }
+        return $this;
     }
 
     public function render($return = false) {
@@ -233,12 +286,61 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         return $data;
     }
 
+    public function &getDataSource() {
+        return $this->_dataSource;
+    }
+
     public function setDataSource($dataSource) {
         $this->_dataSource = $dataSource;
-        $this->_data = null;
+        return $this->resetData();
+    }
+
+    protected function resetData() {
+        $this->_pagerData = null;
         return $this;
     }
 
+    public function sort(/* lots of different ways */) {
+
+        $args = func_get_args();
+        $this->_sortColumns = array();
+
+        foreach($args as $key => $col) {
+
+            if (is_array($col)) {
+                call_user_func_array(array($this, 'sort'), $col);
+                continue;
+            }
+
+            if (is_numeric($key) && is_bool($col)) {
+                continue;
+            }
+
+            $asc = true;
+
+            if (!is_numeric($key)) {
+                $asc = self::parseSortDirection($col);
+                $col = $key;
+            }
+
+            while(substr($col,0,1) == '!') {
+                $asc = !$asc;
+                $col = substr($col,1);
+            }
+
+            $col = $this->getColumn($col);
+
+            if (!$col) {
+                continue;
+            }
+
+            $col->sort($asc ? 'asc' : 'desc');
+
+            $this->_sortColumns[$col->id] = $col;
+        }
+
+        return $this->setPage(1);
+    }
 
     /**
      * @return Array Full pager data for this table.
@@ -285,7 +387,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
         $needOrderBy = true;
 
-        foreach($this->_sortColumns as $name => $col) {
+        foreach($this->getColumns() as $col) {
 
             if (!$col->isSorted()) {
                 continue;
@@ -311,10 +413,11 @@ class Octopus_Html_Table extends Octopus_Html_Element {
                 continue;
             }
 
-            $rs = $rs->orderBy(array($col->id => $col->getSorting()));
+            $resultSet = $resultSet->orderBy(array($col->id => $col->getSorting()));
         }
 
-        return Pager_Wrapper_ResultSet($rs, $this->_pagerOptions, $this->_options['pager'] === false);
+
+        return Pager_Wrapper_ResultSet($resultSet, $this->_pagerOptions, $this->_options['pager'] === false);
     }
 
     /**
@@ -332,38 +435,36 @@ END;
     }
 
     /**
-     * Returns the URL to use to sort on the given field.
+     * @return String The URL to use to sort on the given column.
      */
-    protected function getSortingUrl(&$column) {
+    protected function getSortingUrl($column) {
 
         $newSorting = array($column->id => 'asc');
         $first = true;
-        foreach($this->_sortColumns as $name => $dir) {
 
-            if (!isset($this->_columns[$name])) {
-                continue;
-            }
+        foreach($this->_sortColumns as $col) {
 
-            if ($name == $column->id) {
+            if ($column === $col) {
 
                 if ($first) {
 
-                    if (isset($this->_sortColumns[$name])) {
-                        $newSorting[$name] = ($this->_sortColumns[$name] == 'asc' ? 'desc' : 'asc');
-                    }
+                    // Clicking on the thing that is already primarily sorted
+                    // inverts the sort order of that column.
 
+                    $newSorting[$col->id] = !$col->isSortedAsc();
 
                 }
+
             } else {
-                $newSorting[$name] = $dir;
+                $newSorting[$col->id] = $col->isSortedAsc();
             }
 
             $first = false;
         }
 
         $sort = array();
-        foreach($newSorting as $name => $dir) {
-            $sort[] = ($dir == 'desc' ? '!' : '') . $name;
+        foreach($newSorting as $id => $dir) {
+            $sort[] = ($dir ? '' : '!') . $id;
         }
 
         $newQS = $this->_qs;
@@ -394,16 +495,12 @@ END;
         $html = '';
         $close = '';
 
-        if ($column->isSortable()) {
+        if ($column->isSortable($this->getDataSource())) {
             $html .= '<a href="' . $this->getSortingUrl($column) . '">';
             $close .= '</a>';
         }
 
         $html .= htmlspecialchars($column->title());
-
-        if ($column->isSorted()) {
-            $html .= '<span class="sort' . ($column->isSortedAsc() ? 'Asc' : 'Desc') . 'Marker"></span>';
-        }
 
 
         $th->append($html . $close);
@@ -414,11 +511,23 @@ END;
      */
     protected function getUrlForPaging() {
 
-        $url = preg_replace('/(\?|&+)' . $this->_options['pageArg'] . '=\d*(&+|$)/i', '$1', $_SERVER['REQUEST_URI']);
+        $url = preg_replace('/(\?|&+)' . $this->_options['pageArg'] . '=\d*(&+|$)/i', '$1', $this->getRequestURI());
         $url = rtrim($url, '&');
         $url .= strpos($url, '?') === false ? '?' : '&';
 
         return $url;
+    }
+
+    protected function getRequestURI() {
+        if (isset($this->_options['requestURI'])) {
+            return $this->_options['requestURI'];
+        } else if (isset($this->_options['REQUEST_URI'])) {
+            return $this->_options['REQUEST_URI'];
+        } else if (isset($_SERVER['REQUEST_URI'])) {
+            return $_SERVER['REQUEST_URI'];
+        } else {
+            return '';
+        }
     }
 
     /**
@@ -431,7 +540,7 @@ END;
 
         // First, get a clean copy of the querystring to work with. We do
         // this to get around interactions w/ apache rewriting
-        $this->_path = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+        $this->_path = $this->getRequestURI();
         $pos = strpos($this->_path, '?');
         if ($pos === false) {
             $this->_qs = array();
@@ -483,26 +592,9 @@ END;
 
         // We're on the right page, initialize the state
         $this->_page = $page;
-        $this->_sortColumns = array();
 
         if ($sort) {
-            foreach(explode(',', $sort) as $colID) {
-
-                $asc = true;
-
-                while(substr($colID,0,1) == '!') {
-                    $asc = !$asc;
-                    $colID = substr($colID,1);
-                }
-
-                $col = $this->getColumn($colID);
-
-                if (!$col) {
-                    continue;
-                }
-
-                $this->_sortColumns[$colID] = $col;
-            }
+            $this->sort(explode(',', $sort));
         }
 
         $_SESSION[$sessionSortKey] = ($sort ? $sort : '');
@@ -520,7 +612,7 @@ END;
      */
     protected function prepareHeaderCell($th, $column, $columnIndex, $columnCount) {
         $this->prepareCell($th, $column, $columnIndex, $columnCount);
-        if ($column->isSortable()) $th->addClass('sortable');
+        if ($column->isSortable($this->getDataSource())) $th->addClass('sortable');
     }
 
     /**
@@ -632,7 +724,7 @@ END;
 
         $p = $this->getPagerData();
 
-        $html = '<div class="pagerWrapper">';
+        $html = '<div class="pagerLinks">';
 
         if (count($p['data']) < $p['totalItems']) {
 
@@ -651,14 +743,32 @@ END;
 
             $html .= $links;
         }
+        $html .= '</div>';
 
         $html .= $this->renderLocationDiv();
-
-        $html .= '</div>';
 
         return $html;
     }
 
+    /**
+     * @param $dir Mixed A string or number indicating sorting direction.
+     * @return bool True to sort ascending, false to sort descending.
+     */
+    public static function parseSortDirection($dir) {
+
+        if ($dir === true || $dir === false) {
+            return $dir;
+        } else if (is_numeric($dir)) {
+            return !!$dir;
+        } else {
+            if (strcasecmp('desc', trim($dir)) == 0) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+    }
 }
 
 

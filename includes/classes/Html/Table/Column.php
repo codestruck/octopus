@@ -14,9 +14,10 @@ class Octopus_Html_Table_Column {
     public static $defaults = array(
 
         /**
-         * Whether this column is sortable.
+         * Whether this column is sortable. NULL means it should judge for
+         * itself whether it should be sortable.
          */
-        'sortable' => false,
+        'sortable' => null,
 
 
     );
@@ -41,30 +42,41 @@ class Octopus_Html_Table_Column {
         $this->addClass($id);
     }
 
-    public function addAction($id, $label, $url = null, $options = null) {
+    public function addAction($id, $label = null, $url = null, $options = null) {
 
         Octopus::loadClass('Octopus_Html_Table_Action');
 
-        $action = new Octopus_Html_Table_Action($id, $label, $url, $options);
+        if ($id instanceof Octopus_Html_Table_Content) {
+            $action = $id;
+        } else {
+            $action = new Octopus_Html_Table_Action($id, $label, $url, $options);
+        }
 
         $this->_content[] = $action;
-        $this->_actions[$id] = $action;
+        $this->_actions[$action->contentID] = $action;
 
         return $action;
     }
 
-    public function addToggle($id, $label, $url = null, $options = null) {
+    public function addToggle($id, $labels, $url = null, $options = null) {
 
         Octopus::loadClass('Octopus_Html_Table_Toggle');
 
-        $toggle = new Octopus_Html_Table_Toggle($id, $label, $url, $options);
-
-        $this->_content[] = $toggle;
-        $this->_actions[$id] = $toggle;
-
-        return $this;
+        $toggle = new Octopus_Html_Table_Toggle($id, $labels, $url, $options);
+        return $this->addAction($toggle);
     }
 
+    public function addImageAction($id, $image, $alt = null, $url = null, $options = null) {
+
+        // TODO: this
+
+    }
+
+    public function addImageToggle($id, $images, $alts = null, $url = null, $options = null) {
+
+        // TODO: this
+
+    }
 
     public function append($content) {
         $this->_content[] = $content;
@@ -153,8 +165,8 @@ class Octopus_Html_Table_Column {
             return $this;
         }
 
-        if ((is_bool($direction) || is_numeric($direction)) && $direction) {
-            $direction = OCTOPUS_SORT_ASC;
+        if (is_bool($direction) || is_numeric($direction)) {
+            $direction = $direction ? OCTOPUS_SORT_ASC : OCTOPUS_SORT_DESC;
         }
 
         $direction = strtolower($direction);
@@ -163,15 +175,15 @@ class Octopus_Html_Table_Column {
         switch($this->_sorted = $direction) {
 
             case OCTOPUS_SORT_DESC:
-                $this->_sorted = OCTOPUS_SORT_DESC;
-                $this->removeClass(OCTOPUS_SORT_ASC);
-                $this->addClass(OCTOPUS_SORT_DESC);
+                $this->_sorting = OCTOPUS_SORT_DESC;
+                $this->removeClass('sortAsc');
+                $this->addClass('sortDesc');
                 return $this;
 
             default:
-                $this->_sorted = OCTOPUS_SORT_ASC;
-                $this->removeClass(OCTOPUS_SORT_DESC);
-                $this->addClass(OCTOPUS_SORT_ASC);
+                $this->_sorting = OCTOPUS_SORT_ASC;
+                $this->removeClass('sortDesc');
+                $this->addClass('sortAsc');
 
 
         }
@@ -188,15 +200,52 @@ class Octopus_Html_Table_Column {
     }
 
     public function isSortedAsc() {
-        return $this->_sorting && strcasecmp($this->_sorting, OCTOPUS_SORT_ASC) == 0;
+        return $this->_sorting && (strcasecmp($this->_sorting, OCTOPUS_SORT_ASC) == 0);
     }
 
     public function isSortedDesc() {
-        return $this->_sorting && strcasecmp($this->_sorting, OCTOPUS_SORT_DESC) == 0;
+        return $this->_sorting && (strcasecmp($this->_sorting, OCTOPUS_SORT_DESC) == 0);
     }
 
-    public function isSortable() {
-        return $this->options['sortable'];
+    /**
+     * @return bool Whether this column is sortable against the given datasource.
+     */
+    public function isSortable(&$dataSource = null) {
+
+        if (!$dataSource) {
+            return !empty($this->options['sortable']);
+        }
+
+        if ($this->options['sortable'] === null) {
+            return $this->shouldBeSortable($dataSource);
+        }
+
+        return !!$this->options['sortable'];
+    }
+
+    /**
+     * @return bool Whether this column should be marked as 'sortable' for the
+     * given datasource, all other things being equal.
+     */
+    public function shouldBeSortable(&$dataSource) {
+
+        if (!empty($this->_content)) {
+            return false;
+        }
+
+        if (class_exists('Octopus_Model_ResultSet') && $dataSource instanceof Octopus_Model_ResultSet) {
+            return $this->shouldBeSortableAgainstResultSet($dataSource);
+        } else if (is_array($dataSource)) {
+            return true;
+        } else {
+            return false;
+        }
+
+    }
+
+    protected function shouldBeSortableAgainstResultSet($resultSet) {
+        // TODO: be better
+        return true;
     }
 
     /**
@@ -224,7 +273,12 @@ class Octopus_Html_Table_Column {
         $value = null;
         $id = $this->id;
 
-        if (is_object($obj) && isset($obj->$id)) {
+        // HACK: Octopus_Model does not currently support isset(), so it always
+        // reports field values as 'not set'. So don't use the isset() check
+        // if it's a model instance.
+        $isModel = class_exists('Octopus_Model') && ($obj instanceof Octopus_Model);
+
+        if ($isModel || (is_object($obj) && isset($obj->$id))) {
             $value = $obj->$id;
         } else if (is_array($obj) && isset($obj[$id])) {
             $value = $obj[$id];
@@ -268,7 +322,6 @@ class Octopus_Html_Table_Column {
             } else {
                 $o['title'] = humanize($id);
             }
-
 
         }
 
