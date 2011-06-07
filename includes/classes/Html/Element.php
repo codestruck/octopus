@@ -343,7 +343,15 @@ class Octopus_Html_Element {
     public function render($return = false) {
 
         $open = $this->renderOpenTag();
-        $content = trim($this->renderContent());
+
+        // $open does not include a closing '>', in case this is a content-less
+        // tag (e.g. <img />. renderCloseTag appends a '</tag>' ' />' as appropriate.
+
+        $content = $this->renderContent();
+        if (trim($content) || $this->requireCloseTag) {
+            $open .= '>';
+        }
+
         $close = $this->renderCloseTag($content);
 
         $result = $open . $content . $close;
@@ -417,19 +425,9 @@ class Octopus_Html_Element {
 
     }
 
-    protected function &renderContent() {
+    public function &renderContent() {
 
         $content = '';
-
-        if (empty($this->_content)) {
-            if ($this->requireCloseTag) {
-                $content = '>';
-            }
-
-            return $content;
-        }
-
-        $content = '>';
         $count = 0;
 
         foreach($this->_content as $c) {
