@@ -11,6 +11,17 @@ class Octopus_Html_Table_Content extends Octopus_Html_Element {
 
     private $_currentObj;
 
+    private $_contentID;
+
+    public function __construct($id, $tag, $attributes = array(), $content = array()) {
+        $this->_contentID = $id;
+        parent::__construct($tag, $attributes, $content);
+    }
+
+    public function getContentID() {
+        return $this->_contentID;
+    }
+
     /**
      * Renders this bit of content inside the given cell.
      */

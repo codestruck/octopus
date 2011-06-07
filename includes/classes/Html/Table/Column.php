@@ -14,6 +14,17 @@ class Octopus_Html_Table_Column {
     public static $defaults = array(
 
         /**
+         * Whether or not to escape HTML
+         */
+        'escape' => true,
+
+        /**
+         * Function through which to filter values being rendered for this
+         * column.
+         */
+        'function' => null,
+
+        /**
          * Whether this column is sortable. NULL means it should judge for
          * itself whether it should be sortable.
          */
@@ -268,7 +279,11 @@ class Octopus_Html_Table_Column {
 
     }
 
-    private function fillCellDefault($td, &$obj) {
+    /**
+     * If no content has been assigned manually to this column, this fills the
+     * cell by attempting to read the value from $obj.
+     */
+    protected function fillCellDefault($td, &$obj) {
 
         $value = null;
         $id = $this->id;
@@ -284,7 +299,49 @@ class Octopus_Html_Table_Column {
             $value = $obj[$id];
         }
 
+        $value = $this->applyFunction($value);
+
+        if ($this->options['escape']) {
+            $value = htmlspecialchars($value);
+        }
+
         $td->append($value);
+    }
+
+    /**
+     * Runs any function(s) associated with this column against the given
+     * value.
+     * @return Mixed The modified value.
+     */
+    protected function applyFunction(&$value) {
+
+        if (empty($this->options['function'])) {
+            return $value;
+        }
+
+        $f = $this->options['function'];
+        $isString = is_string($f);
+        $isObject = is_object($value);
+
+        if ($isString && $isObject && method_exists($value, $f)) {
+            // TODO: should there be a way to supply arguments here?
+            return $value->$f();
+        }
+
+        if (is_callable($f)) {
+            return $f($value);
+        }
+
+        if ($isString) {
+
+            if (method_exists($this, $f)) {
+                return $this->$f($value);
+            }
+
+        }
+
+        return '<span style="color:red;">Function not found: ' . htmlspecialchars($f) . '</span>';
+
     }
 
     public function title(/* $title */) {
@@ -323,6 +380,11 @@ class Octopus_Html_Table_Column {
                 $o['title'] = humanize($id);
             }
 
+        }
+
+        if (empty($o['function']) && !empty($o['func'])) {
+            $o['function'] = $o['func'];
+            unset($o['func']);
         }
 
     }

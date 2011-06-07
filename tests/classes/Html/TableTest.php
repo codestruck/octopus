@@ -11,7 +11,81 @@ class HtmlTablePerson extends Octopus_Model {
 
 }
 
+function globalTestFunctionForTable($value, $row = null) {
+    return $value * $value;
+}
+
+class MethodOnObjectTestObject {
+
+    public function __construct($num) {
+        $this->num = $num;
+    }
+
+    public function squareOfNum() {
+        return $this->num * $this->num;
+    }
+
+}
+
 class TableTest extends Octopus_App_TestCase {
+
+    function testEscapeHtml() {
+
+        $table = new Octopus_Html_Table('escape');
+        $table->addColumn('name');
+        $table->setDataSource(array(
+            array('name' => '<b>I AM TRYING TO CHEAT!!!</b>')
+        ));
+
+        $this->assertEquals(
+            array(
+                array('Name'),
+                array('&lt;b&gt;I AM TRYING TO CHEAT!!!&lt;/b&gt;')
+            ),
+            $table->toArray()
+        );
+
+    }
+
+    function testMethodOnObject() {
+
+        $table = new Octopus_Html_Table('methodOnObject');
+        $table->addColumn('name');
+        $table->addColumn('obj', 'Magic Number', 'squareOfNum');
+        $table->setDataSource(array(
+            array('name' => 'Joe Blow', 'obj' => new MethodOnObjectTestObject(5))
+        ));
+
+        $this->assertEquals(
+            array(
+                array('Name', 'Magic Number'),
+                array('Joe Blow', 25)
+            ),
+            $table->toArray()
+        );
+
+    }
+
+    function testGlobalFunction() {
+
+        $table = new Octopus_Html_Table('func', array('pager' => false));
+        $table->addColumn('name');
+        $table->addColumn('num', 'Magic Number', 'globalTestFunctionForTable');
+        $table->setDataSource(array(
+            array( 'name' => 'Joe Blow', 'num' => 3 ),
+            array( 'name' => 'Jane Blow', 'num' => 5 )
+        ));
+
+        $this->assertEquals(
+            array(
+                array('Name', 'Magic Number'),
+                array('Joe Blow', 9),
+                array('Jane Blow', 25)
+            ),
+            $table->toArray()
+        );
+
+    }
 
     function testSimpleTable() {
 

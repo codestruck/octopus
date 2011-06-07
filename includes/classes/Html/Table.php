@@ -262,6 +262,25 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         }
     }
 
+    /**
+     * @return Array An array of arrays where each member is a row in the table.
+     * Items in each row array will contain the rendered content for that cell.
+     */
+    public function &toArray() {
+
+        $result = array();
+
+        $header = array();
+        foreach($this->getColumns() as $col) {
+            $header[] = $col->title();
+        }
+        $result[] = $header;
+
+        $this->renderBody($result);
+
+        return $result;
+    }
+
     public function isEmpty() {
         return $this->count() == 0;
     }
@@ -635,7 +654,7 @@ END;
         $td->attr($attrs);
     }
 
-    protected function renderBody() {
+    protected function renderBody(&$array = null) {
 
         $html = '<tbody>';
 
@@ -652,6 +671,8 @@ END;
             $tr->reset();
             $this->prepareBodyRow($tr, $rowIndex);
 
+            if ($array) $rowArray = array();
+
             $columnIndex = 1;
             foreach($this->_columns as &$column) {
 
@@ -660,14 +681,21 @@ END;
 
                 $column->fillCell($td, $row);
 
+                if ($array) {
+                    $rowArray[] = $td->renderContent();
+                }
+
                 $tr->append($td->render(true));
 
                 $columnIndex++;
             }
 
             $html .= $tr->render(true);
-
             $rowIndex++;
+
+            if ($array) {
+                $array[] = $rowArray;
+            }
         }
 
         $html .= '</tbody>';
