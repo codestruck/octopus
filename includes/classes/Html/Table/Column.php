@@ -299,7 +299,7 @@ class Octopus_Html_Table_Column {
             $value = $obj[$id];
         }
 
-        $value = $this->applyFunction($value);
+        $value = $this->applyFunction($value, $obj);
 
         if ($this->options['escape']) {
             $value = htmlspecialchars($value);
@@ -313,7 +313,7 @@ class Octopus_Html_Table_Column {
      * value.
      * @return Mixed The modified value.
      */
-    protected function applyFunction(&$value) {
+    protected function applyFunction(&$value, &$row) {
 
         if (empty($this->options['function'])) {
             return $value;
@@ -326,19 +326,43 @@ class Octopus_Html_Table_Column {
         if ($isString && $isObject && method_exists($value, $f)) {
             // TODO: should there be a way to supply arguments here?
             return $value->$f();
-        }
-
-        if (is_callable($f)) {
-            return $f($value);
-        }
-
-        if ($isString) {
+        } else if ($isString) {
 
             if (method_exists($this, $f)) {
                 return $this->$f($value);
             }
 
         }
+
+        if (is_callable($f)) {
+
+            /* HACK: not all built-in functions like receiving the row as
+             *       the 2nd argument.
+             *
+             * TODO: Have more calling options, something like:
+             *
+             *      array(
+             *          'function' => 'name of function',
+             *          'args' => array(OCTOPUS_ARG_VALUE, OCTOPUS_ARG_ROW, $customVariable, new Octopus_Function(...))
+             *      )
+             */
+
+            $use2ndArg = true;
+            if ($isString) {
+                $no2ndArg = array('htmlspecialchars', 'htmlentities', 'trim', 'ltrim', 'rtrim');
+                $use2ndArg = !in_array($f, $no2ndArg);
+            }
+
+            if ($use2ndArg) {
+                return call_user_func($f, $value, $row);
+            } else {
+                return call_user_func($f, $value);
+            }
+
+        }
+
+
+
 
         return '<span style="color:red;">Function not found: ' . htmlspecialchars($f) . '</span>';
 

@@ -14,7 +14,7 @@ class HtmlTablePerson extends Octopus_Model {
 
 }
 
-function globalTestFunctionForTable($value, $row = null) {
+function globalTestFunctionForTable($value) {
     return $value * $value;
 }
 
@@ -216,6 +216,63 @@ END;
             ),
             $table->toArray()
         );
+
+    }
+
+    function twoArgTestFunction($value, $row) {
+        $this->assertEquals(25, $value, "value is wrong");
+        $this->assertEquals(array('name' => 'Joe Blow', 'num' => 25), $row);
+        return $value * 2;
+    }
+
+    function testFunctionWith2Args() {
+
+        $table = new Octopus_Html_Table('twoArgs');
+        $table->addColumn('name');
+        $table->addColumn('num', 'Magic Number', array($this, 'twoArgTestFunction'));
+        $table->setDataSource(array(
+            array('name' => 'Joe Blow', 'num' => 25)
+        ));
+
+        $this->assertEquals(
+            array(
+                array('Name', 'Magic Number'),
+                array('Joe Blow', 50)
+            ),
+            $table->toArray()
+        );
+    }
+
+    function test2ArgBuiltInFunctions() {
+
+        $val = '  foo  ';
+
+        $funcs = array(
+            'htmlspecialchars',
+            'trim', 'ltrim', 'rtrim'
+            // TODO More?
+        );
+
+        foreach($funcs as $f) {
+
+            $table = new Octopus_Html_Table('builtIn2Arg');
+            $table->addColumn('name');
+            $table->addColumn('foo', 'Foo', $f);
+            $table->setDataSource(array(
+                array('name' => 'Joe Blow', 'foo' => $val)
+            ));
+
+            $this->assertEquals(
+                array(
+                    array('Name', 'Foo'),
+                    array('Joe Blow', $f($val))
+                ),
+                $table->toArray(),
+                "failed on $f"
+            );
+
+        }
+
 
     }
 
