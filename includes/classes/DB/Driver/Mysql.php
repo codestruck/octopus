@@ -42,11 +42,7 @@ class Octopus_DB_Driver_Mysql {
             $this->database = $Octopus_database;
             $this->connection = $this->handle;
 
-            if (Octopus_ENCODING == 'UTF-8') {
-                mysql_query("SET NAMES 'utf8'");
-            } else {
-                mysql_query("SET NAMES 'latin1'");
-            }
+            mysql_query("SET NAMES 'utf8'");
 
         }
 

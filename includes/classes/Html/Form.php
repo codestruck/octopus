@@ -487,7 +487,7 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
         $wrapper = new Octopus_Html_Element('div');
         $wrapper->id = $field->wrapperId;
-        $wrapper->addClass('field', $field->class);
+        $wrapper->addClass('field', $field->wrapperClass);
 
         $wrapper->append($label);
         $wrapper->append($field);
@@ -553,6 +553,10 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     public function wasSubmitted() {
         $this->getValues();
         return !empty($this->_values);
+    }
+
+    public function submitted() {
+        return $this->wasSubmitted();
     }
 
 }
