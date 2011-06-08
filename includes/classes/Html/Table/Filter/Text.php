@@ -19,7 +19,10 @@ class Octopus_Html_Table_Filter_Text extends Octopus_Html_Table_Filter {
     }
 
     protected function createElement() {
-        $el = Octopus_Html_Form_Field::create('text', $this->id, $this->options);
+
+        $attribs = isset($this->options['attributes']) ? $this->options['attributes'] : null;
+
+        $el = Octopus_Html_Form_Field::create('text', $this->id, $attribs);
         $el->name = $this->id;
         return $el;
     }

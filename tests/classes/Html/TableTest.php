@@ -32,6 +32,18 @@ class MethodOnObjectTestObject {
 
 class TableTest extends Octopus_App_TestCase {
 
+    function testFilterInitFromGet() {
+
+        $_GET['foo'] = 'bar';
+
+        $table = new Octopus_Html_Table('initFromGet');
+        $table->addFilter('text', 'foo');
+
+        $filter = $table->getFilter('foo');
+        $this->assertEquals('bar', $filter->val());
+
+    }
+
     function testEmptyTable() {
 
         $table = new Octopus_Html_Table('empty', array('pager' => false));
@@ -54,11 +66,13 @@ END;
         $this->assertHtmlEquals($expected, $table);
     }
 
-    function xtestRenderFilters() {
+    function testRenderFilters() {
 
         $table = new Octopus_Html_Table('renderFilters', array('pager' => false));
         $table->addColumn('name');
         $table->addFilter('text', 'foo');
+
+        $table->filter('foo', 'bar');
 
 
         $expected = <<<END
@@ -66,21 +80,25 @@ END;
     <thead>
         <tr>
             <td class="filters" colspan="1">
-                <form method="post" action="">
-
+                <form method="get" action="" class="filterForm">
+                    <div class="filter foo text firstFilter lastFilter">
+                        <label class="filterLabel" for="fooInput">Foo:</label>
+                        <input type="text" id="fooInput" class="foo text" name="foo" value="bar" />
+                    </div>
                 </form>
             </td>
         </tr>
     </thead>
     <thead>
         <tr>
-            <th>Name</th>
+            <th class="name firstCell">Name</th>
         </tr>
     </thead>
     <tbody>
     </tbody>
 </table>
 END;
+        $this->assertHtmlEquals($expected, $table);
 
     }
 

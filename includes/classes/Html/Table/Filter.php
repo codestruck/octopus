@@ -11,6 +11,11 @@ abstract class Octopus_Html_Table_Filter {
     public static $defaults = array(
 
         /**
+         * Attributes to pass to the element this filter uses.
+         */
+        'attributes' => array(),
+
+        /**
          * Function used to actually filter results. Receives 2 arguments:
          * the filter text and the datasource being filtered.
          */
@@ -39,11 +44,18 @@ abstract class Octopus_Html_Table_Filter {
     private static $registry = array();
 
     public $id;
+    private $type;
+    private $label;
+
     protected $options;
     protected $element;
 
-    public function __construct($id, $options = array()) {
+    public function __construct($type, $id, $label, $options) {
+
+        $this->type = $type;
         $this->id = $id;
+
+        $this->label = ($label === null ? humanize($id) . ':' : $label);
 
         $options = $this->initializeOptions($options);
         $this->options = array_merge(self::$defaults, $options);
@@ -83,6 +95,19 @@ abstract class Octopus_Html_Table_Filter {
      */
     public function clear() {
         return $this->val('');
+    }
+
+    public function getType() {
+        return $this->type;
+    }
+
+    public function createLabelElement() {
+
+        if (!$this->label) {
+            return;
+        }
+
+        return new Octopus_Html_Element('label', array('class' => 'filterLabel', 'for' => $this->element->id), $this->label);
     }
 
     /**
@@ -152,11 +177,16 @@ abstract class Octopus_Html_Table_Filter {
      * @param $id String Unique ID for this filter.
      * @param $options Array Any options to pass to the filter's constructor.
      */
-    public static function create($type, $id, $options = array()) {
+    public static function create($type, $id, $label, $options = null) {
 
         if ($id === null) {
             $id = $type;
             $type = 'text';
+        }
+
+        if (is_array($label) && $options === null) {
+            $options = $label;
+            $label = null;
         }
 
         if (!isset(self::$registry[$type])) {
@@ -165,7 +195,7 @@ abstract class Octopus_Html_Table_Filter {
 
         $class = self::$registry[$type];
 
-        return new $class($id, $options);
+        return new $class($type, $id, $label, $options);
     }
 
     public static function register($type, $class) {

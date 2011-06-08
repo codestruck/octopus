@@ -24,6 +24,11 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     public static $defaultOptions = array(
 
         /**
+         * Whether or not to render a <form> around the filters.
+         */
+        'filterForm' => true,
+
+        /**
          * CSS class added to the first cell in a row.
          */
         'firstCellClass' => 'firstCell',
@@ -72,7 +77,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         'nextPageLinkText' => 'Next &raquo;',
 
         'firstPageLinkText' => '&laquo; First Page',
-        'lastPageLinkText' => 'Last Page &raquo;'
+        'lastPageLinkText' => 'Last Page &raquo;',
 
     );
 
@@ -194,12 +199,13 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     /**
      * Adds a filter control to this table.
      */
-    public function addFilter($type, $id = null, $options = array()) {
+    public function addFilter($type, $id = null, $label = null, $options = null) {
 
         if ($type instanceof Octopus_Html_Table_Filter) {
             $filter = $type;
         } else {
-            $filter = Octopus_Html_Table_Filter::create($type, $id, $options);
+            $filter = Octopus_Html_Table_Filter::create($type, $id, $label, $options);
+            if (isset($_GET[$id])) $filter->val($_GET[$id]);
         }
 
         if ($filter) {
@@ -813,10 +819,54 @@ END;
         return $html;
     }
 
+    protected function renderFilters() {
+
+        if (empty($this->_filters)) {
+            return '';
+        }
+
+        $td = new Octopus_Html_Element('td');
+        $td->attr('class', 'filters')
+            ->attr('colspan', count($this->getColumns()));
+
+        $parent = $td;
+
+        if ($this->_options['filterForm']) {
+            $parent = new Octopus_Html_Element('form', array('class' => 'filterForm', 'method' => 'get', 'action' => ''));
+            $td->append($parent);
+        }
+
+        $index = 0;
+        $count = count($this->_filters);
+        foreach($this->_filters as $filter) {
+
+            $wrap = new Octopus_Html_Element('div', array('class' => 'filter'));
+
+            $wrap->addClass($filter->id, $filter->getType());
+            if ($index == 0) $wrap->addClass('firstFilter');
+            if ($index == $count - 1) $wrap->addClass('lastFilter');
+
+            $label = $filter->createLabelElement();
+            if ($label) {
+                $wrap->append($label);
+            }
+
+            $wrap->append($filter->render(true));
+            $parent->append($wrap);
+
+            $index++;
+        }
+
+
+        return '<thead><tr>' . $td . '</tr></thead>';
+    }
+
     protected function renderHeader() {
 
         $html = $this->renderOpenTag();
         if (substr($html,-1) != '>') $html .= '>';
+
+        $html .= $this->renderFilters();
 
         $html .= '<thead><tr>';
 
