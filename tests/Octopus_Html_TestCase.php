@@ -34,6 +34,10 @@ abstract class Octopus_Html_TestCase extends PHPUnit_Framework_TestCase {
      */
     public static function normalizeHtml($html, $strict = false) {
 
+        if (class_exists('Octopus_Html_Element') && $html instanceof Octopus_Html_Element) {
+            $html = $html->render(true);
+        }
+
         $html = trim(preg_replace('/\s+/m', ' ', $html));
         $html = str_replace("\n", '', $html);
 
