@@ -369,7 +369,7 @@ class Octopus_Html_Table_Column {
 
             $use2ndArg = true;
             if ($isString) {
-                $no2ndArg = array('htmlspecialchars', 'htmlentities', 'trim', 'ltrim', 'rtrim');
+                $no2ndArg = array('htmlspecialchars', 'htmlentities', 'trim', 'ltrim', 'rtrim', 'nl2br');
                 $use2ndArg = !in_array($f, $no2ndArg);
             }
 

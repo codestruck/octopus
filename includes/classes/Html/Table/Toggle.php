@@ -13,19 +13,19 @@ class Octopus_Html_Table_Toggle extends Octopus_Html_Table_Content {
         /**
          * Attribute in which to stash the alternate content.
          */
-        'altContentAttr' => 'data-alt'
+        'altContentAttrPrefix' => 'data-alt-'
 
     );
 
     public $options;
     private $_activeContent, $_inactiveContent;
+    private $_activeUrl, $_inactiveUrl;
 
     public function __construct($id, $labels, $url = null, $options = null) {
 
         parent::__construct($id, null, $url, $options);
 
         $this->_activeContent = $this->_inactiveContent = null;
-
 
         if (is_array($labels)) {
             $options['label'] = $labels;
@@ -63,7 +63,8 @@ class Octopus_Html_Table_Toggle extends Octopus_Html_Table_Content {
             } else if (isset($options['desc'])) {
                 $labels = $options['desc'];
             } else {
-                $labels = humanize($id);
+                // TODO: better default labeling?
+                $labels = array('Inactive', 'Active');
             }
         }
 
@@ -81,6 +82,8 @@ class Octopus_Html_Table_Toggle extends Octopus_Html_Table_Content {
             $url = $options['url'];
         }
 
+        list($this->_inactiveUrl, $this->_activeUrl) = $url;
+
         parent::__construct($id, 'a', array('href' => $url));
         $this->addClass('toggle', $id);
     }
@@ -90,17 +93,24 @@ class Octopus_Html_Table_Toggle extends Octopus_Html_Table_Content {
      */
     public function fillCell($table, $column, $cell, &$obj) {
 
-        $active = $this->options['activeClass'];
-        $inactive = $this->options['inactiveClass'];
+        $activeClass = $this->options['activeClass'];
+        $inactiveClass = $this->options['inactiveClass'];
+
+        $altContentAttr = $this->options['altContentAttrPrefix'] . 'content';
+        $altHrefAttr = $this->options['altContentAttrPrefix'] . 'href';
 
         if ($this->isActive($obj)) {
             $this->html($this->_activeContent);
-            $this->setAttribute($this->options['altContentAttr'], $this->_inactiveContent);
-            $this->removeClass($inactive)->addClass($active);
+            $this->attr('href', $this->_activeUrl);
+            $this->setAttribute($altContentAttr, $this->_inactiveContent);
+            $this->setAttribute($altHrefAttr, $this->_inactiveUrl);
+            $this->removeClass($inactiveClass)->addClass($activeClass);
         } else {
             $this->html($this->_inactiveContent);
-            $this->setAttribute($this->options['altContentAttr'], $this->_activeContent);
-            $this->removeClass($active)->addClass($inactive);
+            $this->attr('href', $this->_inactiveUrl);
+            $this->setAttribute($altContentAttr, $this->_activeContent);
+            $this->setAttribute($altHrefAttr, $this->_activeUrl);
+            $this->removeClass($activeClass)->addClass($inactiveClass);
         }
 
         parent::fillCell($table, $column, $cell, $obj);
@@ -115,6 +125,13 @@ class Octopus_Html_Table_Toggle extends Octopus_Html_Table_Content {
         return $this->_activeContent;
     }
 
+    public function getActiveUrl() {
+        return $this->_activeUrl;
+    }
+
+    public function getInactiveUrl() {
+        return $this->_inactiveUrl;
+    }
 
 
     public function isActive(&$obj) {
@@ -129,14 +146,6 @@ class Octopus_Html_Table_Toggle extends Octopus_Html_Table_Content {
 
     }
 
-    public function url(/* polymorphic */) {
-        switch(func_num_args()) {
-            case 0:
-                return $this->attr('href');
-            default:
-                return $this->attr('href', func_get_arg(0));
-        }
-    }
 
 }
 

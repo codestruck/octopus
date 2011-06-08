@@ -189,7 +189,7 @@ END;
             'name',
             'some_funky_col' => 'A nice label',
             'foo' => array('desc' => 'bar'),
-            'test_toggle' => array('type' => 'toggle', 'url' => 'test_toggle_url'),
+            'test_toggle' => array('type' => 'toggle', 'url' => array('test_toggle_inactive_url', 'test_toggle_active_url')),
             'toggles' => array(
                 'toggle1',
                 'toggle2' => array('desc' => array('NOT ACTIVE', 'ACTIVE'))
@@ -197,7 +197,7 @@ END;
             'test_action' => array('type' => 'action'),
             'actions' => array(
                 'action1',
-                'action2' => array('url' => 'www.whatever.com')
+                'action2' => array('url' => 'action2_url')
             )
         ));
 
@@ -217,7 +217,8 @@ END;
         $this->assertTrue(!!$test_toggle, 'test_toggle column not found');
         $t = $test_toggle->getAction('test_toggle');
         $this->assertTrue(!!$t, 'toggle action not found on test_toggle');
-        $this->assertEquals('test_toggle_url', $t->url());
+        $this->assertEquals('test_toggle_inactive_url', $t->getInactiveUrl());
+        $this->assertEquals('test_toggle_active_url', $t->getActiveUrl());
 
         $toggles = $table->getColumn('toggles');
         $this->assertTrue(!!$toggles, 'toggles column not found');
@@ -247,6 +248,7 @@ END;
 
         $action2 = $actions->getAction('action2');
         $this->assertTrue(!!$action2, 'action2 not found');
+        $this->assertEquals('action2_url', $action2->url());
 
     }
 
@@ -317,7 +319,8 @@ END;
 
         $funcs = array(
             'htmlspecialchars',
-            'trim', 'ltrim', 'rtrim'
+            'trim', 'ltrim', 'rtrim',
+            'nl2br'
             // TODO More?
         );
 
@@ -422,7 +425,7 @@ END;
             <td class="name firstCell">Joe Blow</td>
             <td class="age">50</td>
             <td class="actions lastCell">
-                <a href="/toggle/active/1" class="toggle active toggleActive" data-alt="Inactive">Active</a>
+                <a href="/toggle/deactivate/1" class="toggle active toggleActive" data-alt-content="Inactive" data-alt-href="/toggle/activate/1">Active</a>
                 <a href="/edit/1" class="action edit">Edit</a>
                 <a href="/delete/1" class="action delete">Delete</a>
             </td>
@@ -431,7 +434,7 @@ END;
             <td class="name firstCell">Joe Smith</td>
             <td class="age">99</td>
             <td class="actions lastCell">
-                <a href="/toggle/active/2" class="toggle active toggleInactive" data-alt="Active">Inactive</a>
+                <a href="/toggle/activate/2" class="toggle active toggleInactive" data-alt-content="Active" data-alt-href="/toggle/deactivate/2">Inactive</a>
                 <a href="/edit/2" class="action edit">Edit</a>
                 <a href="/delete/2" class="action delete">Delete</a>
             </td>
@@ -446,7 +449,7 @@ END;
         $table->addColumn('age', array('sortable' => true));
 
         $col = $table->addColumn('actions');
-        $col->addToggle('active', array('Inactive', 'Active'), '/toggle/active/{$person_id}');
+        $col->addToggle('active', array('Inactive', 'Active'), array('/toggle/activate/{$person_id}', '/toggle/deactivate/{$person_id}'));
         $col->addAction('edit', '/edit/{$person_id}');
         $col->addAction('delete', '/delete/{$person_id}');
 
