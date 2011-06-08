@@ -251,5 +251,34 @@
 
     }
 
+    /**
+     * Takes an input string and converts wildcard characters ('*', '?') to
+     * the valid mysql LIKE equivalents.
+     * @param $s String Input string.
+     * @param $wrap String If no wildcard characters are found in $s, it will
+     * be wrapped in the character specified here. Set to false to disable
+     * auto-wrapping.
+     */
+    function wildcardify($s, $wrap = '%') {
+
+        // Escape backslashes
+        $s = str_replace('\\', '\\\\', $s);
+
+        // Escape wildcard chars
+        $s = str_replace('%', '\\%', $s);
+        $s = str_replace('_', '\\_', $s);
+
+        $starCount = $questionCount = 0;
+
+        $s = str_replace('*', '%', $s, $starCount);
+        $s = str_replace('?', '_', $s, $questionCount);
+
+        if ($wrap && !($starCount + $questionCount)) {
+            $s = $wrap . $s . $wrap;
+        }
+
+        return $s;
+    }
+
 
 ?>

@@ -6,6 +6,26 @@
  */
 class StringTests extends PHPUnit_Framework_TestCase
 {
+
+    function testWildcardify() {
+
+        $tests = array(
+            'foo' => '%foo%',
+            'f?o' => 'f_o',
+            'foo%' => '%foo\%%',
+            'foo_bar' => '%foo\_bar%',
+            'foo \ bar' => '%foo \\\\ bar%',
+            'f*' => 'f%'
+        );
+
+        foreach($tests as $input => $expected) {
+            $this->assertEquals($expected, wildcardify($input), "Failed on $input");
+        }
+
+        $this->assertEquals('foo', wildcardify('foo', false));
+
+    }
+
     function testEndIn() {
 
         $this->assertEquals(
