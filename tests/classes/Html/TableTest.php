@@ -182,6 +182,74 @@ END;
 
     }
 
+    function testCompactAddColumnsFormat() {
+
+        $table = new Octopus_Html_Table('compactAddColumns');
+        $table->addColumns(array(
+            'name',
+            'some_funky_col' => 'A nice label',
+            'foo' => array('desc' => 'bar'),
+            'test_toggle' => array('type' => 'toggle', 'url' => 'test_toggle_url'),
+            'toggles' => array(
+                'toggle1',
+                'toggle2' => array('desc' => array('NOT ACTIVE', 'ACTIVE'))
+            ),
+            'test_action' => array('type' => 'action'),
+            'actions' => array(
+                'action1',
+                'action2' => array('url' => 'www.whatever.com')
+            )
+        ));
+
+        $name = $table->getColumn('name');
+        $this->assertTrue(!!$name, 'name column not found');
+
+        $some_funky_col = $table->getColumn('some_funky_col');
+        $this->assertTrue(!!$some_funky_col, 'some_funky_col column not found');
+        $this->assertEquals('A nice label', $some_funky_col->title());
+
+        $foo = $table->getColumn('foo');
+        $this->assertTrue(!!$foo, 'foo column not found');
+        $this->assertEquals('bar', $foo->title());
+
+
+        $test_toggle = $table->getColumn('test_toggle');
+        $this->assertTrue(!!$test_toggle, 'test_toggle column not found');
+        $t = $test_toggle->getAction('test_toggle');
+        $this->assertTrue(!!$t, 'toggle action not found on test_toggle');
+        $this->assertEquals('test_toggle_url', $t->url());
+
+        $toggles = $table->getColumn('toggles');
+        $this->assertTrue(!!$toggles, 'toggles column not found');
+        $this->assertEquals(2, count($toggles->getActions()), 'wrong # of actions');
+
+        $toggle1 = $toggles->getAction('toggle1');
+        $this->assertTrue(!!$toggle1, 'toggle1 not found');
+
+        $toggle2 = $toggles->getAction('toggle2');
+        $this->assertTrue(!!$toggle2, 'toggle2 not found');
+        $this->assertEquals('NOT ACTIVE', $toggle2->getInactiveContent());
+        $this->assertEquals('ACTIVE', $toggle2->getActiveContent());
+
+
+        $test_action = $table->getColumn('test_action');
+        $this->assertTrue(!!$test_action, 'test_action column not found');
+        $a = $test_action->getAction('test_action');
+        $this->assertTrue(!!$a, 'test_action not found');
+
+        $actions = $table->getColumn('actions');
+        $this->assertTrue(!!$actions, 'actions column not found');
+
+        $this->assertEquals(2, count($actions->getActions()));
+
+        $action1 = $actions->getAction('action1');
+        $this->assertTrue(!!$action1, 'action1 not found');
+
+        $action2 = $actions->getAction('action2');
+        $this->assertTrue(!!$action2, 'action2 not found');
+
+    }
+
     function testEscapeHtml() {
 
         $table = new Octopus_Html_Table('escape');

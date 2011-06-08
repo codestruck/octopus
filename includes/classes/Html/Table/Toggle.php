@@ -26,17 +26,10 @@ class Octopus_Html_Table_Toggle extends Octopus_Html_Table_Content {
 
         $this->_activeContent = $this->_inactiveContent = null;
 
+
         if (is_array($labels)) {
-
-            if (isset($labels[0]) && isset($labels[1])) {
-                list($this->_inactiveContent, $this->_activeContent) = $labels;
-                $labels = null;
-            } else if (isset($labels['active']) && isset($labels['inactive'])) {
-                $this->_inactiveContent = $labels['inactive'];
-                $this->_activeContent = $labels['active'];
-                $labels = null;
-            }
-
+            $options['label'] = $labels;
+            $labels = null;
         }
 
         if ($url === null && $options === null) {
@@ -57,14 +50,35 @@ class Octopus_Html_Table_Toggle extends Octopus_Html_Table_Content {
             $labels = null;
         }
 
-        if ($labels === null) {
-            $labels = humanize($id);
-        }
-
         if ($options === null) {
             $this->options = self::$defaults;
         } else {
             $this->options = array_merge(self::$defaults, $options);
+        }
+
+        if ($labels === null) {
+
+            if (isset($options['label'])) {
+                $labels = $options['label'];
+            } else if (isset($options['desc'])) {
+                $labels = $options['desc'];
+            } else {
+                $labels = humanize($id);
+            }
+        }
+
+        if (isset($labels[0]) && isset($labels[1])) {
+            list($this->_inactiveContent, $this->_activeContent) = $labels;
+            $labels = null;
+        } else if (isset($labels['active']) && isset($labels['inactive'])) {
+            $this->_inactiveContent = $labels['inactive'];
+            $this->_activeContent = $labels['active'];
+            $labels = null;
+        }
+
+
+        if (isset($options['url'])) {
+            $url = $options['url'];
         }
 
         parent::__construct($id, 'a', array('href' => $url));
@@ -93,6 +107,15 @@ class Octopus_Html_Table_Toggle extends Octopus_Html_Table_Content {
 
     }
 
+    public function getInactiveContent() {
+        return $this->_inactiveContent;
+    }
+
+    public function getActiveContent() {
+        return $this->_activeContent;
+    }
+
+
 
     public function isActive(&$obj) {
 
@@ -104,6 +127,15 @@ class Octopus_Html_Table_Toggle extends Octopus_Html_Table_Content {
             return isset($obj[$id]) && $obj[$id];
         }
 
+    }
+
+    public function url(/* polymorphic */) {
+        switch(func_num_args()) {
+            case 0:
+                return $this->attr('href');
+            default:
+                return $this->attr('href', func_get_arg(0));
+        }
     }
 
 }

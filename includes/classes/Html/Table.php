@@ -146,30 +146,75 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         if ($id instanceof Octopus_Html_Table_Column) {
             $column = $id;
         } else {
-
-            if ($options === null) {
-                if ($function === null && is_array($title)) {
-                    // support addColumn('id', array('opt' => 'value'))
-                    $options = $title;
-                    $title = null;
-                } else {
-                    $options = array();
-                }
-            }
-
-            if ($title !== null) {
-                $options['title'] = $title;
-            }
-
-            if ($function !== null) {
-                $options['function'] = $function;
-            }
-
-            $column = new Octopus_Html_Table_Column($id, $options, $this);
+            $column = $this->createColumn($id, $title, $function, $options);
         }
 
+        $this->_columns[$column->id] = $column;
 
-        $this->_columns[$id] = $column;
+        return $column;
+
+    }
+
+    protected function createColumn($id, $title, $function, $options) {
+
+        if ($options === null) {
+            if ($function === null && is_array($title)) {
+                // support addColumn('id', array('opt' => 'value'))
+                $options = $title;
+                $title = null;
+            } else {
+                $options = array();
+            }
+        }
+
+        if ($title !== null) {
+            $options['title'] = $title;
+        }
+
+        if ($function !== null) {
+            $options['function'] = $function;
+        }
+
+        $column = new Octopus_Html_Table_Column($id, $options, $this);
+
+        $actions = array();
+
+        if ($id == 'actions' || $id == 'toggles') {
+            foreach($options as $actionID => $actionOptions) {
+
+                if (is_numeric($actionID)) {
+                    $actionID = $actionOptions;
+                    $actionOptions = array();
+                }
+                $actionOptions['id'] = $actionID;
+                if ($id == 'toggles') $actionOptions['type'] = 'toggle';
+                $actions[] = $actionOptions;
+            }
+        } else if (isset($options['type'])) {
+            $options['id'] = $id;
+            $actions[] = $options;
+        }
+
+        if (isset($options['actions'])) {
+            foreach($options['actions'] as $a) {
+                $actions[] = $a;
+            }
+        }
+
+        if (isset($options['toggles'])) {
+            foreach($options['toggles'] as $t) {
+                if (!isset($t['type'])) $t['type'] = 'toggle';
+                $actions[] = $t;
+            }
+        }
+
+        if (empty($actions)) {
+            return $column;
+        }
+
+        foreach($actions as $action) {
+            $column->addAction($action);
+        }
 
         return $column;
 
@@ -187,6 +232,18 @@ class Octopus_Html_Table extends Octopus_Html_Element {
                 $this->addColumn($arg);
             } else if (is_array($arg)) {
                 foreach($arg as $id => $options) {
+
+                    if (is_numeric($id)) {
+                        // assume this is an array index
+
+                        if (is_string($options)) {
+                            $id = $options;
+                            $options = array();
+                        } else {
+                            $id = $options['id'];
+                        }
+                    }
+
                     $this->addColumn($id, $options);
                 }
             }

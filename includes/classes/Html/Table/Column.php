@@ -60,21 +60,41 @@ class Octopus_Html_Table_Column {
         if ($id instanceof Octopus_Html_Table_Content) {
             $action = $id;
         } else {
+
+            if (is_array($id)) {
+                $temp = $id['id'];
+                $options = $id;
+                $id = $temp;
+            }
+
+            if ($options && isset($options['type']) && strcasecmp($options['type'], 'toggle') == 0) {
+                return $this->addToggle($id, $label, $url, $options);
+            }
+
+
             $action = new Octopus_Html_Table_Action($id, $label, $url, $options);
         }
 
         $this->_content[] = $action;
-        $this->_actions[$action->contentID] = $action;
+        $this->_actions[$action->getContentID()] = $action;
 
         return $action;
     }
 
-    public function addToggle($id, $labels, $url = null, $options = null) {
+    public function addToggle($id, $labels = null, $url = null, $options = null) {
 
         Octopus::loadClass('Octopus_Html_Table_Toggle');
-
         $toggle = new Octopus_Html_Table_Toggle($id, $labels, $url, $options);
+
         return $this->addAction($toggle);
+    }
+
+    public function getAction($id) {
+        return isset($this->_actions[$id]) ? $this->_actions[$id] : null;
+    }
+
+    public function getActions() {
+        return $this->_actions;
     }
 
     public function addImageAction($id, $image, $alt = null, $url = null, $options = null) {
