@@ -12,6 +12,7 @@ class Octopus_Html_Form_Field_Checkbox extends Octopus_Html_Form_Field {
             $this->class = to_css_class($cssName);
             $this->id = to_css_class($cssName . ucfirst($attributes['value']) . 'Input');
             $this->wrapperId = to_css_class($cssName . ucfirst($attributes['value']) . 'Field');
+            $this->wrapperClass = $this->class . ' ' . to_css_class($attributes['value']) . ' ' . $type;
 
             $this->addClass($attributes['value'])->addClass($type);
         }

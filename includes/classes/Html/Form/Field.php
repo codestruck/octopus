@@ -20,6 +20,7 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
     public $help = null;
     public $wrapper = null;
     public $wrapperId = null;
+    public $wrapperClass = null;
 
     private $_rules = array();
     private $_requiredRule = null;
@@ -43,6 +44,8 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
 
         $this->addClass(to_css_class($name), to_css_class($type))
              ->label($label);
+
+        $this->wrapperClass = $this->class;
     }
 
     /**
@@ -194,9 +197,11 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
             $this->_requiredRule->setMessage($message);
             $this->addRule($this->_requiredRule);
             $this->addClass('required');
+            $this->wrapper->addClass('required');
 
         } else {
             $this->removeClass('required');
+            $this->wrapper->removeClass('required');
         }
 
         parent::setAttribute('required', $required);
@@ -421,6 +426,7 @@ Octopus_Html_Form_Field::register('email', 'Octopus_Html_Form_Field', array('typ
 Octopus_Html_Form_Field::register('password', 'Octopus_Html_Form_Field', array('type' => 'password', 'class' => 'text'));
 Octopus_Html_Form_Field::register('textarea', 'Octopus_Html_Form_Field_Textarea');
 Octopus_Html_Form_Field::register('select', 'Octopus_Html_Form_Field_Select');
+Octopus_Html_Form_Field::register('radio', 'Octopus_Html_Form_Field_Radio');
 Octopus_Html_Form_Field::register('checkbox', 'Octopus_Html_Form_Field_Checkbox');
 
 ?>

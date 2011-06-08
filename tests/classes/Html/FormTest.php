@@ -92,11 +92,11 @@ class FormTest extends Octopus_Html_TestCase {
         $this->assertHtmlEquals(
 <<<END
 <form id="testForm" method="post" action="whatever.php">
-    <div id="nameField" class="field name text">
+    <div id="nameField" class="field name text required">
         <label for="nameInput">Name:</label>
         <input type="text" id="nameInput" class="name text required" name="name" value="Joe Blow" autofocus required />
     </div>
-    <div id="emailField" class="field text email">
+    <div id="emailField" class="field text email required">
         <label for="emailInput">Email:</label>
         <input type="email" id="emailInput" class="text email required" name="email" value="joe@blow.com" required />
     </div>
