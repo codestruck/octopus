@@ -11,10 +11,19 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
     protected $textField = null;
 
     public function __construct($type, $name, $label, $attributes = null) {
+
+        $options = null;
+        if (isset($attributes['options'])) {
+            $options = $attributes['options'];
+            unset($attributes['options']);
+        }
+
         parent::__construct('select', $type, $name, $label, $attributes);
         $this->setAttribute('name', $name);
         $this->removeAttribute('type');
         $this->requireCloseTag = true;
+
+        if ($options) $this->addOptions($options);
     }
 
     /**
@@ -66,6 +75,15 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
         }
 
         return $this;
+    }
+
+    /**
+     * @return Array An array where keys are option values and values are
+     * the text of options.
+     */
+    public function &getOptions() {
+        $ar = $this->toArray();
+        return $ar['options'];
     }
 
     public function getAttribute($attr, $default = null) {

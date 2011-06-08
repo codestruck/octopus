@@ -4,6 +4,7 @@ Octopus::loadExternal('pager_wrapper');
 
 Octopus::loadClass('Octopus_Html_Element');
 Octopus::loadClass('Octopus_Html_Table_Column');
+Octopus::loadClass('Octopus_Html_Table_Filter');
 
 /**
  *
@@ -78,10 +79,12 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     private $_options;
 
     private $_dataSource = null;
+    private $_originalDataSource = null;
     private $_pagerData = null;
 
     private $_columns = array();
     private $_sortColumns = array();
+    private $_filters = array();
     private $_page = null;
     private $_path = null; // path to current page
     private $_qs = null; // current querystring
@@ -189,6 +192,28 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     /**
+     * Adds a filter control to this table.
+     */
+    public function addFilter($type, $id = null, $options = array()) {
+
+        if ($type instanceof Octopus_Html_Table_Filter) {
+            $filter = $type;
+        } else {
+            $filter = Octopus_Html_Table_Filter::create($type, $id, $options);
+        }
+
+        if ($filter) {
+            $this->_filters[$filter->id] = $filter;
+        }
+
+        return $filter;
+    }
+
+    public function getFilter($id) {
+        return isset($this->_filters[$id]) ? $this->_filters[$id] : null;
+    }
+
+    /**
      * @return Mixed A column by ID or false if it is not found.
      */
     public function getColumn($id) {
@@ -244,6 +269,68 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         if ($page >= 1) {
             $this->setPage($page);
         }
+        return $this;
+    }
+
+    /**
+     * Applies a filter to the data in this table. This will modify the actual
+     * data source, so you can use getDataSource() after calling this to get
+     * the filtered data.
+     */
+    public function filter() {
+
+        $args = func_get_args();
+
+        if (empty($args)) {
+            return $this;
+        } else if (count($args) == 1 && $args[0] === false) {
+            return $this->unfilter();
+        }
+
+        $filterID = null;
+
+        foreach($args as $arg) {
+
+            if (!is_array($arg)) {
+                if ($filterID === null) {
+                    $filterID = $arg;
+                } else {
+                    $this->filter(array($filterID => $arg));
+                    $filterID = null;
+                }
+                continue;
+            }
+
+            foreach($arg as $id => $value) {
+
+                $filter = $this->getFilter($id);
+                if (!$filter) continue;
+
+                $filter->val($value);
+            }
+        }
+
+        $ds = $this->_originalDataSource;
+        foreach($this->_filters as $filter) {
+            $ds = $filter->apply($ds);
+        }
+
+        $this->internalSetDataSource($ds, false);
+
+        return $this;
+    }
+
+    /**
+     * Restores the datasource to its state before filter() was called.
+     */
+    public function unfilter() {
+
+        foreach($this->_filters as $filter) {
+            $filter->clear();
+        }
+
+        $this->internalSetDataSource($this->_originalDataSource, true);
+
         return $this;
     }
 
@@ -310,7 +397,17 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     public function setDataSource($dataSource) {
+        return $this->internalSetDataSource($dataSource, true);
+    }
+
+    private function internalSetDataSource($dataSource, $isOriginal) {
+
         $this->_dataSource = $dataSource;
+
+        if ($isOriginal) {
+            $this->_originalDataSource = $dataSource;
+        }
+
         return $this->resetData();
     }
 

@@ -5,7 +5,10 @@ Octopus::loadClass('Octopus_Html_Table');
 class HtmlTablePerson extends Octopus_Model {
 
     protected $fields = array(
-        'name',
+        'name' => array(
+            'sortable' => false,
+            'filter' => true
+        ),
         'age' => array('type' => 'numeric')
     );
 
@@ -28,6 +31,138 @@ class MethodOnObjectTestObject {
 }
 
 class TableTest extends Octopus_App_TestCase {
+
+    function testEmptyTable() {
+
+        $table = new Octopus_Html_Table('empty', array('pager' => false));
+        $table->addColumn('name');
+        $table->addColumn('age');
+
+        $expected = <<<END
+        <table id="empty" border="0" cellpadding="0" cellspacing="0">
+            <thead>
+                <tr>
+                    <th class="name firstCell">Name</th>
+                    <th class="age lastCell">Age</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+END;
+
+        $this->assertHtmlEquals($expected, $table);
+    }
+
+    function xtestRenderFilters() {
+
+        $table = new Octopus_Html_Table('renderFilters', array('pager' => false));
+        $table->addColumn('name');
+        $table->addFilter('text', 'foo');
+
+
+        $expected = <<<END
+<table id="renderFilters" border="0" cellpadding="0" cellspacing="0">
+    <thead>
+        <tr>
+            <td class="filters" colspan="1">
+                <form method="post" action="">
+
+                </form>
+            </td>
+        </tr>
+    </thead>
+    <thead>
+        <tr>
+            <th>Name</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+END;
+
+    }
+
+    function testTextFilter() {
+
+        $table = new Octopus_Html_Table('textFilter');
+        $table->addColumn('name');
+        $table->addColumn('age');
+
+        $el = $table->addFilter('text', 'name');
+        $this->assertTrue($el instanceof Octopus_Html_Table_Filter);
+
+        $db = $this->resetDatabase();
+        $db->query("
+            INSERT INTO html_table_persons (`name`, `age`)
+                VALUES
+                    ('Joe Blow', 50),
+                    ('Jane Blow', 45),
+                    ('John Smith', 99)
+        ");
+
+        $resultSet = HtmlTablePerson::all();
+        $this->assertEquals(3, $resultSet->count(), "wrong # of records in table");
+
+        $table->setDataSource($resultSet);
+        $table->filter('name', 'blow');
+
+        $this->assertEquals(
+            array(
+                array('Name', 'Age'),
+                array('Joe Blow', 50),
+                array('Jane Blow', 45)
+            ),
+            $table->toArray()
+        );
+
+        $table->unfilter();
+
+        $this->assertEquals(
+            array(
+                array('Name', 'Age'),
+                array('Joe Blow', 50),
+                array('Jane Blow', 45),
+                array('John Smith', 99)
+            ),
+            $table->toArray(),
+            'unfilter should reset filter state'
+        );
+
+    }
+
+    function testSelectFilter() {
+
+        $db = $this->resetDatabase();
+        $db->query("
+            INSERT INTO html_table_persons (`name`, `age`)
+                VALUES
+                    ('Joe Blow', 50),
+                    ('Jane Blow', 50),
+                    ('John Smith', 99)
+        ");
+
+
+        $table = new Octopus_Html_Table('selectFilter', array('pager' => false));
+        $table->addColumn('name');
+        $table->addColumn('age');
+
+        $select = $table->addFilter('select', 'age', array(50 => 'Fifty', 99 => 'Ninety-nine'));
+
+        $table->setDataSource(HtmlTablePerson::all());
+
+        $table->filter(array('age' => 99));
+
+        $this->assertEquals(
+            array(
+                array('Name', 'Age'),
+                array('John Smith', 99)
+            ),
+            $table->toArray()
+        );
+
+    }
 
     function testEscapeHtml() {
 
@@ -233,8 +368,8 @@ END;
 
     }
 
-    function testResultSetSorting() {
-
+    function resetDatabase()
+    {
         $db = Octopus_DB::singleton();
         $db->query('DROP TABLE IF EXISTS html_table_persons');
 
@@ -245,6 +380,13 @@ END;
                 `age` int(11) NOT NULL
             )
         ');
+
+        return $db;
+    }
+
+    function testResultSetSorting() {
+
+        $db = $this->resetDatabase();
 
         $db->query("
 
