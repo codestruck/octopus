@@ -48,6 +48,9 @@ class TableTest extends Octopus_App_TestCase {
         $actions = $table->addColumn('actions');
         $actions->addAction('delete', array('post' => true));
         $actions->addAction('other', array('method' => 'post'));
+        $actions->addToggle('toggle1', array('foo','bar'), array('foo','bar'), array('post' => true));
+        $actions->addToggle('toggle2', array('foo','bar'), array('foo','bar'), array('method' => 'post'));
+
 
         $table->setDataSource(array(
             array('name' => 'Joe')
@@ -61,6 +64,8 @@ class TableTest extends Octopus_App_TestCase {
             <<<END
             <a href="" class="action delete methodPost">Delete</a>
             <a href="" class="action other methodPost">Other</a>
+            <a href="foo" class="toggle toggle1 methodPost toggleInactive" data-alt-content="bar" data-alt-href="bar">foo</a>
+            <a href="foo" class="toggle toggle2 methodPost toggleInactive" data-alt-content="bar" data-alt-href="bar">foo</a>
 END
             ,
             $row[1]
