@@ -143,7 +143,14 @@
         $siteDir = rtrim($siteDir, '/') . '/';
         $file = ltrim($file, '/');
 
-        return u($siteDir . $file, $options);
+        $actualFile = realpath($siteDir . $file);
+        $actualDir = dirname($actualFile) . '/';
+
+        if (!starts_with($actualDir, $siteDir)) {
+            return false;
+        }
+
+        return u('/site/' . $file, $options);
     }
 
 ?>

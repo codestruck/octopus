@@ -13,6 +13,22 @@ class Octopus_Request {
         $this->_resolvedPath = ($resolvedPath === null ? $this->_path : trim($resolvedPath));
     }
 
+    public function getMethod() {
+        if (isset($_SERVER['REQUEST_METHOD'])) {
+            return strtolower($_SERVER['REQUEST_METHOD']);
+        } else {
+            return 'get';
+        }
+    }
+
+    public function isGet() {
+        return $this->getMethod() == 'get';
+    }
+
+    public function isPost() {
+        return $this->getMethod() == 'post';
+    }
+
     /**
      * @return String The requested path.
      */

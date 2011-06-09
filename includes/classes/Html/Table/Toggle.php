@@ -139,7 +139,14 @@ class Octopus_Html_Table_Toggle extends Octopus_Html_Table_Content {
         $id = $this->getContentID();
 
         if (is_object($obj)) {
+
+            // HACK: Octopus_Model doesn't support isset() right now
+            if ($obj instanceof Octopus_Model) {
+                return !!$obj->$id;
+            }
+
             return isset($obj->$id) && $obj->$id;
+
         } else if (is_array($obj)) {
             return isset($obj[$id]) && $obj[$id];
         }

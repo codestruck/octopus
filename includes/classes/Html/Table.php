@@ -87,6 +87,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     private $_originalDataSource = null;
     private $_pagerData = null;
 
+    private $_shouldInitFromEnvironment = true;
+
     private $_columns = array();
     private $_sortColumns = array();
     private $_filters = array();
@@ -126,9 +128,6 @@ class Octopus_Html_Table extends Octopus_Html_Element {
             'curPageLinkClassName' => 'current'
 
         );
-
-        $this->figureOutSortingAndPaging();
-
     }
 
     /**
@@ -314,6 +313,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     public function setPage($page) {
         $this->_pagerOptions['currentPage'] = $page;
         $this->resetData();
+        $this->_shouldInitFromEnvironment = false;
         return $this;
     }
 
@@ -398,6 +398,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     public function render($return = false) {
+
+        $this->initFromEnvironment();
 
         // Do our own custom rendering
         $html =
@@ -526,6 +528,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      */
     private function getPagerData($key = null) {
 
+        $this->initFromEnvironment();
+
         if (!$this->_pagerData) {
 
             $ds = ($this->_dataSource ? $this->_dataSource : array());
@@ -592,9 +596,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
                 continue;
             }
 
-            $resultSet = $resultSet->orderBy(array($col->id => $col->getSorting()));
+            $resultSet = $resultSet->orderBy(array($name => $col->getSorting()));
         }
-
 
         return Pager_Wrapper_ResultSet($resultSet, $this->_pagerOptions, $this->_options['pager'] === false);
     }
@@ -713,7 +716,13 @@ END;
      * Looks at external factors, like querystring args and session data,
      * and restores the table's state.
      */
-    private function figureOutSortingAndPaging() {
+    private function initFromEnvironment() {
+
+        if (!$this->_shouldInitFromEnvironment) {
+            return;
+        }
+
+        $this->_shouldInitFromEnvironment = false;
 
         $sessionSortKey = '_octopus_table_' . strtolower($this->id) . '_sort';
 
@@ -735,7 +744,7 @@ END;
         $page = null;
 
         if (isset($_GET[$sortArg])) {
-            $sort = $_GET[$sortArg];
+            $sort = rawurldecode($_GET[$sortArg]);
         } else if (isset($_SESSION[$sessionSortKey])) {
             $sort = $_SESSION[$sessionSortKey];
         }
