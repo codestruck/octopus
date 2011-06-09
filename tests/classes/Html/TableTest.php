@@ -32,6 +32,60 @@ class MethodOnObjectTestObject {
 
 class TableTest extends Octopus_App_TestCase {
 
+    function setUp() {
+        parent::setUp();
+
+        $_SESSION = array();
+        $_GET = array();
+        $_POST = array();
+    }
+
+    function testInitSortFromQueryString() {
+
+        $db = $this->resetDatabase();
+        $db->query("
+            INSERT INTO html_table_persons (`name`, `age`)
+                VALUES
+                    ('Joe Blow', 50),
+                    ('Jane Blow', 50),
+                    ('John Smith', 99)
+        ");
+
+
+        $table = new Octopus_Html_Table('selectFilter', array('pager' => false));
+        $table->addColumn('name');
+        $table->addColumn('age');
+        $table->setDataSource(HtmlTablePerson::all());
+
+        $_GET['sort'] = '!age';
+
+        $this->assertEquals(
+            array(
+                array('Name', 'Age'),
+                array('John Smith', 99),
+                array('Joe Blow', 50),
+                array('Jane Blow', 50)
+            ),
+            $table->toArray()
+        );
+
+        $table->reset();
+        $_GET['sort'] = '!age,name';
+        $table->setDataSource(HtmlTablePerson::all());
+
+        $this->assertEquals(
+            array(
+                array('Name', 'Age'),
+                array('John Smith', 99),
+                array('Jane Blow', 50),
+                array('Joe Blow', 50),
+            ),
+            $table->toArray()
+        );
+
+
+    }
+
     function testFilterInitFromGet() {
 
         $_GET['foo'] = 'bar';

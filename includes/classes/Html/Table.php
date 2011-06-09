@@ -39,6 +39,11 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         'lastCellClass' => 'lastCell',
 
         /**
+         * Max # of columns to allow sorting on.
+         */
+        'maxSortColumns' => 2,
+
+        /**
          * Argument used on the querystring to specify the col to sort on.
          */
         'sortArg' => 'sort',
@@ -69,6 +74,11 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         'requestURI' => null,
 
         /**
+         * $_GET values to use.
+         */
+        'queryString' => null,
+
+        /**
          * Whether sorting should put the user back on the 1st page.
          */
         'resetPageOnSort' => true,
@@ -80,7 +90,16 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         'lastPageLinkText' => 'Last Page &raquo;',
 
 
-        'useSession' => false,
+        /**
+         * Whether or not to store sorting / filters in the session.
+         */
+        'useSession' => true,
+
+        /**
+         * Whether or not to make sure the user is always on a page whose
+         * query string matches the current sort/filter state of the table.
+         */
+        'enforceQueryString' => true,
     );
 
     private $_options;
@@ -95,9 +114,9 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     private $_sortColumns = array();
     private $_filters = array();
     private $_page = null;
-    private $_path = null; // path to current page
-    private $_qs = null; // current querystring
     private $_pagerOptions = null;
+
+    private $_queryString = null;
 
     public function __construct($id, $options = array()) {
 
@@ -417,6 +436,29 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     /**
+     * Resets sorting, paging, and filter state. Keeps columns and filters
+     * that have been added. Clears the data source.
+     */
+    public function reset() {
+        parent::reset();
+
+        $this->resetData();
+
+        foreach($this->_columns as $c) {
+            $c->sort(false);
+        }
+        $this->_sortColumns = array();
+
+        foreach($this->_filters as $f) {
+            $f->clear();
+        }
+
+        $this->forgetState();
+
+        $this->_shouldInitFromEnvironment = true;
+    }
+
+    /**
      * @return Array An array of arrays where each member is a row in the table.
      * Items in each row array will contain the rendered content for that cell.
      */
@@ -547,6 +589,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
                 return false;
             }
 
+            $this->rememberState();
         }
 
         if ($key === null) {
@@ -592,14 +635,18 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
     private function getPagerDataForResultSet($resultSet) {
 
-        foreach($this->_sortColumns as $name => $col) {
+        $order = array();
+
+        foreach($this->_sortColumns as $col) {
 
             if (!$col->isSorted($resultSet)) {
                 continue;
             }
 
-            $resultSet = $resultSet->orderBy(array($col->id => $col->getSorting()));
+            $order[$col->id] = $col->getSorting();
         }
+
+        $resultSet = $resultSet->orderBy($order);
 
         return Pager_Wrapper_ResultSet($resultSet, $this->_pagerOptions, $this->_options['pager'] === false);
     }
@@ -619,14 +666,122 @@ END;
     }
 
     /**
+     * @return Array $_GET values.
+     */
+    protected function getQueryString() {
+
+        if ($this->_queryString !== null) {
+            return $this->_queryString;
+        }
+
+        if ($this->_options['queryString'] !== null) {
+            $qs = $this->_options['queryString'];
+        } else {
+            $uri = $this->getRequestURI();
+            $pos = strpos($uri, '?');
+            if ($pos === false) {
+                $qs = array();
+            } else {
+                $qs = substr($uri, $pos + 1);
+            }
+        }
+
+        if (!is_array($qs)) {
+            parse_str($qs, $qs);
+        }
+
+        $this->_queryString = $qs;
+        return $qs;
+    }
+
+    /**
+     * Writes the current state of the table to the session.
+     */
+    protected function rememberState() {
+
+        if (!$this->_options['useSession']) {
+            return false;
+        }
+
+        $this->getSessionKeys($this->getRequestURI(), $sort, $page, $filter);
+
+        $_SESSION[$sort] = self::buildSortString($this->_sortColumns);
+        $_SESSION[$page] = $this->getPage();
+        $_SESSION[$filter] = $this->getFilterValues();
+    }
+
+    /**
+     * Clears out any session storage.
+     */
+    protected function forgetState() {
+        $this->getSessionKeys($this->getRequestURI(), $sort, $page, $filter);
+
+        unset($_SESSION[$sort]);
+        unset($_SESSION[$page]);
+        unset($_SESSION[$filter]);
+    }
+
+    /**
+     * @return String Comma-delimited string describing current sorting.
+     */
+    private function buildSortString($sorting) {
+
+        $result = '';
+
+        $ds = $this->getDataSource();
+
+        foreach($sorting as $key => $value) {
+
+            if (is_string($key)) {
+                $col = $this->getColumn($key);
+                $asc = $value;
+            } else {
+                $col = $value;
+                $asc = $col->isSortedAsc($ds);
+            }
+
+            if (!$col->isSortable($ds)) {
+                continue;
+            }
+
+            if ($result) $result .= ',';
+
+            $result .= ($asc ? '' : '!') . $col->id;
+        }
+
+        return $result;
+    }
+
+    protected function &getFilterValues() {
+
+        $values = array();
+        foreach($this->_filters as $f) {
+            $values[$f->id] = $f->val();
+        }
+
+        return $values;
+
+    }
+
+    /**
      * @return String The URL to use to sort on the given column.
      */
     protected function getSortingUrl($column) {
 
-        $newSorting = array($column->id => 'asc');
+        $ds = $this->getDataSource();
+        if (!$column->isSortable($ds)) {
+            return '';
+        }
+
+        $newSorting = array($column->id => true);
         $first = true;
 
+
         foreach($this->_sortColumns as $col) {
+
+            if (count($newSorting) >= $this->_options['maxSortColumns']) {
+                break;
+            }
 
             if ($column == $col) {
 
@@ -634,39 +789,36 @@ END;
 
                     // Clicking on the thing that is already primarily sorted
                     // inverts the sort order of that column.
-                    $newSorting[$col->id] = !$col->isSortedAsc($this->getDataSource());
+                    $newSorting[$col->id] = !$col->isSortedAsc($ds);
 
                 }
 
             } else {
-                $newSorting[$col->id] = $col->isSortedAsc($this->getDataSource());
+                $newSorting[$col->id] = $col->isSortedAsc($ds);
             }
 
             $first = false;
         }
 
-        $sort = array();
-        foreach($newSorting as $id => $dir) {
-            $sort[] = ($dir ? '' : '!') . $id;
-        }
+        $qs = $this->getQueryString();
+        $arg = $this->_options['sortArg'];
 
-        $newQS = $this->_qs;
-
-        if (!empty($sort)) {
-            $newQS[$this->_options['sortArg']] = implode(',', $sort);
+        if (empty($newSorting)) {
+            unset($qs[$arg]);
+        } else {
+            $qs[$arg] = self::buildSortString($newSorting);
         }
 
         if ($this->_options['resetPageOnSort']) {
-            unset($newQS[$this->_options['pageArg']]);
+            unset($qs[$this->_options['pageArg']]);
         }
 
-        $newQS = http_build_query($newQS);
+        $qs = http_build_query($qs);
 
-        $url = $this->_path;
-        if ($newQS) $url .= '?' . $newQS;
+        $url = $this->getRequestURI(false);
+        if ($qs) $url .= '?' . $qs;
 
         return $url;
-
     }
 
 
@@ -701,16 +853,39 @@ END;
         return $url;
     }
 
-    protected function getRequestURI() {
+    /**
+     * @return String The current requested URI.
+     * @param $includeQueryString bool Whether or not to strip the querystring.
+     */
+    protected function getRequestURI($includeQueryString = true) {
+
+        $uri = '';
+
         if (isset($this->_options['requestURI'])) {
-            return $this->_options['requestURI'];
+            $uri = $this->_options['requestURI'];
         } else if (isset($this->_options['REQUEST_URI'])) {
-            return $this->_options['REQUEST_URI'];
+            $uri = $this->_options['REQUEST_URI'];
         } else if (isset($_SERVER['REQUEST_URI'])) {
-            return $_SERVER['REQUEST_URI'];
-        } else {
-            return '';
+            $uri = $_SERVER['REQUEST_URI'];
         }
+
+        if (!$includeQueryString) {
+            $pos = strpos($uri, '?');
+            if ($pos !== false) {
+                $uri = substr($uri, 0, $pos);
+            }
+        }
+
+        return $uri;
+    }
+
+    private function getSessionKeys($uri, &$sort, &$page, &$filter) {
+
+        $base = 'octopus-table-' . to_slug($uri) . '-' . $this->id . '-';
+
+        $sort = $base . 'sort';
+        $page = $base . 'page';
+        $filter = $base . 'filter';
     }
 
     /**
@@ -722,22 +897,23 @@ END;
         if (!$this->_shouldInitFromEnvironment) {
             return;
         }
-
         $this->_shouldInitFromEnvironment = false;
 
-        $sessionSortKey = '_octopus_table_' . strtolower($this->id) . '_sort';
+        $uri = $this->getRequestURI();
+
+        $this->getSessionKeys($uri, $sessionSortKey, $sessionPageKey, $sessionFilterKey);
 
         // First, get a clean copy of the querystring to work with. We do
         // this to get around interactions w/ apache rewriting
-        $this->_path = $this->getRequestURI();
         $pos = strpos($this->_path, '?');
         if ($pos === false) {
-            $this->_qs = array();
+            $qs = array();
         } else {
-            parse_str(substr($this->_path, $pos + 1), $this->_qs);
-            $this->_path = substr($this->_path, 0, $pos);
+            parse_str(substr($this->_path, $pos + 1), $qs);
+            $uri = substr($uri, 0, $pos);
         }
 
+        $useSession = $this->_options['useSession'];
         $sortArg = $this->_options['sortArg'];
         $pageArg = $this->_options['pageArg'];
 
@@ -746,17 +922,19 @@ END;
 
         if (isset($_GET[$sortArg])) {
             $sort = rawurldecode($_GET[$sortArg]);
-        } else if (isset($_SESSION[$sessionSortKey]) && $this->_options['useSession']) {
+        } else if ($useSession && isset($_SESSION[$sessionSortKey])) {
             $sort = $_SESSION[$sessionSortKey];
         }
 
         if (isset($_GET[$pageArg])) {
             $page = $_GET[$pageArg];
+        } else if ($useSession && isset($_SESSION[$sessionPageKey])) {
+            $page = $_SESSION[$sessionPageKey];
         }
 
         // Ensure the current page's URL reflects the actual state
-        $actual = $this->_qs;
-        $expected = $this->_qs;
+        $actual = $this->getQueryString();
+        $expected = $actual;
 
         if ($sort) {
             $expected[$sortArg] = $sort;
@@ -773,10 +951,10 @@ END;
         ksort($expected);
         ksort($actual);
 
-        if (array_diff_key($expected, $actual) || array_diff($expected, $actual)) {
+        if ($this->_options['enforceQueryString'] && array_diff_key($expected, $actual) || array_diff($expected, $actual)) {
             $query = http_build_query($expected);
             if ($query != '') $query = '?' . $query;
-            redirect($this->_path . $query);
+            //redirect($this->_path . $query);
         }
 
         // We're on the right page, initialize the state
@@ -784,10 +962,6 @@ END;
 
         if ($sort) {
             $this->sort(explode(',', $sort));
-        }
-
-        if ($this->_options['useSession']) {
-            $_SESSION[$sessionSortKey] = ($sort ? $sort : '');
         }
     }
 
