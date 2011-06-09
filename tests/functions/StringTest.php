@@ -7,6 +7,57 @@
 class StringTests extends PHPUnit_Framework_TestCase
 {
 
+    function testStartsWith() {
+
+        $tests = array(
+            array('foo', 'f', true, 'oo'),
+            array('foo', '', true, 'foo'),
+            array('foo', 'foobar', false, null),
+            array('/path/to/whatever', '/path/to', true, '/whatever'),
+            array('FOO', 'f', true, 'OO', true)
+        );
+
+        foreach($tests as $t) {
+
+            $x = array_shift($t);
+            $y = array_shift($t);
+            $expected = array_shift($t);
+            $expectedRemainder = array_shift($t);
+            $r = null;
+            $ignoreCase = array_shift($t);
+
+            $this->assertEquals($expected, starts_with($x, $y, $ignoreCase, $r), "Failed on $x, $y");
+            $this->assertEquals($expectedRemainder, $r, "Remainder is wrong for $x, $y");
+
+        }
+    }
+
+    function testEndsWith() {
+
+        $tests = array(
+            array('foo', 'o', true, 'fo'),
+            array('foo', '', true, 'foo'),
+            array('foo', 'foobar', false, null),
+            array('/path/to/whatever', 'whatever', true, '/path/to/'),
+            array('FOO', 'oo', true, 'F', true)
+        );
+
+        foreach($tests as $t) {
+
+            $x = array_shift($t);
+            $y = array_shift($t);
+            $expected = array_shift($t);
+            $expectedRemainder = array_shift($t);
+            $r = null;
+            $ignoreCase = array_shift($t);
+
+            $this->assertEquals($expected, ends_with($x, $y, $ignoreCase, $r), "Failed on $x, $y");
+            $this->assertEquals($expectedRemainder, $r, "Remainder is wrong for $x, $y");
+
+        }
+
+    }
+
     function testWildcardify() {
 
         $tests = array(

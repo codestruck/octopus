@@ -56,6 +56,45 @@
     }
 
     /**
+     * @param $x String Longer string.
+     * @param $x String String that $x might end with.
+     * @param $ignoreCase bool Whether to ignore case.
+     * @param $remainder String Gets set to the portion of $x after $y, if
+     * $x ends with $y;
+     * @return bool Whether $x ends with $y;
+     */
+    function ends_with($x, $y, $ignoreCase = false, &$remainder = null) {
+
+        $xLen = strlen($x);
+        $yLen = strlen($y);
+
+        if ($yLen > $xLen) {
+            return false;
+        }
+
+        if ($yLen == 0) {
+            $remainder = $x;
+            return true;
+        }
+
+        $end = substr($x, $xLen - $yLen);
+
+        if ($ignoreCase) {
+            $success = strcasecmp($end, $y) == 0;
+        } else {
+            $success = strcmp($end, $y) == 0;
+        }
+
+        if (!$success) {
+            $remainder = null;
+            return false;
+        }
+
+        $remainder = substr($x, 0, $xLen - $yLen);
+        return true;
+    }
+
+    /**
      * Alias for htmlspecialchars.
      * @param mixed Individual strings to escape and concatenate.
      * @return string All arguments, escaped and concatenated.
@@ -193,6 +232,40 @@
         } else {
             return $str;
         }
+    }
+
+    /**
+     * @param $x String Longer string.
+     * @param $x String String that $x might start with.
+     * @param $ignoreCase bool Whether to ignore case.
+     * @param $remainder String Gets set to the portion of $x after $y, if
+     * $x starts with $y;
+     * @return bool Whether $x starts with $y;
+     */
+    function starts_with($x, $y, $ignoreCase = false, &$remainder = null) {
+
+        $xLen = strlen($x);
+        $yLen = strlen($y);
+
+        if ($yLen > $xLen) {
+            return false;
+        }
+
+        $start = substr($x, 0, $yLen);
+
+        if ($ignoreCase) {
+            $success = strcasecmp($start, $y) == 0;
+        } else {
+            $success = strcmp($start, $y) == 0;
+        }
+
+        if (!$success) {
+            $remainder = null;
+            return false;
+        }
+
+        $remainder = substr($x, $yLen);
+        return true;
     }
 
     /**
