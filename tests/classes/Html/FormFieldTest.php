@@ -4,6 +4,10 @@ Octopus::loadClass('Octopus_Html_Form');
 Octopus::loadClass('Octopus_Html_Form_Field');
 Octopus::loadClass('Octopus_Html_TestCase');
 
+/**
+ * @group Html
+ * @group Form
+ */
 class FormFieldTest extends Octopus_Html_TestCase {
 
     function testRenderTextField() {
@@ -172,14 +176,14 @@ END;
 
         $form = new Octopus_Html_Form('test');
         $form->add('checkbox', 'colors[]', 'Colors', array('value' => 'blue'));
-        //$form->add('checkbox', 'colors[]', 'green');
+        //$form->add('checkbox', 'colors[]', 'pink');
 
         $expect = <<<END
 
 <form id="test" method="post">
-<div id="colorsBlueField" class="field colors blue checkbox">
+<div id="colorsBlueField" class="field colors valueblue checkbox">
 <label for="colorsBlueInput">Colors</label>
-<input type="checkbox" id="colorsBlueInput" class="colors blue checkbox" name="colors[]" value="blue" /></div></form>
+<input type="checkbox" id="colorsBlueInput" class="colors valueblue checkbox" name="colors[]" value="blue" /></div></form>
 END;
 
         $this->assertEquals(
@@ -188,6 +192,55 @@ END;
         );
 
     }
+
+    function testRenderCheckboxesMultipleValues() {
+
+        $form = new Octopus_Html_Form('test');
+        $form->add('checkbox', 'colors[]', 'Colors', array('value' => 'blue'));
+        $form->add('checkbox', 'colors[]', 'Colors', array('value' => 'green'));
+        $form->add('checkbox', 'colors[]', 'Colors', array('value' => 'pink'));
+        $form->setValues(array(
+            'colors' => array('pink', 'blue'),
+        ));
+
+        $expect = <<<END
+
+<form id="test" method="post">
+<div id="colorsBlueField" class="field colors valueblue checkbox">
+<label for="colorsBlueInput">Colors</label>
+<input type="checkbox" id="colorsBlueInput" class="colors valueblue checkbox" name="colors[]" value="blue" checked /></div>
+<div id="colorsGreenField" class="field colors valuegreen checkbox">
+<label for="colorsGreenInput">Colors</label>
+<input type="checkbox" id="colorsGreenInput" class="colors valuegreen checkbox" name="colors[]" value="green" /></div>
+<div id="colorsPinkField" class="field colors valuepink checkbox">
+<label for="colorsPinkInput">Colors</label>
+<input type="checkbox" id="colorsPinkInput" class="colors valuepink checkbox" name="colors[]" value="pink" checked /></div></form>
+END;
+
+        $this->assertEquals(
+            $expect,
+            $form->render(true)
+        );
+
+    }
+
+    function testGetValuesMultipleCheckboxes() {
+        
+        $form = new Octopus_Html_Form('test');
+        $form->add('checkbox', 'colors[]', 'Colors', array('value' => 'blue'));
+        $form->add('checkbox', 'colors[]', 'Colors', array('value' => 'green'));
+        $form->add('checkbox', 'colors[]', 'Colors', array('value' => 'pink'));
+
+        $_POST['colors'] = array('pink', 'blue');
+        
+        $values = array(
+            'colors' => array('pink', 'blue'),
+        );
+        
+        $this->assertEquals($values, $form->getValues());
+    }
+
+
 
 }
 

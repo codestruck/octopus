@@ -3,6 +3,9 @@
 Octopus::loadClass('Octopus_Html_TestCase');
 Octopus::loadClass('Octopus_Html_Form');
 
+/**
+ * @group Form
+ */
 class FormTest extends Octopus_Html_TestCase {
 
     function testAddButtons() {
@@ -222,6 +225,19 @@ END
         $form->add('foo');
         $this->assertFalse($form->reset()->wasSubmitted(), 'should be false w/ proper request method but no data');
 
+    }
+    
+    function testNotSubmittedSetValues() {
+
+        $this->markTestSkipped('needs thought');
+
+        $form = new Octopus_Html_Form('wasNotSubmitted', 'post');
+        $form->add('foo');
+        $this->assertFalse($form->wasSubmitted());
+
+        $form->setValues(array('for' => 'thefoovalue'));
+        $this->assertFalse($form->wasSubmitted());
+        
     }
 
     function testSetValuesWithObject() {

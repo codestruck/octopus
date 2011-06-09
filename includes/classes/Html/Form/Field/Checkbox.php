@@ -12,9 +12,9 @@ class Octopus_Html_Form_Field_Checkbox extends Octopus_Html_Form_Field {
             $this->class = to_css_class($cssName);
             $this->id = to_css_class($cssName . ucfirst($attributes['value']) . 'Input');
             $this->wrapperId = to_css_class($cssName . ucfirst($attributes['value']) . 'Field');
-            $this->wrapperClass = $this->class . ' ' . to_css_class($attributes['value']) . ' ' . $type;
+            $this->wrapperClass = $this->class . ' ' . to_css_class('value' . $attributes['value']) . ' ' . $type;
 
-            $this->addClass($attributes['value'])->addClass($type);
+            $this->addClass('value' . $attributes['value'])->addClass($type);
         }
 
     }
@@ -39,7 +39,12 @@ class Octopus_Html_Form_Field_Checkbox extends Octopus_Html_Form_Field {
     }
 
     public function readValue(&$posted, &$values) {
-        $values[$this->name] = !empty($posted[$this->name]);
+        if (substr($this->name, -2) === '[]') {
+            $name = preg_replace('/\[\]$/', '', $this->name);
+            $values[$name] = $posted[$name];
+        } else {
+            $values[$this->name] = !empty($posted[$this->name]);
+        }
     }
 
     public function val(/* $val */) {
@@ -50,9 +55,14 @@ class Octopus_Html_Form_Field_Checkbox extends Octopus_Html_Form_Field {
                 return $this->checked();
 
             default:
-                $checked = func_get_arg(0);
-                return $this->checked($checked);
+                $values = func_get_arg(0);
 
+                if (substr($this->name, -2) === '[]') {
+                    $on = in_array($this->value, $values);
+                    return $this->checked($on);
+                } else {
+                    return $this->checked($values);
+                }
         }
 
     }

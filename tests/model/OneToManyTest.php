@@ -283,6 +283,41 @@ class ModelOneToManyTest extends Octopus_DB_TestCase
 
     }
 
+    function testAddHammerNull() {
+
+        $hammer = new Hammer();
+        $hammer->name = 'Added Hammer';
+        $hammer->nail = 1;
+        $hammer->save();
+
+        $nail = new Nail();
+        $nail->name = 'Added Nail';
+        $nail->save();
+
+        $nail->addHammer(null);
+
+        $this->assertEquals(0, count($nail->hammers));
+
+    }
+
+    function testAddHammerEmptyArray() {
+
+        $hammer = new Hammer();
+        $hammer->name = 'Added Hammer';
+        $hammer->nail = 1;
+        $hammer->save();
+
+        $nail = new Nail();
+        $nail->name = 'Added Nail';
+        $nail->save();
+
+        $nail->addHammer(array());
+
+        $this->assertEquals(0, count($nail->hammers));
+
+    }
+
+
     /**
      * @expectedException Octopus_Model_Exception
      */

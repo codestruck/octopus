@@ -52,10 +52,10 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
         $args = func_get_args();
 
         if ($this->wrapper) {
-            call_user_func_array( array($this->wrapper, 'addClass'), $args);
+            $this->wrapper->addClass($args);
         }
 
-        return call_user_func_array(array('parent', 'addClass'), $args);
+        return parent::addClass($args);
     }
 
     /**

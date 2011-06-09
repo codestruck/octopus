@@ -12,4 +12,5 @@ Controller
 - way for actions to trigger 404s
 
 Forms
--When upload field is added to a form, automatically set enctype=multipart/form-data
+- When upload field is added to a form, automatically set enctype=multipart/form-data
+- review classnames in regards to checkboxes, radios, selects regarding values, wrappers and labels
