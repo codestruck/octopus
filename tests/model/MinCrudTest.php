@@ -28,7 +28,7 @@ class Minpost extends Octopus_Model {
             'type' => 'boolean',
         ),
         'display_order' => array(
-            'type' => 'order',
+            'type' => 'numeric',
         ),
         'created',
         'updated',
@@ -411,6 +411,30 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
         $post = new Minpost();
         $this->assertTrue(isset($post->title), 'title should be set');
         $this->assertFalse(isset($post->invalidField), 'invalid field should not be set');
+
+    }
+
+    function testSettingNumeric() {
+
+        $post = new Minpost();
+        $post->title = 'numbers';
+        $post->display_order = '$9,901';
+        $post->save();
+
+        $post = new Minpost(3);
+        $this->assertEquals(9901, $post->display_order);
+
+    }
+
+    function testSettingNumericDecimal() {
+
+        $post = new Minpost();
+        $post->title = 'numbers';
+        $post->display_order = '$9,901.11';
+        $post->save();
+
+        $post = new Minpost(3);
+        $this->assertEquals(9901, $post->display_order);
 
     }
 

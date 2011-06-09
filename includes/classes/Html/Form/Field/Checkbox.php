@@ -19,6 +19,13 @@ class Octopus_Html_Form_Field_Checkbox extends Octopus_Html_Form_Field {
 
     }
 
+    public function required($required = true) {
+        parent::required($required);
+
+        // don't set attribute to prevent incorrect browser validation
+        $this->removeAttribute('required');
+        return $this;
+    }
 
     public function checked(/* $checked */) {
 

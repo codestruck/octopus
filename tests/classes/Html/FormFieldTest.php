@@ -253,7 +253,43 @@ END;
         $this->assertEquals($values, $form->getValues());
     }
 
+    function testValidateMultipleCheckboxes() {
 
+        $form = new Octopus_Html_Form('test');
+        $form->add('checkbox', 'colors[]', 'Colors', array('value' => 'blue'))->required();
+        $form->add('checkbox', 'colors[]', 'Colors', array('value' => 'green'))->required();
+        $form->add('checkbox', 'colors[]', 'Colors', array('value' => 'pink'))->required();
+
+        $_POST['colors'] = array('pink', 'blue');
+        $_SERVER['REQUEST_METHOD'] = 'post';
+
+        $this->assertTrue($form->submitted(), 'The form was submitted');
+
+        $result = $form->validate();
+        $this->assertTrue($result->success, 'The form was validated');
+
+
+        $expect = <<<END
+
+<form id="test" method="post">
+<div id="colorsBlueField" class="field colors valueblue checkbox required">
+<label for="colorsBlueInput">Colors</label>
+<input type="checkbox" id="colorsBlueInput" class="colors valueblue checkbox required" name="colors[]" value="blue" /></div>
+<div id="colorsGreenField" class="field colors valuegreen checkbox required">
+<label for="colorsGreenInput">Colors</label>
+<input type="checkbox" id="colorsGreenInput" class="colors valuegreen checkbox required" name="colors[]" value="green" /></div>
+<div id="colorsPinkField" class="field colors valuepink checkbox required">
+<label for="colorsPinkInput">Colors</label>
+<input type="checkbox" id="colorsPinkInput" class="colors valuepink checkbox required" name="colors[]" value="pink" /></div></form>
+END;
+
+        $this->assertEquals(
+            $expect,
+            $form->render(true)
+        );
+
+
+    }
 
 }
 

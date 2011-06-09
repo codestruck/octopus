@@ -9,7 +9,9 @@ class Octopus_Html_Form_Field_Radio extends Octopus_Html_Form_Field {
 
     protected $valueField = null;
     protected $textField = null;
-    protected $name;
+    public $name;
+    protected $isRequired = null;
+    protected $options = array();
 
     public function __construct($type, $name, $label, $attributes = null) {
         parent::__construct('div', $type, $name, $label, $attributes);
@@ -27,6 +29,12 @@ class Octopus_Html_Form_Field_Radio extends Octopus_Html_Form_Field {
         $this->wrapperClass = to_css_class($this->name) . ' ' . to_css_class($type);
     }
 
+    public function required($required = true) {
+        parent::required($required);
+        $this->isRequired = $required;
+        $this->removeAttribute('required');
+        return $this;
+    }
 
     /**
      * Adds a single option to this select.
@@ -79,24 +87,28 @@ class Octopus_Html_Form_Field_Radio extends Octopus_Html_Form_Field {
         return $this;
     }
 
-    public function getAttribute($attr, $default = null) {
+    /**
+     * Helper function for setting the 'value' attribute.
+     * @return Object $this for method chaining.
+     */
+    public function val(/* No args = return val, 1 arg = set value */) {
 
-        if (strcasecmp($attr, 'value') == 0) {
-            return $this->getSelectedValue();
-        } else {
-            return parent::getAttribute($attr, $default);
+        $argCount = func_num_args();
+
+        switch($argCount) {
+
+            case 0:
+                // uh?
+                return null;
+
+            default:
+                $value = func_get_arg(0);
+                if (is_array($value)) {
+                    $value = array_pop($value);
+                }
+                $this->options[ $value ]->checked = true;
+                return $this;
         }
-
-    }
-
-    public function setAttribute($attr, $value) {
-
-        if (strcasecmp($attr, 'value') == 0) {
-            return $this->setSelectedValue($value);
-        } else {
-            return parent::setAttribute($attr, $value);
-        }
-
     }
 
     public function &toArray() {
@@ -150,6 +162,10 @@ class Octopus_Html_Form_Field_Radio extends Octopus_Html_Form_Field {
         $opt->addClass('radio');
         $opt->addClass(to_css_class('value' . $value));
 
+        if ($this->isRequired) {
+            $opt->addClass('required');
+        }
+
         $label = new Octopus_Html_Element('label');
         $label->setAttribute('for', $opt->id);
         $label->text($text);
@@ -158,185 +174,17 @@ class Octopus_Html_Form_Field_Radio extends Octopus_Html_Form_Field {
         $div->addClass('radioItem');
         $div->addClass(to_css_class($this->name . 'RadioItem'));
         $div->addClass(to_css_class($this->name . $value . 'RadioItem'));
+
         if (isset($divAttributes['class'])) {
             $div->addClass(to_css_class($divAttributes['class']));
         }
+
+        $this->options[ $value ] = $opt;
 
         $div->append($label);
         $div->append($opt);
 
         return $div;
-    }
-
-    private function getSelectedValue() {
-
-        $result = null;
-
-        foreach($this->children() as $o) {
-
-            if ($o->selected) {
-                return $o->value === null ? $o->text() : $o->value;
-            } else if ($result === null) {
-
-                // by default, 1st option is selected
-                $result = $o->value === null ? $o->text() : $o->value;
-            }
-        }
-
-        return $result;
-
-    }
-
-    private function setSelectedValue($value) {
-
-        // TODO: is value case-sensitive?
-
-        $options = $this->children();
-        $set = false;
-
-        foreach($options as $o) {
-
-            $val = $o->value;
-            if ($val === null) $val = $o->text();
-
-            if (strcasecmp($val, $value) == 0) {
-                $o->selected = true;
-                $set = true;
-            } else {
-                $o->selected = false;
-            }
-
-        }
-
-        if ($set) $this->valueChanged();
-
-        return $this;
-
-    }
-
-    /**
-     * Scans $obj for any properties whose names are present in the $fieldNames
-     * array and returns the best field match.
-     */
-    private static function findCandidateField(&$obj, &$fieldNames) {
-
-        $vars = null;
-
-        $isArray = is_array($obj);
-        $isObj = is_object($obj);
-
-
-        if (!($isArray || $isObj)) {
-            return false;
-        }
-
-        foreach($fieldNames as $fieldName) {
-
-            if (strncmp($fieldName, '/', 1) == 0) {
-
-                // The fieldname is actually a pattern, see if any
-                // properties match
-
-                if ($vars === null) {
-
-                    if ($isArray) {
-                        $vars =& $obj;
-                    } else if ($isObj) {
-                        $vars = get_object_vars($obj);
-                    }
-                }
-
-                foreach($vars as $key => $value) {
-
-                    if (preg_match($fieldName, $key)) {
-                        return $key;
-                    }
-
-                }
-
-            } else if ($isObj && isset($obj->$fieldName)) {
-
-                return $fieldName;
-
-            } else if ($isArray && isset($obj[$fieldName])) {
-                return $fieldName;
-            }
-
-        }
-
-        return false;
-
-    }
-
-    private function getValueAndTextFromArray($array, &$value, &$text) {
-
-        $valueField = $this->valueField;
-        $textField = $this->textField;
-
-        $value = $text = null;
-
-        if ($valueField && isset($array[$valueField])) {
-            $value = $array[$valueField];
-        } else {
-
-            $valueField = self::findCandidateField($array, $this->_valueFields);
-            if ($valueField) {
-                $value = $array[$valueField];
-            }
-
-        }
-
-        if ($textField && isset($array[$textField])) {
-            $text = $array[$textField];
-        } else {
-
-            $textField = self::findCandidateField($array, $this->_textFields);
-            if ($textField) {
-                $text = $array[$textField];
-            }
-
-        }
-
-        // Save for later
-        if ($valueField && !isset($this->valueField)) $this->valueField = $valueField;
-        if ($textField && !isset($this->textField)) $this->textField = $textField;
-
-    }
-
-    private function getValueAndTextFromObject($obj, &$value, &$text) {
-
-        $valueField = isset($this->valueField) ? $this->valueField : null;
-        $textField = isset($this->textField) ? $this->textField : null;
-
-        $value = $text = null;
-
-        if ($valueField && isset($obj->$valueField)) {
-            $value = $obj->$valueField;
-        } else {
-
-            $valueField = self::findCandidateField($obj, $this->_valueFields);
-            if ($valueField) {
-                $value = $obj->$valueField;
-            }
-
-        }
-
-        if ($textField && isset($obj->$textField)) {
-            $text = $obj->$textField;
-        } else {
-
-            $textField = self::findCandidateField($obj, $this->_textFields);
-            if ($textField) {
-                $text = $obj->$textField;
-            }
-
-        }
-
-        // Save for later
-        if ($valueField && !isset($this->valueField)) $this->valueField = $valueField;
-        if ($textField && !isset($this->textField)) $this->textField = $textField;
-
-
     }
 
 }

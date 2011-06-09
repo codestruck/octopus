@@ -86,44 +86,83 @@ END;
 
     }
 
-    function testSelectValue() {
-        $s = Octopus_Html_Form_Field::create('select', 'test');
-        $s->addOptions(array(
-           1 => 'Foo',
-           2 => 'Bar'
-        ));
+    function testRadioValidate() {
 
-        $s->val(2);
-        $this->assertEquals(2, $s->val());
+        $form = new Octopus_Html_Form('test');
+        $field = $form->add('radio', 'color')->required();
+        $field->addOption('pink', 'Pink');
+        $field->addOption('blue', 'Blue');
+        $field->addOption('green', 'Green');
 
-        $expected = <<<END
-<select id="testInput" class="test select" name="test">
-    <option value="1">Foo</option>
-    <option value="2" selected>Bar</option>
-</select>
+        $_POST['color'] = array('pink');
+        $_SERVER['REQUEST_METHOD'] = 'post';
+
+        $this->assertTrue($form->submitted(), 'The form was submitted');
+
+        $result = $form->validate();
+        $this->assertTrue($result->success, 'The form was validated');
+
+
+        $expect = <<<END
+
+<form id="test" method="post">
+<div id="colorField" class="field color radio required">
+<label>Color:</label>
+<div class="colorRadioGroup radioGroup required">
+<div class="radioItem colorRadioItem colorpinkRadioItem">
+<label for="colorInputpink">Pink</label>
+<input type="radio" id="colorInputpink" class="color radio valuepink required" name="color" value="pink" /></div>
+<div class="radioItem colorRadioItem colorblueRadioItem">
+<label for="colorInputblue">Blue</label>
+<input type="radio" id="colorInputblue" class="color radio valueblue required" name="color" value="blue" /></div>
+<div class="radioItem colorRadioItem colorgreenRadioItem">
+<label for="colorInputgreen">Green</label>
+<input type="radio" id="colorInputgreen" class="color radio valuegreen required" name="color" value="green" /></div></div></div></form>
 END;
 
-        $this->assertHtmlEquals($expected, $s->render(true));
+        $this->assertEquals(
+            $expect,
+            $form->render(true)
+        );
 
-        $s->val(1);
-        $expected = <<<END
-<select id="testInput" class="test select" name="test">
-    <option value="1" selected>Foo</option>
-    <option value="2">Bar</option>
-</select>
+    }
+
+    function testRadioValues() {
+
+        $form = new Octopus_Html_Form('test');
+        $field = $form->add('radio', 'color');
+        $field->addOption('pink', 'Pink');
+        $field->addOption('blue', 'Blue');
+        $field->addOption('green', 'Green');
+
+        $_POST['color'] = array('pink');
+        $_SERVER['REQUEST_METHOD'] = 'post';
+
+        $this->assertTrue($form->submitted(), 'The form was submitted');
+
+        $form->setValues($form->getValues());
+
+        $expect = <<<END
+
+<form id="test" method="post">
+<div id="colorField" class="field color radio">
+<label>Color:</label>
+<div class="colorRadioGroup radioGroup">
+<div class="radioItem colorRadioItem colorpinkRadioItem">
+<label for="colorInputpink">Pink</label>
+<input type="radio" id="colorInputpink" class="color radio valuepink" name="color" value="pink" checked /></div>
+<div class="radioItem colorRadioItem colorblueRadioItem">
+<label for="colorInputblue">Blue</label>
+<input type="radio" id="colorInputblue" class="color radio valueblue" name="color" value="blue" /></div>
+<div class="radioItem colorRadioItem colorgreenRadioItem">
+<label for="colorInputgreen">Green</label>
+<input type="radio" id="colorInputgreen" class="color radio valuegreen" name="color" value="green" /></div></div></div></form>
 END;
 
-        $this->assertHtmlEquals($expected, $s->render(true));
-
-        $s->setAttribute('value', 'missing');
-        $expected = <<<END
-<select id="testInput" class="test select" name="test">
-    <option value="1">Foo</option>
-    <option value="2">Bar</option>
-</select>
-END;
-
-        $this->assertHtmlEquals($expected, $s->render(true));
+        $this->assertEquals(
+            $expect,
+            $form->render(true)
+        );
 
     }
 

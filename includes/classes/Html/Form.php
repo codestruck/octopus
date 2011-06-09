@@ -48,6 +48,10 @@ class Octopus_Html_Form extends Octopus_Html_Element {
             }
         }
 
+        if ($field->type == 'file') {
+            $this->setAttribute('enctype', 'multipart/form-data');
+        }
+
         return $field;
     }
 
@@ -234,7 +238,7 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         if ($el instanceof Octopus_Html_Form_Field) {
 
             $name = preg_replace('/\[\]$/', '', $el->name);
-            
+
             if (isset($values[$name])) {
                 $el->val($values[$name]);
             } else {
@@ -331,6 +335,7 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         $result->errors = array();
 
         foreach($this->children() as $c) {
+
             $this->validateRecursive($c, $values, $result);
         }
 
