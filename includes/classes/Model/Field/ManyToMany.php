@@ -47,6 +47,11 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
             return;
         }
 
+        // ignore junk values
+        if ($obj === null) {
+            return;
+        }
+
         // handle array of objects
         if (!is_object($obj) && is_array($obj)) {
             foreach ($obj as $item) {

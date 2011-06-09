@@ -250,5 +250,24 @@ class ModelManyToManyTest extends Octopus_DB_TestCase
         $this->assertFalse($product->hasGroup(new Group(2)));
     }
 
+    function testAddProductNull()
+    {
+        $group = new Group(2);
+        $group->addProduct(null);
+        $group->save();
+
+        $g = new Group(2);
+        $this->assertEquals(1, count($g->products));
+    }
+    
+    function testAddProductEmptyArray()
+    {
+        $group = new Group(2);
+        $group->addProduct(null);
+        $group->save();
+
+        $g = new Group(2);
+        $this->assertEquals(1, count($g->products));
+    }
 }
 

@@ -32,6 +32,11 @@ class Octopus_Model_Field_HasMany extends Octopus_Model_Field {
             throw new Octopus_Model_Exception('Can not call ' . $action . ' on model ' . get_class($model));
         }
 
+        // just ignore junk values
+        if ($obj === null) {
+            return;            
+        }
+
         // handle array of objects
         if (!is_object($obj) && is_array($obj)) {
             foreach ($obj as $item) {
