@@ -343,17 +343,19 @@ END;
 
     }
 
-    function twoArgTestFunction($value, $row) {
+    function threeArgTestFunction($value, $row, $column) {
         $this->assertEquals(25, $value, "value is wrong");
         $this->assertEquals(array('name' => 'Joe Blow', 'num' => 25), $row);
+        $this->assertTrue(!!$column, 'column not supplied');
+        $this->assertEquals('num', $column->id);
         return $value * 2;
     }
 
-    function testFunctionWith2Args() {
+    function testFunctionWith3Args() {
 
-        $table = new Octopus_Html_Table('twoArgs');
+        $table = new Octopus_Html_Table('threeArgs');
         $table->addColumn('name');
-        $table->addColumn('num', 'Magic Number', array($this, 'twoArgTestFunction'));
+        $table->addColumn('num', 'Magic Number', array($this, 'threeArgTestFunction'));
         $table->setDataSource(array(
             array('name' => 'Joe Blow', 'num' => 25)
         ));

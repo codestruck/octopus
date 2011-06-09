@@ -333,7 +333,7 @@ class Octopus_Html_Table_Column {
         } else if ($isString) {
 
             if (method_exists($this, $f)) {
-                return $this->$f($value);
+                return $this->$f($value, $row);
             }
 
         }
@@ -351,14 +351,14 @@ class Octopus_Html_Table_Column {
              *      )
              */
 
-            $use2ndArg = true;
+            $useExtraArgs = true;
             if ($isString) {
-                $no2ndArg = array('htmlspecialchars', 'htmlentities', 'trim', 'ltrim', 'rtrim', 'nl2br');
-                $use2ndArg = !in_array($f, $no2ndArg);
+                $noExtraArgs = array('htmlspecialchars', 'htmlentities', 'trim', 'ltrim', 'rtrim', 'nl2br');
+                $useExtraArgs = !in_array($f, $noExtraArgs);
             }
 
-            if ($use2ndArg) {
-                return call_user_func($f, $value, $row);
+            if ($useExtraArgs) {
+                return call_user_func($f, $value, $row, $this);
             } else {
                 return call_user_func($f, $value);
             }
