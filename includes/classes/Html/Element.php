@@ -164,6 +164,23 @@ class Octopus_Html_Element {
     }
 
     /**
+     * Inserts content before the existing content of this element.
+     */
+    public function prepend($item) {
+
+        if ($this->_content === null) {
+            $this->_content = array();
+        }
+
+        if ($item) {
+            array_unshift($this->_content, $item);
+        }
+
+        return $this;
+
+    }
+
+    /**
      * Sets elements of the style attribute.
      */
     public function css($key, $value = null) {

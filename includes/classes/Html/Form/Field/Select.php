@@ -59,6 +59,7 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
 
         $attributes = null;
 
+
         foreach($options as $value => $text) {
 
             if (is_numeric($value)) {
@@ -131,7 +132,13 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
         }
 
         if (is_object($value)) {
-            $this->getValueAndTextFromObject($value, $value, $text);
+
+            if ($value instanceof Octopus_Model) {
+                $this->getValueAndTextFromModel($value, $value, $text);
+            } else {
+                $this->getValueAndTextFromObject($value, $value, $text);
+            }
+
         } else if (is_array($value)) {
             $this->getValueAndTextFromArray($value, $value, $text);
         }
@@ -286,6 +293,14 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
 
     }
 
+    /**
+     * Figures out the value and text to use for an Octopus_Model instance.
+     */
+    private function getValueAndTextFromModel($obj, &$value, &$text) {
+        $value = $obj->id;
+        $text = $obj->getDisplayValue();
+    }
+
     private function getValueAndTextFromObject($obj, &$value, &$text) {
 
         $valueField = isset($this->valueField) ? $this->valueField : null;
@@ -293,7 +308,9 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
 
         $value = $text = null;
 
-        if ($valueField && isset($obj->$valueField)) {
+        // TODO: once Octopus_Model supports isset(), remove these hacks
+
+        if ($valueField && (isset($obj->$valueField) || $obj instanceof Octopus_Model)) {
             $value = $obj->$valueField;
         } else {
 
@@ -304,7 +321,7 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
 
         }
 
-        if ($textField && isset($obj->$textField)) {
+        if ($textField && (isset($obj->$textField) || $obj instanceof Octopus_Model)) {
             $text = $obj->$textField;
         } else {
 

@@ -36,6 +36,11 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         'clearFiltersArg' => 'clearfilters',
 
         /**
+         * Whether or not to print debug messages while rendering.
+         */
+        'debug' => false,
+
+        /**
          * Class applied to the table when there is nothing in it.
          */
         'emptyClass' => 'empty',
@@ -304,7 +309,6 @@ class Octopus_Html_Table extends Octopus_Html_Element {
             $filter = $type;
         } else {
             $filter = Octopus_Html_Table_Filter::create($type, $id, $label, $options);
-            if (isset($_GET[$id])) $filter->val($_GET[$id]);
         }
 
         if ($filter) {
@@ -332,21 +336,18 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         return $this->_columns;
     }
 
-    public function getCurrentPage() {
-        return $this->getPagerData('page_numbers.current');
-    }
-
     public function getPageSize() {
         return $this->_options['pageSize'];
     }
 
     public function setPageSize($size) {
         $this->_options['pageSize'] = $this->_pagerOptions['perPage'] = $size;
-        return $this->resetData();;
+        return $this->resetData();
     }
 
     public function getPage() {
-        return $this->getPagerData('page_numbers.current');
+        $num = $this->getPagerData('page_numbers.current');
+        return $num;
     }
 
     public function getPageCount() {
@@ -355,6 +356,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
     public function setPage($page) {
         $this->_pagerOptions['currentPage'] = $page;
+        $this->rememberState();
         $this->resetData();
         $this->_shouldInitFromEnvironment = false;
         return $this;
@@ -423,6 +425,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
         $this->internalSetDataSource($ds, false);
 
+        $this->rememberState();
+
         return $this;
     }
 
@@ -436,6 +440,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         }
 
         $this->internalSetDataSource($this->_originalDataSource, true);
+
+        $this->rememberState();
 
         return $this;
     }
@@ -617,7 +623,13 @@ class Octopus_Html_Table extends Octopus_Html_Element {
             $this->_sortColumns[] = $col;
         }
 
-        return $this->setPage(1);
+        $this->rememberState();
+
+        if ($this->_options['resetPageOnSort']) {
+            $this->setPage(1);
+        }
+
+        return $this;
     }
 
     /**
@@ -686,6 +698,10 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         return Pager_Wrapper_DB(Octopus_DB::singleton(), $sql, $this->_pagerOptions, $this->_options['pager'] === false);
     }
 
+    private function debugging() {
+        return !empty($this->_options['debug']);
+    }
+
     private function getPagerDataForResultSet($resultSet) {
 
         $order = array();
@@ -700,6 +716,10 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         }
 
         $resultSet = $resultSet->orderBy($order);
+
+        if ($this->debugging()) {
+            $resultSet->dumpSql();
+        }
 
         return Pager_Wrapper_ResultSet($resultSet, $this->_pagerOptions, $this->_options['pager'] === false);
     }
@@ -756,7 +776,7 @@ END;
             return false;
         }
 
-        $this->getSessionKeys($this->getRequestURI(), $sort, $page, $filter);
+        $this->getSessionKeys($this->getRequestURI(false), $sort, $page, $filter);
 
         $_SESSION[$sort] = self::buildSortString($this->_sortColumns);
         $_SESSION[$page] = $this->getPage();
@@ -769,7 +789,7 @@ END;
     protected function forgetState($what = null) {
 
         $this->_queryString = null;
-        $this->getSessionKeys($this->getRequestURI(), $sort, $page, $filter);
+        $this->getSessionKeys($this->getRequestURI(false), $sort, $page, $filter);
 
         if ($what === null || $what == 'sort') unset($_SESSION[$sort]);
         if ($what === null || $what == 'page') unset($_SESSION[$page]);
@@ -811,8 +831,10 @@ END;
 
         $values = array();
         foreach($this->_filters as $f) {
-            if ($source !== null && isset($source[$f->id])) {
-                $values[$f->id] = $source[$f->id];
+            if ($source !== null) {
+                if (isset($source[$f->id])) {
+                    $values[$f->id] = $source[$f->id];
+                }
             } else {
                 $val = trim($f->val());
                 if ($val) $values[$f->id] = $val;
@@ -939,7 +961,7 @@ END;
         return $uri;
     }
 
-    private function getSessionKeys($uri, &$sort, &$page, &$filter) {
+    public function getSessionKeys($uri, &$sort, &$page, &$filter) {
 
         $base = 'octopus-table-' . to_slug($uri) . '-' . $this->id . '-';
 
@@ -1002,7 +1024,13 @@ END;
         }
 
         $filterValues = $this->getFilterValues($qs);
-        $this->filter($filterValues);
+        if (empty($filterValues) && isset($_SESSION[$sessionFilterKey])) {
+            $filterValues = $this->getFilterValues($_SESSION[$sessionFilterKey]);
+        }
+
+        if (!empty($filterValues)) {
+            $this->unfilter()->filter($filterValues);
+        }
 
         // Ensure the current page's URL reflects the actual state
         if ($this->_options['redirectCallback']) {
