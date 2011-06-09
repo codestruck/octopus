@@ -211,4 +211,19 @@ END
         return !$GLOBALS['__Octopus_CANCEL_REDIRECT__'];
     }
 
+
+    /**
+     * Redirect based on a session key, with default destination
+     */
+    function handle_session_redirect($key, $default) {
+
+        $dest = $default;
+        if (isset($_SESSION[$key])) {
+            $dest = $_SESSION[$key];
+            unset($_SESSION[$key]);
+        }
+
+        redirect($dest);
+    }
+
 ?>
