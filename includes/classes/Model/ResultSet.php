@@ -397,8 +397,15 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
      * @return Object A new model instance from the given row.
      */
     protected function &_createModelInstance(&$row) {
+
+        //HACK: Because $row might contain extra fields (like from a join,
+        // We have to use the public 'setData' (which only tries to set fields
+        // that exist).
+
         $class = $this->_modelClass;
-        $instance = new $class($row);
+        $id = $row[$this->getModelPrimaryKey()];
+        $instance = new $class($id);
+        $instance->setData($row);
         return $instance;
     }
 
