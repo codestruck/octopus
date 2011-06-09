@@ -14,3 +14,4 @@ Controller
 Forms
 - When upload field is added to a form, automatically set enctype=multipart/form-data
 - review classnames in regards to checkboxes, radios, selects regarding values, wrappers and labels
+- required support for radios, multi-checkboxes

@@ -274,9 +274,9 @@
     function to_css_class($x) {
 
         $x = trim($x);
-        $x = preg_replace('/[^a-z0-9-]/i', '-', $x);
-        $x = preg_replace('/-{2,}/', '-', $x);
-        $x = preg_replace('/^([^a-z-])/i', '-$1', $x);
+        $x = preg_replace('/[^a-z0-9-]/i', '_', $x);
+        $x = preg_replace('/-{2,}/', '_', $x);
+        $x = preg_replace('/^([^a-z-])/i', '_$1', $x);
 
         return $x;
     }

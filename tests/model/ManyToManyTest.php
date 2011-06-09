@@ -165,6 +165,27 @@ class ModelManyToManyTest extends Octopus_DB_TestCase
         $this->assertEquals(3, count($g->products));
     }
 
+    function testAddProductToGroupSetData()
+    {
+        $product = new Product();
+        $product->name = 'New Product';
+        $product->save();
+        $product_id = $product->product_id;
+
+        $product2 = new Product();
+        $product2->name = 'New Product2';
+        $product2->save();
+        $product_id2 = $product2->product_id;
+
+        $group = new Group(2);
+        // this call will wipe out existing relations, leaving just these 2
+        $group->setData(array('products' => array($product_id, $product_id2)));
+        $group->save();
+
+        $g = new Group(2);
+        $this->assertEquals(2, count($g->products));
+    }
+
     function testRemoveProduct()
     {
         $product = new Product(2);
@@ -259,7 +280,7 @@ class ModelManyToManyTest extends Octopus_DB_TestCase
         $g = new Group(2);
         $this->assertEquals(1, count($g->products));
     }
-    
+
     function testAddProductEmptyArray()
     {
         $group = new Group(2);

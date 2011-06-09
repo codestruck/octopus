@@ -39,7 +39,7 @@ class FormFieldTest extends Octopus_Html_TestCase {
         $password = Octopus_Html_Form_Field::create('password', 'my_password');
 
         $this->assertHtmlEquals(
-            '<input type="password" id="my_passwordInput" class="text my-password" name="my_password" />',
+            '<input type="password" id="my_passwordInput" class="text my_password password" name="my_password" />',
             $password->render(true)
         );
 
@@ -52,6 +52,19 @@ class FormFieldTest extends Octopus_Html_TestCase {
 
         $this->assertHtmlEquals(
             '<input type="text" id="fooInput" class="foo text" name="foo" autofocus />',
+            $field->render(true)
+        );
+
+
+    }
+
+    function testClassAndRequired() {
+
+        $form = new Octopus_Html_Form('req');
+        $field = $form->add('text', 'required_days')->required()->addClass('nice');
+
+        $this->assertHtmlEquals(
+            '<input type="text" id="required_daysInput" class="required_days text required nice" name="required_days" required />',
             $field->render(true)
         );
 
@@ -225,18 +238,18 @@ END;
     }
 
     function testGetValuesMultipleCheckboxes() {
-        
+
         $form = new Octopus_Html_Form('test');
         $form->add('checkbox', 'colors[]', 'Colors', array('value' => 'blue'));
         $form->add('checkbox', 'colors[]', 'Colors', array('value' => 'green'));
         $form->add('checkbox', 'colors[]', 'Colors', array('value' => 'pink'));
 
         $_POST['colors'] = array('pink', 'blue');
-        
+
         $values = array(
             'colors' => array('pink', 'blue'),
         );
-        
+
         $this->assertEquals($values, $form->getValues());
     }
 

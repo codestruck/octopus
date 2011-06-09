@@ -41,7 +41,9 @@ class Octopus_Html_Form_Field_Checkbox extends Octopus_Html_Form_Field {
     public function readValue(&$posted, &$values) {
         if (substr($this->name, -2) === '[]') {
             $name = preg_replace('/\[\]$/', '', $this->name);
-            $values[$name] = $posted[$name];
+            $postedValue = isset($posted[$name]) ? $posted[$name] : array();
+            $values[$name] = $postedValue;
+            $values[ pluralize($name) ] = $postedValue;
         } else {
             $values[$this->name] = !empty($posted[$this->name]);
         }
@@ -58,7 +60,12 @@ class Octopus_Html_Form_Field_Checkbox extends Octopus_Html_Form_Field {
                 $values = func_get_arg(0);
 
                 if (substr($this->name, -2) === '[]') {
-                    $on = in_array($this->value, $values);
+                    $on = false;
+                    if (is_array($values)) {
+                        $on = in_array($this->value, $values);
+                    } else if (is_object($values)) {
+                        $on = count($values->where(array('id', $this->value)));
+                    }
                     return $this->checked($on);
                 } else {
                     return $this->checked($values);
