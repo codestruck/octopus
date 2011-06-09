@@ -21,6 +21,7 @@
     require_once(OCTOPUS_FUNCTIONS_DIR . 'debug.php');
     require_once(OCTOPUS_FUNCTIONS_DIR . 'misc.php');
     require_once(OCTOPUS_FUNCTIONS_DIR . 'strings.php');
+    require_once(OCTOPUS_FUNCTIONS_DIR . 'numbers.php');
     require_once(OCTOPUS_FUNCTIONS_DIR . 'files.php');
     require_once(OCTOPUS_FUNCTIONS_DIR . 'http.php');
     require_once(OCTOPUS_FUNCTIONS_DIR . 'html.php');
