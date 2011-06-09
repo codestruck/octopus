@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <dataset>
 
-<findauthors
-    findauthor_id="1"
+<find_authors
+    find_author_id="1"
     name="Matt Hinz"
     active="1"
     />

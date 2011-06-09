@@ -7,6 +7,8 @@ Model
 - find by image_id not just id
 - ->not on result doesn't work with image_id or id
 - How do isset() and unset() relate to model properties? (what counts as a property that is 'not set')?
+- Doing 'order by' a hasone creates a join and sorts on the display field. Maybe make the sort
+  field configurable per-hasone?
 
 Controller
 - way for actions to trigger 404s

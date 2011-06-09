@@ -189,18 +189,20 @@ abstract class Octopus_Model_Field {
     }
 
     /**
-     * Applies ordering to the given Octopus_DB_Select.
+     * Applies ordering to an Octopus_DB_Select being constructed for an
+     * Octopus_Model_ResultSet.
+     * @param $resultSet Object The result set being built.
      * @param $s Object Octopus_DB_Select being built.
      * @param $dir string Direction to order this field by.
      */
-    public function orderBy(&$s, $dir = 'ASC') {
-        self::defaultOrderBy($s, $this->getFieldName(), $dir);
+    public function orderBy($resultSet, $s, $dir) {
+        self::defaultOrderBy($resultSet, $s, $this->getFieldName(), $dir);
     }
 
     /**
      * Helper to support ordering by ids, which don't have associated fields.
      */
-    public static function defaultOrderBy(&$s, $fieldName, $dir) {
+    public static function defaultOrderBy($resultSet, $s, $fieldName, $dir) {
         $s->orderBy("`$fieldName` $dir");
     }
 

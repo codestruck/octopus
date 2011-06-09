@@ -197,12 +197,12 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
             // Special-case id
             $pk = $this->getModelPrimaryKey();
             if ($fieldName == 'id' || $fieldName == $pk) {
-                Octopus_Model_Field::defaultOrderBy($s, $pk, $dir);
+                Octopus_Model_Field::defaultOrderBy($this, $s, $pk, $dir);
             }
 
             $field = $this->_getField($fieldName);
             if ($field) {
-                $field->orderBy($s, $dir);
+                $field->orderBy($this, $s, $dir);
             }
         }
 

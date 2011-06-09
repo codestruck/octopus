@@ -74,6 +74,30 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         return $sql;
     }
 
+    private static $orderByCounter = 0;
+    public function orderBy($resultSet, $s, $dir) {
+
+        $class = $resultSet->getModel();
+        $dummyModel = new $class();
+
+        $class = $this->getItemClass();
+        $dummyItem = new $class();
+
+        $table = $dummyItem->getTableName();
+        $key = $dummyItem->getPrimaryKey();
+        $modelTable = $dummyModel->getTableName();
+        $foreignKey = $dummyModel->to_id($this->field);
+
+        $displayField = $dummyItem->getDisplayField()->getFieldName();
+
+
+        $alias = $table . '_order_by_' . (self::$orderByCounter++);
+        $s->table(array($table, $alias));
+        $s->where("`$alias`.`$key` = `$modelTable`.`$foreignKey`");
+        $s->orderBy("`$alias`.`$displayField` $dir");
+    }
+
+
     private function getItemClass() {
         // use the 'model' option as the classname, otherwise the fieldname
         $class = $this->getOption('model', $this->getFieldName());

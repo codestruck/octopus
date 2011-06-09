@@ -22,12 +22,10 @@ class FindPost extends Octopus_Model {
         'body' => array(
             'type' => 'html'
         ),
-        /*
         'author' => array(
-            'class' => 'FindAuthor',
-            'type' => 'has_one'
+            'model' => 'FindAuthor',
+            'type' => 'hasOne'
         ),
-        */
         'active' => array(
             'type' => 'boolean',
         ),
@@ -79,8 +77,8 @@ class FindTest extends Octopus_DB_TestCase {
         $db->query($sql);
 
         $sql = "
-                CREATE TABLE findauthors (
-                `findauthor_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                CREATE TABLE find_authors (
+                `find_author_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 `name` varchar ( 255 ) NOT NULL,
                 `active` TINYINT NOT NULL DEFAULT 1
                 )
@@ -91,8 +89,22 @@ class FindTest extends Octopus_DB_TestCase {
     }
 
     function dropTables(&$db) {
-        $db->query("DROP TABLE IF EXISTS find_posts");
-        $db->query("DROP TABLE IF EXISTS findauthors");
+        //$db->query("DROP TABLE IF EXISTS find_posts");
+        //$db->query("DROP TABLE IF EXISTS findauthors");
+    }
+
+    function testOrderByHasOne() {
+
+        $posts = FindPost::all()->orderBy('author');
+
+        $this->assertSqlEquals("SELECT find_posts.*, find_authors_order_by_0.* FROM find_posts, find_authors AS find_authors_order_by_0 WHERE `find_authors_order_by_0`.`find_author_id` = `find_posts`.`author_id` ORDER BY `find_authors_order_by_0`.`name` ASC", $posts);
+    }
+
+    function testFindAuthorDisplayField() {
+
+        $author = new FindAuthor();
+        $this->assertEquals('name', $author->getDisplayField()->getFieldName());
+
     }
 
     function testLimit() {
