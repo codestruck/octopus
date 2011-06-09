@@ -198,21 +198,28 @@ END
 
         $form = new Octopus_Html_Form('wasSubmitted', 'post');
         $form->add('foo');
-
         $this->assertFalse($form->wasSubmitted());
 
 
         $_SERVER['REQUEST_METHOD'] = 'GET';
+        $form = new Octopus_Html_Form('wasSubmitted', 'post');
+        $form->add('foo');
         $this->assertFalse($form->reset()->wasSubmitted(), 'should be false w/ wrong request method');
 
         $_POST['foo'] = 'bar';
+        $form = new Octopus_Html_Form('wasSubmitted', 'post');
+        $form->add('foo');
         $this->assertFalse($form->reset()->wasSubmitted(), 'should be false w/ wrong request method, even if data is present');
 
         $_SERVER['REQUEST_METHOD'] = 'POST';
+        $form = new Octopus_Html_Form('wasSubmitted', 'post');
+        $form->add('foo');
         $this->assertTrue($form->reset()->wasSubmitted(), 'should be true w/ proper request method');
 
         unset($_POST['foo']);
         $_POST['bar'] = 'foo';
+        $form = new Octopus_Html_Form('wasSubmitted', 'post');
+        $form->add('foo');
         $this->assertFalse($form->reset()->wasSubmitted(), 'should be false w/ proper request method but no data');
 
     }

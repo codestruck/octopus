@@ -95,7 +95,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
             return $this;
         }
 
-        $result = new Octopus_Model_ResultSet($this);
+        $result = new Octopus_Model_ResultSet($this, null, $this->_orderBy);
         $result->_offset = $offset;
         $result->_maxRecords = $maxRecords;
         return $result;
@@ -112,7 +112,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
             return $this;
         }
 
-        return new Octopus_Model_ResultSet($this);
+        return new Octopus_Model_ResultSet($this, null, $this->_orderBy);
     }
 
     /**

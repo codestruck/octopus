@@ -154,24 +154,15 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     }
 
     /**
-     * @param $force bool Whether to process even when the request method
-     * doesn't match the form's 'method' attribute.
      * @return Array The set of values posted for this form.
      */
-    public function getValues($force = false) {
+    public function getValues() {
 
         if (!empty($this->_values)) {
             return $this->_values;
         }
 
         $method = strtolower($this->getAttribute('method', 'get'));
-
-        if (strcasecmp($method, isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'get') != 0) {
-
-            // The form's method does not match the request type.
-            if (!$force) return array();
-
-        }
 
         switch($method) {
 
@@ -218,7 +209,9 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      */
     public function setValues($values) {
 
-        if (is_object($values)) {
+        if (class_exists('Octopus_Model') && $values instanceof Octopus_Model) {
+            $values = $values->toArray();
+        } else if (is_object($values)) {
             $values = get_object_vars($values);
         }
 
@@ -551,6 +544,14 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      * @return Bool Whether the form has been submitted.
      */
     public function wasSubmitted() {
+
+        $actualMethod = strtolower(isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'get');
+        $thisMethod = strtolower($this->getAttribute('method', 'get'));
+
+        if ($actualMethod != $thisMethod) {
+            return false;
+        }
+
         $this->getValues();
         return !empty($this->_values);
     }
