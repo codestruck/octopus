@@ -593,7 +593,6 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         foreach($this->_sortColumns as $name => $col) {
 
             if (!$col->isSorted($resultSet)) {
-                dump_r($col->id . ' not sorted');
                 continue;
             }
 
