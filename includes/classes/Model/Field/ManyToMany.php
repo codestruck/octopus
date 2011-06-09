@@ -3,7 +3,11 @@
 class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
 
     public function save($model, $sqlQuery) {
-        // do nothing
+        $values = $model->getInternalValue($this->getFieldName());
+        if (is_array($values) && $model->exists()) {
+            $this->handleRelation('removeAll', null, $model);
+            $this->handleRelation('add', $values, $model);
+        }
     }
 
     public function accessValue($model, $saving = false) {

@@ -77,9 +77,9 @@ END;
 <div class="radioItem testRadioItem test3RadioItem">
 <label for="testInput3">Three</label>
 <input type="radio" id="testInput3" class="test radio value3" name="test" value="3" /></div>
-<div class="radioItem testRadioItem testHi-ThereRadioItem sameTextAndValue">
-<label for="testInputHi-There">Hi There</label>
-<input type="radio" id="testInputHi-There" class="test radio valueHi-There" name="test" value="Hi There" /></div></div>
+<div class="radioItem testRadioItem testHi_ThereRadioItem sameTextAndValue">
+<label for="testInputHi_There">Hi There</label>
+<input type="radio" id="testInputHi_There" class="test radio valueHi_There" name="test" value="Hi There" /></div></div>
 END;
 
         $this->assertEquals($expected, $s->render(true));
