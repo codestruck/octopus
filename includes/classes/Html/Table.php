@@ -517,7 +517,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
             $col->sort($asc ? 'asc' : 'desc');
 
-            $this->_sortColumns[$col->id] = $col;
+            $this->_sortColumns[] = $col;
         }
 
         return $this->setPage(1);
@@ -592,11 +592,12 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
         foreach($this->_sortColumns as $name => $col) {
 
-            if (!$col->isSorted()) {
+            if (!$col->isSorted($resultSet)) {
+                dump_r($col->id . ' not sorted');
                 continue;
             }
 
-            $resultSet = $resultSet->orderBy(array($name => $col->getSorting()));
+            $resultSet = $resultSet->orderBy(array($col->id => $col->getSorting()));
         }
 
         return Pager_Wrapper_ResultSet($resultSet, $this->_pagerOptions, $this->_options['pager'] === false);
@@ -626,19 +627,18 @@ END;
 
         foreach($this->_sortColumns as $col) {
 
-            if ($column === $col) {
+            if ($column == $col) {
 
                 if ($first) {
 
                     // Clicking on the thing that is already primarily sorted
                     // inverts the sort order of that column.
-
-                    $newSorting[$col->id] = !$col->isSortedAsc();
+                    $newSorting[$col->id] = !$col->isSortedAsc($this->getDataSource());
 
                 }
 
             } else {
-                $newSorting[$col->id] = $col->isSortedAsc();
+                $newSorting[$col->id] = $col->isSortedAsc($this->getDataSource());
             }
 
             $first = false;
@@ -800,7 +800,25 @@ END;
      */
     protected function prepareHeaderCell($th, $column, $columnIndex, $columnCount) {
         $this->prepareCell($th, $column, $columnIndex, $columnCount);
-        if ($column->isSortable($this->getDataSource())) $th->addClass('sortable');
+
+        $ds = $this->getDataSource();
+        $sortable = $column->isSortable($ds);
+
+        if (!$sortable) {
+            return;
+        }
+
+        $asc = $column->isSortedAsc($ds);
+        $desc = $column->isSortedDesc($ds);
+        $sortClass = '';
+
+        if ($asc || $desc) {
+            $first = array_shift($this->_sortColumns);
+            if ($first == $column) $sortClass = ($desc ? 'sortDesc' : 'sortAsc');
+            array_unshift($this->_sortColumns, $first);
+        }
+
+        $th->addClass('sortable', $sortClass);
     }
 
     /**

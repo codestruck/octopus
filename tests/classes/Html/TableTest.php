@@ -315,12 +315,12 @@ END;
 
     function test2ArgBuiltInFunctions() {
 
-        $val = '  foo  ';
+        $val = '  3  ';
 
         $funcs = array(
             'htmlspecialchars',
             'trim', 'ltrim', 'rtrim',
-            'nl2br'
+            'nl2br',
             // TODO More?
         );
 
@@ -585,17 +585,17 @@ END;
 <table id="resultSetSorting" border="0" cellpadding="0" cellspacing="0">
     <thead>
         <tr>
-            <th class="name sorted sortAsc firstCell sortable"><a href="?sort=%21name">Name</a></th>
+            <th class="name sorted firstCell sortable sortAsc"><a href="?sort=%21name">Name</a></th>
             <th class="age lastCell sortable"><a href="?sort=age%2Cname">Age</a></th>
         </tr>
     </thead>
     <tbody>
         <tr class="odd">
-            <td class="name sorted sortAsc firstCell">Joe Blow</td>
+            <td class="name sorted firstCell">Joe Blow</td>
             <td class="age lastCell">50</td>
         </tr>
         <tr class="even">
-            <td class="name sorted sortAsc firstCell">John Smith</td>
+            <td class="name sorted firstCell">John Smith</td>
             <td class="age lastCell">99</td>
         </tr>
     </tbody>
@@ -615,17 +615,17 @@ END;
 <table id="resultSetSorting" border="0" cellpadding="0" cellspacing="0">
     <thead>
         <tr>
-            <th class="name sorted sortDesc firstCell sortable"><a href="?sort=name">Name</a></th>
+            <th class="name sorted firstCell sortable sortDesc"><a href="?sort=name">Name</a></th>
             <th class="age lastCell sortable"><a href="?sort=age%2C%21name">Age</a></th>
         </tr>
     </thead>
     <tbody>
         <tr class="odd">
-            <td class="name sorted sortDesc firstCell">John Smith</td>
+            <td class="name sorted firstCell">John Smith</td>
             <td class="age lastCell">99</td>
         </tr>
         <tr class="even">
-            <td class="name sorted sortDesc firstCell">Joe Blow</td>
+            <td class="name sorted firstCell">Joe Blow</td>
             <td class="age lastCell">50</td>
         </tr>
     </tbody>
@@ -860,7 +860,8 @@ END;
             $table->render(true)
         );
 
-        $sortedFirstPage = preg_replace('/(<t(d|h) class="name)/', '$1 sorted sortAsc', $firstPage);
+        $sortedFirstPage = str_replace('th class="name firstCell sortable"', 'th class="name sorted firstCell sortable sortAsc"', $firstPage);
+        $sortedFirstPage = str_replace('td class="name firstCell"', 'td class="name sorted firstCell"', $sortedFirstPage);
         $sortedFirstPage = preg_replace('/\?sort=name/', '?sort=%21name', $sortedFirstPage);
         $sortedFirstPage = preg_replace('/\?sort=age/', '?sort=age%2Cname', $sortedFirstPage);
 

@@ -182,17 +182,16 @@ class Octopus_Html_Table_Column {
     public function sort($direction = null) {
 
         if ($direction === null) {
-            // If called w/o argument, flip sorting.
-            if ($this->isSortedDesc()) {
-                $direction = OCTOPUS_SORT_ASC;
-            } else {
+            if ($this->_sorting && $this->_sorting == OCTOPUS_SORT_ASC) {
                 $direction = OCTOPUS_SORT_DESC;
+            } else {
+                $direction = OCTOPUS_SORT_ASC;
             }
         }
 
         if ($direction === false) {
             $this->_sorting = false;
-            $this->removeClass('sorted', OCTOPUS_SORT_ASC, OCTOPUS_SORT_DESC);
+            $this->removeClass('sorted');
             return $this;
         }
 
@@ -201,23 +200,8 @@ class Octopus_Html_Table_Column {
         }
 
         $direction = strtolower($direction);
+        $this->_sorting = $direction;
         $this->addClass('sorted');
-
-        switch($this->_sorted = $direction) {
-
-            case OCTOPUS_SORT_DESC:
-                $this->_sorting = OCTOPUS_SORT_DESC;
-                $this->removeClass('sortAsc');
-                $this->addClass('sortDesc');
-                return $this;
-
-            default:
-                $this->_sorting = OCTOPUS_SORT_ASC;
-                $this->removeClass('sortDesc');
-                $this->addClass('sortAsc');
-
-
-        }
 
         return $this;
     }
@@ -226,16 +210,16 @@ class Octopus_Html_Table_Column {
         return $this->_sorting;
     }
 
-    public function isSorted() {
-        return !!$this->_sorting;
+    public function isSorted(&$dataSource = null) {
+        return $this->isSortable($dataSource) && $this->_sorting;
     }
 
-    public function isSortedAsc() {
-        return $this->_sorting && (strcasecmp($this->_sorting, OCTOPUS_SORT_ASC) == 0);
+    public function isSortedAsc(&$dataSource = null) {
+        return $this->isSorted($dataSource) && (strcasecmp($this->_sorting, OCTOPUS_SORT_ASC) == 0);
     }
 
-    public function isSortedDesc() {
-        return $this->_sorting && (strcasecmp($this->_sorting, OCTOPUS_SORT_DESC) == 0);
+    public function isSortedDesc(&$dataSource = null) {
+        return $this->isSorted($dataSource) && (strcasecmp($this->_sorting, OCTOPUS_SORT_DESC) == 0);
     }
 
     /**
