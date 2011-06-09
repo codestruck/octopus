@@ -48,6 +48,16 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
         $this->wrapperClass = $this->class;
     }
 
+    public function addClass() {
+        $args = func_get_args();
+
+        if ($this->wrapper) {
+            call_user_func_array( array($this->wrapper, 'addClass'), $args);
+        }
+
+        return call_user_func_array(array('parent', 'addClass'), $args);
+    }
+
     /**
      * Adds a validation rule to this field.
      */
