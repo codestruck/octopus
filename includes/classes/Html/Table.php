@@ -96,10 +96,11 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         'useSession' => true,
 
         /**
-         * Whether or not to make sure the user is always on a page whose
-         * query string matches the current sort/filter state of the table.
+         * Function to call to redirect the user. Gets passed a single arg:
+         * the new redirect path. To prevent any autoredirection, set this
+         * to false.
          */
-        'enforceQueryString' => true,
+        'redirectCallback' => 'redirect'
     );
 
     private $_options;
@@ -113,7 +114,6 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     private $_columns = array();
     private $_sortColumns = array();
     private $_filters = array();
-    private $_page = null;
     private $_pagerOptions = null;
 
     private $_queryString = null;
@@ -680,7 +680,7 @@ END;
             $uri = $this->getRequestURI();
             $pos = strpos($uri, '?');
             if ($pos === false) {
-                $qs = array();
+                $qs = $_GET;
             } else {
                 $qs = substr($uri, $pos + 1);
             }
@@ -714,6 +714,9 @@ END;
      * Clears out any session storage.
      */
     protected function forgetState() {
+
+        $this->_queryString = null;
+
         $this->getSessionKeys($this->getRequestURI(), $sort, $page, $filter);
 
         unset($_SESSION[$sort]);
@@ -752,11 +755,16 @@ END;
         return $result;
     }
 
-    protected function &getFilterValues() {
+    protected function &getFilterValues($source = null) {
 
         $values = array();
         foreach($this->_filters as $f) {
-            $values[$f->id] = $f->val();
+            if ($source !== null && isset($source[$f->id])) {
+                $values[$f->id] = $source[$f->id];
+            } else {
+                $val = trim($f->val());
+                if ($val) $values[$f->id] = $val;
+            }
         }
 
         return $values;
@@ -899,19 +907,9 @@ END;
         }
         $this->_shouldInitFromEnvironment = false;
 
-        $uri = $this->getRequestURI();
-
+        $uri = $this->getRequestURI(false);
+        $qs = $this->getQueryString();
         $this->getSessionKeys($uri, $sessionSortKey, $sessionPageKey, $sessionFilterKey);
-
-        // First, get a clean copy of the querystring to work with. We do
-        // this to get around interactions w/ apache rewriting
-        $pos = strpos($this->_path, '?');
-        if ($pos === false) {
-            $qs = array();
-        } else {
-            parse_str(substr($this->_path, $pos + 1), $qs);
-            $uri = substr($uri, 0, $pos);
-        }
 
         $useSession = $this->_options['useSession'];
         $sortArg = $this->_options['sortArg'];
@@ -920,45 +918,53 @@ END;
         $sort = null;
         $page = null;
 
-        if (isset($_GET[$sortArg])) {
-            $sort = rawurldecode($_GET[$sortArg]);
+        if (isset($qs[$sortArg])) {
+            $sort = rawurldecode($qs[$sortArg]);
         } else if ($useSession && isset($_SESSION[$sessionSortKey])) {
             $sort = $_SESSION[$sessionSortKey];
         }
 
-        if (isset($_GET[$pageArg])) {
-            $page = $_GET[$pageArg];
+        if (isset($qs[$pageArg])) {
+            $page = $qs[$pageArg];
         } else if ($useSession && isset($_SESSION[$sessionPageKey])) {
             $page = $_SESSION[$sessionPageKey];
         }
 
+        $filterValues = $this->getFilterValues($qs);
+        $this->filter($filterValues);
+
         // Ensure the current page's URL reflects the actual state
-        $actual = $this->getQueryString();
-        $expected = $actual;
+        if ($this->_options['redirectCallback']) {
+            $actual = $expected = $qs;
 
-        if ($sort) {
-            $expected[$sortArg] = $sort;
-        } else {
-            unset($expected[$sortArg]);
+            if ($sort) {
+                $expected[$sortArg] = $sort;
+            } else {
+                unset($expected[$sortArg]);
+            }
+
+            if ($page) {
+                $expected[$pageArg] = $page;
+            } else {
+                unset($expected[$pageArg]);
+            }
+
+            foreach($filterValues as $key => $val) {
+                $expected[$key] = $val;
+            }
+
+            ksort($expected);
+            ksort($actual);
+
+            if (array_diff_key($expected, $actual) || array_diff($expected, $actual)) {
+                $newUri = $uri;
+                $expected = http_build_query($expected);
+                if ($expected) $newUri .= '?' . $expected;
+
+                $callback = $this->_options['redirectCallback'];
+                call_user_func($callback, u($newUri));
+            }
         }
-
-        if ($page) {
-            $expected[$pageArg] = $page;
-        } else {
-            unset($expected[$pageArg]);
-        }
-
-        ksort($expected);
-        ksort($actual);
-
-        if ($this->_options['enforceQueryString'] && array_diff_key($expected, $actual) || array_diff($expected, $actual)) {
-            $query = http_build_query($expected);
-            if ($query != '') $query = '?' . $query;
-            //redirect($this->_path . $query);
-        }
-
-        // We're on the right page, initialize the state
-        $this->_page = $page;
 
         if ($sort) {
             $this->sort(explode(',', $sort));

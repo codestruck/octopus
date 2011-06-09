@@ -40,6 +40,35 @@ class TableTest extends Octopus_App_TestCase {
         $_POST = array();
     }
 
+    function testInitFilterFromQueryString() {
+
+        $db = $this->resetDatabase();
+        $db->query("
+            INSERT INTO html_table_persons (`name`, `age`)
+                VALUES
+                    ('Joe Blow', 50),
+                    ('Jane Blow', 50),
+                    ('John Smith', 99)
+        ");
+
+
+        $table = new Octopus_Html_Table('selectFilter', array('pager' => false));
+        $table->addColumn('name');
+        $table->addColumn('age');
+        $table->addFilter('select', 'age', array(50 => 'Fifty', 99 => 'Ninety-nine'));
+        $table->setDataSource(HtmlTablePerson::all());
+
+        $_GET['age'] = '99';
+
+        $this->assertEquals(
+            array(
+                array('Name', 'Age'),
+                array('John Smith', 99),
+            ),
+            $table->toArray()
+        );
+    }
+
     function testInitSortFromQueryString() {
 
         $db = $this->resetDatabase();
@@ -122,7 +151,7 @@ END;
 
     function testRenderFilters() {
 
-        $table = new Octopus_Html_Table('renderFilters', array('pager' => false));
+        $table = new Octopus_Html_Table('renderFilters', array('pager' => false, 'redirectCallback' => false));
         $table->addColumn('name');
         $table->addFilter('text', 'foo');
 
@@ -158,7 +187,7 @@ END;
 
     function testTextFilter() {
 
-        $table = new Octopus_Html_Table('textFilter');
+        $table = new Octopus_Html_Table('textFilter', array('redirectCallback' => false));
         $table->addColumn('name');
         $table->addColumn('age');
 
@@ -216,7 +245,7 @@ END;
         ");
 
 
-        $table = new Octopus_Html_Table('selectFilter', array('pager' => false));
+        $table = new Octopus_Html_Table('selectFilter', array('pager' => false, 'redirectCallback' => false));
         $table->addColumn('name');
         $table->addColumn('age');
 
@@ -382,7 +411,7 @@ END;
 
         foreach($funcs as $f) {
 
-            $table = new Octopus_Html_Table('builtIn2Arg');
+            $table = new Octopus_Html_Table('builtIn2Arg', array('useSession' => false));
             $table->addColumn('name');
             $table->addColumn('foo', 'Foo', $f);
             $table->setDataSource(array(
