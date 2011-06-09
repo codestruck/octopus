@@ -40,6 +40,34 @@ class TableTest extends Octopus_App_TestCase {
         $_POST = array();
     }
 
+    function testPostActions() {
+
+        $table = new Octopus_Html_Table('postActions');
+        $table->addColumn('name');
+
+        $actions = $table->addColumn('actions');
+        $actions->addAction('delete', array('post' => true));
+        $actions->addAction('other', array('method' => 'post'));
+
+        $table->setDataSource(array(
+            array('name' => 'Joe')
+        ));
+
+        $ar = $table->toArray();
+        array_shift($ar);
+
+        $row = array_shift($ar);
+        $this->assertHtmlEquals(
+            <<<END
+            <a href="" class="action delete methodPost">Delete</a>
+            <a href="" class="action other methodPost">Other</a>
+END
+            ,
+            $row[1]
+        );
+
+    }
+
     function testInitFilterFromQueryString() {
 
         $db = $this->resetDatabase();
