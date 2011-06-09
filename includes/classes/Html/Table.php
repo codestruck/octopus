@@ -79,6 +79,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         'firstPageLinkText' => '&laquo; First Page',
         'lastPageLinkText' => 'Last Page &raquo;',
 
+
+        'useSession' => false,
     );
 
     private $_options;
@@ -744,7 +746,7 @@ END;
 
         if (isset($_GET[$sortArg])) {
             $sort = rawurldecode($_GET[$sortArg]);
-        } else if (isset($_SESSION[$sessionSortKey])) {
+        } else if (isset($_SESSION[$sessionSortKey]) && $this->_options['useSession']) {
             $sort = $_SESSION[$sessionSortKey];
         }
 
@@ -784,7 +786,9 @@ END;
             $this->sort(explode(',', $sort));
         }
 
-        $_SESSION[$sessionSortKey] = ($sort ? $sort : '');
+        if ($this->_options['useSession']) {
+            $_SESSION[$sessionSortKey] = ($sort ? $sort : '');
+        }
     }
 
     /**
