@@ -24,6 +24,28 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     public static $defaultOptions = array(
 
         /**
+         * Text in the 'clear filters' link. To render your own link, set this
+         * to false and use the getClearFiltersUrl() method to get the proper
+         * url.
+         */
+        'clearFiltersLinkText' => 'Clear Filters',
+
+        /**
+         * Arg used to clear filters.
+         */
+        'clearFiltersArg' => 'clearfilters',
+
+        /**
+         * Class applied to the table when there is nothing in it.
+         */
+        'emptyClass' => 'empty',
+
+        /**
+         * Content to display when there is nothing in the table.
+         */
+        'emptyContent' => '<p>Sorry, there is nothing to display. Try another search or filter.</p>',
+
+        /**
          * Whether or not to render a <form> around the filters.
          */
         'filterForm' => true,
@@ -418,9 +440,40 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         return $this;
     }
 
+    /**
+     * Removes any filters on this table deletes them from session storage.
+     */
+    public function clearFilters() {
+        $this->unfilter();
+        $this->forgetState('filter');
+    }
+
+    /**
+     * @return String The URL to use to clear the filters on this table.
+     */
+    public function getClearFiltersUrl() {
+
+        $uri = $this->getRequestURI(false);
+        $qs = $this->getQueryString();
+
+        foreach($this->_filters as $f) {
+            unset($qs[$f->id]);
+        }
+
+        $qs[$this->_options['clearFiltersArg']] = 1;
+
+        return $uri . '?' . http_build_query($qs);
+    }
+
     public function render($return = false) {
 
         $this->initFromEnvironment();
+
+        if ($this->isEmpty()) {
+            $this->addClass($this->_options['emptyClass']);
+        } else {
+            $this->removeClass($this->_options['emptyClass']);
+        }
 
         // Do our own custom rendering
         $html =
@@ -713,15 +766,14 @@ END;
     /**
      * Clears out any session storage.
      */
-    protected function forgetState() {
+    protected function forgetState($what = null) {
 
         $this->_queryString = null;
-
         $this->getSessionKeys($this->getRequestURI(), $sort, $page, $filter);
 
-        unset($_SESSION[$sort]);
-        unset($_SESSION[$page]);
-        unset($_SESSION[$filter]);
+        if ($what === null || $what == 'sort') unset($_SESSION[$sort]);
+        if ($what === null || $what == 'page') unset($_SESSION[$page]);
+        if ($what === null || $what == 'filter') unset($_SESSION[$filter]);
     }
 
     /**
@@ -896,6 +948,15 @@ END;
         $filter = $base . 'filter';
     }
 
+    private function redirect($uri) {
+
+        $callback = $this->_options['redirectCallback'];
+        if (!$callback) return false;
+
+        call_user_func($callback, u($uri));
+        return true;
+    }
+
     /**
      * Looks at external factors, like querystring args and session data,
      * and restores the table's state.
@@ -910,6 +971,16 @@ END;
         $uri = $this->getRequestURI(false);
         $qs = $this->getQueryString();
         $this->getSessionKeys($uri, $sessionSortKey, $sessionPageKey, $sessionFilterKey);
+
+        $clearFiltersArg = $this->_options['clearFiltersArg'];
+        if (isset($qs[$clearFiltersArg]) && $qs[$clearFiltersArg]) {
+            $this->clearFilters();
+            unset($qs[$clearFiltersArg]);
+            $qs = http_build_query($qs);
+            if ($qs) $uri .= '?' . $qs;
+            $this->redirect($uri);
+            return;
+        }
 
         $useSession = $this->_options['useSession'];
         $sortArg = $this->_options['sortArg'];
@@ -943,7 +1014,7 @@ END;
                 unset($expected[$sortArg]);
             }
 
-            if ($page) {
+            if ($page && $page != 1) { // don't redirect to page=1
                 $expected[$pageArg] = $page;
             } else {
                 unset($expected[$pageArg]);
@@ -960,9 +1031,7 @@ END;
                 $newUri = $uri;
                 $expected = http_build_query($expected);
                 if ($expected) $newUri .= '?' . $expected;
-
-                $callback = $this->_options['redirectCallback'];
-                call_user_func($callback, u($newUri));
+                $this->redirect($newUri);
             }
         }
 
@@ -1026,11 +1095,19 @@ END;
 
     protected function renderBody(&$array = null) {
 
+        $rows = $this->getData();
+
+        if (empty($rows)) {
+            $td = new Octopus_Html_Element('td', array('class' => 'emptyNotice'));
+            $td->html($this->_options['emptyContent']);
+            return '<tbody class="emptyNotice"><tr>' . $td . '</tr></tbody>';
+        }
+
         $html = '<tbody>';
 
         $columnCount = count($this->_columns);
 
-        $rows = $this->getData();
+
 
         $tr = new Octopus_Html_Element('tr');
         $td = new Octopus_Html_Element('td');
@@ -1124,8 +1201,12 @@ END;
             $index++;
         }
 
+        if ($this->_options['clearFiltersLinkText']) {
+            $clear = new Octopus_Html_Element('a', array('class' => 'clearFilters', 'href' => $this->getClearFiltersUrl()), $this->_options['clearFiltersLinkText']);
+            $parent->append($clear);
+        }
 
-        return '<thead><tr>' . $td . '</tr></thead>';
+        return '<thead class="filters"><tr>' . $td . '</tr></thead>';
     }
 
     protected function renderHeader() {

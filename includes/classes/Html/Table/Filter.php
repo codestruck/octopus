@@ -121,7 +121,7 @@ abstract class Octopus_Html_Table_Filter {
             return $this->callFunction($this->options['function'], $resultSet);
         }
 
-        return $resultSet->where($this->id, $this->val())->dumpSql();
+        return $resultSet->where($this->id, $this->val());
     }
 
     /**

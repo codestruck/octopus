@@ -67,6 +67,7 @@ class TableTest extends Octopus_App_TestCase {
             ),
             $table->toArray()
         );
+
     }
 
     function testInitSortFromQueryString() {
@@ -134,14 +135,19 @@ class TableTest extends Octopus_App_TestCase {
         $table->addColumn('age');
 
         $expected = <<<END
-        <table id="empty" border="0" cellpadding="0" cellspacing="0">
+        <table id="empty" class="empty" border="0" cellpadding="0" cellspacing="0">
             <thead>
                 <tr>
                     <th class="name firstCell">Name</th>
                     <th class="age lastCell">Age</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="emptyNotice">
+                <tr>
+                    <td class="emptyNotice">
+                        <p>Sorry, there is nothing to display. Try another search or filter.</p>
+                    </td>
+                </tr>
             </tbody>
         </table>
 END;
@@ -159,8 +165,8 @@ END;
 
 
         $expected = <<<END
-<table id="renderFilters" border="0" cellpadding="0" cellspacing="0">
-    <thead>
+<table id="renderFilters" class="empty" border="0" cellpadding="0" cellspacing="0">
+    <thead class="filters">
         <tr>
             <td class="filters" colspan="1">
                 <form method="get" action="" class="filterForm">
@@ -168,6 +174,7 @@ END;
                         <label class="filterLabel" for="fooInput">Foo:</label>
                         <input type="text" id="fooInput" class="foo text" name="foo" value="bar" />
                     </div>
+                    <a href="?clearfilters=1" class="clearFilters">Clear Filters</a>
                 </form>
             </td>
         </tr>
@@ -177,7 +184,12 @@ END;
             <th class="name firstCell">Name</th>
         </tr>
     </thead>
-    <tbody>
+    <tbody class="emptyNotice">
+        <tr>
+            <td class="emptyNotice">
+                <p>Sorry, there is nothing to display. Try another search or filter.</p>
+            </td>
+        </tr>
     </tbody>
 </table>
 END;

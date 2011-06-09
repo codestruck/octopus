@@ -11,9 +11,11 @@ class Octopus_Html_Table_Filter_Text extends Octopus_Html_Table_Filter {
     protected function applyToResultSet($resultSet) {
 
         $val = $this->val();
-        if ($val) {
-            $val = wildcardify($val);
+        if (!$val) {
+            return $resultSet;
         }
+
+        $val = wildcardify($val);
 
         return $resultSet->where(array("{$this->id} LIKE" => $val));
     }
