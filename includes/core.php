@@ -28,6 +28,10 @@
     require_once(OCTOPUS_FUNCTIONS_DIR . 'themes.php');
     require_once(OCTOPUS_FUNCTIONS_DIR . 'compat.php');
 
+    require_once(OCTOPUS_DIR . 'includes/classes/Octopus.php');
+
+    require_once(OCTOPUS_FUNCTIONS_DIR . 'security.php');
+
     /**
      * Spins up a new instance of the application.
      *
@@ -56,12 +60,6 @@
         } else {
             define('OCTOPUS_PRIVATE_DIR', ROOT_DIR . '_private/');
         }
-
-        ////////////////////////////////////////////////////////////////////////
-        // Core class includes
-        ////////////////////////////////////////////////////////////////////////
-
-        require_once(OCTOPUS_DIR . 'includes/classes/Octopus.php');
 
         ////////////////////////////////////////////////////////////////////////
         // Spin up an App instance
