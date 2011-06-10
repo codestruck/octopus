@@ -269,16 +269,10 @@ class Octopus_Dispatcher {
 
         foreach($directoriesToSearch as $dir) {
 
-            if (self::searchForController($dir, '/', $path, $file, $potential_names, $action, $args, $original_action)) {
+            if (self::searchForController($dir, array('/','_'), $path, $file, $potential_names, $action, $args, $original_action)) {
                 $found = true;
                 break;
             }
-
-            if (self::searchForController($dir, '_', $path, $file, $potential_names, $action, $args, $original_action)) {
-                $found = true;
-                break;
-            }
-
 
         }
 
@@ -321,9 +315,12 @@ class Octopus_Dispatcher {
             $lParts = array_map('strtolower', $camelParts);
 
             $toTry = array();
-            $toTry[implode($sep, $usParts)] = true;
-            $toTry[implode($sep, $camelParts)] = true;
-            $toTry[implode($sep, $lParts)] = true;
+            foreach($sep as $s) {
+
+                $toTry[implode($s, $usParts)] = true;
+                $toTry[implode($s, $camelParts)] = true;
+                $toTry[implode($s, $lParts)] = true;
+            }
 
             foreach($toTry as $name => $unused) {
 
@@ -391,7 +388,7 @@ class Octopus_Dispatcher {
             $app->getOption('OCTOPUS_DIR') . 'views/',
         );
 
-        $controller = strtolower(str_replace('_', '/', $controller));
+        $controller = underscore($controller);
         $parts = explode('/', $controller);
 
         if (empty($options['extensions'])) {
@@ -405,9 +402,11 @@ class Octopus_Dispatcher {
             $count = count($p);
             if ($action) $count++;
 
+
             while($count) {
 
                 $path = $p ? implode('/', $p) : '';
+
                 if ($action) {
                     $path .= ($path ? '/' : '') . $action;
                 }
@@ -415,7 +414,18 @@ class Octopus_Dispatcher {
                 foreach($options['extensions'] as $ext) {
 
                     $file = $dir . $path . $ext;
+                    $file = get_true_filename($file);
 
+                    if ($file) {
+                        return $file;
+                    }
+                }
+
+                $path = str_replace('_', '/', $path);
+
+                foreach($options['extensions'] as $ext) {
+
+                    $file = $dir . $path . $ext;
                     $file = get_true_filename($file);
 
                     if ($file) {
