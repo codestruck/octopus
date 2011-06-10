@@ -97,7 +97,7 @@ class FindTest extends Octopus_DB_TestCase {
 
         $posts = FindPost::all()->orderBy('author');
 
-        $this->assertSqlEquals("SELECT find_posts.*, find_authors_order_by_0.* FROM find_posts, find_authors AS find_authors_order_by_0 WHERE `find_authors_order_by_0`.`find_author_id` = `find_posts`.`author_id` ORDER BY `find_authors_order_by_0`.`name` ASC", $posts);
+        $this->assertSqlEquals("SELECT find_posts.* FROM find_posts LEFT JOIN find_authors ON `find_posts`.`find_author_id` = `find_authors`.`author_id` ORDER BY `find_authors`.`name` ASC", $posts);
     }
 
     function testFindAuthorDisplayField() {

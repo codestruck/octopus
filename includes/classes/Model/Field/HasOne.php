@@ -74,7 +74,6 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         return $sql;
     }
 
-    private static $orderByCounter = 0;
     public function orderBy($resultSet, $s, $dir) {
 
         $class = $resultSet->getModel();
@@ -90,11 +89,8 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
 
         $displayField = $dummyItem->getDisplayField()->getFieldName();
 
-
-        $alias = $table . '_order_by_' . (self::$orderByCounter++);
-        $s->table(array($table, $alias));
-        $s->where("`$alias`.`$key` = `$modelTable`.`$foreignKey`");
-        $s->orderBy("`$alias`.`$displayField` $dir");
+        $s->leftJoin($table, array("`$modelTable`.`$key`", "`$table`.`$foreignKey`"), array());
+        $s->orderBy("`$table`.`$displayField` $dir");
     }
 
 
