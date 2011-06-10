@@ -239,7 +239,8 @@ class StringTests extends PHPUnit_Framework_TestCase
             'fooBar' => 'foo_bar',
             'Foo__bar' => 'foo_bar',
             'foo-BAR' => 'foo_bar',
-            'FOOBAR' => 'foobar'
+            'FOOBAR' => 'foobar',
+            'add-slash-test' => 'add_slash_test'
 
         );
 
@@ -247,6 +248,11 @@ class StringTests extends PHPUnit_Framework_TestCase
             $this->assertEquals($expected, underscore($input), "Failed on '$input'");
         }
 
+        $ar = array('add-slash-test');
+        $this->assertEquals(
+            array('add_slash_test'),
+            array_map('underscore', $ar)
+        );
 
     }
 

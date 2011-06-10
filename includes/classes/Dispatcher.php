@@ -28,49 +28,27 @@ class Octopus_Dispatcher {
         $path = $request->getResolvedPath();
         $originalPath = $request->getPath();
 
-        $pathParts = array_filter(explode('/', $path), 'trim');
-
-        $info = $this->getControllerInfo($pathParts);
-
-        if (empty($info['controller']) || empty($info['action'])) {
-
-            if (empty($info['controller']) && $pathParts) {
-                $info['controller'] = array_shift($pathParts);
-            }
-
-            if (empty($info['action']) && $pathParts) {
-                $info['action'] = array_shift($pathParts);
-            }
-
-            if (empty($info['args']) && $pathParts) {
-                $info['args'] = $pathParts;
-            }
-        }
-
         $response = new Octopus_Response($buffer);
 
-        if (empty($info['action'])) {
+        if (!$request->getRequestedAction()) {
 
             // No action specified == index, but we need to make sure the
             // path ends with a '/'.
-            if (substr($originalPath, -1) != '/') {
-                $response->redirect($this->_app->makeUrl('/' . trim($path, '/') . '/'));
+            if (substr($request->getPath(), -1) != '/') {
+                $response->redirect($this->_app->makeUrl('/' . trim($request->getPath(), '/') . '/'));
                 return $response;
             }
-
-            $info['action'] = 'index';
         }
 
-        $controller = $this->createController($info, $request, $response);
+        $controller = $this->createController($request, $response);
 
         if (!$controller) {
-            $controller = $this->createDefaultController($info, $request, $response);
+            $controller = $this->createDefaultController($request, $response);
         }
 
-
         $data = $controller->__execute(
-            $info['action'],
-            empty($info['args']) ? array() : $info['args']
+            $request->getAction(),
+            $request->getActionArgs()
         );
 
         // For e.g. 301 redirects we don't need to bother rendering
@@ -78,14 +56,7 @@ class Octopus_Dispatcher {
             return $response;
         }
 
-        $template = $controller->template;
-        $view = $controller->view;
-
-        $this->render(
-            $originalPath,
-            isset($info['controller']) ? $info['controller'] : '',
-            $template, $view, $data, $response
-        );
+        $this->render($controller, $data, $request, $response);
 
         return $response;
     }
@@ -95,58 +66,45 @@ class Octopus_Dispatcher {
      * appropriate controller instance.
      * @return Object An Octopus_Controller if found, otherwise NULL.
      */
-    protected function &createController(&$info, $request, $response) {
+    protected function &createController($request, $response) {
+
+        $class = $request->getControllerClass();
 
         $controller = null;
 
-        if (empty($info['controller'])) {
-            return $controller;
-        }
-
-        $name = preg_replace('/Controller$/', '', $info['controller']);
-
-        $controllerFile = $this->_app->getFile('controllers/' . $name . '.php');
-
-        if (!$controllerFile) {
-            return $controller;
-        }
-
-        require_once($controllerFile);
-
-        $className = $name . 'Controller';
-
-        if (!class_exists($className)) {
-            // For Contollers_In_Subdirs, don't require _ in controller class name
-            $className = str_replace('_', '', $className);
-        }
-
-        if (!class_exists($className)) {
+        if (!$class) {
+            // Requested class does not exist
             $response->notFound();
-            app_error("Found controller file, but class $className does not exist.");
-            $info['action'] = 'error';
-        } else {
-            $controller = new $className();
-            $controller->app = $this->_app;
-            $controller->request = $request;
-            $controller->response = $response;
-            $this->configureController($controller, $info);
+            app_error("Controller class does not exist: " . $class);
+            return false;
         }
 
+        $controller = new $class();
+        $this->configureController($controller, $request, $response);
+
         return $controller;
 
     }
 
-    protected function &createDefaultController($info, $request, $response) {
-        require_once($this->_app->getOption('OCTOPUS_DIR') . 'controllers/Default.php');
+    private function requireOnce($file) {
+        require_once($file);
+    }
 
-        $controller = new DefaultController($this->_app, $request, $response);
-        $controller->requestedController = $info['controller'];
-        $this->configureController($controller, $info);
+    protected function &createDefaultController($request, $response) {
+
+        $this->requireOnce($this->_app->getOption('OCTOPUS_DIR') . 'controllers/Default.php');
+
+        $controller = new DefaultController();
+        $this->configureController($controller, $request, $response);
 
         return $controller;
     }
 
-    private function configureController($controller, $info) {
+    private function configureController($controller, $request, $response) {
+
+        $controller->app = $this->_app;
+        $controller->request = $request;
+        $controller->response = $response;
 
         $controller->template = (isset($info['template']) ? $info['template'] : self::$defaultTemplate);
 
@@ -161,124 +119,16 @@ class Octopus_Dispatcher {
     }
 
     /**
-     * Given a path, figure out what controller it should use, what action
-     * should be called, and what args should be passed.
-     */
-    private function getControllerInfo($pathParts) {
-
-        $controllers = $this->_app->getControllers(true);
-
-        // Find the most specific controller we can
-        $controller = '';
-        $found = false;
-        while(($p = array_shift($pathParts))) {
-
-            $controller .= ($controller ? '_' : '') . camel_case($p, true);
-
-            if (in_array($controller, $controllers)) {
-                // Found it!
-                $found = true;
-                break;
-            }
-        }
-
-        if (!$found) {
-            return array(
-                'controller' => '',
-                'action' => '',
-                'args' => array()
-            );
-        }
-
-        $action = array_shift($pathParts);
-
-        return array(
-          'controller' => $controller,
-          'action' => $action ? $action : 'index',
-          'args' => $pathParts ? $pathParts : array()
-        );
-    }
-
-    /**
      * Renders out the result of an action.
+     * @param $controller An Octopus_Controller instance.
+     * @param $data Array The result of executing the action on the controller.
+     * @param $request Octopus_Request
+     * @param $response Octopus_Response
      */
-    protected function render($path, $controller, $template, $view, $data, $response) {
+    protected function render($controller, $data, $request, $response) {
 
-        $app = $this->_app;
-
-        $siteDir = $app->getOption('SITE_DIR');
-        $octopusDir = $app->getOption('OCTOPUS_DIR');
-
-        $templateFile = $viewFile = false;
-
-        $theme = $app->getTheme($path);
-
-        if (strncmp($template, '/', 1) == 0) {
-
-            // Absolute path
-            $templateFile = $template;
-
-        } else if ($template) {
-            $templateFile = $app->getFile(
-                $template,
-                array($siteDir . 'themes/' . $theme . '/templates/', $octopusDir . 'themes/' . $theme . '/templates/'),
-                array(
-                    'extensions' => array('.php', '.tpl')
-                )
-            );
-        }
-
-        if ($response->isForbidden()) {
-
-            // Short-circuit around
-            $view = 'sys/forbidden';
-
-        }
-
-        if (strncmp($view, '/', 1) == 0) {
-
-            // Absolute path to view == use that file
-            $viewFile = $view;
-
-        } else if ($view) {
-
-            // First look for a view specific to the controller
-            if ($controller) {
-
-                $path = str_replace('_', '/', strtolower($controller));
-                $path = trim($path, '/');
-
-                $viewFile = $app->getFile(
-                    $view,
-                    array($siteDir . 'views/' . $path, $octopusDir . 'views/' . $path),
-                    array(
-                        'extensions' => array('.php', '.tpl')
-                    )
-                );
-
-            }
-
-            if (!$viewFile) {
-                $viewFile = $app->getFile(
-                    $view,
-                    array($siteDir . 'views/', $octopusDir . 'views/'),
-                    array(
-                        'extensions' => array('.php', '.tpl')
-                    )
-                );
-            }
-        }
-
-
-        if (!$viewFile) {
-            $viewFile = $app->getFile(
-                'sys/view-not-found',
-                array($siteDir . 'views/', $octopusDir . 'views/'),
-                array(
-                    'extensions' => array('.php', '.tpl')
-                )
-            );
-        }
+        $templateFile = $this->findTemplateForRender($controller, $request);
+        $viewFile = $this->findViewForRender($controller, $request, $response);
 
         $viewContent = $templateContent = '';
 
@@ -305,23 +155,292 @@ class Octopus_Dispatcher {
 
     }
 
-    public static function findView($controllerClass, $actionOrView, $options = array()) {
+    private function findViewForRender($controller, $request, $response) {
 
-        $controllerClass = preg_replace('/Controller$/', '', $controllerClass);
+        $view = empty($controller->view) ? '' : $controller->view;
 
-        if (empty($options['extensions'])) $options['extensions'] = array('.php', '.tpl');
+        if ($response->isForbidden()) {
 
-        $view = get_file(
+            // Short-circuit around
+            $view = 'sys/forbidden';
+
+        }
+
+        $view = trim($view);
+        if (!$view) return false; // TODO: use a default view?
+
+        if (strncmp($view, '/', 1) != 0) {
+
+            return self::findView(
+                $request->getControllerFile(),
+                $request->getControllerClass(),
+                $request->getAction(),
+                $this->_app
+            );
+
+        }
+
+        return $app->getFile(
+            $view,
+            array($siteDir . 'views/', $octopusDir . 'views/'),
             array(
-                "views/$controllerClass/$actionOrView",
-                "views/$actionOrView"
-            ),
-            null,
-            $options
+                'extensions' => array('.php', '.tpl')
+            )
         );
-        if ($view) return $view;
+    }
 
-        return get_file('views/default', null, array('extensions' => array('.php','.tpl')));
+    private function findTemplateForRender($controller, $request) {
+
+        $siteDir = $this->_app->getOption('SITE_DIR');
+        $octopusDir = $this->_app->getOption('OCTOPUS_DIR');
+
+        $extensions = array('', '.php', '.tpl');
+        $theme = $this->_app->getTheme($request);
+
+        $template = $controller->template;
+
+        if (strncmp($template, '/', 1) != 0) {
+            $template = $this->_app->getFile(
+                $template,
+                array($siteDir . 'themes/' . $theme . '/templates/', $octopusDir . 'themes/' . $theme . '/templates/'),
+                array(
+                    'extensions' => $extensions
+                )
+            );
+        }
+
+        if (!$template) return $template;
+
+        foreach($extensions as $ext) {
+            $f = $template . $ext;
+            if (is_file($f)) {
+                return $f;
+            }
+        }
+
+        return $template;
+    }
+
+    /**
+     * Given a path, figures out the controller to use.
+     * @return Mixed An array with the following keys:
+     * <dl>
+     *  <dt>file</dt>
+     *  <dd>The PHP file the controller is in.</dd>
+     *  <dt>potential_names</dt>
+     *  <dd>An array of potential class names for the controller.</dd>
+     *  <dt>action</dt>
+     *  <dd>The action to be executed on the controller</dd>
+     *  <dt>original_action</dt>
+     *  <dd>The actual action contained in the path (if '', 'index' will be
+     *  substituted in the 'action' key</dd>
+     *  <dt>args</dt>
+     *  <dd>Arguments to be passed to the action</dd>
+     * </dl>
+     *
+     * If no candidate controllers are found, returns false.
+     */
+    public static function findController($path, $app) {
+
+        $rawPath = is_array($path) ? $path : explode('/', $path);
+        $path = array();
+
+        foreach($rawPath as $p) {
+            $p = trim($p);
+            if (!$p) continue;
+            if ($p == '.') continue;
+            if ($p == '..') {
+                if ($path) array_pop($path);
+                continue;
+            }
+            $path[] = $p;
+        }
+
+        $directoriesToSearch = array(
+            $app->getOption('SITE_DIR') . 'controllers/',
+            $app->getOption('OCTOPUS_DIR') . 'controllers/'
+        );
+
+        $file = null;
+        $potential_names = null;
+        $action = null;
+        $args = null;
+        $found = false;
+
+        foreach($directoriesToSearch as $dir) {
+
+            if (self::searchForController($dir, '/', $path, $file, $potential_names, $action, $args, $original_action)) {
+                $found = true;
+                break;
+            }
+
+            if (self::searchForController($dir, '_', $path, $file, $potential_names, $action, $args, $original_action)) {
+                $found = true;
+                break;
+            }
+
+
+        }
+
+        if (!$found) {
+            if (is_array($path)) $path = implode('/', $path);
+            return false;
+        }
+
+        return compact('file', 'potential_names', 'action', 'original_action', 'args');
+
+    }
+
+    private static function safeRequireOnce($file) {
+        require_once($file);
+    }
+
+    private static function searchForController($dir, $sep, &$pathParts, &$file, &$potentialNames, &$action, &$args, &$originalAction) {
+
+        $potentialNames = array();
+        $args = array();
+        $action = null;
+
+        /* Ways controller files can be named:
+         *  my_controller.php
+         *  MyController.php
+         *  mycontroller.php
+         */
+
+        $parts = $pathParts;
+
+        while(!empty($parts)) {
+
+            $usParts = array_map('underscore', $parts);
+
+            $camelParts = array();
+            foreach($usParts as $p) {
+                $camelParts[] = camel_case($p, true);
+            }
+
+            $lParts = array_map('strtolower', $camelParts);
+
+            $toTry = array();
+            $toTry[implode($sep, $usParts)] = true;
+            $toTry[implode($sep, $camelParts)] = true;
+            $toTry[implode($sep, $lParts)] = true;
+
+            foreach($toTry as $name => $unused) {
+
+                $file = $dir . $name . '.php';
+                $file = get_true_filename($file);
+
+                if ($file) {
+
+                    // Found it!
+                    $fullName = empty($parts) ? $name : implode(' ', $parts);
+                    $fullName = preg_replace('#[\s-_/]+#', ' ', $fullName);
+                    $fullName = ucwords($fullName);
+
+                    $potentialNames[str_replace(' ', '_', $fullName) . 'Controller'] = true;
+                    $potentialNames[str_replace(' ', '', $fullName) . 'Controller'] = true;
+                    $potentialNames[camel_case(array_pop($usParts), true) . 'Controller'] = true;
+
+                    $potentialNames = array_keys($potentialNames);
+
+
+                    $originalAction = $action ? $action : '';
+                    if (!$action) {
+                        $action = 'index';
+                    }
+
+                    return true;
+                }
+
+            }
+
+            $newAction = array_pop($parts);
+            if ($action !== null) {
+                array_unshift($args, $action);
+            }
+            $action = $newAction;
+        }
+
+        return false;
+
+    }
+
+    /**
+     * @return Mixed The full path to a view file, or false if none could be
+     * found.
+     * @param $controllerFile string Full path to the controller file.
+     * @param $controllerClass string Class of controller being used.
+     */
+    public static function findView($controllerFile, $controllerClass, $action, $app, $options = array()) {
+
+        $octopusDir = $app->getOption('OCTOPUS_DIR');
+        $siteDir = $app->getOption('SITE_DIR');
+
+        $r = null;
+
+        if ($controllerFile && starts_with($controllerFile, $siteDir . 'controllers/', false, $r)) {
+            $controller = preg_replace('/\.php$/i', '', $r);
+        } else if ($controllerFile && starts_with($controllerFile, $octopusDir . 'controllers/', false, $r)) {
+            $controller = preg_replace('/\.php$/i', '', $r);
+        } else {
+            $controller = preg_replace('/(.*)(Controller)?$/', '$1', $controllerClass);
+        }
+
+        $viewDirs = array(
+            $app->getOption('SITE_DIR') . 'views/',
+            $app->getOption('OCTOPUS_DIR') . 'views/',
+        );
+
+        $controller = strtolower(str_replace('_', '/', $controller));
+        $parts = explode('/', $controller);
+
+        if (empty($options['extensions'])) {
+            $options['extensions'] = array('.php', '.tpl');
+        }
+
+        foreach($viewDirs as $dir) {
+
+            $p = $parts;
+
+            $count = count($p);
+            if ($action) $count++;
+
+            while($count) {
+
+                $path = $p ? implode('/', $p) : '';
+                if ($action) {
+                    $path .= ($path ? '/' : '') . $action;
+                }
+
+                foreach($options['extensions'] as $ext) {
+
+                    $file = $dir . $path . $ext;
+
+                    $file = get_true_filename($file);
+
+                    if ($file) {
+                        return $file;
+                    }
+                }
+
+                array_pop($p);
+                $count--;
+            }
+
+        }
+
+
+        if (empty($options['extensions'])) {
+            $options['extensions'] = array('.php', '.tpl');
+        }
+
+
+        if (!empty($options['failIfNotFound'])) {
+            return false;
+        }
+
+        // By default, return "VIEW NOT FOUND" view.
+        return $viewDirs[1] . 'sys/not_found.php';
     }
 
 }

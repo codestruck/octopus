@@ -138,20 +138,28 @@ END
 
     function testRedirectToAddSlashOnIndex() {
 
+        file_put_contents(
+            $this->siteDir . '/controllers/add_slash_test.php',
+            '<?php
+                class AddSlashTestController extends Octopus_Controller {
+                }
+             ?>'
+        );
+
         $app = $this->startApp();
 
-        $resp = $app->getResponse('/controller', true);
+        $resp = $app->getResponse('/add-slash-test', true);
 
         $this->assertEquals(
             <<<END
 HTTP/1.1 302 Found
-Location: /controller/
+Location: /add-slash-test/
 END
             ,
             trim($resp)
         );
 
-        $resp = $app->getResponse('/controller/', true);
+        $resp = $app->getResponse('/add-slash-test/', true);
         $this->assertEquals(200, $resp->getStatus());
 
     }

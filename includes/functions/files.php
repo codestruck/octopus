@@ -153,4 +153,29 @@
         return u('/site/' . $file, $options);
     }
 
+    /**
+     * On case-sensitive filesystems, returns the actual name of the given file.
+     * @return Mixed The actual full filename if found, otherwise false.
+     */
+    function get_true_filename($file) {
+
+        if (!is_file($file)) {
+            return false;
+        }
+
+        $info = pathinfo(realpath($file));
+
+        $pattern = ($info['extension'] ? '*.' . $info['extension'] : '*');
+
+        foreach(glob($info['dirname'] . '/' . $pattern) as $f) {
+
+            $f = basename($f);
+            if (strcasecmp($f, $info['basename']) == 0) {
+                return $info['dirname'] . '/' . $f;
+            }
+        }
+
+        return $file;
+    }
+
 ?>

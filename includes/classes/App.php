@@ -381,7 +381,7 @@ class Octopus_App {
 
         $nav = $this->getNav();
 
-        return new Octopus_Request($originalPath, $nav->resolve($path), $options);
+        return new Octopus_Request($this, $originalPath, $nav->resolve($path), $options);
     }
 
     /**
