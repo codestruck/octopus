@@ -182,6 +182,18 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
         return $rs;
     }
 
+    /**
+     * Deletes all results
+     */
+    public function &delete() {
+        foreach ($this as $item) {
+            $item->delete();
+        }
+
+        $this->_query = null;
+        return $this;
+    }
+
     private function _applyOrderByClause(&$s, &$orderBy) {
 
         if (empty($orderBy)) {
