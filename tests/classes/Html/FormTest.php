@@ -114,6 +114,27 @@ END
 
     }
 
+    function testFileField() {
+
+        $form = new Octopus_Html_Form('testForm', 'post');
+
+        $form->add('file', 'image');
+
+        $this->assertHtmlEquals(
+<<<END
+<form id="testForm" method="post" enctype="multipart/form-data">
+    <div id="imageField" class="field image file">
+        <label for="imageInput">Image:</label>
+        <input type="file" id="imageInput" class="image file" name="image" />
+    </div>
+</form>
+END
+            ,
+            $form->render(true)
+        );
+
+    }
+
     function testToArrayBasic() {
 
         $form = new Octopus_Html_Form('toArray');
@@ -226,7 +247,7 @@ END
         $this->assertFalse($form->reset()->wasSubmitted(), 'should be false w/ proper request method but no data');
 
     }
-    
+
     function testNotSubmittedSetValues() {
 
         $this->markTestSkipped('needs thought');
@@ -237,7 +258,7 @@ END
 
         $form->setValues(array('for' => 'thefoovalue'));
         $this->assertFalse($form->wasSubmitted());
-        
+
     }
 
     function testSetValuesWithObject() {

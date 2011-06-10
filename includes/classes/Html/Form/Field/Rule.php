@@ -39,11 +39,13 @@ abstract class Octopus_Html_Form_Field_Rule {
      */
     protected function getInput($field, $data) {
 
-        if (!array_key_exists($field->name, $data)) {
+        $name = preg_replace('/\[\]$/', '', $field->name);
+
+        if (!array_key_exists($name, $data)) {
             return '';
         }
 
-        return $data[$field->name];
+        return $data[$name];
     }
 
     protected function getDefaultMessage($field, $data) {

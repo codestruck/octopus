@@ -1,6 +1,6 @@
 <?php
 
-    setlocale(LC_MONETARY, 'en_US');
+    setlocale(LC_MONETARY, 'en_US.UTF-8');
 
     /**
      * Formats a dollar amount.

@@ -8,12 +8,22 @@ Octopus::loadClass('Octopus_Html_Form_Field_Rule');
 class Octopus_Html_Form_Field_Rule_Required extends Octopus_Html_Form_Field_Rule {
 
     public function validate($field, $data) {
-        return trim($this->getInput($field, $data)) !== '';
+        $value = $this->getInput($field, $data);
+        if (is_array($value)) {
+            return count($value) > 0;
+        } else {
+            return trim($this->getInput($field, $data)) !== '';
+        }
     }
 
     protected function getDefaultMessage($field, $data) {
 
-        $niceName = trim(str_replace(':', '', $field->label()));
+        $name = $field->label();
+        if ($field->type == 'checkbox') {
+            $name = preg_replace('/\[\]$/', '', $field->name);
+        }
+
+        $niceName = ucfirst(trim(str_replace(':', '', $name)));
 
         return "$niceName is required.";
     }

@@ -3,6 +3,10 @@
 define('NO_INPUT', '--NO INPUT--');
 Octopus::loadClass('Octopus_Html_Form');
 
+/**
+ * @group Html
+ * @group Form
+ */
 class FormValidationTest extends PHPUnit_Framework_TestCase {
 
     function testEmailValidation() {

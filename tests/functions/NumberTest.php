@@ -9,6 +9,7 @@ class NumberTest extends PHPUnit_Framework_TestCase {
             '5.99' => '$5.99',
             '3.2345690' => '$3.23',
             -10 => '($10.00)',
+            1999333 => '$1,999,333.00',
         );
 
         foreach($tests as $input => $expected) {
