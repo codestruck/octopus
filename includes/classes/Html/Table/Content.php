@@ -47,8 +47,10 @@ class Octopus_Html_Table_Content extends Octopus_Html_Element {
 
         foreach($parts as $p) {
 
+            // HACK: model doesn't support isset()
+
             if (is_object($value)) {
-                if (isset($value->$p)) {
+                if (isset($value->$p) || $value instanceof Octopus_Model) {
                     $value = $value->$p;
                 } else {
                     return '(Key ' . htmlspecialchars($p) . ' not found)';
