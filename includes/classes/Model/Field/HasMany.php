@@ -21,8 +21,9 @@ class Octopus_Model_Field_HasMany extends Octopus_Model_Field {
             );
         }
 
-        return new Octopus_Model_ResultSet($type, $search);
-
+        $resultSet = new Octopus_Model_ResultSet($type, $search);
+        $resultSet->escaped = $model->escaped;
+        return $resultSet;
     }
 
 
@@ -34,7 +35,7 @@ class Octopus_Model_Field_HasMany extends Octopus_Model_Field {
 
         // just ignore junk values
         if ($obj === null) {
-            return;            
+            return;
         }
 
         // handle array of objects

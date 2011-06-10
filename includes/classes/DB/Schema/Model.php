@@ -14,30 +14,33 @@ class Octopus_DB_Schema_Model {
         $t->newPrimaryKey($model . '_id');
 
         $modelClass = camel_case($model, true);
-        Octopus::loadModel($modelClass);
+
+        if (!class_exists($modelClass)) {
+            Octopus::loadModel($modelClass);
+        }
         $obj = new $modelClass();
 
         foreach ($obj->getFields() as $field) {
             $fieldName = $field->getFieldName();
 
-            if (is_a($field, 'Octopus_Model_Field_String')) {
+            if ($field instanceof Octopus_Model_Field_String) {
                 $t->newTextSmall($fieldName);
-            } else if (is_a($field, 'Octopus_Model_Field_Slug')) {
+            } else if ($field instanceof Octopus_Model_Field_Slug) {
                 $t->newTextSmall($fieldName);
-            } else if (is_a($field, 'Octopus_Model_Field_Html')) {
+            } else if ($field instanceof Octopus_Model_Field_Html) {
                 $t->newTextLarge($fieldName);
-            } else if (is_a($field, 'Octopus_Model_Field_Numeric')) {
+            } else if ($field instanceof Octopus_Model_Field_Numeric) {
                 $t->newBigInt($fieldName);
-            } else if (is_a($field, 'Octopus_Model_Field_Boolean')) {
+            } else if ($field instanceof Octopus_Model_Field_Boolean) {
                 $t->newBool($fieldName);
-            } else if (is_a($field, 'Octopus_Model_Field_HasOne')) {
+            } else if ($field instanceof Octopus_Model_Field_HasOne) {
                 $t->newKey($fieldName . '_id');
                 $t->newIndex($fieldName . '_id');
             } else if ($fieldName == 'created') {
                 $t->newDateTime($fieldName);
             } else if ($fieldName == 'updated') {
                 $t->newDateTime($fieldName);
-            } else if (is_a($field, 'Octopus_Model_Field_ManyToMany')) {
+            } else if ($field instanceof Octopus_Model_Field_ManyToMany) {
                 $tableA = singularize($fieldName);
                 $joinTable = $field->getJoinTableName(array($tableA, $model));
 

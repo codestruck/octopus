@@ -87,6 +87,10 @@ abstract class Octopus_Controller {
             $data = $this->_after($originalAction, $originalArgs, $data);
         }
 
+        if (is_array($data)) {
+            $data = array_map(array($this, 'escape'), $data);
+        }
+
         return $data;
     }
 
@@ -185,6 +189,14 @@ abstract class Octopus_Controller {
             ->append($function . '(' . json_encode($data) . ');')
             ->stop();
 
+    }
+
+    private function escape($value) {
+        if ($value instanceof Octopus_Model) {
+            $value->escape();
+        }
+
+        return $value;
     }
 
 }

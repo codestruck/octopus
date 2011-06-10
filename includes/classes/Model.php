@@ -36,6 +36,7 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
     private $errors = array();
     private $load_id = null;
     private $touchedFields = array();
+    public $escaped = false;
 
     public function __construct($id = null) {
 
@@ -94,6 +95,10 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
     }
 
     public function __set($var, $value) {
+
+        if ($this->escaped && $this->load_id === null) {
+            throw new Octopus_Model_Exception('Cannot set field ' . $var . ' on Model ' . $this->getClassName() . ' when it is escaped.');
+        }
 
         if ($var == 'id') {
             $pk = $this->getPrimaryKey();
@@ -228,6 +233,10 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
     }
 
     public function save() {
+
+        if ($this->escaped) {
+            return false;
+        }
 
         // shortcut saving on existing items with no modifications
         if ($this->exists() && empty($this->touchedFields)) {
@@ -528,6 +537,10 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
 
         return $result;
 
+    }
+
+    public function escape() {
+        $this->escaped = true;
     }
 
     public function __toString() {

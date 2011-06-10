@@ -53,6 +53,8 @@ abstract class Octopus_Model_Field {
 
             $value = $this->handleTrigger('onSave', $model, $value);
 
+        } else if ($model->escaped) {
+            $value = $this->escape($value);
         }
 
         return $value;
@@ -94,6 +96,10 @@ abstract class Octopus_Model_Field {
         }
 
         return true;
+    }
+
+    protected function escape($value) {
+        return h($value);
     }
 
     protected function handleTrigger($type, $model, $default = null) {

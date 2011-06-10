@@ -17,7 +17,10 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
 
         $search = array($key => $value);
 
-        return new Octopus_Model_ResultSet($type, $search);
+
+        $resultSet = new Octopus_Model_ResultSet($type, $search);
+        $resultSet->escaped = $model->escaped;
+        return $resultSet;
     }
 
     public function restrict($operator, $value, &$s, &$params, $model) {

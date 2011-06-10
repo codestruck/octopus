@@ -89,8 +89,8 @@ class FindTest extends Octopus_DB_TestCase {
     }
 
     function dropTables(&$db) {
-        //$db->query("DROP TABLE IF EXISTS find_posts");
-        //$db->query("DROP TABLE IF EXISTS findauthors");
+        $db->query("DROP TABLE IF EXISTS find_posts");
+        $db->query("DROP TABLE IF EXISTS find_authors");
     }
 
     function testOrderByHasOne() {

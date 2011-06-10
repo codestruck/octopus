@@ -5,28 +5,6 @@ Octopus::loadClass('Octopus_Model');
 
 db_error_reporting(DB_PRINT_ERRORS);
 
-class Product extends Octopus_Model {
-    protected $fields = array(
-        'name' => array(
-            'required' => true
-        ),
-        'group' => array(
-            'type' => 'manyToMany',
-        )
-    );
-}
-
-class Group extends Octopus_Model {
-    protected $fields = array(
-        'name' => array(
-            'required' => true,
-        ),
-        'product' => array(
-            'type' => 'manyToMany',
-        )
-    );
-}
-
 /**
  * @group Model
  */
@@ -39,29 +17,8 @@ class ModelManyToManyTest extends Octopus_DB_TestCase
 
     function createTables(&$db)
     {
-        $sql = "CREATE TABLE products (
-                `product_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                `name` varchar ( 255 ) NOT NULL
-                )
-                ";
-
-        $db->query($sql);
-
-        $sql = "CREATE TABLE groups (
-                `group_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                `name` varchar ( 255 ) NOT NULL
-                )
-                ";
-
-        $db->query($sql);
-
-        $sql = "CREATE TABLE group_product_join (
-                `group_id` INT( 10 ) NOT NULL,
-                `product_id` INT( 10 ) NOT NULL
-                )
-                ";
-
-        $db->query($sql);
+        Octopus_DB_Schema_Model::makeTable('product');
+        Octopus_DB_Schema_Model::makeTable('group');
     }
 
     function dropTables(&$db)

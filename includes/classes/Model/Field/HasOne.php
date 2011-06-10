@@ -6,6 +6,7 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         // if we all ready have an object, return it
         $value = $model->getInternalValue($this->getFieldName());
         if ($value) {
+            $value->escaped = $model->escaped;
             return $value;
         }
 
@@ -22,7 +23,9 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
 
         $value = $model->$dataField; // seems scary to access the join id as a var on the model
 
-        return new $class($value);
+        $result = new $class($value);
+        $result->escaped = $model->escaped;
+        return $result;
     }
 
     public function save($model, $sqlQuery) {

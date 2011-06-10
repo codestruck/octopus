@@ -5,6 +5,8 @@
  */
 class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
 
+    public $escaped = false;
+
     private $_parent;
     private $_modelClass;
     private $_criteria;
@@ -406,6 +408,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
         $id = $row[$this->getModelPrimaryKey()];
         $instance = new $class($id);
         $instance->setData($row);
+        $instance->escaped = $this->escaped;
         return $instance;
     }
 
@@ -496,6 +499,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
         array_unshift($args, $operator);
 
         $derivedSet = new Octopus_Model_ResultSet($this, $args, $this->_orderBy);
+        $derivedSet->escaped = $this->escaped;
         return $derivedSet;
     }
 

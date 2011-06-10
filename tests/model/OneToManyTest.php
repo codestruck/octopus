@@ -5,61 +5,6 @@ Octopus::loadClass('Octopus_Model');
 
 db_error_reporting(DB_PRINT_ERRORS);
 
-class Nail extends Octopus_Model {
-    protected $fields = array(
-        'name' => array(
-            'required' => true
-        ),
-        'hammer' => array(
-            'type' => 'hasMany',
-        ),
-        'active' => array(
-            'type' => 'boolean',
-        ),
-        'favorite' => array(
-            'type' => 'hasMany',
-            'model' => 'sledgehammer',
-            'key' => 'favorite_nail',
-        ),
-    );
-}
-
-class Hammer extends Octopus_Model {
-    protected $fields = array(
-        'name' => array(
-            'required' => true,
-        ),
-        'slug' => array(
-            'type' => 'slug',
-            'onEmpty' => 'to_unique_slug',
-        ),
-        'nail' => array(
-            'type' => 'hasOne',
-            'required' => true
-        ),
-        'active' => array(
-            'type' => 'boolean',
-        ),
-        'display_order' => array(
-            'type' => 'order',
-        ),
-        'created',
-        'updated',
-    );
-}
-
-class Sledgehammer extends Octopus_Model {
-    protected $fields = array(
-        'name' => array(
-            'required' => true,
-        ),
-        'favorite_nail' => array(
-            'type' => 'hasOne',
-            'model' => 'nail',
-        ),
-    );
-}
-
 /**
  * @group Model
  */
@@ -72,37 +17,11 @@ class ModelOneToManyTest extends Octopus_DB_TestCase
 
     function createTables(&$db)
     {
-        $sql = "CREATE TABLE hammers (
-                `hammer_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                `name` varchar ( 255 ) NOT NULL,
-                `slug` varchar ( 255 ) NOT NULL,
-                `nail_id` INT( 10 ) NOT NULL,
-                `active` TINYINT NOT NULL,
-                `display_order` INT( 10 ) NOT NULL,
-                `created` DATETIME NOT NULL,
-                `updated` DATETIME NOT NULL
-                )
-                ";
 
-        $db->query($sql);
+        Octopus_DB_Schema_Model::makeTable('hammer');
+        Octopus_DB_Schema_Model::makeTable('nail');
+        Octopus_DB_Schema_Model::makeTable('sledgehammer');
 
-        $sql = "CREATE TABLE nails (
-                `nail_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                `name` varchar ( 255 ) NOT NULL,
-                `active` TINYINT NOT NULL
-                )
-                ";
-
-        $db->query($sql);
-
-        $sql = "CREATE TABLE sledgehammers (
-                `sledgehammer_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                `name` varchar ( 255 ) NOT NULL,
-                `favorite_nail_id` INT( 10 ) NOT NULL
-                )
-                ";
-
-        $db->query($sql);
     }
 
     function dropTables(&$db)
