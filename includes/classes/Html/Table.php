@@ -1320,6 +1320,33 @@ END;
         }
 
     }
+
+
+    /**
+     * Creates a new table from a model class.
+     */
+    public static function fromModel($modelClassOrResultSet, $options = array()) {
+
+        $modelClass = $modelClassOrResultSet;
+        $resultSet = null;
+
+        if ($modelClassOrResultSet instanceof Octopus_Model_ResultSet) {
+            $resultSet = $modelClassOrResultSet;
+            $modelClass = $resultSet->getModel();
+        }
+
+        $model = new $modelClass();
+        $table = new Octopus_Html_Table(camel_case($modelClass));
+
+        foreach($model->getFields() as $f) {
+            $table->addColumn($f->getFieldName());
+        }
+
+        if ($resultSet) $table->setDataSource($resultSet);
+
+        return $table;
+
+    }
 }
 
 
