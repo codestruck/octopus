@@ -21,10 +21,14 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
     }
 
     public function restrict($operator, $value, &$s, &$params, $model) {
+
         $type = strtolower(get_class($model));
         $joinTable = $this->getJoinTableName(array($this->field, $type));
         $s->innerJoin($joinTable, $model->to_id($type), array());
-        $sql = $this->defaultRestrict($model->to_id($this->field), $operator, $this->getDefaultSearchOperator(), $value, $s, $params, $model);
+
+        $foreignKey = $model->to_id($this->field);
+
+        $sql = $this->defaultRestrict(array($joinTable, $foreignKey), $operator, $this->getDefaultSearchOperator(), $value, $s, $params, $model);
         return $sql;
     }
 

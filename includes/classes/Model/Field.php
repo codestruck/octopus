@@ -144,8 +144,18 @@ abstract class Octopus_Model_Field {
      * A general-purpose implementation of restrict() that can be reused
      * in a static context. This is to support restricting by IDs, which don't
      * have associated Octopus_Model_Field instances.
+     * @param $fieldName Mixed The field being restricted OR an array whose
+     * first element is the table and second element is the field in that table
+     * being restricted.
      */
     public static function defaultRestrict($fieldName, $operator, $defaultOperator, $value, &$s, &$params, $model) {
+
+        if (is_array($fieldName)) {
+            $table = array_shift($fieldName);
+            $fieldName = array_shift($fieldName);
+        } else {
+            $table = $model->getTableName();
+        }
 
         if (!$operator) {
             $operator = is_array($value) ? 'IN' : $defaultOperator;
@@ -175,10 +185,10 @@ abstract class Octopus_Model_Field {
                 $expr .= ($expr == '' ? '' : ',') . '?';
             }
 
-            $expr = "(`$fieldName` IN ($expr))";
+            $expr = "(`$table`.`$fieldName` IN ($expr))";
         } else {
             $params[] = $value;
-            $expr = "(`$fieldName` $operator ?)";
+            $expr = "(`$table`.`$fieldName` $operator ?)";
         }
 
         if ($not) {
