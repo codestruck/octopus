@@ -213,7 +213,14 @@ abstract class Octopus_Model_Field {
      * Helper to support ordering by ids, which don't have associated fields.
      */
     public static function defaultOrderBy($resultSet, $s, $fieldName, $dir) {
-        $s->orderBy("`$fieldName` $dir");
+
+        // TODO YUCK
+        $class = $resultSet->getModel();
+        $dummy = new $class();
+        $table = $dummy->getTableName();
+
+
+        $s->orderBy("`$table`.`$fieldName` $dir");
     }
 
     /**

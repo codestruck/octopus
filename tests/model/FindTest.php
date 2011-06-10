@@ -179,7 +179,7 @@ class FindTest extends Octopus_DB_TestCase {
     function testOrderByID() {
 
         $posts = FindPost::all()->orderBy(array('id' => 'desc'));
-        $this->assertSqlEquals("SELECT * FROM find_posts ORDER BY `find_post_id` DESC", $posts);
+        $this->assertSqlEquals("SELECT * FROM find_posts ORDER BY `find_posts`.`find_post_id` DESC", $posts);
 
     }
 
@@ -381,23 +381,23 @@ class FindTest extends Octopus_DB_TestCase {
 
             $posts = $allPosts->orderBy("title $marker");
             $this->assertNotSame($posts, $allPosts, 'orderBy should return a new result set instance');
-            $this->assertSqlEquals("SELECT * FROM find_posts ORDER BY `title` $marker", $posts, $test);
+            $this->assertSqlEquals("SELECT * FROM find_posts ORDER BY `find_posts`.`title` $marker", $posts, $test);
 
             if ($marker) {
                 $test = "single item array, $marker";
                 $posts = $allPosts->orderBy(array('title' => $marker));
-                $this->assertSqlEquals("SELECT * FROM find_posts ORDER BY `title` $marker", $posts, $test);
+                $this->assertSqlEquals("SELECT * FROM find_posts ORDER BY `find_posts`.`title` $marker", $posts, $test);
             }
 
         }
 
         $test = 'multiple strings, varying direction markers';
         $posts = $allPosts->orderBy('title', 'created asc', 'updated desc');
-        $this->assertSqlEquals("SELECT * FROM find_posts ORDER BY `title` ASC, `created` ASC, `updated` DESC", $posts, $test);
+        $this->assertSqlEquals("SELECT * FROM find_posts ORDER BY `find_posts`.`title` ASC, `find_posts`.`created` ASC, `find_posts`.`updated` DESC", $posts, $test);
 
         $test = 'multi-item array, varying direction markers';
         $posts = $allPosts->orderBy(array('title', 'created' => 'asc', 'updated' => 'desc'));
-        $this->assertSqlEquals("SELECT * FROM find_posts ORDER BY `title` ASC, `created` ASC, `updated` DESC", $posts, $test);
+        $this->assertSqlEquals("SELECT * FROM find_posts ORDER BY `find_posts`.`title` ASC, `find_posts`.`created` ASC, `find_posts`.`updated` DESC", $posts, $test);
     }
 
     function testDetectRegex() {
