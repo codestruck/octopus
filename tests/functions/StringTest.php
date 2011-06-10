@@ -254,6 +254,8 @@ class StringTests extends PHPUnit_Framework_TestCase
             array_map('underscore', $ar)
         );
 
+        $this->assertEquals('foo/bar', underscore('fooBar', '/'));
+
     }
 
 

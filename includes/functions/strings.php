@@ -316,10 +316,10 @@
     /**
      * Converts a camelCased string to an underscore_separated_string
      */
-    function underscore($s) {
+    function underscore($s, $sep = '_') {
 
-        $s = preg_replace('/([a-z])([A-Z]+)/', '$1_$2', $s);
-        $s = preg_replace('/[\s_-]+/', '_', $s);
+        $s = preg_replace('/([a-z])([A-Z]+)/', '$1' . $sep . '$2', $s);
+        $s = preg_replace('/[\s_-]+/', $sep, $s);
         return strtolower($s);
 
     }
