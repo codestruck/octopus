@@ -229,6 +229,27 @@ class StringTests extends PHPUnit_Framework_TestCase
 
     }
 
+    function testUnderscore() {
+
+        $tests = array(
+
+            '' => '',
+            'foo' => 'foo',
+            'FooBar' => 'foo_bar',
+            'fooBar' => 'foo_bar',
+            'Foo__bar' => 'foo_bar',
+            'foo-BAR' => 'foo_bar',
+            'FOOBAR' => 'foobar'
+
+        );
+
+        foreach($tests as $input => $expected) {
+            $this->assertEquals($expected, underscore($input), "Failed on '$input'");
+        }
+
+
+    }
+
 
 }
 

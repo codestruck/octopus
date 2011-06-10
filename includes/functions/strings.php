@@ -319,7 +319,7 @@
     function underscore($s) {
 
         $s = preg_replace('/([a-z])([A-Z]+)/', '$1_$2', $s);
-        $s = preg_replace('/\s+/', '_', $s);
+        $s = preg_replace('/[\s_-]+/', '_', $s);
         return strtolower($s);
 
     }
