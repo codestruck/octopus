@@ -310,8 +310,11 @@ class Octopus_App {
         return $this->_options['HTTP_HOST'];
     }
 
-    public function getOption($name, $default = null) {
-        return isset($this->_options[$name]) ? $this->_options[$name] : $default;
+    /**
+     * @deprecated Use getSetting instead.
+     */
+    public function getOption($name) {
+        return $this->getSetting($name);
     }
 
     /**
@@ -385,11 +388,21 @@ class Octopus_App {
     }
 
     /**
+     * Gets the value of a setting. First checks the $options array passed to
+     * the app's constructor, then consults the more robust app settings class.
      * @param $name String The name of the setting to get the value for.
      * @return Mixed the value of a setting.
      */
     public function getSetting($name) {
-        return $this->_settings->get($name);
+
+        if (isset($this->_options[$name])) {
+            return $this->_options[$name];
+        } else if (isset(self::$defaults[$name])) {
+            return self::$defaults[$name];
+        } else {
+            return $this->_settings->get($name);
+        }
+
     }
 
     /**
