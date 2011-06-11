@@ -154,8 +154,9 @@
     }
 
     /**
-     * On case-sensitive filesystems, returns the actual name of the given file.
-     * @return Mixed The actual full filename if found, otherwise false.
+     * Determines the actual, real name of $file. Emulates a case-insensitive
+     * file system.
+     * @return Mixed The actual full filename (correct case) if found, otherwise false.
      */
     function get_true_filename($file) {
 
@@ -165,17 +166,91 @@
 
         $info = pathinfo(realpath($file));
 
-        $pattern = ($info['extension'] ? '*.' . $info['extension'] : '*');
+        $dirs = explode('/', $info['dirname']);
+        $fullDir = '';
 
-        foreach(glob($info['dirname'] . '/' . $pattern) as $f) {
+        foreach($dirs as $dir) {
 
+            if ($fullDir) {
+                foreach(_glob_for_candidates($fullDir, $dir, '') as $candidate) {
+                    $candidate = basename($candidate);
+                    if (strcasecmp($candidate, $dir) == 0) {
+                        $dir = $candidate;
+                        break;
+                    }
+                }
+            }
+            $fullDir .= $dir . '/';
+        }
+
+        $basename = $info['basename'];
+        $ext = $info['extension'];
+
+        foreach(_glob_for_candidates($fullDir, $basename, $ext) as $f) {
             $f = basename($f);
-            if (strcasecmp($f, $info['basename']) == 0) {
-                return $info['dirname'] . '/' . $f;
+            if (strcasecmp($f, $basename) == 0) {
+                return $fullDir . $f;
             }
         }
 
         return $file;
+    }
+
+    function _glob_for_candidates($dir, $file, $ext) {
+
+        $pattern = '';
+
+        // Use the first 3 chars to limit scope
+        $pattern .= _globify($file, 3);
+        $pattern .= '*';
+
+        if ($ext) {
+            $pattern .= '.';
+            $pattern .= _globify($ext);
+        }
+
+        return glob($dir . $pattern);
+    }
+
+    function _globify($str, $maxLen = 0) {
+
+        $len = strlen($str);
+        $result = '';
+
+        for($i = 0; (!$maxLen) || $i < $maxLen; $i++) {
+
+            if ($i >= $len) {
+                break;
+            }
+
+            $uc = strtoupper(substr($str, $i, 1));
+            $lc = strtolower($uc);
+
+            if ($lc == '[') {
+                $result .= '[\\' . $lc . ']';
+            } else if ($lc == $uc) {
+                $result .= $lc;
+            } else {
+                $result .= '[' . $uc . $lc . ']';
+            }
+        }
+
+        return $result;
+
+    }
+
+    /**
+     * Creates all directories necessary, and then touches the given file.
+     */
+    function recursive_touch($file) {
+
+        $dirs = explode('/', $file);
+        $file = array_pop($dirs);
+        $dir = implode('/', $dirs);
+
+        @mkdir($dir, 0777, true);
+        return touch($dir . '/' . $file);
+
     }
 
 ?>
