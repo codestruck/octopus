@@ -125,7 +125,7 @@ class Octopus_Dispatcher {
     protected function render($controller, $data, $request, $response) {
 
         $templateFile = $this->findTemplateForRender($controller, $request);
-        $viewFile = $this->findViewForRender($controller, $request, $response);
+        $viewFile = $this->findViewForRender($controller, $request, $response, $data);
 
         $viewContent = $templateContent = '';
 
@@ -152,17 +152,39 @@ class Octopus_Dispatcher {
 
     }
 
-    private function findViewForRender($controller, $request, $response) {
+    private function findViewForRender($controller, $request, $response, &$data) {
+
+        Octopus::loadClass('Octopus_View_Finder');
+        $finder = new Octopus_View_Finder();
 
         if ($response->isForbidden()) {
-            $info = $this->_app->findView('sys/forbidden');
+            $info = $finder->findView('sys/forbidden', $this->_app);
         } else if (!empty($controller->view)) {
-            $info = $this->_app->findView($controller->view);
+            $info = $finder->findView($controller->view, $this->_app);
         } else {
-            $info = $this->_app->findView($request);
+            $info = $finder->findView($request, null);
         }
 
         if ($info && !empty($info['file'])) {
+
+            if (!$info['found'] && $this->_app->isDevEnvironment()) {
+                // View wasn't found, so provide some extra data for the 'view not found' view.
+                $data = array(
+                    'controller_data' => $data,
+                    'path' => $request->getPath(),
+                    'resolved_path' => $request->getResolvedPath()
+                );
+
+                if ($response->isForbidden()) {
+                    $data['view_paths'] = $finder->getViewPaths('sys/forbidden', $this->_app);
+                } else if (!empty($controller->view)) {
+                    $data['view_paths'] = $finder->getViewPaths($controller->view, $this->_app);
+                } else {
+                    $data['view_paths'] = $finder->getViewPaths($request, null);
+                }
+
+            }
+
             return $info['file'];
         }
 

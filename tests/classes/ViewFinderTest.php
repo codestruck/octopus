@@ -4,6 +4,50 @@ Octopus::loadClass('Octopus_View_Finder');
 
 class ViewFinderTest extends Octopus_App_TestCase {
 
+    function testFindViewsInSubdir() {
+
+        $app = $this->startApp();
+
+        $this->createControllerFile('test/ViewsInSubdir');
+        $viewFile = $this->createViewFile('test/views_in_subdir/index.php');
+
+        $tests = array(
+            '/test/views-in-subdir',
+            '/test/views-in-subdir/',
+            '/test/views-in-subdir/index',
+        );
+
+        foreach($tests as $path) {
+
+            $req = $app->createRequest($path);
+            $this->assertViewInfoMatches($viewFile, $req);
+
+        }
+
+    }
+
+    function testFindUnderscoreControllerViewsInSubdir() {
+
+        $app = $this->startApp();
+
+        $this->createControllerFile('Test_UnderscoreViewsInSubdir');
+        $viewFile = $this->createViewFile('test/underscore_views_in_subdir/index.php');
+
+        $tests = array(
+            '/test/underscore-views-in-subdir',
+            '/test/underscore-views-in-subdir/',
+            '/test/underscore-views-in-subdir/index',
+        );
+
+        foreach($tests as $path) {
+
+            $req = $app->createRequest($path);
+            $this->assertViewInfoMatches($viewFile, $req);
+
+        }
+
+    }
+
     function testFindViewsForDashedNames() {
 
         $app = $this->startApp();

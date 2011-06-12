@@ -219,8 +219,7 @@ class Octopus_Request {
 
         foreach($directoriesToSearch as $dir) {
 
-            if (self::searchForController($dir, '/', $pathParts, $file, $potential_names, $action, $args) ||
-                self::searchForController($dir, '_', $pathParts, $file, $potential_names, $action, $args)) {
+            if (self::searchForController($dir, array('/','_'), $pathParts, $file, $potential_names, $action, $args)) {
 
                 $original_action = $action;
                 if (!$action) {
@@ -237,7 +236,7 @@ class Octopus_Request {
         return $result;
     }
 
-    private static function searchForController($dir, $sep, &$pathParts, &$file, &$potentialNames, &$action, &$args) {
+    private static function searchForController($dir, $seps, &$pathParts, &$file, &$potentialNames, &$action, &$args) {
 
         $potentialNames = array();
         $args = array();
@@ -263,9 +262,12 @@ class Octopus_Request {
             $lParts = array_map('strtolower', $camelParts);
 
             $toTry = array();
-            $toTry[implode($sep, $usParts)] = true;
-            $toTry[implode($sep, $camelParts)] = true;
-            $toTry[implode($sep, $lParts)] = true;
+            foreach($seps as $sep) {
+                $toTry[implode($sep, $usParts)] = true;
+                $toTry[implode($sep, $camelParts)] = true;
+                $toTry[implode($sep, $lParts)] = true;
+            }
+
 
             foreach($toTry as $name => $unused) {
 

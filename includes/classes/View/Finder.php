@@ -6,23 +6,11 @@
 class Octopus_View_Finder {
 
     /**
-     * @return View info for the given request.
-     * @see getView
+     * @return Array An array of all the paths a view for $path could live,
+     * in order of priority.
      */
-    public function findViewForRequest($request) {
-
-        $c = $request->getControllerInfo();
-
-        if (!$c || empty($c['file'])) {
-            return $this->findViewForPath($request->getPath());
-        }
-
-        $controllerFile = $c['file'];
-        $controllerClass = $request->getControllerClass();
-
-        $candidates = $this->buildCandidateViewList($request);
-
-        return $this->findView($candidates, $request->getApp());
+    public function getViewPaths($path, $app) {
+        return $this->internalGetViewPaths($path, $app, false);
     }
 
     /**
@@ -45,12 +33,25 @@ class Octopus_View_Finder {
         return $this->findViewFile('sys/view_not_found', $app);
     }
 
-    /**
-     * @param $view Mixed A view string (e.g. 'controller/action') or an array
-     * of candidate view strings.
-     * @return Mixed Full path to a view file, or false if none is found.
-     */
-    protected function findViewFile($view, $app) {
+    private function internalGetViewPaths($view, &$app, $returnFirstValid) {
+
+        if ($view instanceof Octopus_Request) {
+
+            $request = $view;
+            $app = $request->getApp();
+
+            $c = $request->getControllerInfo();
+
+            if (!$c || empty($c['file'])) {
+                // TODO: Does this make sense?
+                $view = $request->getPath();
+            } else {
+                $controllerFile = $c['file'];
+                $controllerClass = $request->getControllerClass();
+
+                $view = $this->buildCandidateViewList($request);
+            }
+        }
 
         $views = is_array($view) ? $view : array($view);
 
@@ -61,11 +62,11 @@ class Octopus_View_Finder {
 
         $extensions = $app->getSetting('view_extensions');
 
+        $result = array();
+
         foreach($searchDirs as $d) {
 
-            while($views) {
-
-                $view = trim(array_shift($views));
+            foreach($views as $view) {
 
                 if (!$view) {
                     continue;
@@ -74,8 +75,11 @@ class Octopus_View_Finder {
                 if (strncmp($view, '/', 1) == 0) {
 
                     // This is an absolute path
-                    if ($file = get_true_filename($view)) {
-                        return $file;
+                    if ($returnFirstValid && ($f = get_true_filename($view))) {
+                        return $f;
+                    } else {
+                        $result[$f] = true;
+                        continue;
                     }
 
                 }
@@ -86,15 +90,31 @@ class Octopus_View_Finder {
 
                     $file = $d . $view . $ext;
 
-                    if ($file = get_true_filename($file)) {
-                        return $file;
+                    if ($returnFirstValid && ($f = get_true_filename($file))) {
+                        return $f;
+                    } else {
+                        $result[$file] = true;
+                        continue;
                     }
 
                 }
             }
         }
 
-        return false;
+        if ($returnFirstValid) {
+            return false;
+        }
+
+        return array_keys($result);
+    }
+
+    /**
+     * @param $view Mixed A view string (e.g. 'controller/action') or an array
+     * of candidate view strings.
+     * @return Mixed Full path to a view file, or false if none is found.
+     */
+    protected function findViewFile($view, &$app) {
+        return $this->internalGetViewPaths($view, $app, true);
     }
 
     /**
@@ -108,11 +128,6 @@ class Octopus_View_Finder {
      *  </dl>
      */
     public function &findView($view, $app) {
-
-        if ($view instanceof Octopus_Request) {
-            $result = $this->findViewForRequest($view);
-            return $result;
-        }
 
         $file = $this->findViewFile($view, $app);
         $found = !!$file;
@@ -148,6 +163,7 @@ class Octopus_View_Finder {
             $controller = preg_replace('/(.*)(Controller)?$/', '$1', $class);
         }
 
+        $controller = str_replace('_', '/', $controller);
         $controller = explode('/', $controller);
         $controller = array_map('underscore', $controller);
         $controller = implode('/', $controller);

@@ -146,6 +146,30 @@ abstract class Octopus_App_TestCase extends PHPUnit_Framework_TestCase {
         return $this->app = Octopus_App::start($options);
     }
 
+
+    protected function assertControllerInfoMatches($expected, $info, $path = null) {
+
+        if ($info instanceof Octopus_Request) {
+            $path = $info->getPath();
+            $info = $info->getControllerInfo();
+        }
+
+        if (is_string($expected)) {
+            $expected = array('file' => $expected);
+        }
+
+        if ($expected === false) {
+            $this->assertFalse($info, "Failed on '$path'");
+            return;
+        }
+
+        $this->assertTrue(is_array($info), "\$info was not an array. Failed on '$path'");
+
+        foreach($expected as $key => $value) {
+            $this->assertEquals($value, $info[$key], "Failed on '$key' for path '$path'");
+        }
+    }
+
 }
 
 ?>

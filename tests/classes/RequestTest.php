@@ -2,6 +2,7 @@
 
 class RequestTest extends Octopus_App_TestCase {
 
+
     function testPreservePathTrailingSlash() {
 
         $app = $this->startApp();
@@ -44,38 +45,51 @@ class RequestTest extends Octopus_App_TestCase {
 
         $app = $this->startApp();
 
-        $controllerFile = $app->getOption('SITE_DIR') . 'controllers/Simple.php';
-        touch($controllerFile);
+        $controllerFile = $this->createControllerFile('FindController');
 
         $tests = array(
-           '/simple' => array('file' => $controllerFile, 'potential_names' => array('SimpleController'), 'action' => 'index', 'original_action' => '', 'args' => array()),
-           '/simple/index/foo/bar' => array('file' => $controllerFile, 'potential_names' => array('SimpleController'), 'action' => 'index', 'original_action' => 'index', 'args' => array('foo', 'bar')),
-           '/simple/index' => array('file' => $controllerFile, 'potential_names' => array('SimpleController'), 'action' => 'index', 'original_action' => 'index', 'args' => array()),
-           '/simple/view/57' => array('file' => $controllerFile, 'potential_names' => array('SimpleController'), 'action' => 'view', 'original_action' => 'view', 'args' => array(57)),
-           '/simple/view/andedit/57' => array('file' => $controllerFile, 'potential_names' => array('SimpleController'), 'action' => 'view', 'original_action' => 'view', 'args' => array('andedit', 57)),
+           '/find-controller' => array('file' => $controllerFile, 'potential_names' => array('Find_ControllerController', 'FindControllerController'), 'action' => 'index', 'original_action' => '', 'args' => array()),
+           '/find-controller/index/foo/bar' => array('file' => $controllerFile, 'potential_names' => array('Find_ControllerController', 'FindControllerController'), 'action' => 'index', 'original_action' => 'index', 'args' => array('foo', 'bar')),
+           '/find-controller/index' => array('file' => $controllerFile, 'potential_names' => array('Find_ControllerController', 'FindControllerController'), 'action' => 'index', 'original_action' => 'index', 'args' => array()),
+           '/find-controller/view/57' => array('file' => $controllerFile, 'potential_names' => array('Find_ControllerController', 'FindControllerController'), 'action' => 'view', 'original_action' => 'view', 'args' => array(57)),
+           '/find-controller/view/andedit/57' => array('file' => $controllerFile, 'potential_names' => array('Find_ControllerController', 'FindControllerController'), 'action' => 'view', 'original_action' => 'view', 'args' => array('andedit', 57)),
         );
 
         foreach($tests as $path => $expected) {
 
             $req = $app->createRequest($path);
-
-            $this->assertEquals(
-                $expected,
-                $req->getControllerInfo(),
-                "Failed on '$path'"
-            );
+            $this->assertControllerInfoMatches($expected, $req);
 
         }
 
+    }
+
+    function testFindMostSpecificController() {
+
+        $app = $this->startApp();
+        $baseFile = $this->createControllerFile('MSBase');
+        $childFile = $this->createControllerFile('MSBase_Child');
+
+        $tests = array(
+            '/msbase' => $baseFile,
+            '/msbase/index' => $baseFile,
+            '/msbase/child' => $childFile,
+            '/msbase/child/index' => $childFile
+        );
+
+        foreach($tests as $path => $expected) {
+
+            $req = $app->createRequest($path);
+            $this->assertControllerInfoMatches($expected, $req);
+
+        }
     }
 
     function testFindControllerInSubdir() {
 
         $app = $this->startApp();
 
-        $controllerFile = $app->getOption('SITE_DIR') . 'controllers/api/1/Deep.php';
-        mkdir(dirname($controllerFile), 0777, true);
-        touch($controllerFile);
+        $controllerFile = $this->createControllerFile('api/1/Deep');
 
         $tests = array(
            '/api/1/deep' => array('file' => $controllerFile, 'potential_names' => array('Api_1_DeepController', 'Api1DeepController', 'DeepController'), 'action' => 'index', 'original_action' => '', 'args' => array()),
@@ -93,24 +107,7 @@ class RequestTest extends Octopus_App_TestCase {
 
     }
 
-    function assertControllerInfoMatches($expected, $info, $path = null) {
 
-        if ($info instanceof Octopus_Request) {
-            $path = $info->getPath();
-            $info = $info->getControllerInfo();
-        }
-
-        if ($expected === false) {
-            $this->assertFalse($info, "Failed on '$path'");
-            return;
-        }
-
-        $this->assertTrue(is_array($info), "\$info was not an array. Failed on '$path'");
-
-        foreach($expected as $key => $value) {
-            $this->assertEquals($value, $info[$key], "Failed on '$key' for path '$path'");
-        }
-    }
 
     function testFindDasherizedControllers() {
 
