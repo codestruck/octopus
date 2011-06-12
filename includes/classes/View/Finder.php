@@ -172,7 +172,7 @@ class Octopus_View_Finder {
         $controller = array_map('underscore', $controller);
         $controller = implode('/', $controller);
 
-        $action = $request->getAction();
+        $action = underscore($request->getAction());
 
         $parts = explode('/', $controller);
         $count = count($parts);

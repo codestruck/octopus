@@ -72,6 +72,27 @@ class ViewFinderTest extends Octopus_App_TestCase {
         }
     }
 
+    function testFindUnderscoreViews() {
+
+        $app = $this->startApp();
+
+        $this->createControllerFile('UnderscoreView');
+        $this->createViewFile(array('underscore_view/my_action'));
+
+        $tests = array(
+            '/underscore-view/my-action' => 'underscore_view/my_action.php'
+        );
+
+        foreach($tests as $path => $expected) {
+
+            $req = $app->createRequest($path);
+            $this->assertViewInfoMatches($app->SITE_DIR . 'views/' . $expected, $req);
+
+        }
+
+
+    }
+
     function testSimpleViewDiscovery() {
 
         $app = $this->startApp();
