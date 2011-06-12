@@ -163,14 +163,18 @@ class Octopus_View_Finder {
             $controller = preg_replace('/(.*)(Controller)?$/', '$1', $class);
         }
 
-        $controller = str_replace('_', '/', $controller);
-        $controller = explode('/', $controller);
+        if (strpos($controller, '/') === false) {
+            $controller = explode('_', $controller);
+        } else {
+            $controller = explode('/', $controller);
+        }
+
         $controller = array_map('underscore', $controller);
         $controller = implode('/', $controller);
 
         $action = $request->getAction();
 
-        $parts = explode('_', $controller);
+        $parts = explode('/', $controller);
         $count = count($parts);
         if ($action) $count++;
 
@@ -178,7 +182,7 @@ class Octopus_View_Finder {
 
         while($count) {
 
-            $path = $parts ? implode('_', $parts) : '';
+            $path = $parts ? implode('/', $parts) : '';
 
             if ($action) {
                 $path .= ($path ? '/' : '') . $action;
