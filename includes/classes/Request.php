@@ -359,7 +359,7 @@ class Octopus_Request {
 
                 // The remaining path does not refer to a valid controller
                 if (is_numeric($nextAction)) {
-                    array_unshift($args, $action);
+                    if ($action !== null) array_unshift($args, $action);
                     array_unshift($args, $nextAction);
                     $action = null;
                 } else {

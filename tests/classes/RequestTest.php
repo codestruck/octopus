@@ -141,9 +141,10 @@ class RequestTest extends Octopus_App_TestCase {
         $controllerFile = $this->createControllerFile('1/InvalidActionBecomesArg');
 
         $tests = array(
-           //'/1/invalid-action-becomes-arg/57' => array('file' => $controllerFile, 'action' => 'index', 'args' => array(57)),
-           //'/1/invalid-action-becomes-arg/index/57' => array('file' => $controllerFile, 'action' => 'index', 'args' => array(57)),
-           '/1/invalid-action-becomes-arg/57/edit/90' => array('file' => $controllerFile, 'action' => 'edit', 'args' => array(57, 90))
+           '/1/invalid-action-becomes-arg/57' => array('file' => $controllerFile, 'action' => 'index', 'args' => array(57)),
+           '/1/invalid-action-becomes-arg/index/57' => array('file' => $controllerFile, 'action' => 'index', 'args' => array(57)),
+           '/1/invalid-action-becomes-arg/57/edit/90' => array('file' => $controllerFile, 'action' => 'edit', 'args' => array(57, 90)),
+           '/1/invalid-action-becomes-arg/remove/57/90' => array('file' => $controllerFile, 'action' => 'remove', 'args' => array(57, 90))
         );
 
         foreach($tests as $path => $expected) {
