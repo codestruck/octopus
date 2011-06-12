@@ -236,7 +236,54 @@ class Octopus_Request {
         return $result;
     }
 
-    private static function searchForController($dir, $seps, &$pathParts, &$file, &$potentialNames, &$action, &$args) {
+    private static function scanForControllerFile($dir, $seps, &$pathParts, &$potentialNames) {
+
+        $potentialNames = array();
+
+        $usParts = array_map('underscore', $pathParts);
+
+        $camelParts = array();
+        foreach($usParts as $p) {
+            $camelParts[] = camel_case($p, true);
+        }
+
+        $lParts = array_map('strtolower', $camelParts);
+
+        $toTry = array();
+        foreach($seps as $sep) {
+            $toTry[implode($sep, $usParts)] = true;
+            $toTry[implode($sep, $camelParts)] = true;
+            $toTry[implode($sep, $lParts)] = true;
+        }
+
+        foreach($toTry as $name => $unused) {
+
+            $file = $dir . $name . '.php';
+            $file = get_true_filename($file);
+
+            if ($file) {
+
+                // Found it!
+                $fullName = empty($pathParts) ? $name : implode(' ', $pathParts);
+                $fullName = preg_replace('#[\s-_/]+#', ' ', $fullName);
+                $fullName = ucwords($fullName);
+
+                $potentialNames[str_replace(' ', '_', $fullName) . 'Controller'] = true;
+                $potentialNames[str_replace(' ', '', $fullName) . 'Controller'] = true;
+                $potentialNames[camel_case(array_pop($usParts), true) . 'Controller'] = true;
+
+                $potentialNames = array_keys($potentialNames);
+
+                return $file;
+            }
+
+        }
+
+        return false;
+
+    }
+
+    private static function searchForController($dir, $seps, $pathParts, &$file, &$potentialNames, &$action, &$args) {
 
         $potentialNames = array();
         $args = array();
@@ -248,55 +295,79 @@ class Octopus_Request {
          *  mycontroller.php
          */
 
-        $parts = $pathParts;
+        while(!empty($pathParts)) {
 
-        while(!empty($parts)) {
+            $file = self::scanForControllerFile($dir, $seps, $pathParts, $potentialNames);
 
-            $usParts = array_map('underscore', $parts);
-
-            $camelParts = array();
-            foreach($usParts as $p) {
-                $camelParts[] = camel_case($p, true);
+            if ($file) {
+                return true;
             }
 
-            $lParts = array_map('strtolower', $camelParts);
-
-            $toTry = array();
-            foreach($seps as $sep) {
-                $toTry[implode($sep, $usParts)] = true;
-                $toTry[implode($sep, $camelParts)] = true;
-                $toTry[implode($sep, $lParts)] = true;
+            if ($action !== null) {
+                array_unshift($args, $action);
             }
 
+            /* This is to support mapping e.g.:
+             *      path/to/controller/57
+             * to:
+             *      path/to/controller/index/57
+             *
+             * or:
+             *      path/to/controller/57/subaction/9
+             * to:
+             *      path/to/controller/subaction/57/9
+             *
+             * Since '57' cannot possibly be an action, it gets
+             * shuffled over to the args array.
+             */
 
-            foreach($toTry as $name => $unused) {
+             while($pathParts) {
 
-                $file = $dir . $name . '.php';
-                $file = get_true_filename($file);
+                $action = array_pop($pathParts);
+
+                if (is_numeric($action)) {
+                    array_unshift($args, $action);
+                    $action = null;
+                }
+
+                $file = self::scanForControllerFile($dir, $seps, $pathParts, $potentialNames);
 
                 if ($file) {
+                    return true;
+                }
 
-                    // Found it!
-                    $fullName = empty($parts) ? $name : implode(' ', $parts);
-                    $fullName = preg_replace('#[\s-_/]+#', ' ', $fullName);
-                    $fullName = ucwords($fullName);
+                if (!$pathParts) {
+                    return false;
+                }
 
-                    $potentialNames[str_replace(' ', '_', $fullName) . 'Controller'] = true;
-                    $potentialNames[str_replace(' ', '', $fullName) . 'Controller'] = true;
-                    $potentialNames[camel_case(array_pop($usParts), true) . 'Controller'] = true;
+                $nextAction = array_pop($pathParts);
+                $file = self::scanForControllerFile($dir, $seps, $pathParts, $potentialNames);
 
-                    $potentialNames = array_keys($potentialNames);
+                if ($file) {
+                    // This is actually a valid path, sort out action etc
+                    if (is_numeric($nextAction)) {
+                        array_unshift($args, $nextAction);
+                        $nextAction = null;
+                    } else {
+                        if ($action !== null) array_unshift($args, $action);
+                        $action = $nextAction;
+                        $nextAction = null;
+                    }
 
                     return true;
                 }
 
+                // The remaining path does not refer to a valid controller
+                if (is_numeric($nextAction)) {
+                    array_unshift($args, $action);
+                    array_unshift($args, $nextAction);
+                    $action = null;
+                } else {
+                    array_push($pathParts, $nextAction);
+                    break;
+                }
             }
 
-            $newAction = array_pop($parts);
-            if ($action !== null) {
-                array_unshift($args, $action);
-            }
-            $action = $newAction;
         }
 
         return false;

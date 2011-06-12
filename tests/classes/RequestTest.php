@@ -48,11 +48,13 @@ class RequestTest extends Octopus_App_TestCase {
         $controllerFile = $this->createControllerFile('FindController');
 
         $tests = array(
+            /*
            '/find-controller' => array('file' => $controllerFile, 'potential_names' => array('Find_ControllerController', 'FindControllerController'), 'action' => 'index', 'original_action' => '', 'args' => array()),
            '/find-controller/index/foo/bar' => array('file' => $controllerFile, 'potential_names' => array('Find_ControllerController', 'FindControllerController'), 'action' => 'index', 'original_action' => 'index', 'args' => array('foo', 'bar')),
            '/find-controller/index' => array('file' => $controllerFile, 'potential_names' => array('Find_ControllerController', 'FindControllerController'), 'action' => 'index', 'original_action' => 'index', 'args' => array()),
            '/find-controller/view/57' => array('file' => $controllerFile, 'potential_names' => array('Find_ControllerController', 'FindControllerController'), 'action' => 'view', 'original_action' => 'view', 'args' => array(57)),
-           '/find-controller/view/andedit/57' => array('file' => $controllerFile, 'potential_names' => array('Find_ControllerController', 'FindControllerController'), 'action' => 'view', 'original_action' => 'view', 'args' => array('andedit', 57)),
+           */
+           '/find-controller/view//57/andedit' => array('file' => $controllerFile, 'potential_names' => array('Find_ControllerController', 'FindControllerController'), 'action' => 'view', 'original_action' => 'view', 'args' => array(57, 'andedit')),
         );
 
         foreach($tests as $path => $expected) {
@@ -109,7 +111,7 @@ class RequestTest extends Octopus_App_TestCase {
 
 
 
-    function testFindDasherizedControllers() {
+    function testFindDashedControllers() {
 
         $app = $this->startApp();
 
@@ -132,15 +134,16 @@ class RequestTest extends Octopus_App_TestCase {
 
     }
 
-    function xtestInvalidActionBecomesArg() {
+    function testInvalidActionBecomesArg() {
 
         $app = $this->startApp();
 
-        $controllerFile = $this->createControllerFile('InvalidActionBecomesArg');
+        $controllerFile = $this->createControllerFile('1/InvalidActionBecomesArg');
 
         $tests = array(
-           '/invalid-action-becomes-arg/57' => array('file' => $controllerFile, 'action' => 'index', 'args' => array(57)),
-           '/invalid-action-becomes-arg/index/57' => array('file' => $controllerFile, 'action' => 'index', 'args' => array(57))
+           //'/1/invalid-action-becomes-arg/57' => array('file' => $controllerFile, 'action' => 'index', 'args' => array(57)),
+           //'/1/invalid-action-becomes-arg/index/57' => array('file' => $controllerFile, 'action' => 'index', 'args' => array(57)),
+           '/1/invalid-action-becomes-arg/57/edit/90' => array('file' => $controllerFile, 'action' => 'edit', 'args' => array(57, 90))
         );
 
         foreach($tests as $path => $expected) {
@@ -151,15 +154,15 @@ class RequestTest extends Octopus_App_TestCase {
 
     }
 
-    function xtestFindApiControllers() {
+    function testFindApiControllers() {
 
         $app = $this->startApp();
 
         $controllerFile = $this->createControllerFile('api/1/FindApiTest');
 
         $tests = array(
+            '/api/1/find-api-test/57' => array('file' => $controllerFile, 'action' => 'index', 'args' => array(57)),
            '/api/1/find-api-test/view/57' => array('file' => $controllerFile, 'action' => 'view', 'args' => array(57)),
-           '/api/1/find-api-test/57' => array('file' => $controllerFile, 'action' => '', 'args' => array(57))
         );
 
         foreach($tests as $path => $expected) {
