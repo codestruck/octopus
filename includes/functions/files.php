@@ -240,7 +240,8 @@
     }
 
     /**
-     * Creates all directories necessary, and then touches the given file.
+     * Creates all directories necessary, and then touches the given file. Also,
+     * the function name sounds slightly dirty.
      */
     function recursive_touch($file) {
 

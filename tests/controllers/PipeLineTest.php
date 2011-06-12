@@ -138,15 +138,9 @@ END
 
     function testRedirectToAddSlashOnIndex() {
 
-        file_put_contents(
-            $this->siteDir . '/controllers/add_slash_test.php',
-            '<?php
-                class AddSlashTestController extends Octopus_Controller {
-                }
-             ?>'
-        );
-
         $app = $this->startApp();
+
+        $this->createControllerFile('AddSlashTest');
 
         $resp = $app->getResponse('/add-slash-test', true);
 

@@ -18,9 +18,9 @@ Forms
 
 Misc Ideas
 - dependency injection / class binding?
-    echo $app->getBinding('View_Finder');
+    echo Octopus::getBinding('View_Finder');
     > Octopus_View_Finder
-    $app->bind('View_Finder', 'My_Custom_View_Finder_Class');
-    echo $app->getClass('View_Finder')
+    Octopus::bind('View_Finder', 'My_Custom_View_Finder_Class');
+    echo Octopus::loadClass('View_Finder')
     > 'My_Custom_View_Finder_Class'
-    $app->create('View_Finder')
+    Octopus::create('View_Finder')

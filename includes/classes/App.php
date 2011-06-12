@@ -54,6 +54,11 @@ class Octopus_App {
 
         'session_name' => 'octopus',
 
+        /**
+         * Extensions that view files can have.
+         */
+        'view_extensions' => array('.php', '.tpl')
+
     );
 
     private static $_instance = null;
@@ -80,6 +85,21 @@ class Octopus_App {
         $this->_ensurePrivateDir();
         $this->_initSettings();
 
+    }
+
+    public function __get($name) {
+
+        if (isset($this->_options[$name])) {
+            return $this->_options[$name];
+        } else if (isset(self::$defaults[$name])) {
+            return self::$defaults[$name];
+        }
+
+        throw new Octopus_Exception("Can't read key $name on Octopus_App");
+    }
+
+    public function __isset($name) {
+        return isset($this->_options[$name]) || isset(self::$defaults[$name]);
     }
 
     private function _loadSystemModels() {
@@ -133,6 +153,33 @@ class Octopus_App {
         $nav = $this->getNav();
         $nav->alias($what, $toWhat);
         return $this;
+    }
+
+    /**
+     * Locates a view to use for the given request.
+     * @return Array A view info array.
+     * @see Octopus_View_Finder::findView()
+     */
+    public function findView($req) {
+
+        Octopus::loadClass('Octopus_View_Finder');
+        $finder = new Octopus_View_Finder();
+
+        return $finder->findView($req, $this);
+    }
+
+    /**
+     * @return Array An array of the effective app settings.
+     */
+    public function &getAllSettings() {
+
+        $result = self::$defaults;
+        $result = array_merge($result, $this->_options);
+
+        $settings = $this->getSettings()->toArray();
+        $result  = array_merge($result, $settings);
+
+        return $result;
     }
 
     /**
@@ -375,7 +422,7 @@ class Octopus_App {
      * @param $options Array Options for this request.
      * @return Object An <b>Octopus_Request</b> instance.
      */
-    protected function createRequest($path, $options) {
+    public function createRequest($path, $options = array()) {
 
         $originalPath = $path;
 
