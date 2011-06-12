@@ -144,16 +144,14 @@ END
 
         $expected = array(
 
-            'form' => array(
-                'open_tag' => '<form id="toArray" method="post">',
-                'close_tag' => '</form>',
-                'attributes' => 'id="toArray" method="post"',
-                'id' => 'toArray',
-                'method' => 'post',
-                'valid' => false,
-                'errors' => array('Name is required.'),
-                'fields' => array()
-            ),
+            'open_tag' => '<form id="toArray" method="post">',
+            'close_tag' => '</form>',
+            'attributes' => 'id="toArray" method="post"',
+            'id' => 'toArray',
+            'method' => 'post',
+            'valid' => false,
+            'errors' => array('Name is required.'),
+            'fields' => array(),
 
             'name' => array(
 
@@ -171,7 +169,7 @@ END
             )
         );
 
-        $expected['form']['fields']['name'] = $expected['name'];
+        $expected['fields']['name'] = $expected['name'];
 
 
         $this->assertEquals(
@@ -183,16 +181,14 @@ END
 
         $expected = array(
 
-                'form' => array(
-                    'open_tag' => '<form id="toArray" method="post">',
-                    'close_tag' => '</form>',
-                    'attributes' => 'id="toArray" method="post"',
-                    'id' => 'toArray',
-                    'method' => 'post',
-                    'valid' => true,
-                    'errors' => array(),
-                    'fields' => array()
-                ),
+                'open_tag' => '<form id="toArray" method="post">',
+                'close_tag' => '</form>',
+                'attributes' => 'id="toArray" method="post"',
+                'id' => 'toArray',
+                'method' => 'post',
+                'valid' => true,
+                'errors' => array(),
+                'fields' => array(),
 
                 'name' => array(
 
@@ -210,12 +206,48 @@ END
                 )
             );
 
-        $expected['form']['fields']['name'] = $expected['name'];
+        $expected['fields']['name'] = $expected['name'];
 
         $this->assertEquals(
             $expected,
             $form->toArray()
         );
+    }
+
+    function testToArrayDontOverWriteFormKeysWithField() {
+
+        $form = new Octopus_Html_Form('noOverwrite');
+        $closeTag = $form->add('text', 'close_tag');
+
+        $expected = array(
+
+                'open_tag' => '<form id="noOverwrite" method="post">',
+                'close_tag' => '</form>',
+                'attributes' => 'id="noOverwrite" method="post"',
+                'id' => 'noOverwrite',
+                'method' => 'post',
+                'valid' => true,
+                'errors' => array(),
+                'fields' => array(
+                    'close_tag' => array(
+
+                        'attributes' => 'type="text" id="close_tagInput" class="close_tag text" name="close_tag"',
+                        'type' => 'text',
+                        'id' => 'close_tagInput',
+                        'class' => 'close_tag text',
+                        'name' => 'close_tag',
+                        'html' => $closeTag->render(true),
+                        'valid' => true,
+                        'errors' => array()
+
+                    )
+                ),
+
+            );
+
+        $this->assertEquals($expected, $form->toArray());
+
+
     }
 
     function testWasSubmitted() {

@@ -299,20 +299,20 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      */
     public function toArray() {
 
-        $result = array('form' => array('open_tag' => '', 'close_tag' => ''));
-        self::attributesToArray($this->getAttributes(), $result['form']);
+        $result = array();
+        self::attributesToArray($this->getAttributes(), $result);
 
-        $result['form']['open_tag'] = '<form ' . $result['form']['attributes'] . '>';
-        $result['form']['close_tag'] = '</form>';
+        $result['open_tag'] = '<form ' . $result['attributes'] . '>';
+        $result['close_tag'] = '</form>';
 
-        $result['form']['fields'] = array();
+        $result['fields'] = array();
 
         if ($this->_validationResult) {
-            $result['form']['valid'] = $this->_validationResult->success;
-            $result['form']['errors'] = $this->_validationResult->errors;
+            $result['valid'] = $this->_validationResult->success;
+            $result['errors'] = $this->_validationResult->errors;
         } else {
-            $result['form']['valid'] = true;
-            $result['form']['errors'] = array();
+            $result['valid'] = true;
+            $result['errors'] = array();
         }
 
         foreach($this->children() as $child) {
@@ -331,8 +331,10 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
         if ($el instanceof Octopus_Html_Form_Field) {
             $ar = $el->toArray();
-            $result[$el->name] = $ar;
-            $result['form']['fields'][$el->name] = $ar;
+            if (!isset($result[$el->name])) {
+                $result[$el->name] = $ar;
+            }
+            $result['fields'][$el->name] = $ar;
         }
 
         foreach($el->children() as $child) {
