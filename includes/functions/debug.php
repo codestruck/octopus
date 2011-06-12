@@ -445,6 +445,13 @@ END;
     }
 
     /**
+     * @return String The results of var_dump for $var.
+     */
+    function debug_var($var) {
+        return Octopus_Debug::dumpToString($var);
+    }
+
+    /**
      * Calls dump_r and then exit().
      * @param mixed Any values you want displayed.
      */

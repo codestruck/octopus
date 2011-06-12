@@ -30,6 +30,13 @@
     }
 
     /**
+     * Converts a StringOfSomeKind to a string-of-some-kind
+     */
+    function dashed($s) {
+        return underscore($s, '-');
+    }
+
+    /**
      * Cleans up text from unknown sources (like ie from word).
      */
     function decruftify($s) {

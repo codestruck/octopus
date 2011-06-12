@@ -229,6 +229,28 @@ class StringTests extends PHPUnit_Framework_TestCase
 
     }
 
+    function testDashed() {
+
+        $tests = array(
+
+            '' => '',
+            'foo' => 'foo',
+            'FooBar' => 'foo-bar',
+            'fooBar' => 'foo-bar',
+            'Foo--bar' => 'foo-bar',
+            'foo-BAR' => 'foo-bar',
+            'FOOBAR' => 'foobar',
+            'add-slash-test' => 'add-slash-test'
+
+        );
+
+        foreach($tests as $input => $expected) {
+            $this->assertEquals($expected, dashed($input), "Failed on '$input'");
+        }
+
+    }
+
+
     function testUnderscore() {
 
         $tests = array(

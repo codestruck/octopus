@@ -9,6 +9,9 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
     private $_values = null;
     private $_validationResult = null;
+    private $_security_user_id = null;
+    private $_security_action = null;
+    private $_security_field = '__security_token';
 
 
     /**
@@ -76,6 +79,22 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
         $this->_buttonsDiv->append($button);
         return $button;
+    }
+
+    public function secure($user_id, $action = null) {
+        if ($action === null) {
+            $action = $this->id;
+        }
+
+        $this->_security_user_id = $user_id;
+        $this->_security_action = $action;
+        $token = get_security_token($user_id, $action);
+
+        $el = new Octopus_Html_Element('input', array('type' => 'hidden'));
+        $el->name = $this->_security_field;
+        $el->value = $token;
+
+        $this->append($el);
     }
 
     /**
@@ -183,6 +202,10 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
         foreach($this->children() as $child) {
             self::getValuesRecursive($child, $sourceArray, $this->_values);
+        }
+
+        if ($this->_security_action !== null) {
+            $this->_values[$this->_security_field] = isset($sourceArray[$this->_security_field]) ? $sourceArray[$this->_security_field] : '';
         }
 
         return $this->_values;
@@ -351,6 +374,10 @@ class Octopus_Html_Form extends Octopus_Html_Element {
                 $result->errors += $ruleResult;
             }
 
+        }
+
+        if (!$this->verifySecurityToken()) {
+            $result->errors[] = 'This form has expired';
         }
 
         $result->success = (count($result->errors) == 0);
@@ -544,6 +571,21 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
             }
         }
+
+    }
+
+    private function verifySecurityToken() {
+
+        if ($this->_security_user_id !== null) {
+            $values = $this->getValues();
+
+            $token = $values[ $this->_security_field ];
+            if (!verify_security_token($token, $this->_security_user_id, $this->_security_action)) {
+                return false;
+            }
+        }
+
+        return true;
 
     }
 

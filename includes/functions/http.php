@@ -81,7 +81,7 @@
      * Cancels any upcoming redirects.
      */
     function cancel_redirects($cancel = true) {
-        $GLOBALS['__Octopus_CANCEL_REDIRECT__'] = $cancel;
+        $GLOBALS['__OCTOPUS_CANCEL_REDIRECT__'] = $cancel;
         return $cancel;
     }
 
@@ -204,11 +204,11 @@ END
      */
     function should_redirect() {
 
-        if (!isset($GLOBALS['__Octopus_CANCEL_REDIRECT__'])) {
+        if (!isset($GLOBALS['__OCTOPUS_CANCEL_REDIRECT__'])) {
             return true;
         }
 
-        return !$GLOBALS['__Octopus_CANCEL_REDIRECT__'];
+        return !$GLOBALS['__OCTOPUS_CANCEL_REDIRECT__'];
     }
 
 

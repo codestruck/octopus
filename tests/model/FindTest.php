@@ -583,6 +583,21 @@ class FindTest extends Octopus_DB_TestCase {
         $this->assertEquals('Title for Post 2', $result->first()->title);
     }
 
+    function testDelete() {
+        $all = FindPost::all();
+
+        $this->assertEquals(6, count($all));
+        $all->delete();
+        $this->assertEquals(0, count($all));
+    }
+
+    function testDeleteChain() {
+        $all = FindPost::all();
+
+        $this->assertEquals(6, count($all));
+        $this->assertEquals(0, count($all->delete()));
+    }
+
     function assertTrueish($condition, $message = null) {
         $this->assertTrue($condition == true, $message);
     }

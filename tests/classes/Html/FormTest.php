@@ -306,6 +306,57 @@ END
         $this->assertEquals($field, $form->getField('password'));
     }
 
+    function testSecurityTokenMissing() {
+
+        $user_id = 99;
+        $form = new Octopus_Html_Form('security_test');
+        $form->secure($user_id);
+        $form->add('name');
+
+        $_POST['name'] = 'foo';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $this->assertTrue($form->submitted());
+        $result = $form->validate();
+        $this->assertFalse($result->success);
+
+    }
+
+    function testSecurityTokenInvalid() {
+
+        $user_id = 99;
+        $form = new Octopus_Html_Form('security_test');
+        $form->secure($user_id);
+        $form->add('name');
+
+        $_POST['name'] = 'foo';
+        $_POST['__security_token'] = get_security_token($user_id, 'security_test') . 'ALTERED';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $this->assertTrue($form->submitted());
+        $result = $form->validate();
+        $this->assertFalse($result->success);
+
+    }
+
+    function testSecurityTokenGood() {
+
+        $user_id = 99;
+        $form = new Octopus_Html_Form('security_test');
+        $form->secure($user_id);
+        $form->add('name');
+
+        $_POST['name'] = 'foo';
+        $_POST['__security_token'] = get_security_token($user_id, 'security_test');
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        $this->assertTrue($form->submitted());
+        $result = $form->validate();
+        $this->assertTrue($result->success);
+
+    }
+
+
 }
 
 ?>

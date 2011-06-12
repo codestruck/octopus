@@ -15,3 +15,12 @@ Controller
 Forms
 - review classnames in regards to checkboxes, radios, selects regarding values, wrappers and labels
 - required support for radios, multi-checkboxes
+
+Misc Ideas
+- dependency injection / class binding?
+    echo Octopus::getBinding('View_Finder');
+    > Octopus_View_Finder
+    Octopus::bind('View_Finder', 'My_Custom_View_Finder_Class');
+    echo Octopus::loadClass('View_Finder')
+    > 'My_Custom_View_Finder_Class'
+    Octopus::create('View_Finder')

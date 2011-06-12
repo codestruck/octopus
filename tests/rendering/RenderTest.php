@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_App');
-
 /**
  * @group core
  */
@@ -10,65 +8,40 @@ class RenderTests extends Octopus_App_TestCase
 
     function testBasicViewRendering() {
 
-        file_put_contents(
-            "{$this->siteDir}/controllers/Foo.php",
-            "<?php
-            class FooController extends Octopus_Controller {}
-            ?>"
+        $app = $this->startApp();
+
+        $this->createControllerFile('Foo');
+
+        $views = array(
+            "action",
+            "foo/action"
         );
 
-        mkdir("{$this->siteDir}/views/foo");
+        foreach($views as $view) {
 
-        $locations = array(
-            "{$this->siteDir}/views/action.php",
-            "{$this->siteDir}/views/foo/action.php"
-        );
-
-        foreach($locations as $viewLoc) {
-
-            file_put_contents(
-                $viewLoc,
-                <<<END
-$viewLoc
-END
-            );
-
-            $app = $this->startApp();
+            $viewFile = $this->createViewFile($view, $view);
 
             $resp = $app->getResponse('/foo/action', true);
-            $this->assertTrue(!!$resp, 'No response returned. loc: ' . $viewLoc);
+            $this->assertTrue(!!$resp, "No response returned. Failed on $view");
 
             $this->assertEquals(
-                $viewLoc,
+                $view,
                 trim($resp->getContent()),
-                "Wrong content for view: $viewLoc"
+                "Wrong content for view: $view"
             );
 
-            unlink($viewLoc);
+            unlink($viewFile);
         }
     }
 
     function testRenderingWithExistingController() {
 
-        mkdir("{$this->siteDir}/views/test");
-
-        file_put_contents(
-            "{$this->siteDir}/controllers/test.php",
-            <<<END
-<?php
-class TestController extends Octopus_Controller {}
-?>
-END
-        );
-
-        file_put_contents(
-            "{$this->siteDir}/views/test/foo.php",
-            "SUCCESS!"
-        );
-
         $app = $this->startApp();
 
-        $resp = $app->getResponse('test/foo', true);
+        $this->createControllerFile('RenderExisting');
+        $this->createViewFile('render-existing/foo', 'SUCCESS!');
+
+        $resp = $app->getResponse('render-existing/foo', true);
         $this->assertEquals('SUCCESS!', $resp->getContent());
 
     }
@@ -76,27 +49,17 @@ END
 
     function testBasicSmartyViewRendering() {
 
-        file_put_contents(
-            "{$this->siteDir}/controllers/TestSmartyRender.php",
-            "<?php class TestSmartyRenderController extends Octopus_Controller { } ?>"
-        );
+        $app = $this->startApp();
 
-        file_put_contents(
-            "{$this->siteDir}/views/action.tpl",
-            <<<END
-Basic view contents.
-END
-        );
+        $this->createControllerFile('TestBasicSmartyRender');
+        $viewFile = $this->createViewFile('action.tpl', 'Smarty view contents');
 
         $app = $this->startApp();
 
-        $resp = $app->getResponse('/test-smarty-render/action', true);
+        $resp = $app->getResponse('/test-basic-smarty-render/action', true);
         $this->assertTrue(!!$resp, 'No response returned.');
 
-        $this->assertEquals(
-            'Basic view contents.',
-            trim($resp->getContent())
-        );
+        $this->assertEquals('Smarty view contents', trim($resp->getContent()));
 
     }
 

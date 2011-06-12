@@ -15,8 +15,7 @@ class SysController extends Octopus_Controller {
     public function about() {
 
         return array(
-            'options' => $this->app->getOptions(),
-            'settings' => $this->app->getSettings()->toArray()
+            'settings' => $this->app->getAllSettings()
         );
 
     }

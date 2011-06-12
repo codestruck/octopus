@@ -11,17 +11,6 @@ Octopus::loadClass('Octopus_Mail');
 Octopus::loadClass('Octopus_Settings');
 Octopus::loadClass('Octopus_Model');
 
-function createPassword($length) {
-    $chars = "234567890abcdefghijkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    $i = 0;
-    $password = "";
-    while ($i <= $length) {
-        $password .= $chars{mt_rand(0,strlen($chars) - 1)};
-        $i++;
-    }
-    return $password;
-}
-
 abstract class Octopus_Auth_Model extends Octopus_Model {
 
     public $cookieName;
@@ -252,7 +241,7 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
             return false;
         }
 
-        $password = createPassword(8);
+        $password = make_password(8);
 
         $checker = new PasswordHash($this->password_algo_strength, $this->portable_passwords);
         $hash = $checker->HashPassword($password);
