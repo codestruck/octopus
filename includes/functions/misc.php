@@ -1,5 +1,7 @@
 <?php
 
+    define('OCTOPUS_FLASH_SESSION_KEY', '__octopus_flash__');
+
     function octopus_api_key($scope = '') {
 
         $sessionKey = 'OCTOPUS_API_KEY';
@@ -26,7 +28,6 @@
         }
 
     }
-
 
     /**
      * Helper for reading $_GET.
@@ -216,6 +217,126 @@
         }
 
         return isset($_POST[$arg]) ? $_POST[$arg] : $default;
+    }
+
+    /**
+     * Sets a flash message.
+     */
+    function set_flash($content, $type = 'success') {
+
+        if (empty($_SESSION[OCTOPUS_FLASH_SESSION_KEY])) {
+            $_SESSION[OCTOPUS_FLASH_SESSION_KEY] = array();
+        }
+
+        $_SESSION[OCTOPUS_FLASH_SESSION_KEY][$type] = $content;
+    }
+
+    /**
+     * Removes any flash messages set.
+     */
+    function clear_flash($type = null) {
+
+        if ($type === null) {
+            unset($_SESSION[OCTOPUS_FLASH_SESSION_KEY]);
+        } else if (isset($_SESSION[OCTOPUS_FLASH_SESSION_KEY])) {
+            unset($_SESSION[OCTOPUS_FLASH_SESSION_KEY][$type]);
+        }
+
+    }
+
+    function get_flash($type = 'success', $clear = true) {
+
+        if (is_bool($type)) {
+            $clear = $type;
+            $type = 'success';
+        }
+
+        if (!isset($_SESSION[OCTOPUS_FLASH_SESSION_KEY])) {
+            return '';
+        }
+
+        if (isset($_SESSION[OCTOPUS_FLASH_SESSION_KEY][$type])) {
+            $result = $_SESSION[OCTOPUS_FLASH_SESSION_KEY][$type];
+        } else {
+            $result = '';
+        }
+
+        if ($clear) {
+            clear_flash($type);
+        }
+
+        return $result;
+    }
+
+    function render_flash($type = null, $clear = true) {
+
+        if (empty($_SESSION[OCTOPUS_FLASH_SESSION_KEY])) {
+            return false;
+        }
+
+        if ($type === null) {
+
+            // By default, render all flash messages
+
+            $rendered = false;
+            foreach($_SESSION[OCTOPUS_FLASH_SESSION_KEY] as $type => $rawContent) {
+                $rendered = render_flash($type, $clear) || $rendered;
+            }
+
+            return $rendered;
+        }
+
+        $rawContent = get_flash($type, $clear);
+        if (empty($rawContent)) {
+            return false;
+        }
+
+        $class = to_css_class($type);
+        $title = null;
+        $content = null;
+
+        // Allow specifying a separate title/content
+        if (is_array($rawContent)) {
+
+            if (isset($rawContent['title'])) {
+                $title = $rawContent['title'];
+                unset($rawContent['title']);
+            }
+
+            if (isset($rawContent['content'])) {
+                $content = $rawContent['content'];
+                unset($rawContent['content']);
+            }
+
+            if ($rawContent) {
+                $title = array_shift($rawContent);
+
+               if ($rawContent) {
+                   $content = array_shift($rawContent);
+               }
+            }
+
+        } else {
+            $content = $rawContent;
+        }
+
+        if (!($content || $title)) {
+            return false;
+        }
+
+        $titleHtml = $contentHtml = '';
+        if ($title) $titleHtml = '<h3 class="flashTitle">' . $title . '</h3>';
+        if ($content) $contentHtml = '<div class="flashContent">' . $content . '</div>';
+
+        echo <<<END
+        <div class="flash $class">
+            $titleHtml
+            $contentHtml
+        </div>
+END;
+
+        return true;
+
     }
 
 ?>
