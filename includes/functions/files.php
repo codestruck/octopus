@@ -156,7 +156,8 @@
     /**
      * Determines the actual, real name of $file. Emulates a case-insensitive
      * file system.
-     * @return Mixed The actual full filename (correct case) if found, otherwise false.
+     * @return Mixed The actual full filename (correct case) if found,
+     * otherwise false.
      */
     function get_true_filename($file) {
 
@@ -164,22 +165,31 @@
             return false;
         }
 
-        $info = pathinfo(realpath($file));
+        $info = pathinfo($file);
 
         $dirs = explode('/', $info['dirname']);
+        $normalDirs = array();
         $fullDir = '';
 
         foreach($dirs as $dir) {
 
-            if ($fullDir) {
-                foreach(_glob_for_candidates($fullDir, $dir, '') as $candidate) {
-                    $candidate = basename($candidate);
-                    if (strcasecmp($candidate, $dir) == 0) {
-                        $dir = $candidate;
-                        break;
-                    }
+            if ($dir == '.') {
+                continue;
+            } else if ($dir == '..') {
+                array_pop($normalDirs);
+                $fullDir = implode('/', $normalDirs);
+                continue;
+            }
+
+            foreach(_glob_for_candidates($fullDir, $dir, '') as $candidate) {
+                $candidate = basename($candidate);
+                if (strcasecmp($candidate, $dir) == 0) {
+                    $dir = $candidate;
+                    break;
                 }
             }
+
+            $normalDirs[] = $dir;
             $fullDir .= $dir . '/';
         }
 
@@ -193,7 +203,7 @@
             }
         }
 
-        return $file;
+        return realpath($file);
     }
 
     function _glob_for_candidates($dir, $file, $ext) {
