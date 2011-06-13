@@ -16,6 +16,9 @@ class Octopus_Renderer_Smarty extends Octopus_Renderer {
         }
         $smartyData->assign('OCTOPUS_VIEW_DATA', $data);
 
+        // Look for templates in the same directory the file is in.
+        $smarty->template_dir = array(dirname($this->_file));
+
         $tpl = $smarty->createTemplate($this->_file, $smartyData);
         return $tpl->fetch();
 
