@@ -48,6 +48,16 @@ class Octopus_Html_Table_Action extends Octopus_Html_Table_Content {
 
         $this->addClass('action', $id);
         if ($options['method'] != 'get') $this->addClass('method' . ucwords($options['method']));
+
+        if (!empty($options['confirm'])) {
+
+            $confirm = $options['confirm'];
+            if ($confirm === true) {
+                $confirm = "Are you sure you want to do that?";
+            }
+            $this->setAttribute('data-confirm', $confirm);
+
+        }
     }
 
     public function url(/* polymorphic */) {

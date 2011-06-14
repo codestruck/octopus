@@ -297,7 +297,16 @@ class Octopus_Html_Table_Column {
         // if it's a model instance.
         $isModel = class_exists('Octopus_Model') && ($obj instanceof Octopus_Model);
 
-        if ($isModel || (is_object($obj) && isset($obj->$id))) {
+        if ($isModel) {
+
+            try
+            {
+                $value = $obj->$id;
+            } catch(Octopus_Exception $ex) {
+                // not a valid field
+            }
+
+        } else if (is_object($obj) && isset($obj->$id)) {
             $value = $obj->$id;
         } else if (is_array($obj) && isset($obj[$id])) {
             $value = $obj[$id];
@@ -306,10 +315,32 @@ class Octopus_Html_Table_Column {
         $value = $this->applyFunction($value, $obj);
 
         if ($this->options['escape']) {
-            $value = htmlspecialchars($value);
+
+            if (is_object($value)) {
+
+                if ($value instanceof Octopus_Model_ResultSet) {
+                    $value = $this->resultSetToString($value);
+                }
+
+            } else {
+                $value = htmlspecialchars($value);
+            }
+
         }
 
         $td->append($value);
+    }
+
+    private function resultSetToString($rs) {
+
+        $result = '';
+
+        foreach($rs as $model) {
+            $result .= '<li>' . htmlspecialchars($model) . '</li>';
+        }
+
+        return $result ? '<ul>' . $result . '</ul>' : $result;
+
     }
 
     /**

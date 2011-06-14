@@ -11,10 +11,12 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
     private static $_registry = array();
 
     /**
-     * Regexes used for mustBe.
+     * Functions and regexes used for mustBe.
      */
     private static $_formats = array(
-        'email' => '/^\s*[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\s*$/i'
+        'email' => array(
+            'function' => 'parse_email'
+        )
     );
 
     public $help = null;
@@ -36,6 +38,11 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
     public function __construct($tag, $type, $name, $label, $attributes) {
 
         parent::__construct($tag, $attributes);
+
+        if ($label === null) {
+            // TODO: Don't include ':' at the end (do it with :after css?)
+            $label = humanize($name) . ':';
+        }
 
         $this->type = $type;
         $this->name = $name;
@@ -163,20 +170,50 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
         $this->updateLongDescLabels();
     }
 
+    public function getForm() {
+        return $this->closest('form');
+    }
+
     /**
      * Validates input against one of a known set of data formats, e.g.
      * email, zip code, etc.
      */
     public function mustBe($format, $message = null) {
-        return $this->mustMatch(self::$_formats[$format], $message);
+
+        $entry = self::$_formats[$format];
+
+        if (is_array($entry)) {
+
+            if (isset($entry['function'])) {
+                return $this->mustPass($entry['function'], $message);
+            } else if (isset($entry['pattern'])) {
+                return $this->mustMatch($entry['pattern'], $message);
+            }
+
+        } else if (is_string($entry)) {
+
+            if (parse_regex($entry)) {
+                return $this->mustMatch($entry, $message);
+            } else if (is_callable($entry)) {
+                return $this->mustPass($entry, $message);
+            }
+        }
+
+        throw new Octopus_Exception("Invalid mustBe format: " . $format);
     }
 
     /**
      * Adds a regular expression rule to this field.
      */
-    public function mustMatch($pattern, $message = null) {
-        Octopus::loadClass('Octopus_Html_Form_Field_Rule_Regex');
-        return $this->addRule(new Octopus_Html_Form_Field_Rule_Regex($pattern, $message));
+    public function mustMatch($patternOrFieldName, $message = null) {
+
+        if (parse_regex($patternOrFieldName)) {
+            Octopus::loadClass('Octopus_Html_Form_Field_Rule_Regex');
+            return $this->addRule(new Octopus_Html_Form_Field_Rule_Regex($patternOrFieldName, $message));
+        }
+
+        Octopus::loadClass('Octopus_Html_Form_Field_Rule_MatchField');
+        return $this->addRule(new Octopus_Html_Form_Field_Rule_MatchField($patternOrFieldName, $message));
     }
 
     /**
@@ -237,6 +274,24 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
             $result['valid'] = true;
             $result['errors'] = array();
         }
+
+        $label = $this->label();
+        if ($label) {
+            $result['label'] = array(
+                'text' => $label
+            );
+            foreach($this->_labelElements as $l) {
+                $result['label']['html'] = $l->render(true);
+                break;
+            }
+        }
+
+        if ($this->wrapper) {
+            $result['full_html'] = $this->wrapper->render(true);
+        } else {
+            $result['full_html'] = $result['html'];
+        }
+
 
         return $result;
     }
@@ -432,6 +487,7 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
 
 }
 
+Octopus_Html_Form_Field::register('hidden', 'Octopus_Html_Form_Field', array('type' => 'hidden', 'class' => ''));
 Octopus_Html_Form_Field::register('email', 'Octopus_Html_Form_Field', array('type' => 'email', 'class' => 'text'));
 Octopus_Html_Form_Field::register('password', 'Octopus_Html_Form_Field', array('type' => 'password', 'class' => 'text'));
 Octopus_Html_Form_Field::register('textarea', 'Octopus_Html_Form_Field_Textarea');

@@ -1,5 +1,6 @@
 <?php
 
+Octopus::loadClass('Octopus_View_Finder');
 Octopus::loadClass('Octopus_Renderer');
 
 /**
@@ -11,10 +12,13 @@ class Octopus_Dispatcher {
 
     public static $defaultView = 'default';
 
+    public $debug = false;
+
     private $_app;
 
     public function __construct($app = null) {
         $this->_app = ($app ? $app : Octopus_App::singleton());
+        $this->debug = $this->_app->isDevEnvironment() && (stripos((isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : ''), '_octopus_debug') !== false);
     }
 
     /**
@@ -30,7 +34,7 @@ class Octopus_Dispatcher {
 
         $response = new Octopus_Response($buffer);
 
-        if (!$request->getRequestedAction()) {
+        if (!($request->getRequestedAction() || $request->getActionArgs())) {
 
             // No action specified == index, but we need to make sure the
             // path ends with a '/'.
@@ -150,19 +154,23 @@ class Octopus_Dispatcher {
 
         $response->append($templateContent);
 
+        if ($this->debug) {
+
+            dump_r($controller->__getExecutedActions());
+            dump_r($viewFile);
+
+        }
+
     }
 
-    private function findViewForRender($controller, $request, $response, &$data) {
+    private function findViewForRender(Octopus_Controller $controller, Octopus_Request $request, Octopus_Response $response, &$data) {
 
-        Octopus::loadClass('Octopus_View_Finder');
         $finder = new Octopus_View_Finder();
 
         if ($response->isForbidden()) {
-            $info = $finder->findView('sys/forbidden', $this->_app);
-        } else if (!empty($controller->view)) {
-            $info = $finder->findView($controller->view, $this->_app);
+            $info = $finder->findView($request, $controller, 'sys/forbidden');
         } else {
-            $info = $finder->findView($request, null);
+            $info = $finder->findView($request, $controller);
         }
 
         if ($info && !empty($info['file'])) {
@@ -172,17 +180,9 @@ class Octopus_Dispatcher {
                 $data = array(
                     'controller_data' => $data,
                     'path' => $request->getPath(),
-                    'resolved_path' => $request->getResolvedPath()
+                    'resolved_path' => $request->getResolvedPath(),
+                    'view_paths' => $finder->getViewPaths($request, $controller)
                 );
-
-                if ($response->isForbidden()) {
-                    $data['view_paths'] = $finder->getViewPaths('sys/forbidden', $this->_app);
-                } else if (!empty($controller->view)) {
-                    $data['view_paths'] = $finder->getViewPaths($controller->view, $this->_app);
-                } else {
-                    $data['view_paths'] = $finder->getViewPaths($request, null);
-                }
-
             }
 
             return $info['file'];

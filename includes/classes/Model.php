@@ -501,6 +501,11 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
      */
     public static function &get($idOrName, $orderBy = null) {
 
+        if (is_object($idOrName) && get_class($idOrName) == self::_getClassName()) {
+            // Support passing in a model reference (this is useful sometimes)
+            return $idOrName;
+        }
+
         if (is_array($idOrName)) {
             $result = self::find($idOrName);
             if ($orderBy) $result = $result->orderBy($orderBy);
@@ -537,6 +542,16 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
 
         return $result;
 
+    }
+
+    /**
+     * @return An empty resultset.
+     */
+    public static function none() {
+
+        $class = self::_getClassName();
+        $result = new Octopus_Model_ResultSet($class, '1 = 0');
+        return $result;
     }
 
     public function escape() {

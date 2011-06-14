@@ -143,6 +143,14 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
     }
 
     /**
+     * OR
+     */
+    public function also(/* variable */) {
+        $args = func_get_args();
+        return $this->_restrict('OR', $args);
+    }
+
+    /**
      * @return Object A new ResultSet with extra constraints added via OR.
      */
     public function &or_(/* Variable */) {
@@ -252,6 +260,10 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
             return;
         }
 
+        if (is_string($criteria)) {
+            $criteria = array($criteria);
+        }
+
         $lastFieldName = null;
         $conjunction = 'AND';
 
@@ -297,7 +309,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
             } else {
 
                 // check if we are passed a result set
-                if (is_object($value)) {
+                if ($value instanceof Octopus_ResultSet) {
                     $newValue = array();
 
                     foreach ($value as $item) {
@@ -305,6 +317,8 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
                     }
 
                     $value = $newValue;
+                } else if ($value instanceof Octopus_Model) {
+                    $value = $value->id;
                 }
 
                 // standard field = whatever syntax

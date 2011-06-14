@@ -164,13 +164,17 @@ END
                 'required' => 'required',
                 'html' => $name->render(true),
                 'valid' => false,
-                'errors' => array('Name is required.')
+                'errors' => array('Name is required.'),
+                'label' => array(
+                    'text' => 'Name:',
+                    'html' => '
+<label for="nameInput">Name:</label>'
+                ),
 
             )
         );
 
         $expected['fields']['name'] = $expected['name'];
-
 
         $this->assertEquals(
             $expected,
@@ -237,6 +241,12 @@ END
                         'class' => 'close_tag text',
                         'name' => 'close_tag',
                         'html' => $closeTag->render(true),
+                        'label' => array(
+                            'text' => 'Close Tag:',
+                            'html' => '
+<label for="close_tagInput">Close Tag:</label>'
+
+                        ),
                         'valid' => true,
                         'errors' => array()
 

@@ -69,6 +69,7 @@ class Octopus_Html_Table_Filter_Select extends Octopus_Html_Table_Filter {
         return $el;
     }
 
+
     protected function &initializeOptions(&$options) {
 
         if (is_array($options) && !isset($options['options'])) {

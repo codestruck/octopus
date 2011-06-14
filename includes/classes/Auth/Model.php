@@ -158,6 +158,9 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
         return false;
     }
 
+    /**
+     * @TODO Allow changing passwords on unsaved users.
+     */
     function changePassword($password) {
 
         $pk = $this->primaryKey;

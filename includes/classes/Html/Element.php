@@ -5,6 +5,7 @@
  */
 class Octopus_Html_Element {
 
+    protected $_parentElement;
     protected $_tag;
     private $_attributes;
     private $_content;
@@ -25,6 +26,7 @@ class Octopus_Html_Element {
         'checked' => 8,
         'autofocus' => 9,
         'required' => 10,
+        'novalidate' => 11
     );
 
     // Helper for determining which attributes should not be rendered with a
@@ -34,7 +36,8 @@ class Octopus_Html_Element {
         'checked' => true,
         'multiple' => true,
         'required' => true,
-        'selected' => true
+        'selected' => true,
+        'novalidate' => true
     );
 
     protected $requireCloseTag = false;
@@ -151,15 +154,7 @@ class Octopus_Html_Element {
      * Appends content to this element.
      */
     public function append($item) {
-
-        if ($this->_content === null) {
-            $this->_content = array();
-        }
-
-        if ($item) {
-            $this->_content[] = $item;
-        }
-
+        $this->addContent($item, false);
         return $this;
     }
 
@@ -167,17 +162,94 @@ class Octopus_Html_Element {
      * Inserts content before the existing content of this element.
      */
     public function prepend($item) {
+        $this->addContent($item, true);
+        return $this;
+    }
+
+    private function addContent($item, $prepend) {
 
         if ($this->_content === null) {
             $this->_content = array();
         }
 
-        if ($item) {
-            array_unshift($this->_content, $item);
+        if (!is_array($item)) {
+            $this->takeOwnership($item);
+            if ($prepend) {
+                array_unshift($this->_content, $item);
+            } else {
+                $this->_content[] = $item;
+            }
+        } else {
+            foreach($item as $i) {
+                $this->takeOwnership($i);
+                if ($prepend) {
+                    array_unshift($this->_content, $i);
+                } else {
+                    $this->_content[] = $i;
+                }
+            }
         }
 
-        return $this;
+    }
 
+    private function &takeOwnership(&$item) {
+
+        if (!($item instanceof Octopus_Html_Element)) {
+            return $item;
+        }
+
+        if ($item->_parentElement) {
+            $item->_parentElement->remove($item);
+        }
+        $item->_parentElement = $this;
+
+        return $item;
+    }
+
+    public function remove(/* $child */) {
+
+        $args = func_get_args();
+
+        switch(count($args)) {
+
+            case 0:
+                $parent = $this->parent();
+                if ($parent) $parent->remove($this);
+
+            default:
+
+                if (!($this->_content && $args)) {
+                    return $this;
+                }
+
+                $newContent = array();
+                foreach($this->_content as $e) {
+                    if (!in_array($e, $args)) {
+                        $newContent[] = $e;
+                    }
+                }
+                $this->_content = $newContent;
+
+                return $this;
+        }
+
+    }
+
+
+    /**
+     * @return Octopus_Html_Element The closest ancestor element that has the
+     * given tag.
+     * @TODO NEEDS A TEST
+     */
+    public function closest($tag) {
+
+        for($e = $this->parent(); $e; $e = $e->parent()) {
+            if (strcasecmp($e->tag, $tag) == 0) {
+                return $e;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -239,6 +311,10 @@ class Octopus_Html_Element {
 
     public function children() {
         return $this->_content;
+    }
+
+    public function parent() {
+        return $this->_parentElement;
     }
 
     /**
@@ -540,7 +616,14 @@ class Octopus_Html_Element {
     }
 
     public function __toString() {
-        return $this->render(true);
+
+        try {
+            return $this->render(true);
+        } catch(Exception $ex) {
+            // PHP by default just says "__toString should not throw an exception"
+            dump_r($ex);
+
+        }
     }
 
     /**

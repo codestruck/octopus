@@ -11,6 +11,11 @@ Model
 
 Controller
 - way for actions to trigger 404s
+- before_action and after_action methods should be _before_action and _after_action
+  so they aren't callable as actions.
+
+Views
+- Have a backing controller for the template (get logic out of page.php)
 
 Forms
 - review classnames in regards to checkboxes, radios, selects regarding values, wrappers and labels

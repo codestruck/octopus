@@ -156,19 +156,6 @@ class Octopus_App {
     }
 
     /**
-     * Locates a view to use for the given request.
-     * @return Array A view info array.
-     * @see Octopus_View_Finder::findView()
-     */
-    public function findView($req) {
-
-        Octopus::loadClass('Octopus_View_Finder');
-        $finder = new Octopus_View_Finder();
-
-        return $finder->findView($req, $this);
-    }
-
-    /**
      * @return Array An array of the effective app settings.
      */
     public function &getAllSettings() {

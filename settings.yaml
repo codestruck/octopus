@@ -7,3 +7,4 @@ site.name:
 site.theme.*:
   desc: The theme to use. To set the theme for a specific path, use the setting site.theme.your.path
   default: default
+

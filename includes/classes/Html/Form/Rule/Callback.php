@@ -10,7 +10,7 @@ class Octopus_Html_Form_Rule_Callback extends Octopus_Html_Form_Rule {
     }
 
     public function validate($form, $data) {
-        return call_user_func($this->callback, $form, $data);
+        return call_user_func($this->callback, $data, $form);
     }
 
 }

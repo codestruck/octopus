@@ -31,4 +31,9 @@ END;
     ?>
     </ul>
 
+    <p>
+        To change the contents of this view, edit the file
+        <em>site/views/sys/view_not_found.php</em>
+    </p>
+
 <?php endif ?>

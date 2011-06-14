@@ -206,6 +206,11 @@ END;
                 'class' => 'foo select',
                 'name' => 'foo',
                 'html' => $select->render(true),
+                'label' => array(
+                   'text' => 'Foo:',
+                   'html' => '
+<label for="fooInput">Foo:</label>'
+                ),
                 'valid' => true,
                 'errors' => array(),
                 'options' => array(1 => 'Option 1', 2 => 'Option 2')
