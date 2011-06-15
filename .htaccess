@@ -6,6 +6,10 @@ Options -Indexes FollowSymLinks
 
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ui(\.php)?/?(.*) /pricewaiter/index$2 [R=301,L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^(.*)$ index.php?__path=$1 [L,QSA]
 
 </IfModule>

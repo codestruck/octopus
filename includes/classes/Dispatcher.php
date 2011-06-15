@@ -50,6 +50,9 @@ class Octopus_Dispatcher {
         $controller = $this->createController($request, $response);
 
         if (!$controller) {
+
+            // TODO: Somehow report that the controller wasn't found.
+
             $controller = $this->createDefaultController($request, $response);
         }
 
@@ -73,16 +76,13 @@ class Octopus_Dispatcher {
      * appropriate controller instance.
      * @return Object An Octopus_Controller if found, otherwise NULL.
      */
-    protected function &createController($request, $response) {
+    protected function createController($request, $response) {
 
         $class = $request->getControllerClass();
 
         $controller = null;
 
         if (!$class) {
-            // Requested class does not exist
-            $response->notFound();
-            app_error("Controller class does not exist: " . $class);
             return false;
         }
 
@@ -90,7 +90,6 @@ class Octopus_Dispatcher {
         $this->configureController($controller, $request, $response);
 
         return $controller;
-
     }
 
     private function requireOnce($file) {

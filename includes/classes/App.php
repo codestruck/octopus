@@ -6,6 +6,7 @@ Octopus::loadClass('Octopus_Dispatcher');
 Octopus::loadClass('Octopus_Request');
 Octopus::loadClass('Octopus_Response');
 Octopus::loadClass('Octopus_Controller');
+Octopus::loadClass('Octopus_Controller_Api');
 Octopus::loadClass('Octopus_Settings');
 
 // Shortcut functions

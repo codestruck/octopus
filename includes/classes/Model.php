@@ -499,7 +499,11 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
      * @param $orderBy mixed Order stuff
      * @return Mixed The first matching record found, or false if nothing is found.
      */
-    public static function &get($idOrName, $orderBy = null) {
+    public static function get($idOrName, $orderBy = null) {
+
+        if ($idOrName === null) {
+            return false;
+        }
 
         if (is_object($idOrName) && get_class($idOrName) == self::_getClassName()) {
             // Support passing in a model reference (this is useful sometimes)

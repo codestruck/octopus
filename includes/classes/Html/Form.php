@@ -540,6 +540,10 @@ class Octopus_Html_Form extends Octopus_Html_Element {
                 $result->errors[] = $r->getMessage($this, $values);
             } else if (is_string($ruleResult)) {
                 $result->errors[] = $ruleResult;
+            } else if (is_array($ruleResult)) {
+                foreach($ruleResult as $err) {
+                    $result->errors[] = $err;
+                }
             }
 
         }

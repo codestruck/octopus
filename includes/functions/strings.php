@@ -230,9 +230,7 @@
         while(count($params) && ($pos = strpos($sql, '?', $pos)) !== false) {
 
             $p = array_shift($params);
-            if (!is_numeric($p)) {
-                $p = "'" . str_replace("'", "\\'", $p) . "'";
-            }
+            $p = "'" . str_replace("'", "\\'", $p) . "'";
 
             $sql = substr($sql,0,$pos) . $p . substr($sql,$pos + 1);
             $pos += strlen($p);
@@ -400,5 +398,6 @@
         return $s;
     }
 
+    // TODO: function escape_wildcards()
 
 ?>

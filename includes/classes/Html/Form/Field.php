@@ -15,7 +15,7 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
      */
     private static $_formats = array(
         'email' => array(
-            'function' => 'parse_email'
+            'function' => 'is_email'
         )
     );
 

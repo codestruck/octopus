@@ -8,6 +8,36 @@ Model
 - Doing 'order by' a hasone creates a join and sorts on the display field. Maybe make the sort
   field configurable per-hasone?
 - customize escaping (allowed tags?)
+- Batch update support of some sort?
+
+    User::update()->where(array('group' => 3))->set('group', 5),
+
+    - If fields have afterSave logic, this should error out
+
+- Custom getters per-field, e.g.
+
+    $fields = array('name')
+
+    protected function getName($value) {
+        return strtoupper($value);
+    }
+
+- LIKE for string fields
+
+    LIKE is the default search operator, which is good (case-insensitive searching),
+    but has some unintended side effects, e.g.:
+
+        $input = '%';
+        $site = Site::get(array('api_key' => $input));
+        Will return you something :-)
+
+    Possibly redefine string operators as:
+
+        - '=' (default) case-insensitive comparison, no wildcards
+        - '==' case-sensitive comparison, no wildcards
+        - 'LIKE' case-insensitive, wildcards * and ?
+
+
 
 Controller
 - way for actions to trigger 404s

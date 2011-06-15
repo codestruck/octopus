@@ -55,6 +55,22 @@
         return false;
     }
 
+    function get_or_post($arg, $default = null) {
+        if (isset($_POST[$arg])) {
+            return $_POST[$arg];
+        } else if (isset($_GET[$arg])) {
+            return $_GET[$arg];
+        } else {
+            return $default;
+        }
+    }
+
+    function get_or_post_numeric($arg) {
+        $value = get_or_post($arg, null);
+        if (is_numeric($value)) return $value;
+        return false;
+    }
+
     /**
      * @return bool Whether $arr is an associative array.
      */
@@ -222,13 +238,26 @@
     /**
      * Sets a flash message.
      */
-    function set_flash($content, $type = 'success') {
+    function set_flash($content, $type = 'success', $options = null) {
+
+        if ($options === null && is_array($type)) {
+            $options = $type;
+            $type = 'success';
+        }
+
+        if (isset($options['type'])) {
+            $type = $options['type'];
+            unset($options['type']);
+        }
 
         if (empty($_SESSION[OCTOPUS_FLASH_SESSION_KEY])) {
             $_SESSION[OCTOPUS_FLASH_SESSION_KEY] = array();
         }
 
-        $_SESSION[OCTOPUS_FLASH_SESSION_KEY][$type] = $content;
+        $_SESSION[OCTOPUS_FLASH_SESSION_KEY][$type] = array(
+            'content' => $content,
+            'options' => $options
+        );
     }
 
     /**
@@ -286,14 +315,27 @@
             return $rendered;
         }
 
-        $rawContent = get_flash($type, $clear);
-        if (empty($rawContent)) {
+        $flash = get_flash($type, $clear);
+
+        if (empty($flash)) {
             return false;
         }
 
-        $class = to_css_class($type);
+        $class = array(to_css_class($type) => true);
         $title = null;
         $content = null;
+
+        if (!empty($flash['options'])) {
+
+            foreach($flash['options'] as $key => $value) {
+                if ($value) {
+                    $class[$key] = true;
+                }
+            }
+        }
+        $class = implode(' ', array_keys($class));
+
+        $rawContent = $flash['content'];
 
         // Allow specifying a separate title/content
         if (is_array($rawContent)) {

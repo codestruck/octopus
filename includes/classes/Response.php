@@ -104,12 +104,13 @@ class Octopus_Response {
     /**
      * Sets the status header to 403/Forbidden and clears the output buffer.
      */
-    public function forbidden() {
-        return
-            $this
-                ->reset()
-                ->setStatus('HTTP/1.1 403 Forbidden')
-                ->stop();
+    public function forbidden($clearBuffer = true) {
+
+        if ($clearBuffer) {
+            $this->reset();
+        }
+
+        return $this->setStatus('HTTP/1.1 403 Forbidden');
     }
 
     /**
