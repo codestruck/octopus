@@ -177,7 +177,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
 
             foreach($dummy->getFields() as $field) {
 
-                $isText = $field->getOption('type') == 'text';
+                $isText = $field->getOption('type', 'text') == 'string';
 
                 if ($field->getOption('searchable', $isText)) {
                     $searchFields[] = $field;
@@ -310,6 +310,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
 
         if ($processParent && $this->_parent) {
             $this->_parent->_generateWhereClause($this->_parent->_criteria, $s, $sql, $params, true);
+            if ($sql) $sql = '(' . $sql . ')';
         }
 
         if ($this->_empty) {
@@ -409,7 +410,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
                 if ($conjunction) {
 
                     if (strlen($sql)) {
-                        $sql .= "$conjunction ";
+                        $sql .= " $conjunction ";
                     }
 
                     $conjunction = 'AND';
@@ -418,6 +419,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
                 $sql .= $criteriaSql . ' ';
             }
         }
+
     }
 
     private function &_getField($name) {

@@ -78,7 +78,7 @@ abstract class Octopus_Model_Field {
         return $this->field;
     }
 
-    protected function getOption($option, $default = null) {
+    public function getOption($option, $default = null) {
         if (isset($this->options[$option])) {
             return $this->options[$option];
         } else if (isset($this->defaultOptions[$option])) {

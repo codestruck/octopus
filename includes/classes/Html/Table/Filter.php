@@ -90,6 +90,10 @@ abstract class Octopus_Html_Table_Filter {
 
     }
 
+    protected function callFunction($func, &$data) {
+        return call_user_func($func, $this, $data);
+    }
+
     /**
      * Clears the contents of this filter.
      */
