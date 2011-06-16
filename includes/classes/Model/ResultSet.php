@@ -16,6 +16,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
     private $_currentQuery = null;
     private $_current = null;
     private $_arrayAccessResults = null;
+    private $_empty;
 
     private $_offset = null;
     private $_maxRecords = null;
@@ -35,7 +36,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
     /**
      * Creates a new ResultSet for the given model class.
      */
-    public function __construct($parentOrModelClass, $criteria = null, $orderBy = null) {
+    public function __construct($parentOrModelClass, $criteria = null, $orderBy = null, $empty = false) {
 
         if (is_string($parentOrModelClass)) {
             $this->_parent = null;
@@ -47,7 +48,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
 
         $this->_criteria = $criteria ? $criteria : array();
         $this->_orderBy = $orderBy ? $orderBy : array();
-
+        $this->_empty = $empty;
     }
 
     /**
@@ -254,6 +255,10 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
 
         if ($processParent && $this->_parent) {
             $this->_parent->_generateWhereClause($this->_parent->_criteria, $s, $sql, $params, true);
+        }
+
+        if ($this->_empty) {
+            $sql .= ($sql ? ' AND ' : '') . '(1 = 0)';
         }
 
         if (empty($criteria)) {

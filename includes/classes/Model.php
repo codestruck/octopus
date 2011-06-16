@@ -554,7 +554,7 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
     public static function none() {
 
         $class = self::_getClassName();
-        $result = new Octopus_Model_ResultSet($class, '1 = 0');
+        $result = new Octopus_Model_ResultSet($class, null, null, true);
         return $result;
     }
 
