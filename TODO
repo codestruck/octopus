@@ -51,6 +51,9 @@ Forms
 - review classnames in regards to checkboxes, radios, selects regarding values, wrappers and labels
 - required support for radios, multi-checkboxes
 
+Tables
+- Checkbox selection / actions on 1 or more rows
+
 Misc Ideas
 - dependency injection / class binding?
     echo Octopus::getBinding('View_Finder');
