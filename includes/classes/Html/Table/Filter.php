@@ -181,7 +181,6 @@ abstract class Octopus_Html_Table_Filter {
 
         if ($id === null) {
             $id = $type;
-            $type = 'text';
         }
 
         if (is_array($label) && $options === null) {
@@ -205,6 +204,9 @@ abstract class Octopus_Html_Table_Filter {
 
 Octopus::loadClass('Octopus_Html_Table_Filter_Text');
 Octopus_Html_Table_Filter::register('text', 'Octopus_Html_Table_Filter_Text');
+
+Octopus::loadClass('Octopus_Html_Table_Filter_Search');
+Octopus_Html_Table_Filter::register('search', 'Octopus_Html_Table_Filter_Search');
 
 Octopus::loadClass('Octopus_Html_Table_Filter_Select');
 Octopus_Html_Table_Filter::register('select', 'Octopus_Html_Table_Filter_Select');

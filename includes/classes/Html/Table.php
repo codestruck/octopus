@@ -1125,7 +1125,7 @@ END;
 
         $rows = $this->getData();
 
-        if (empty($rows)) {
+        if (count($rows) == 0) {
             $td = new Octopus_Html_Element('td', array('class' => 'emptyNotice'));
             $td->html($this->_options['emptyContent']);
             return '<tbody class="emptyNotice"><tr>' . $td . '</tr></tbody>';

@@ -31,6 +31,8 @@ abstract class Octopus_Model_Field {
         $class = 'Octopus_Model_Field_' . ucfirst($type);
         Octopus::loadClass($class);
 
+        $options['type'] = $type;
+
         $obj = new $class($field, $options);
         return $obj;
     }

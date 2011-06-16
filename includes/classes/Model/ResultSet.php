@@ -152,6 +152,61 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
     }
 
     /**
+     * Restricts via free-text search.
+     */
+    public function matching($text) {
+        return $this->where($this->createFreeTextCriteria($text));
+    }
+
+    protected function createFreeTextCriteria($text) {
+
+        $class = $this->getModel();
+
+        $dummy = new $class();
+        $searchFields = null;
+        $text = trim($text);
+        if (!$text) return array();
+
+        if (isset($dummy->search)) {
+            $searchFields = is_array($dummy->search) ? $dummy->search : array($dummy->search);
+        }
+
+        if ($searchFields === null) {
+
+            $searchFields = array();
+
+            foreach($dummy->getFields() as $field) {
+
+                $isText = $field->getOption('type') == 'text';
+
+                if ($field->getOption('searchable', $isText)) {
+                    $searchFields[] = $field;
+                }
+            }
+
+        } else {
+
+            $fields = array();
+            foreach($searchFields as $name) {
+                $field = $dummy->getField($name);
+                if ($field) $fields[] = $field;
+            }
+            $searchFields = $fields;
+        }
+
+        $criteria = array();
+        foreach($searchFields as $field) {
+
+            if (count($criteria)) $criteria[] = 'OR';
+            $criteria[$field->getFieldName() . ' LIKE'] = wildcardify($text);
+
+        }
+
+        return $criteria;
+
+    }
+
+    /**
      * @return Object A new ResultSet with extra constraints added via OR.
      */
     public function &or_(/* Variable */) {
