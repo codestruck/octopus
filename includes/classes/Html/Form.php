@@ -632,7 +632,6 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         }
 
 
-
         if ($text === null && isset($attributes['label'])) {
             $text = $attributes['label'];
         }
@@ -679,13 +678,14 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
                 return $button;
 
+            case 'a':
             case 'link':
             case 'submit-link':
             case 'reset-link':
 
                 if (!isset($attributes['href'])) $attributes['href'] = '#';
                 $link = new Octopus_Html_Element('a', $attributes);
-                $link->addClass(preg_replace('/-?link/', '', $type), 'button');
+                $link->addClass(preg_replace('/-?link/', '', $type));
 
                 if ($text !== null) $link->html($text);
 
