@@ -334,12 +334,14 @@ class Octopus_Html_Table_Column {
     private function resultSetToString($rs) {
 
         $result = '';
+        $count = 0;
 
         foreach($rs as $model) {
             $result .= '<li>' . htmlspecialchars($model) . '</li>';
+            $count++;
         }
 
-        return $result ? '<ul>' . $result . '</ul>' : $result;
+        return $result ? "<ul class=\"octopusResultSet{$count}\">" . $result . '</ul>' : $result;
 
     }
 
