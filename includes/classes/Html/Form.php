@@ -722,8 +722,17 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         $wrapper->id = $field->wrapperId;
         $wrapper->addClass('field', $field->wrapperClass);
 
-        $wrapper->append($label);
-        $wrapper->append($field);
+        if ($field->type == 'checkbox') {
+
+            // HACK: Checkboxes are usually like [x] Label rather than Label [x]
+
+
+            $wrapper->append($field);
+            $wrapper->append($label);
+        } else {
+            $wrapper->append($label);
+            $wrapper->append($field);
+        }
 
         $field->wrapper = $wrapper;
 
