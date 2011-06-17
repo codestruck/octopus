@@ -265,7 +265,7 @@ class Octopus_Request {
         foreach($toTry as $name => $unused) {
 
             $file = $dir . $name . '.php';
-            $file = get_true_filename($file);
+            $file = get_true_filename($file, true);
 
             if ($file) {
 
