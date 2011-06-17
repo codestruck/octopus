@@ -89,7 +89,7 @@ class Octopus_App {
     }
 
     protected function watchForErrors() {
-        $this->_prevErrorHandler = set_error_handler(array($this, 'errorHandler'));
+        //$this->_prevErrorHandler = set_error_handler(array($this, 'errorHandler'));
     }
 
     public function errorHandler($level, $err, $file, $line) {
