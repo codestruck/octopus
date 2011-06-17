@@ -299,6 +299,29 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
         return $this->_hackyModelInstance->getPrimaryKey();
     }
 
+    private static function paren($sql) {
+        $sql = trim($sql);
+
+
+        return $sql ? '(' . $sql . ')' : '';
+    }
+
+    private static function joinSql($conj, $left, $right) {
+
+        $left = self::paren($left);
+        $right = self::paren($right);
+
+        if ($left && $right) {
+            return $left . ' ' . $conj . ' ' . $right;
+        } else if ($left) {
+            return $left;
+        } else if ($right) {
+            return $right;
+        } else {
+            return '';
+        }
+    }
+
     /**
      * Takes a big fat criteria array and generates a WHERE clause.
      * @param $criteria Array Set of criteria to compile into a WHERE clause.
@@ -310,11 +333,12 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
 
         if ($processParent && $this->_parent) {
             $this->_parent->_generateWhereClause($this->_parent->_criteria, $s, $sql, $params, true);
-            if ($sql) $sql = '(' . $sql . ')';
         }
 
+        $fragment = '';
+
         if ($this->_empty) {
-            $sql .= ($sql ? ' AND ' : '') . '(1 = 0)';
+            $fragment = '(1 = 0)';
         }
 
         if (empty($criteria)) {
@@ -405,20 +429,10 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
                 }
             }
 
-            if (!empty($criteriaSql)) {
-
-                if ($conjunction) {
-
-                    if (strlen($sql)) {
-                        $sql .= " $conjunction ";
-                    }
-
-                    $conjunction = 'AND';
-                }
-
-                $sql .= $criteriaSql . ' ';
-            }
+            $fragment = self::joinSql($conjunction, $fragment, $criteriaSql);
         }
+
+        $sql = self::joinSql('AND', $sql, $fragment);
 
     }
 

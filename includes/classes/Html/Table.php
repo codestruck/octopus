@@ -827,7 +827,11 @@ END;
         return $result;
     }
 
-    protected function &getFilterValues($source = null) {
+    public function getFilterValues($source = null) {
+
+        if ($source === null) {
+            $this->initFromEnvironment();
+        }
 
         $values = array();
         foreach($this->_filters as $f) {
