@@ -827,11 +827,7 @@ END;
         return $result;
     }
 
-    public function getFilterValues($source = null) {
-
-        if ($source === null) {
-            $this->initFromEnvironment();
-        }
+    protected function &internalGetFilterValues($source = null) {
 
         $values = array();
         foreach($this->_filters as $f) {
@@ -846,7 +842,14 @@ END;
         }
 
         return $values;
+    }
 
+    public function &getFilterValues() {
+
+        $this->initFromEnvironment();
+
+        $values = $this->internalGetFilterValues();
+        return $values;
     }
 
     /**
@@ -1027,9 +1030,9 @@ END;
             $page = $_SESSION[$sessionPageKey];
         }
 
-        $filterValues = $this->getFilterValues($qs);
+        $filterValues = $this->internalGetFilterValues($qs);
         if (empty($filterValues) && isset($_SESSION[$sessionFilterKey])) {
-            $filterValues = $this->getFilterValues($_SESSION[$sessionFilterKey]);
+            $filterValues = $this->internalGetFilterValues($_SESSION[$sessionFilterKey]);
         }
 
         if (!empty($filterValues)) {
