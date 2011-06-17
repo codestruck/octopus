@@ -254,6 +254,13 @@
             $_SESSION[OCTOPUS_FLASH_SESSION_KEY] = array();
         }
 
+        if (!$options) $options = array();
+
+        // Don't auto-hide error messages by default
+        if ($type == 'error' && !isset($options['persist'])) {
+            $options['persist'] = true;
+        }
+
         $_SESSION[OCTOPUS_FLASH_SESSION_KEY][$type] = array(
             'content' => $content,
             'options' => $options
