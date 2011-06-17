@@ -161,8 +161,8 @@
      */
     function get_true_filename($file) {
 
-        if (!is_file($file)) {
-            return false;
+        if (is_file($file)) {
+            return $file;
         }
 
         $info = pathinfo($file);
