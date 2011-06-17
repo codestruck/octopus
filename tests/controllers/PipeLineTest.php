@@ -26,6 +26,9 @@ END
 
 
         $app = $this->startApp();
+
+        $this->createViewFile('default_action/foo');
+
         unset($GLOBALS['action:foo']);
         $response = $app->getResponse('default-action/foo/arg1/arg2', true);
 
@@ -104,6 +107,10 @@ END
 
         $app = $this->startApp();
 
+        $this->createViewFile('before_and_after/foo');
+        $this->createViewFile('before_and_after/missing');
+        $this->createViewFile('before_and_after/cancel');
+
         $resp = $app->getResponse('before-and-after/foo/arg1/arg2', true);
 
         $this->assertEquals(array(0, 'foo', array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::_before'], '_before is wrong');
@@ -141,6 +148,7 @@ END
         $app = $this->startApp();
 
         $this->createControllerFile('AddSlashTest');
+        $this->createViewFile('add_slash_test/index');
 
         $resp = $app->getResponse('/add-slash-test', true);
 
