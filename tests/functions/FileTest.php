@@ -23,6 +23,7 @@ class FileTest extends PHPUnit_Framework_TestCase {
             $file = $dir . $f;
 
             recursive_touch($file);
+            $this->assertTrue(is_file($file), 'Test file does not exist.');
 
             foreach($funcs as $func) {
                 $this->assertEquals($file, get_true_filename($func($file)), "Failed on $func for $f");
