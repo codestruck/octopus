@@ -1018,6 +1018,15 @@ END;
         $sort = null;
         $page = null;
 
+        $filterValues = $this->internalGetFilterValues($qs);
+        if (empty($filterValues) && isset($_SESSION[$sessionFilterKey])) {
+            $filterValues = $this->internalGetFilterValues($_SESSION[$sessionFilterKey]);
+        }
+
+        if (!empty($filterValues)) {
+            $this->unfilter()->filter($filterValues);
+        }
+
         if (isset($qs[$sortArg])) {
             $sort = rawurldecode($qs[$sortArg]);
         } else if ($useSession && isset($_SESSION[$sessionSortKey])) {
@@ -1027,17 +1036,13 @@ END;
         if (isset($qs[$pageArg])) {
             $page = $qs[$pageArg];
         } else if ($useSession && isset($_SESSION[$sessionPageKey])) {
-            $page = $_SESSION[$sessionPageKey];
+
+            // Ensure that changing the sorting resets the page.
+            if (!isset($qs[$sortArg])) {
+                $page = $_SESSION[$sessionPageKey];
+            }
         }
 
-        $filterValues = $this->internalGetFilterValues($qs);
-        if (empty($filterValues) && isset($_SESSION[$sessionFilterKey])) {
-            $filterValues = $this->internalGetFilterValues($_SESSION[$sessionFilterKey]);
-        }
-
-        if (!empty($filterValues)) {
-            $this->unfilter()->filter($filterValues);
-        }
 
         // Ensure the current page's URL reflects the actual state
         if ($this->_options['redirectCallback']) {
@@ -1073,6 +1078,9 @@ END;
         if ($sort) {
             $this->sort(explode(',', $sort));
         }
+
+        // This needs to be called last or it won't be applied
+        $this->setPage($page);
     }
 
     /**
@@ -1284,7 +1292,8 @@ END;
 
         $html = '<div class="pagerLinks">';
 
-        if (count($p['data']) < $p['totalItems']) {
+
+        if ($p['page_numbers']['total'] > 1) {
 
             // Pager fucks up our nice urls, so we substitute in good ones.
 
