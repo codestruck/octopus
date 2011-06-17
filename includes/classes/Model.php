@@ -340,6 +340,11 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
         return $ar;
     }
 
+    // THIS IS A DIRTY HACK AND SHOULD BE KILLED
+    public function hasProperty($p) {
+        return isset($this->data[$p]);
+    }
+
     public function validate() {
 
         $pass = true;

@@ -71,6 +71,12 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         'maxSortColumns' => 2,
 
         /**
+         * Function to call to prepare a row for render. Will be called like:
+         * prepareRow($tr, $data, $index)
+         */
+        'prepareRow' => false,
+
+        /**
          * Argument used on the querystring to specify the col to sort on.
          */
         'sortArg' => 'sort',
@@ -1086,8 +1092,14 @@ END;
     /**
      * Hook to tweak a row before it is loaded up with junk.
      */
-    protected function prepareBodyRow($tr, $rowIndex) {
+    protected function prepareBodyRow($tr, &$data, $rowIndex) {
+
         $tr->class = ($rowIndex % 2 ? 'odd' : 'even');
+
+        if (is_callable($this->_options['prepareRow'])) {
+            call_user_func($this->_options['prepareRow'], $tr, $data, $rowIndex);
+        }
+
     }
 
     /**
@@ -1159,7 +1171,7 @@ END;
         foreach($rows as $row) {
 
             $tr->reset();
-            $this->prepareBodyRow($tr, $rowIndex);
+            $this->prepareBodyRow($tr, $row, $rowIndex);
 
             if ($array) $rowArray = array();
 

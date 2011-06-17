@@ -10,7 +10,7 @@ class Octopus_Html_Header extends Octopus_Base {
         $this->URL_BASE = URL_BASE;
     }
 
-    function &singleton() {
+    public static function &singleton() {
         return Octopus_Base::base_singleton('Octopus_Html_Header');
     }
 

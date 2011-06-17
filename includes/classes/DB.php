@@ -44,7 +44,10 @@ class Octopus_DB extends Octopus_Base {
 
         foreach ($bt as $t) {
 
-            $shortfile = str_replace(PUBLIC_ROOT_DIR, '', $t['file']);
+            if (defined('ROOT_DIR')) {
+                $shortfile = str_replace(ROOT_DIR, '', $t['file']);
+            }
+
 
             if (strstr($shortfile, 'DB') === false) {
                 return $shortfile . ':' . $t['line'];
@@ -62,8 +65,10 @@ class Octopus_DB extends Octopus_Base {
 
                 $loc = $this->getFileCall();
 
-                $log = new Octopus_Logger_File(LOG_DIR . 'app.txt');
-                $log->log(sprintf('UNSAFE SQL: %s %s', $loc, $sql));
+                if (defined('LOG_DIR')) {
+                    $log = new Octopus_Logger_File(LOG_DIR . 'app.txt');
+                    $log->log(sprintf('UNSAFE SQL: %s %s', $loc, $sql));
+                }
 
                 $sql = '/* UNSAFE */ ' . $sql;
 

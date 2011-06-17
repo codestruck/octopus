@@ -301,7 +301,7 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      */
     public function getValue($field, $default = null) {
 
-        $values =& $this->getValues();
+        $values = $this->getValues();
 
         if (isset($values[$field])) {
             return $values[$field];

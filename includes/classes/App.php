@@ -68,7 +68,7 @@ class Octopus_App {
     private $_nav;
     private $_settings;
     private $_controllers = null, $_flatControllers = null;
-
+    private $_prevErrorHandler = null;
     private $_currentRequest = null;
 
     private function __construct($options = array()) {
@@ -85,7 +85,31 @@ class Octopus_App {
         $this->_setEnvironmentFlags();
         $this->_ensurePrivateDir();
         $this->_initSettings();
+        $this->watchForErrors();
+    }
 
+    protected function watchForErrors() {
+        $this->_prevErrorHandler = set_error_handler(array($this, 'errorHandler'));
+    }
+
+    public function errorHandler($level, $err, $file, $line) {
+
+        if (!($level & E_DEPRECATED)) {
+
+            dump_r($err);
+
+            if (!empty($this->_options['cancel_redirects_on_error']) || $this->isDevEnvironment()) {
+                cancel_redirects();
+            }
+
+
+        }
+
+
+        if (is_callable($this->_prevErrorHandler)) {
+            $args = func_get_args();
+            call_user_func_array($this->_prevErrorHandler, $args);
+        }
     }
 
     public function __get($name) {
