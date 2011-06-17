@@ -26,7 +26,7 @@ class FileTest extends PHPUnit_Framework_TestCase {
             $this->assertTrue(is_file($file), 'Test file does not exist.');
 
             foreach($funcs as $func) {
-                $this->assertEquals($file, get_true_filename($func($file)), "Failed on $func for $f");
+                $this->assertEquals($file, get_true_filename($func($file), true), "Failed on $func for $f");
             }
 
         }

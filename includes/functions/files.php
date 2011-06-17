@@ -156,70 +156,62 @@
     /**
      * Determines the actual, real name of $file. Emulates a case-insensitive
      * file system.
+     * @param $file String Filename to examine
+     * @param $force bool Whether to allow shortcutting out if the file exists
      * @return Mixed The actual full filename (correct case) if found,
      * otherwise false.
      */
-    function get_true_filename($file) {
+    function get_true_filename($file, $force = false) {
 
-        if (is_file($file)) {
+        if (!$force && is_file($file)) {
             return $file;
         }
 
-        $info = pathinfo($file);
+        $parts = explode('/', $file);
+        $result = '';
 
-        $dirs = explode('/', $info['dirname']);
-        $normalDirs = array();
-        $fullDir = '';
-
-        foreach($dirs as $dir) {
-
-            if ($dir == '.') {
-                continue;
-            } else if ($dir == '..') {
-                array_pop($normalDirs);
-                $fullDir = implode('/', $normalDirs);
-                continue;
-            }
-
-            foreach(_glob_for_candidates($fullDir, $dir, '') as $candidate) {
-                $candidate = basename($candidate);
-                if (strcasecmp($candidate, $dir) == 0) {
-                    $dir = $candidate;
-                    break;
-                }
-            }
-
-            $normalDirs[] = $dir;
-            $fullDir .= $dir . '/';
+        if (_get_true_filename_worker($parts, 0, $result)) {
+            return $result;
         }
 
-        $basename = $info['basename'];
-        $ext = $info['extension'];
-
-        foreach(_glob_for_candidates($fullDir, $basename, $ext) as $f) {
-            $f = basename($f);
-            if (strcasecmp($f, $basename) == 0) {
-                return $fullDir . $f;
-            }
-        }
-
-        return realpath($file);
+        return false;
     }
 
-    function _glob_for_candidates($dir, $file, $ext) {
+    function _get_true_filename_worker(&$pathParts, $index, &$filename) {
 
-        $pattern = '';
-
-        // Use the first 3 chars to limit scope
-        $pattern .= _globify($file, 3);
-        $pattern .= '*';
-
-        if ($ext) {
-            $pattern .= '.';
-            $pattern .= _globify($ext);
+        if ($index >= count($pathParts)) {
+            return true;
         }
 
-        return glob($dir . $pattern);
+        $fullName = $pathParts[$index];
+
+        if (!$fullName) {
+            return _get_true_filename_worker($pathParts, $index + 1, $filename);
+        }
+
+        $dotPos = strrpos($fullName, '.');
+
+        if ($dotPos) {
+            $ext = substr($fullName, $dotPos);
+            $name = substr($fullName, 0, $dotPos);
+        } else {
+            $ext = '';
+            $name = $fullName;
+        }
+
+        $pattern = _globify($name, 3) . _globify($ext);
+
+        foreach(glob($filename . '/' . $pattern) as $candidate) {
+
+            $candidateName = basename($candidate);
+
+            if (strcasecmp($fullName, $candidateName) == 0) {
+                $filename .= '/' . $candidateName;
+                return _get_true_filename_worker($pathParts, $index+1, $filename);
+            }
+        }
+
+        return false;
     }
 
     function _globify($str, $maxLen = 0) {
@@ -244,6 +236,11 @@
                 $result .= '[' . $uc . $lc . ']';
             }
         }
+
+        if ($maxLen && $maxLen < $len) {
+            $result .= '*';
+        }
+
 
         return $result;
 
