@@ -133,7 +133,13 @@ class Octopus_Html_Table extends Octopus_Html_Element {
          * the new redirect path. To prevent any autoredirection, set this
          * to false.
          */
-        'redirectCallback' => 'redirect'
+        'redirectCallback' => 'redirect',
+
+        /**
+         * Whether, when the user clicks 'clear filters', to also reset the
+         * sorting to the default.
+         */
+        'resetSortingOnClearFilters' => true
     );
 
     private $_options;
@@ -555,6 +561,11 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      */
     public function count() {
         return $this->getPagerData('totalItems');
+    }
+
+    public function isSorted() {
+        $this->initFromEnvironment();
+        return !!count($this->_sortColumns);
     }
 
     /**
@@ -1003,23 +1014,32 @@ END;
         }
         $this->_shouldInitFromEnvironment = false;
 
+        $useSession = $this->_options['useSession'];
+        $sortArg = $this->_options['sortArg'];
+        $pageArg = $this->_options['pageArg'];
+
+
         $uri = $this->getRequestURI(false);
         $qs = $this->getQueryString();
         $this->getSessionKeys($uri, $sessionSortKey, $sessionPageKey, $sessionFilterKey);
 
         $clearFiltersArg = $this->_options['clearFiltersArg'];
         if (isset($qs[$clearFiltersArg]) && $qs[$clearFiltersArg]) {
+
             $this->clearFilters();
             unset($qs[$clearFiltersArg]);
+
+            if ($this->_options['resetSortingOnClearFilters']) {
+                $this->sort(false);
+                unset($qs[$sortArg]);
+            }
+
             $qs = http_build_query($qs);
             if ($qs) $uri .= '?' . $qs;
             $this->redirect($uri);
             return;
         }
 
-        $useSession = $this->_options['useSession'];
-        $sortArg = $this->_options['sortArg'];
-        $pageArg = $this->_options['pageArg'];
 
         $sort = null;
         $page = null;
