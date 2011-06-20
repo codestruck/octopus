@@ -6,12 +6,13 @@ class Octopus_DB_Schema_Model {
 
     public static function makeTable($model) {
 
-        $model = strtolower($model);
+        $table = underscore(pluralize($model));
+        $key = underscore($model) . '_id';
 
         $d = new Octopus_DB_Schema();
-        $t = $d->newTable(pluralize($model));
-        $t->newKey($model . '_id', true);
-        $t->newPrimaryKey($model . '_id');
+        $t = $d->newTable($table);
+        $t->newKey($key, true);
+        $t->newPrimaryKey($key);
 
         $modelClass = camel_case($model, true);
 
@@ -23,12 +24,12 @@ class Octopus_DB_Schema_Model {
         foreach ($obj->getFields() as $field) {
             $fieldName = $field->getFieldName();
 
-            if ($field instanceof Octopus_Model_Field_String) {
+            if ($field instanceof Octopus_Model_Field_Html) {
+                $t->newTextLarge($fieldName);
+            } else if ($field instanceof Octopus_Model_Field_String) {
                 $t->newTextSmall($fieldName);
             } else if ($field instanceof Octopus_Model_Field_Slug) {
                 $t->newTextSmall($fieldName);
-            } else if ($field instanceof Octopus_Model_Field_Html) {
-                $t->newTextLarge($fieldName);
             } else if ($field instanceof Octopus_Model_Field_Numeric) {
                 $t->newBigInt($fieldName);
             } else if ($field instanceof Octopus_Model_Field_Boolean) {
@@ -42,7 +43,7 @@ class Octopus_DB_Schema_Model {
                 $t->newDateTime($fieldName);
             } else if ($field instanceof Octopus_Model_Field_ManyToMany) {
                 $tableA = singularize($fieldName);
-                $joinTable = $field->getJoinTableName(array($tableA, $model));
+                $joinTable = $field->getJoinTableName(array($tableA, $table));
 
                 $j = $d->newTable($joinTable);
                 $j->newKey($obj->to_id($tableA));

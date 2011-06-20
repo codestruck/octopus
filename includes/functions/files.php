@@ -45,6 +45,11 @@
 
         }
 
+        // allow dirs to be single string
+        if (is_string($dirs)) {
+            $dirs = array($dirs);
+        }
+
         if (!is_array($paths)) {
             $paths = array($paths);
         }
