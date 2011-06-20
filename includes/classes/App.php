@@ -686,7 +686,15 @@ class Octopus_App {
 
         $configFile = $o['SITE_DIR'] . 'config.php';
 
-        $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : trim(`hostname`);
+        $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : false;
+
+        if ($host) {
+            // NOTE: Getting the hostname via `hostname` can have unintended
+            // consequences when multiple app installations are running on the
+            // same server.
+            die("No hostname is known.");
+        }
+
         $hostConfigFile = SITE_DIR . "config.$host.php";
 
         if (! (file_exists($configFile) || file_exists($hostConfigFile))) {
