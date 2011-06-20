@@ -4,6 +4,8 @@ Options -Indexes FollowSymLinks
 
     RewriteEngine on
 
+    RewriteRule "^(.*/)?\.git/" - [F,L]
+
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^ui(\.php)?/?(.*) /pricewaiter/index$2 [R=301,L]
