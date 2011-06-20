@@ -2,7 +2,9 @@
 
     Octopus::loadExternal('pear');
 
+if (!function_exists('rewriteCountQuery')) {
     require_once(dirname(__FILE__) . '/Pager_Wrapper.php');
+}
 
 /**
  * Pager_Wrapper adapted to work with Octopus result sets.
