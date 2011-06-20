@@ -10,7 +10,7 @@ Octopus::loadClass('Octopus_Model_ResultSet');
 
 class Octopus_Model_Exception extends Octopus_Exception {}
 
-abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
+abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
 
     /**
      * Name of column that stores the primary key. If not set in a subclass,
@@ -98,12 +98,6 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
 
         if ($this->escaped && $this->load_id === null) {
             throw new Octopus_Model_Exception('Cannot set field ' . $var . ' on Model ' . $this->getClassName() . ' when it is escaped.');
-        }
-
-        if ($var == 'id') {
-            $pk = $this->getPrimaryKey();
-            $this->$pk = $value;
-            return;
         }
 
         $field = $this->getField($var);
@@ -265,10 +259,6 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
      */
     protected function internalSave($id, &$fields) {
 
-        if (empty($fields)) {
-            return true;
-        }
-
         $pk = $this->getPrimaryKey();
 
         if ($id !== null) {
@@ -307,21 +297,22 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
 
     public function delete() {
 
-        $pk = $this->getPrimaryKey();
-        $item_id = $this->$pk;
-        $table = $this->getTableName();
-
         if ($this->load_id !== null) {
             $item_id = $this->load_id;
             $this->load_id = null;
+        } else {
+            $pk = $this->getPrimaryKey();
+            $item_id = $this->$pk;
         }
+
+        $table = $this->getTableName();
 
         $d = new Octopus_DB_Delete();
         $d->table($table);
         $d->where($pk . ' = ?', $item_id);
         $d->execute();
 
-        return true; // ?
+        return true;
     }
 
     public function toArray() {
@@ -369,10 +360,6 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
 
     public function getDisplayField() {
 
-        if (!$this->displayField) {
-            return;
-        }
-
         if (is_string($this->displayField)) {
             return $this->getField($this->displayField);
         } else if (is_array($this->displayField)) {
@@ -388,13 +375,10 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
             }
         }
 
-        $this->displayField = null;
     }
 
     public function getDisplayValue() {
         $field = $this->getDisplayField();
-
-        if ($field) // HACK to fix tests while working on one to many
         return $this->{$field->getFieldName()};
     }
 
@@ -414,7 +398,7 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
         if (isset($this->table)) {
             return $this->table;
         } else {
-            return underscore($this->_pluralize($this->getClassName()));
+            return underscore(pluralize($this->getClassName()));
         }
     }
 
@@ -430,11 +414,6 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
 
     private function getClassName() {
         return get_class($this);
-    }
-
-    protected function _pluralize($str) {
-        // needs work...
-        return pluralize($str);
     }
 
     public function getFields() {
@@ -515,7 +494,7 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
 
             $result = $result->first();
 
-            if ($result) return $result;
+            return $result;
         }
 
         $class = self::_getClassName();
@@ -567,26 +546,29 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
 
     // }}}
 
+    public function __isset($key) {
+        $fields = $this->getFields();
+        return array_key_exists($key, $fields);
+    }
+
+    public function __unset($key) {
+        $this->$key = '';
+    }
+
     // Iterator Implementation {{{
 
-    /*
     private $_iteratorIndex = -1;
     private $_iteratorFieldName = null;
 
     public function current() {
-        dump_r('current');
-        if ($this->_iteratorIndex < 0) {
-            return null;
-        } else if ($this->_iteratorIndex == 0) {
+        if ($this->_iteratorIndex == 0) {
             return $this->id;
-        } else if ($this->_iteratorFieldName) {
+        } else {
             return $this->{$this->_iteratorFieldName};
         }
-
     }
 
     public function key() {
-        dump_r('key');
         if ($this->_iteratorIndex == 0) {
             return $this->getPrimaryKey();
         } else {
@@ -595,32 +577,28 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
     }
 
     public function next() {
-        dump_r('next');
         $this->_iteratorIndex++;
 
         if ($this->_iteratorIndex > 0) {
             $this->_iteratorFieldName = $this->getFieldNameByIndex($this->_iteratorIndex - 1);
-        } else {
-            $this->_iteratorFieldName = null;
         }
 
     }
 
     public function rewind() {
-
-        $this->_iteratorIndex = -1;
+        $this->_iteratorIndex = 0;
         $this->_iteratorFieldName = null;
     }
 
     public function valid() {
-        dump_r('valid');
-        return ($this->_iteratorIndex == 0) || $this->_iteratorFieldName;
+        $fields = $this->getFields();
+        return ($this->_iteratorIndex > -1 && $this->_iteratorIndex <= count($fields));
     }
 
     public function count() {
-        return 7;
+        $fields = $this->getFields();
+        return count($fields) + 1;
     }
-    */
 
     // }}}
 

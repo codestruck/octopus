@@ -339,6 +339,21 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
         $this->assertEquals('is Required', $error['message']);
     }
 
+    function testToString()
+    {
+        $post = new Minpost(1);
+        $this->assertEquals('My Title', (string)$post);
+    }
+
+    function testDeleteLazy()
+    {
+        $post = new Minpost(1);
+        $post->delete();
+
+        $post = new Minpost(1);
+        $this->assertEquals(null, $post->minpost_id);
+    }
+
     function testSetBoolToZero()
     {
         $post = new Minpost(1);
@@ -351,7 +366,6 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
         $this->assertEquals(0, $checkPost->active);
 
     }
-
 
     function testResultSetArrayAccess() {
         $all = Minpost::all();
@@ -437,5 +451,145 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
         $this->assertEquals(9901, $post->display_order);
 
     }
+
+    function testUnsetLazy() {
+
+        $post = new Minpost(1);
+        unset($post->body);
+        $this->assertEquals('', $post->body);
+        $post->save();
+
+        $post = new Minpost(1);
+        $this->assertEquals('', $post->body);
+
+    }
+
+    function testUnsetLoaded() {
+
+        $post = new Minpost(1);
+        $this->assertEquals('My Body.', $post->body);
+        unset($post->body);
+        $this->assertEquals('', $post->body);
+
+    }
+
+    function testIssetExistingLazy() {
+        $post = new Minpost(1);
+        $this->assertTrue(isset($post->title));
+        $this->assertFalse(isset($post->nonexistant));
+    }
+
+    function testIssetExistingLoaded() {
+        $post = new Minpost(1);
+        $this->assertEquals('My Title', $post->title);
+        $this->assertTrue(isset($post->title));
+        $this->assertFalse(isset($post->nonexistant));
+    }
+
+    function testIssetNewLazy() {
+        $post = new Minpost();
+        $this->assertTrue(isset($post->title));
+        $this->assertFalse(isset($post->nonexistant));
+    }
+
+    function testIteratorExistingValue() {
+
+        $post = new Minpost(1);
+
+        $i = 0;
+        foreach ($post as $item) {
+            switch ($i) {
+                case 0:
+                    $this->assertEquals(1, $item);
+                break;
+                case 1:
+                    $this->assertEquals('My Title', $item);
+                break;
+                case 2:
+                    $this->assertEquals('my-title', $item);
+                break;
+                case 3:
+                    $this->assertEquals('My Body.', $item);
+                break;
+                case 4:
+                    $this->assertEquals('1', $item);
+                break;
+                case 5:
+                    $this->assertEquals(0, $item);
+                break;
+                case 6:
+                    $this->assertEquals('2000-03-20 04:20:11', $item);
+                break;
+                case 7:
+                    $this->assertEquals('2001-03-20 04:20:11', $item);
+                break;
+
+            }
+
+            $i++;
+        }
+
+        $this->assertEquals(8, $i);
+
+    }
+
+    function testIteratorExistingKeyValue() {
+
+        $post = new Minpost(1);
+
+        $i = 0;
+        foreach ($post as $key => $item) {
+            switch ($i) {
+                case 0:
+                    $this->assertEquals(1, $item);
+                    $this->assertEquals('minpost_id', $key);
+                break;
+                case 1:
+                    $this->assertEquals('My Title', $item);
+                    $this->assertEquals('title', $key);
+                break;
+                case 2:
+                    $this->assertEquals('my-title', $item);
+                    $this->assertEquals('slug', $key);
+                break;
+                case 3:
+                    $this->assertEquals('My Body.', $item);
+                    $this->assertEquals('body', $key);
+                break;
+                case 4:
+                    $this->assertEquals('1', $item);
+                    $this->assertEquals('active', $key);
+                break;
+                case 5:
+                    $this->assertEquals(0, $item);
+                    $this->assertEquals('display_order', $key);
+                break;
+                case 6:
+                    $this->assertEquals('2000-03-20 04:20:11', $item);
+                    $this->assertEquals('created', $key);
+                break;
+                case 7:
+                    $this->assertEquals('2001-03-20 04:20:11', $item);
+                    $this->assertEquals('updated', $key);
+                break;
+
+            }
+
+            $i++;
+        }
+
+        $this->assertEquals(8, $i);
+
+    }
+
+    function testCount() {
+        $post = new Minpost(1);
+        $this->assertEquals(8, count($post));
+
+        $post = new Minpost();
+        $this->assertEquals(8, count($post));
+
+    }
+
 
 }

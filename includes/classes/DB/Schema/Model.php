@@ -43,7 +43,7 @@ class Octopus_DB_Schema_Model {
                 $t->newDateTime($fieldName);
             } else if ($field instanceof Octopus_Model_Field_ManyToMany) {
                 $tableA = singularize($fieldName);
-                $joinTable = $field->getJoinTableName(array($tableA, $table));
+                $joinTable = $field->getJoinTableName(array($tableA, singularize($table)));
 
                 $j = $d->newTable($joinTable);
                 $j->newKey($obj->to_id($tableA));

@@ -176,6 +176,16 @@ class FindTest extends Octopus_DB_TestCase {
         }
     }
 
+    function testGetArray() {
+        $post = FindPost::get(array('slug', 'slug-for-post-1'));
+        $this->assertEquals(1, $post->id);
+    }
+
+    function testGetNonExist() {
+        $post = FindPost::get(99);
+        $this->assertEquals(null, $post);
+    }
+
     function testOrderByID() {
 
         $posts = FindPost::all()->orderBy(array('id' => 'desc'));
