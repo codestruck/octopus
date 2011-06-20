@@ -15,6 +15,7 @@ class SelectTest extends Octopus_Html_TestCase {
         $this->assertHtmlEquals(
             <<<END
 <form id="select" method="post">
+    <input type="hidden" name="__form_select_submitted" value="1" />
     <div id="fooField" class="field foo select">
         <label for="fooInput">Foo:</label>
         <select id="fooInput" class="foo select" name="foo">

@@ -12,6 +12,7 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     private $_security_user_id = null;
     private $_security_action = null;
     private $_security_field = '__security_token';
+    private $_submitted_field = null;
 
 
     /**
@@ -33,6 +34,14 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         }
 
         parent::__construct('form', $attributes);
+
+        $this->_submitted_field = '__form_' . $id . '_submitted';
+
+        $el = new Octopus_Html_Element('input', array('type' => 'hidden'));
+        $el->name = $this->_submitted_field;
+        $el->value = 1;
+        $this->append($el);
+
     }
 
     public function &add($typeOrElement, $name = null, $label = null, $attributes = null) {
@@ -603,8 +612,7 @@ class Octopus_Html_Form extends Octopus_Html_Element {
             return false;
         }
 
-        $this->getValues();
-        return !empty($this->_values);
+        return ($actualMethod( $this->_submitted_field ) == 1);
     }
 
     public function submitted() {

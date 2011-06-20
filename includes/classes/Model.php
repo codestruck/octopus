@@ -297,11 +297,12 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
 
     public function delete() {
 
+        $pk = $this->getPrimaryKey();
+
         if ($this->load_id !== null) {
             $item_id = $this->load_id;
             $this->load_id = null;
         } else {
-            $pk = $this->getPrimaryKey();
             $item_id = $this->$pk;
         }
 

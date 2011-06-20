@@ -67,6 +67,7 @@ class FormTest extends Octopus_Html_TestCase {
 
             $html = $form->render(true);
             $html = str_replace("\n", '', $html);
+            $html = str_replace('<input type="hidden" name="__form_buttons_submitted" value="1" />', '', $html);
             $html = preg_replace('#<form[^>]*><div[^>]*>#', '', $html);
             $html = preg_replace('#</(div|form)>#', '', $html);
 
@@ -95,6 +96,7 @@ class FormTest extends Octopus_Html_TestCase {
         $this->assertHtmlEquals(
 <<<END
 <form id="testForm" method="post" action="whatever.php">
+    <input type="hidden" name="__form_testForm_submitted" value="1" />
     <div id="nameField" class="field name text required">
         <label for="nameInput">Name:</label>
         <input type="text" id="nameInput" class="name text required" name="name" value="Joe Blow" autofocus required />
@@ -123,6 +125,7 @@ END
         $this->assertHtmlEquals(
 <<<END
 <form id="testForm" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="__form_testForm_submitted" value="1" />
     <div id="imageField" class="field image file">
         <label for="imageInput">Image:</label>
         <input type="file" id="imageInput" class="image file" name="image" />
@@ -258,31 +261,26 @@ END
 
 
         $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_POST['__form_wasSubmitted_submitted'] = 1;
         $form = new Octopus_Html_Form('wasSubmitted', 'post');
         $form->add('foo');
         $this->assertFalse($form->reset()->wasSubmitted(), 'should be false w/ wrong request method');
 
         $_POST['foo'] = 'bar';
         $form = new Octopus_Html_Form('wasSubmitted', 'post');
+        $_POST['__form_wasSubmitted_submitted'] = 1;
         $form->add('foo');
         $this->assertFalse($form->reset()->wasSubmitted(), 'should be false w/ wrong request method, even if data is present');
 
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $form = new Octopus_Html_Form('wasSubmitted', 'post');
+        $_POST['__form_wasSubmitted_submitted'] = 1;
         $form->add('foo');
         $this->assertTrue($form->reset()->wasSubmitted(), 'should be true w/ proper request method');
-
-        unset($_POST['foo']);
-        $_POST['bar'] = 'foo';
-        $form = new Octopus_Html_Form('wasSubmitted', 'post');
-        $form->add('foo');
-        $this->assertFalse($form->reset()->wasSubmitted(), 'should be false w/ proper request method but no data');
 
     }
 
     function testNotSubmittedSetValues() {
-
-        $this->markTestSkipped('needs thought');
 
         $form = new Octopus_Html_Form('wasNotSubmitted', 'post');
         $form->add('foo');
@@ -290,6 +288,22 @@ END
 
         $form->setValues(array('for' => 'thefoovalue'));
         $this->assertFalse($form->wasSubmitted());
+
+    }
+
+    function testWasSubmitted2() {
+
+        $_POST = array();
+
+        $form = new Octopus_Html_Form('wasSubmitted', 'post');
+        $form->add('foo');
+        $this->assertFalse($form->wasSubmitted());
+
+        $_SERVER['REQUEST_METHOD'] == 'POST';
+        $_POST['foo'] = 'bar';
+        $_POST['__form_wasSubmitted_submitted'] = 1;
+
+        $this->assertTrue($form->wasSubmitted());
 
     }
 
@@ -346,6 +360,7 @@ END
         $form->add('name');
 
         $_POST['name'] = 'foo';
+        $_POST['__form_security_test_submitted'] = 1;
         $_SERVER['REQUEST_METHOD'] = 'POST';
 
         $this->assertTrue($form->submitted());
@@ -363,6 +378,7 @@ END
 
         $_POST['name'] = 'foo';
         $_POST['__security_token'] = get_security_token($user_id, 'security_test') . 'ALTERED';
+        $_POST['__form_security_test_submitted'] = 1;
         $_SERVER['REQUEST_METHOD'] = 'POST';
 
         $this->assertTrue($form->submitted());
@@ -380,6 +396,7 @@ END
 
         $_POST['name'] = 'foo';
         $_POST['__security_token'] = get_security_token($user_id, 'security_test');
+        $_POST['__form_security_test_submitted'] = 1;
         $_SERVER['REQUEST_METHOD'] = 'POST';
 
         $this->assertTrue($form->submitted());
