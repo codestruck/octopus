@@ -688,7 +688,7 @@ class Octopus_App {
 
         $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : false;
 
-        if ($host) {
+        if (!$host) {
             // NOTE: Getting the hostname via `hostname` can have unintended
             // consequences when multiple app installations are running on the
             // same server.
