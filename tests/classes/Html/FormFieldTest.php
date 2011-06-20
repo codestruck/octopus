@@ -173,6 +173,7 @@ class FormFieldTest extends Octopus_Html_TestCase {
         $expect = <<<END
 
 <form id="test" method="post">
+<input type="hidden" name="__form_test_submitted" value="1" />
 <div id="optinField" class="field optin checkbox">
 <label for="optinInput">Are you in</label>
 <input type="checkbox" id="optinInput" class="optin checkbox" name="optin" /></div></form>
@@ -194,6 +195,7 @@ END;
         $expect = <<<END
 
 <form id="test" method="post">
+<input type="hidden" name="__form_test_submitted" value="1" />
 <div id="colorsBlueField" class="field colors valueblue checkbox">
 <label for="colorsBlueInput">Colors</label>
 <input type="checkbox" id="colorsBlueInput" class="colors valueblue checkbox" name="colors[]" value="blue" /></div></form>
@@ -219,6 +221,7 @@ END;
         $expect = <<<END
 
 <form id="test" method="post">
+<input type="hidden" name="__form_test_submitted" value="1" />
 <div id="colorsBlueField" class="field colors valueblue checkbox">
 <label for="colorsBlueInput">Colors</label>
 <input type="checkbox" id="colorsBlueInput" class="colors valueblue checkbox" name="colors[]" value="blue" checked /></div>
@@ -261,6 +264,7 @@ END;
         $form->add('checkbox', 'colors[]', 'Colors', array('value' => 'pink'))->required();
 
         $_POST['colors'] = array('pink', 'blue');
+        $_POST['__form_test_submitted'] = 1;
         $_SERVER['REQUEST_METHOD'] = 'post';
 
         $this->assertTrue($form->submitted(), 'The form was submitted');
@@ -272,6 +276,7 @@ END;
         $expect = <<<END
 
 <form id="test" method="post">
+<input type="hidden" name="__form_test_submitted" value="1" />
 <div id="colorsBlueField" class="field colors valueblue checkbox required">
 <label for="colorsBlueInput">Colors</label>
 <input type="checkbox" id="colorsBlueInput" class="colors valueblue checkbox required" name="colors[]" value="blue" /></div>
