@@ -215,4 +215,7 @@ Octopus_Html_Table_Filter::register('search', 'Octopus_Html_Table_Filter_Search'
 Octopus::loadClass('Octopus_Html_Table_Filter_Select');
 Octopus_Html_Table_Filter::register('select', 'Octopus_Html_Table_Filter_Select');
 
+Octopus::loadClass('Octopus_Html_Table_Filter_Checkbox');
+Octopus_Html_Table_Filter::register('checkbox', 'Octopus_Html_Table_Filter_Checkbox');
+
 ?>
