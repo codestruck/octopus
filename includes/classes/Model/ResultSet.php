@@ -278,7 +278,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
                 Octopus_Model_Field::defaultOrderBy($this, $s, $pk, $dir);
             }
 
-            $field = $this->_getField($fieldName);
+            $field = $this->getModelField($fieldName);
             if ($field) {
                 $field->orderBy($this, $s, $dir);
             }
@@ -421,7 +421,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
                     $fieldName = $obj->getPrimaryKey();
                     $criteriaSql = Octopus_Model_Field::defaultRestrict($fieldName, $operator, '=', $value, $s, $params, $obj);
                 } else {
-                    $field = $this->_getField($fieldName);
+                    $field = $this->getModelField($fieldName);
 
                     $mc = $this->_modelClass;
                     $obj = new $mc();
@@ -447,7 +447,10 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
 
     }
 
-    private function &_getField($name) {
+    /**
+     * @return Octopus_Model_Field
+     */
+    public function getModelField($name) {
         $mc = $this->_modelClass;
         $obj = new $mc();
         $field = $obj->getField($name);

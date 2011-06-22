@@ -27,7 +27,7 @@ class Octopus_Html_Table_Content extends Octopus_Html_Element {
      */
     public function fillCell($table, $column, $cell, &$obj) {
 
-        $pattern = '/\{\$([a-z0-9_\.\|]+)\}/i';
+        $pattern = '/\{\$([a-z0-9_\.\|\>\(\)-]+)\}/i';
 
         $html = $this->render(true);
 
@@ -46,6 +46,7 @@ class Octopus_Html_Table_Content extends Octopus_Html_Element {
         while($keys) {
 
             $key = array_shift($keys);
+            $key = str_replace('->', '.', $key);
             $parts = explode('.', $key);
             $value = $this->_currentObj;
             $path = '';
@@ -57,8 +58,15 @@ class Octopus_Html_Table_Content extends Octopus_Html_Element {
                 $path .= ($path ? '.' : '') . $p;
 
                 if (is_object($value)) {
+
                     // HACK: model doesn't support isset()
-                    if (isset($value->$p) || $value instanceof Octopus_Model) {
+                    $method = null;
+
+                    if (ends_with($p, '()', false, $method) && method_exists($value, $method)) {
+
+                        $value = $value->$method();
+                        $found = true;
+                    } else if (isset($value->$p) || $value instanceof Octopus_Model) {
                         $value = $value->$p;
                         $found = true;
                     } else {

@@ -14,6 +14,11 @@ class Octopus_Html_Table_Column {
     public static $defaults = array(
 
         /**
+         * Template for content to display in this cell.
+         */
+        'content' => null,
+
+        /**
          * Whether or not to escape HTML
          */
         'escape' => true,
@@ -50,6 +55,10 @@ class Octopus_Html_Table_Column {
         $this->_cell = new Octopus_Html_Element('td');
         self::initializeOptions($id, $this->options);
 
+        if ($this->options['content']) {
+            $this->addContent($this->options['content']);
+        }
+
         $this->addClass($id);
     }
 
@@ -75,7 +84,7 @@ class Octopus_Html_Table_Column {
             $action = new Octopus_Html_Table_Action($id, $label, $url, $options);
         }
 
-        $this->_content[] = $action;
+        $this->addContent($action);
         $this->_actions[$action->getContentID()] = $action;
 
         return $action;
@@ -87,6 +96,31 @@ class Octopus_Html_Table_Column {
         $toggle = new Octopus_Html_Table_Toggle($id, $labels, $url, $options);
 
         return $this->addAction($toggle);
+    }
+
+    public function addContent(/* variable */) {
+
+        $args = func_get_args();
+
+        foreach($args as $arg) {
+
+            if (!$arg) continue;
+
+            if (is_array($arg)) {
+                foreach($arg as $a) {
+                    $this->addContent($a);
+                }
+                continue;
+            }
+
+            if (!($arg instanceof Octopus_Html_Table_Content)) {
+                $arg = new Octopus_Html_Table_Content('', 'span', null, $arg);
+            }
+
+            if ($arg) $this->_content[] = $arg;
+        }
+
+        return $this;
     }
 
     public function getAction($id) {
@@ -244,10 +278,6 @@ class Octopus_Html_Table_Column {
      */
     public function shouldBeSortable(&$dataSource) {
 
-        if (!empty($this->_content)) {
-            return false;
-        }
-
         if (class_exists('Octopus_Model_ResultSet') && $dataSource instanceof Octopus_Model_ResultSet) {
             return $this->shouldBeSortableAgainstResultSet($dataSource);
         } else if (is_array($dataSource)) {
@@ -259,8 +289,8 @@ class Octopus_Html_Table_Column {
     }
 
     protected function shouldBeSortableAgainstResultSet($resultSet) {
-        // TODO: be better
-        return true;
+        $field = $resultSet->getModelField($this->id);
+        return !!$field;
     }
 
     /**
