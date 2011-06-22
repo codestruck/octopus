@@ -74,10 +74,6 @@ abstract class Octopus_Html_Table_Filter {
      */
     public function apply($dataSource) {
 
-        if (empty($dataSource)) {
-            return $dataSource;
-        }
-
         if (class_exists('Octopus_Model_ResultSet') && $dataSource instanceof Octopus_Model_ResultSet) {
             return $this->applyToResultSet($dataSource);
         } else if (is_array($dataSource)) {

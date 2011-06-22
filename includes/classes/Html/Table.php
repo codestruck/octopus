@@ -401,9 +401,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
         $args = func_get_args();
 
-        if (empty($args)) {
-            return $this;
-        } else if (count($args) == 1 && $args[0] === false) {
+        // let $table->filter(false) == $table->unfilter()
+        if (count($args) == 1 && $args[0] === false) {
             return $this->unfilter();
         }
 
@@ -1049,9 +1048,7 @@ END;
             $filterValues = $this->internalGetFilterValues($_SESSION[$sessionFilterKey]);
         }
 
-        if (!empty($filterValues)) {
-            $this->unfilter()->filter($filterValues);
-        }
+        $this->unfilter()->filter($filterValues);
 
         if (isset($qs[$sortArg])) {
             $sort = rawurldecode($qs[$sortArg]);
