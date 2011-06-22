@@ -49,7 +49,7 @@ class Octopus_Html_Table_Filter_Select extends Octopus_Html_Table_Filter {
 
     protected function applyToResultSet($resultSet) {
         $val = $this->val();
-        if ($val) {
+        if ($val || $val === 0) {
             return $resultSet->where(array($this->id => $val));
         } else {
             return $resultSet;
