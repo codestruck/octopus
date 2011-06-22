@@ -8,6 +8,10 @@ Model
 - Doing 'order by' a hasone creates a join and sorts on the display field. Maybe make the sort
   field configurable per-hasone?
 - customize escaping (allowed tags?)
+- functions in queries, e.g.
+
+    $products = $products->where('count(categories) > 5');
+
 - Batch update support of some sort?
 
     User::update()->where(array('group' => 3))->set('group', 5),

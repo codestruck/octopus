@@ -385,8 +385,11 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
                             $c = array($lastFieldName => $value);
                             $this->_generateWhereClause($c, $s, $criteriaSql, $params);
                             $lastFieldName = null;
-                        } else {
+                        } else if (self::looksLikeFieldName($value)) {
                             $lastFieldName = $value;
+                        } else {
+                            // HACK: Add as literal SQL.
+                            $criteriaSql = self::paren($value);
                         }
                     }
                 }
@@ -407,7 +410,9 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
                 }
 
                 // standard field = whatever syntax
-                self::_readCriteriaKey($key, $fieldName, $operator);
+                self::_readCriteriaKey($key, $fieldName, $operator, $function);
+
+                // TODO: handle functions
 
                 // HACK: special-case id
                 if (strcasecmp($fieldName, 'id') == 0) {
@@ -436,6 +441,12 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
 
     }
 
+    private static function looksLikeFieldName($candidate) {
+
+        return preg_match('/^\s*[a-z0-9_]+\s*$/', $candidate);
+
+    }
+
     private function &_getField($name) {
         $mc = $this->_modelClass;
         $obj = new $mc();
@@ -447,19 +458,25 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
      * Takes a key from a criteria array and parses it out into field name
      * and operator.
      */
-    private function _readCriteriaKey($key, &$fieldName, &$operator) {
+    private function _readCriteriaKey($key, &$fieldName, &$operator, &$function) {
 
-        $fieldName = $operator = null;
+        $fieldName = $operator = $function = null;
 
-        $spacePos = strpos($key, ' ');
+        $key = trim($key);
+        $key = str_replace('`', '', $key);
+        $spacePos = strrpos($key, ' ');
+
         if ($spacePos !== false) {
-            $fieldName = substr($key, 0, $spacePos);
+            $fieldName = trim(substr($key, 0, $spacePos));
             $operator = substr($key, $spacePos + 1);
         } else {
             $fieldName = $key;
         }
 
-        $fieldName = trim($fieldName, '`');
+        if (preg_match('/^([a-z0-9_]+)\((.+?)\)$/i', $fieldName, $m)) {
+            $function = $m[1];
+            $fieldName = $m[2];
+        }
     }
 
     /**
