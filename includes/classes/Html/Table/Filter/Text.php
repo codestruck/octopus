@@ -18,6 +18,13 @@ class Octopus_Html_Table_Filter_Text extends Octopus_Html_Table_Filter {
         return $el;
     }
 
+    protected function defaultApplyToResultSet($resultSet) {
+
+        $field = $resultSet->getModelField($this->id);
+        if (!$field) return $resultSet;
+
+        return $resultSet->where(array("$this->id LIKE" => wildcardify($this->val())));
+    }
 }
 
 ?>

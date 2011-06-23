@@ -239,6 +239,13 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         $actions = array();
 
         if ($id == 'actions' || $id == 'toggles') {
+
+            // Allow passing 'actions' or 'toggles' directly to addColumn()
+
+            foreach(Octopus_Html_Table_Column::$defaults as $key => $value) {
+                unset($options[$key]);
+            }
+
             foreach($options as $actionID => $actionOptions) {
 
                 if (is_numeric($actionID)) {
@@ -399,6 +406,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      */
     public function filter() {
 
+        $this->initFromEnvironment();
+
         $args = func_get_args();
 
         // let $table->filter(false) == $table->unfilter()
@@ -407,6 +416,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         }
 
         $filterID = null;
+        $toApply = array();
 
         foreach($args as $arg) {
 
@@ -414,19 +424,21 @@ class Octopus_Html_Table extends Octopus_Html_Element {
                 if ($filterID === null) {
                     $filterID = $arg;
                 } else {
-                    $this->filter(array($filterID => $arg));
+                    $toApply[$filterID] = $arg;
                     $filterID = null;
                 }
                 continue;
             }
 
             foreach($arg as $id => $value) {
-
-                $filter = $this->getFilter($id);
-                if (!$filter) continue;
-
-                $filter->val($value);
+                $toApply[$id] = $value;
             }
+        }
+
+        foreach($toApply as $id => $value) {
+            $filter = $this->getFilter($id);
+            if (!$filter) continue;
+            $filter->val($value);
         }
 
         $ds = $this->_originalDataSource;
@@ -435,7 +447,6 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         }
 
         $this->internalSetDataSource($ds, false);
-
         $this->rememberState();
 
         return $this;
@@ -665,7 +676,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
                 $this->_pagerData = $this->getPagerDataForArray($ds);
             } else if (is_string($ds)) {
                 $this->_pagerData = $this->getPagerDataForSql($ds);
-            } else {
+            } else if ($ds) {
                 trigger_error("Unsupported data source for table: " . $ds);
                 return false;
             }
@@ -796,7 +807,7 @@ END;
 
         $_SESSION[$sort] = self::buildSortString($this->_sortColumns);
         $_SESSION[$page] = $this->getPage();
-        $_SESSION[$filter] = $this->getFilterValues();
+        $_SESSION[$filter] = $this->internalGetFilterValues();
     }
 
     /**
@@ -852,8 +863,11 @@ END;
                     $values[$f->id] = $source[$f->id];
                 }
             } else {
-                $val = trim($f->val());
-                if ($val) $values[$f->id] = $val;
+                $val = $f->val();
+
+                if (trim($val) !== '') {
+                    $values[$f->id] = $val;
+                }
             }
         }
 
@@ -861,9 +875,7 @@ END;
     }
 
     public function &getFilterValues() {
-
         $this->initFromEnvironment();
-
         $values = $this->internalGetFilterValues();
         return $values;
     }

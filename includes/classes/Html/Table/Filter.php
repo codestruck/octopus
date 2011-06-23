@@ -80,8 +80,10 @@ abstract class Octopus_Html_Table_Filter {
             return $this->applyToArray($dataSource);
         } else if (is_string($dataSource)) {
             return $this->applyToSql($dataSource);
-        } else {
+        } else if ($dataSource) {
             throw new Octopus_Exception('Unsupported dataSource: ' . $dataSource);
+        } else {
+            return $dataSource;
         }
 
     }
@@ -121,6 +123,10 @@ abstract class Octopus_Html_Table_Filter {
             return $this->callFunction($this->options['function'], $resultSet);
         }
 
+        return $this->defaultApplyToResultSet($resultSet);
+    }
+
+    protected function defaultApplyToResultSet($resultSet) {
         return $resultSet->where($this->id, $this->val());
     }
 

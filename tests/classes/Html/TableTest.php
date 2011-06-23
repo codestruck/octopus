@@ -408,14 +408,35 @@ END;
         $this->assertHtmlEquals($expected, $table);
     }
 
+    function testSetFilters() {
+
+        $table = new Octopus_Html_Table('setFilters', array('redirectCallback' => false));
+        $table->addColumn('name');
+        $table->addFilter('text', 'foo');
+
+        $this->assertEquals(array(), $table->getFilterValues());
+
+        $table->filter('foo', 'bar');
+        $this->assertEquals(array('foo' => 'bar'), $table->getFilterValues());
+
+        $table->filter(false);
+        $this->assertEquals(array(), $table->getFilterValues());
+
+        $table->filter(array('foo' => 'bar', 'invalid' => 'something'));
+        $this->assertEquals(array('foo' => 'bar'), $table->getFilterValues());
+
+        $table->unfilter();
+        $this->assertEquals(array(), $table->getFilterValues());
+    }
+
     function testRenderFilters() {
 
         $table = new Octopus_Html_Table('renderFilters', array('pager' => false, 'redirectCallback' => false));
         $table->addColumn('name');
         $table->addFilter('text', 'foo');
-
         $table->filter('foo', 'bar');
 
+        $this->assertEquals(array('foo' => 'bar'), $table->getFilterValues());
 
         $expected = <<<END
 <table id="renderFilters" class="empty" border="0" cellpadding="0" cellspacing="0">
@@ -796,7 +817,7 @@ END;
         $table->addColumn('name', array('sortable' => true));
         $table->addColumn('age', array('sortable' => true));
 
-        $col = $table->addColumn('actions');
+        $col = $table->addColumn('actions', array('sortable' => false));
         $col->addToggle('active', array('Inactive', 'Active'), array('/toggle/activate/{$person_id}', '/toggle/deactivate/{$person_id}'));
         $col->addAction('edit', '/edit/{$person_id}');
         $col->addAction('delete', '/delete/{$person_id}');
