@@ -31,7 +31,7 @@ class ApiControllerTest extends Octopus_App_TestCase {
         $this->assertEquals($args, $data);
     }
 
-    function dontTestMissingArgsCall() {
+    function testMissingArgsCall() {
 
         $app = $this->startApp();
 
@@ -54,7 +54,7 @@ class ApiControllerTest extends Octopus_App_TestCase {
 
     }
 
-    function dontTestApiKeyRequirement() {
+    function testApiKeyRequirement() {
 
         $app = $this->startApp();
         $resp = new Octopus_Response(true);
