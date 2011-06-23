@@ -24,12 +24,12 @@ class FormTest extends Octopus_Html_TestCase {
 
             array(
                 'args' => array('submit-link', 'foo', 'bar', 'Test'),
-                'expected' => '<a href="#" class="submit button">Test</a>'
+                'expected' => '<a href="#" class="submit">Test</a>'
             ),
 
             array(
                 'args' => array('reset-link', 'Reset the Form'),
-                'expected' => '<a href="#" class="reset button">Reset the Form</a>'
+                'expected' => '<a href="#" class="reset">Reset the Form</a>'
             ),
 
             array(
@@ -55,9 +55,7 @@ class FormTest extends Octopus_Html_TestCase {
             array(
                 'args' => array('some_image.gif', 'foo', 'bar'),
                 'expected' => '<input type="image" class="image button" name="foo" value="bar" src="some_image.gif" />'
-            )
-
-
+            ),
         );
 
         foreach($tests as $test) {
@@ -94,7 +92,7 @@ class FormTest extends Octopus_Html_TestCase {
 
         $this->assertHtmlEquals(
 <<<END
-<form id="testForm" method="post" action="whatever.php">
+<form id="testForm" method="post" action="whatever.php" novalidate>
     <div id="nameField" class="field name text required">
         <label for="nameInput">Name:</label>
         <input type="text" id="nameInput" class="name text required" name="name" value="Joe Blow" autofocus required />
@@ -122,7 +120,7 @@ END
 
         $this->assertHtmlEquals(
 <<<END
-<form id="testForm" method="post" enctype="multipart/form-data">
+<form id="testForm" method="post" enctype="multipart/form-data" novalidate>
     <div id="imageField" class="field image file">
         <label for="imageInput">Image:</label>
         <input type="file" id="imageInput" class="image file" name="image" />
@@ -140,15 +138,17 @@ END
         $form = new Octopus_Html_Form('toArray');
         $name = $form->add('name')->required();
 
-        $form->validate(array('name' => ''));
+        $form->setValues(array('name' => ''));
+        $form->validate();
 
         $expected = array(
 
-            'open_tag' => '<form id="toArray" method="post">',
+            'open_tag' => '<form id="toArray" method="post" novalidate>',
             'close_tag' => '</form>',
-            'attributes' => 'id="toArray" method="post"',
+            'attributes' => 'id="toArray" method="post" novalidate',
             'id' => 'toArray',
             'method' => 'post',
+            'novalidate' => 'novalidate',
             'valid' => false,
             'errors' => array('Name is required.'),
             'fields' => array(),
@@ -163,6 +163,7 @@ END
                 'value' => '',
                 'required' => 'required',
                 'html' => $name->render(true),
+                'full_html' => $name->wrapper->render(true),
                 'valid' => false,
                 'errors' => array('Name is required.'),
                 'label' => array(
@@ -181,19 +182,20 @@ END
             $form->toArray()
         );
 
-        $form->validate(array('name' => 'something <b>with markup</b>'));
+        $form->setValues(array('name' => 'something <b>with markup</b>'));
+        $form->validate();
 
         $expected = array(
 
-                'open_tag' => '<form id="toArray" method="post">',
-                'close_tag' => '</form>',
-                'attributes' => 'id="toArray" method="post"',
+                'attributes' => 'id="toArray" method="post" novalidate',
                 'id' => 'toArray',
                 'method' => 'post',
+                'novalidate' => 'novalidate',
+                'open_tag' => '<form id="toArray" method="post" novalidate>',
+                'close_tag' => '</form>',
+                'fields' => array(),
                 'valid' => true,
                 'errors' => array(),
-                'fields' => array(),
-
                 'name' => array(
 
                     'attributes' => 'type="text" id="nameInput" class="name text required" name="name" value="something &lt;b&gt;with markup&lt;/b&gt;" required',
@@ -205,7 +207,13 @@ END
                     'required' => 'required',
                     'html' => $name->render(true),
                     'valid' => true,
-                    'errors' => array()
+                    'errors' => array(),
+                    'label' => array(
+                        'text' => 'Name:',
+                        'html' => '
+<label for="nameInput">Name:</label>'
+                    ),
+                    'full_html' => $name->wrapper->render(true),
 
                 )
             );
@@ -225,11 +233,12 @@ END
 
         $expected = array(
 
-                'open_tag' => '<form id="noOverwrite" method="post">',
-                'close_tag' => '</form>',
-                'attributes' => 'id="noOverwrite" method="post"',
+                'attributes' => 'id="noOverwrite" method="post" novalidate',
                 'id' => 'noOverwrite',
                 'method' => 'post',
+                'novalidate' => 'novalidate',
+                'open_tag' => '<form id="noOverwrite" method="post" novalidate>',
+                'close_tag' => '</form>',
                 'valid' => true,
                 'errors' => array(),
                 'fields' => array(
@@ -241,14 +250,15 @@ END
                         'class' => 'close_tag text',
                         'name' => 'close_tag',
                         'html' => $closeTag->render(true),
+                        'valid' => true,
+                        'errors' => array(),
                         'label' => array(
                             'text' => 'Close Tag:',
                             'html' => '
 <label for="close_tagInput">Close Tag:</label>'
 
                         ),
-                        'valid' => true,
-                        'errors' => array()
+                        'full_html' => $closeTag->wrapper->render(true)
 
                     )
                 ),
@@ -313,10 +323,10 @@ END
         $form->add('foo')->required();
         $form->add('name')->required();
 
-        $this->assertFalse($form->validate()->success, 'should not validate w/ no data');
+        $this->assertFalse($form->validate(), 'should not validate w/ no data');
 
         $form->setValues($obj);
-        $this->assertTrue($form->validate()->success, 'should validate after setValues() call');
+        $this->assertTrue($form->validate(), 'should validate after setValues() call');
 
         $values = $form->getValues();
         $this->assertEquals(
@@ -359,8 +369,7 @@ END
         $_SERVER['REQUEST_METHOD'] = 'POST';
 
         $this->assertTrue($form->submitted());
-        $result = $form->validate();
-        $this->assertFalse($result->success);
+        $this->assertFalse($form->validate());
 
     }
 
@@ -376,8 +385,7 @@ END
         $_SERVER['REQUEST_METHOD'] = 'POST';
 
         $this->assertTrue($form->submitted());
-        $result = $form->validate();
-        $this->assertFalse($result->success);
+        $this->assertFalse($form->validate());
 
     }
 
@@ -385,16 +393,17 @@ END
 
         $user_id = 99;
         $form = new Octopus_Html_Form('security_test');
+        $this->assertEquals('', $form->getSecurityTokenFieldName(), 'Unsecured forms should not have a security token field name.');
+
         $form->secure($user_id);
         $form->add('name');
 
         $_POST['name'] = 'foo';
-        $_POST['__security_token'] = get_security_token($user_id, 'security_test');
+        $_POST[$form->getSecurityTokenFieldName()] = get_security_token($user_id, 'security_test');
         $_SERVER['REQUEST_METHOD'] = 'POST';
 
         $this->assertTrue($form->submitted());
-        $result = $form->validate();
-        $this->assertTrue($result->success);
+        $this->assertTrue($form->validate());
 
     }
 

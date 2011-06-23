@@ -687,6 +687,7 @@ class Octopus_App {
         $configFile = $o['SITE_DIR'] . 'config.php';
 
         $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : false;
+        if (!$host && isset($o['HTTP_HOST'])) $host = $o['HTTP_HOST'];
 
         if (!$host) {
             // NOTE: Getting the hostname via `hostname` can have unintended

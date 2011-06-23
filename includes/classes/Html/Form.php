@@ -92,6 +92,10 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         return $button;
     }
 
+    /**
+     * Adds a security token to this form to ensure it is only valid for the
+     * given user and action for a limited amount of time.
+     */
     public function secure($user_id, $action = null) {
 
         if ($action === null) {
@@ -110,6 +114,15 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         return !!$this->getSecurityToken();
     }
 
+    /**
+     * @return String The name of the field being used to store the security
+     * token for this form. If the form hasn't been secured, returns an empty
+     * string.
+     */
+    public function getSecurityTokenFieldName() {
+        return $this->_securityField ? $this->_securityField->name : '';
+    }
+
     public function getSecurityToken() {
         if ($this->_securityField) {
             return $this->_securityField->val();
@@ -118,17 +131,28 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
     private function setSecurityToken($token) {
 
-        if (!$this->_securityField) {
-            $this->_securityField = new Octopus_Html_Form_Field('input', 'hidden', '__octsec', '', null);
+        if ($token) {
 
-            // Don't really need class or id
-            unset($this->_securityField->id);
-            unset($this->_securityField->class);
+            if (!$this->_securityField) {
+                $this->_securityField = new Octopus_Html_Form_Field('input', 'hidden', '__octsec', '', null);
 
-            $this->add($this->_securityField);
+                // Don't really need class or id
+                unset($this->_securityField->id);
+                unset($this->_securityField->class);
+
+                $this->add($this->_securityField);
+            }
+
+            $this->_securityField->val($token);
+
+        } else {
+
+            if ($this->_securityField) {
+                $this->_securityField->remove();
+                $this->_securityField = null;
+            }
+
         }
-
-        $this->_securityField->val($token);
     }
 
     private function verifySecurityToken() {
@@ -140,9 +164,9 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         if ($this->_securityUserID !== null) {
 
             $values = $this->getValues();
-            $token = $values[ $this->_securityField->name ];
+            $token = isset($values[$this->_securityField->name]) ? $values[$this->_securityField->name] : false;
 
-            if (!verify_security_token($token, $this->_securityUserID, $this->_securityAction)) {
+            if (!$token || !verify_security_token($token, $this->_securityUserID, $this->_securityAction)) {
                 return false;
             }
         }
@@ -512,15 +536,21 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     }
 
     /**
-     * Validates data in this form.
-     * @param $values Array Data to validate. If not specified, then either
-     * $_GET or $_POST will be used as appropriate.
-     * @return Object An object with two properties: success and errors.
+     * Validates data in this form. Use <b>setValues</b> to set the values
+     * to be validated.
+     * @param $result Object Will be set to an object w/ details about the
+     * validation result, with the following keys:
+     *
+     *  <ul>
+     *      <li>success</li>
+     *      <li>errors</li>
+     *  </ul>
+     *
+     * @return bool True on success, false otherwise.
      */
-    public function validate($values = null) {
+    public function validate(&$result = null) {
 
         $values = $this->getValues();
-        $this->setValues($values);
 
         $result = new StdClass();
         $result->errors = array();
@@ -553,14 +583,12 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         }
 
         $result->success = (count($result->errors) == 0);
-        $result->hasErrors = !$result->success;
 
         $this->_validationResult = $result;
 
         $this->updateErrorList($result);
 
         return $result->success;
-
     }
 
     protected function updateErrorList($validationResult) {
