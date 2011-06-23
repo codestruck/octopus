@@ -12,7 +12,9 @@ class Octopus_Smarty extends Octopus_Base {
 
         if ($templateDir == null) {
 
-            if (defined('SITE_DIR')) {
+            if ($app->template_dir) {
+                $templateDir = $app->template_dir;
+            } else if (defined('SITE_DIR')) {
                 $templateDir = SITE_DIR . 'views/';
             } else if ($app) {
                 $templateDir = $app->getOption('SITE_DIR') . 'views/';
@@ -39,16 +41,26 @@ class Octopus_Smarty extends Octopus_Base {
 
         }
 
-
         $this->smarty = new Smarty();
         $this->smarty->error_reporting = E_ALL & ~E_NOTICE;
         $this->smarty->template_dir = $templateDir;
         $this->smarty->compile_dir = $compileDir;
         $this->smarty->allow_php_tag = true;
 
+        // custom plugin dir
+        $this->smarty->plugins_dir[] = OCTOPUS_DIR . 'externals/smarty/plugins/';
+
+        // allow all php functions and modifiers
+        $security_policy = new Smarty_Security($this->smarty);
+        $security_policy->php_functions = array();
+        $security_policy->php_modifiers = array();
+        $this->smarty->enableSecurity($security_policy);
+
         if (DEV) {
             $this->smarty->_file_perms = 0666;
             $this->smarty->_dir_perms = 0777;
+            $this->smarty->compile_error = true;
+            $this->smarty->debugging = true;
         }
 
     }
