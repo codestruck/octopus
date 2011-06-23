@@ -37,11 +37,12 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
         $data = array();
         if ($input !== NO_INPUT) $data['foo'] = $input;
 
-        $result = $form->validate($data);
+        $form->setValues($data);
+        $result = $form->validate();
 
         $input = ($input === NO_INPUT ? $input : "'$input'");
 
-        $this->assertEquals($expectedResult, $result->success, "Failed on $input");
+        $this->assertEquals($expectedResult, $result, "Failed on $input");
     }
 
     function testCallbackValidation() {
@@ -63,7 +64,7 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
         }
     }
 
-    function _test_callback($field, $value, $data) {
+    function _test_callback($value, $data, $field) {
 
         $this->assertTrue(!!$field, '$field should be present');
         $this->assertTrue($value !== null, '$value should not be null');
@@ -105,7 +106,7 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
         $form = new Octopus_Html_Form('range');
 
         $form->add('foo')
-            ->between(1, 10);
+             ->between(1, 10);
 
         $tests = array(
             NO_INPUT => true,
@@ -160,12 +161,12 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
         $form = new Octopus_Html_Form('validation');
         $form->mustPass(array($this, '_test_validate_form'));
 
-        $this->assertTrue($form->validate(array('x' => 'pass', 'y' => 'pass'))->success);
-        $this->assertFalse($form->validate(array('x' => 'fail', 'y' => 'fail'))->success);
+        $this->assertTrue($form->setValues(array('x' => 'pass', 'y' => 'pass'))->validate());
+        $this->assertFalse($form->setValues(array('x' => 'fail', 'y' => 'fail'))->validate());
 
     }
 
-    function _test_validate_form($form, $data) {
+    function _test_validate_form($data, $form) {
 
         $this->assertTrue($form instanceof Octopus_Html_Form, '$form is not an Octopus_Html_Form');
         $this->assertTrue(!!$data, '$data is empty.');

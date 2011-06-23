@@ -24,15 +24,8 @@ class Octopus_Html_Form_Field_Rule_MatchField extends Octopus_Html_Form_Field_Ru
         return "$thisField does not match $otherField.";
     }
 
-    public function validate($field, $data) {
-
-        $value = isset($data[$field->name]) ? trim($data[$field->name]) : '';
-        $otherValue = isset($data[$this->fieldName]) ? trim($data[$this->fieldName]) : '';
-
-        if (!($value || $otherValue)) {
-            return true;
-        }
-
+    protected function doValidation($input, $field, $data) {
+        $otherValue = isset($data[$this->fieldName]) ? $data[$this->fieldName] : '';
         return $value == $otherValue;
     }
 

@@ -19,20 +19,8 @@ class Octopus_Html_Form_Field_Rule_Regex extends Octopus_Html_Form_Field_Rule {
         return "{field} does not match '{$this->pattern}'";
     }
 
-    public function validate($field, $data) {
-
-        $name = $field->name;
-        if (empty($data[$name])) {
-            return true;
-        }
-
-        $value = $data[$name];
-
-        if (trim($value) == '') {
-            return true;
-        }
-
-        return !!preg_match($this->pattern, $value);
+    public function doValidation($input, $field, $data) {
+        return !!preg_match($this->pattern, $input);
     }
 
 }

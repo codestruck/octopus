@@ -185,9 +185,9 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
         if (is_array($entry)) {
 
             if (isset($entry['function'])) {
-                return $this->mustPass($entry['function'], $message);
+                return $this->mustPass($entry['function'], $message, isset($entry['emptyIsValid']) ? $entry['emptyIsValid'] : null);
             } else if (isset($entry['pattern'])) {
-                return $this->mustMatch($entry['pattern'], $message);
+                return $this->mustMatch($entry['pattern'], $message, isset($entry['emptyIsValid']) ? $entry['emptyIsValid'] : null);
             }
 
         } else if (is_string($entry)) {
@@ -203,17 +203,36 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
     }
 
     /**
-     * Adds a regular expression rule to this field.
+     * Adds a rule for matching this field against a regular expression or
+     * another field.
+     * @param $patternOrFieldName String Either a regular expression OR the
+     * name of another field on this form that this field's value must match.
+     * @param $message String Error message to show if validation fails.
+     * @param $emptyIsValid bool Whether or not an empty field value counts as
+     * valid. Defaults to TRUE.
      */
-    public function mustMatch($patternOrFieldName, $message = null) {
+    public function mustMatch($patternOrFieldName, $message = null, $emptyIsValid = null) {
+
+        if (is_bool($message) && $emptyIsValid === null) {
+            $emptyIsValid = $message;
+            $message = null;
+        }
+
+        if ($emptyIsValid === null) {
+            $emptyIsValid = true;
+        }
 
         if (parse_regex($patternOrFieldName)) {
             Octopus::loadClass('Octopus_Html_Form_Field_Rule_Regex');
-            return $this->addRule(new Octopus_Html_Form_Field_Rule_Regex($patternOrFieldName, $message));
+            $rule = new Octopus_Html_Form_Field_Rule_Regex($patternOrFieldName, $message);
+        } else {
+            Octopus::loadClass('Octopus_Html_Form_Field_Rule_MatchField');
+            $rule = new Octopus_Html_Form_Field_Rule_MatchField($patternOrFieldName, $message);
         }
 
-        Octopus::loadClass('Octopus_Html_Form_Field_Rule_MatchField');
-        return $this->addRule(new Octopus_Html_Form_Field_Rule_MatchField($patternOrFieldName, $message));
+        $rule->emptyIsValid = $emptyIsValid;
+
+        return $this->addRule($rule);
     }
 
     /**
