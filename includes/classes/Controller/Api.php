@@ -48,6 +48,7 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
     public function _after($action, $args, $data) {
         $this->response->append(json_encode($data));
         $this->response->stop();
+        return $data;
     }
 
     protected function __protect($action, $args) {
@@ -124,7 +125,7 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
         // TODO test
         $positionalArgs[] = $args;
 
-        return call_user_func_array(array($this, $action), $positionalArgs);
+        return parent::__executeAction($action, $positionalArgs);
     }
 
 }
