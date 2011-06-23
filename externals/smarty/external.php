@@ -1,6 +1,6 @@
 <?php
 
-require_once(dirname(__FILE__) . '/Smarty-3.0.7/libs/Smarty.class.php');
+require_once(dirname(__FILE__) . '/Smarty-3.0.8/libs/Smarty.class.php');
 
 class Octopus_Smarty extends Octopus_Base {
 
