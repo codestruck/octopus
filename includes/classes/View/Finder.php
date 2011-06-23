@@ -26,7 +26,7 @@ class Octopus_View_Finder {
      *      <dd>Whether the requested view was actually found.
      *  </dl>
      */
-    public function findView(Octopus_Request $request, Octopus_Controller $controller, $view = null) {
+    public function findView(Octopus_Request $request, $controller, $view = null) {
 
         $file = $this->findViewFile($request, $controller, $view);
         $found = !!$file;
@@ -41,7 +41,7 @@ class Octopus_View_Finder {
     /**
      * @return String Full path to the 'view not found' view to use.
      */
-    protected function getViewNotFoundViewFile(Octopus_Request $request, Octopus_Controller $controller) {
+    protected function getViewNotFoundViewFile(Octopus_Request $request, $controller) {
         return $this->findViewFile($request, $controller, 'sys/view_not_found');
     }
 
@@ -50,7 +50,7 @@ class Octopus_View_Finder {
      * of candidate view strings.
      * @return Mixed Full path to a view file, or false if none is found.
      */
-    protected function findViewFile(Octopus_Request $request, Octopus_Controller $controller, $view) {
+    protected function findViewFile(Octopus_Request $request, $controller, $view) {
         return $this->internalGetViewPaths($request, $controller, $view, true);
     }
 
@@ -145,9 +145,13 @@ class Octopus_View_Finder {
      * @return Mixed A set of paths to check for a view file, or if $return
      * is true, the path to the first view found, or false if none is found.
      */
-    private function internalGetViewPaths(Octopus_Request $request, Octopus_Controller $controller, $view, $returnFirstValid) {
+    private function internalGetViewPaths(Octopus_Request $request, $controller, $view, $returnFirstValid) {
 
-        $action = $controller->__getExecutedActions();
+        $action = '';
+
+        if ($controller) {
+            $action = $controller->__getExecutedActions();
+        }
 
         if (empty($action)) {
             $action = $request->getAction();
