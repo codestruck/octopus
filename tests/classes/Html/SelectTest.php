@@ -14,7 +14,7 @@ class SelectTest extends Octopus_Html_TestCase {
 
         $this->assertHtmlEquals(
             <<<END
-<form id="select" method="post">
+<form id="select" method="post" novalidate>
     <div id="fooField" class="field foo select">
         <label for="fooInput">Foo:</label>
         <select id="fooInput" class="foo select" name="foo">
@@ -213,7 +213,13 @@ END;
                 ),
                 'valid' => true,
                 'errors' => array(),
-                'options' => array(1 => 'Option 1', 2 => 'Option 2')
+                'options' => array(1 => 'Option 1', 2 => 'Option 2'),
+                'label' => array(
+                    'text' => 'Foo:',
+                    'html' => '
+<label for="fooInput">Foo:</label>'
+                ),
+                'full_html' => $select->wrapper->render(true)
             ),
             $select->toArray()
         );
