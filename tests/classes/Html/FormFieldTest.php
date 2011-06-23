@@ -84,6 +84,12 @@ class FormFieldTest extends Octopus_Html_TestCase {
                 'class' => 'foo textarea',
                 'name' => 'foo',
                 'html' => $textarea->render(true),
+                'full_html' => $textarea->wrapper->render(true),
+                'label' => array(
+                    'text' => 'Foo:',
+                    'html' => '
+<label for="fooInput">Foo:</label>',
+                ),
                 'valid' => true,
                 'errors' => array(),
                 'value' => '&lt;b&gt;test&lt;/b&gt;',
@@ -172,13 +178,15 @@ class FormFieldTest extends Octopus_Html_TestCase {
 
         $expect = <<<END
 
-<form id="test" method="post">
+<form id="test" method="post" novalidate>
 <div id="optinField" class="field optin checkbox">
+<input type="checkbox" id="optinInput" class="optin checkbox" name="optin" />
 <label for="optinInput">Are you in</label>
-<input type="checkbox" id="optinInput" class="optin checkbox" name="optin" /></div></form>
+</div>
+</form>
 END;
 
-        $this->assertEquals(
+        $this->assertHtmlEquals(
             $expect,
             $form->render(true)
         );
@@ -193,13 +201,14 @@ END;
 
         $expect = <<<END
 
-<form id="test" method="post">
+<form id="test" method="post" novalidate>
 <div id="colorsBlueField" class="field colors valueblue checkbox">
+<input type="checkbox" id="colorsBlueInput" class="colors valueblue checkbox" name="colors[]" value="blue" />
 <label for="colorsBlueInput">Colors</label>
-<input type="checkbox" id="colorsBlueInput" class="colors valueblue checkbox" name="colors[]" value="blue" /></div></form>
+</div></form>
 END;
 
-        $this->assertEquals(
+        $this->assertHtmlEquals(
             $expect,
             $form->render(true)
         );
@@ -217,20 +226,23 @@ END;
         ));
 
         $expect = <<<END
-
-<form id="test" method="post">
+<form id="test" method="post" novalidate>
 <div id="colorsBlueField" class="field colors valueblue checkbox">
-<label for="colorsBlueInput">Colors</label>
-<input type="checkbox" id="colorsBlueInput" class="colors valueblue checkbox" name="colors[]" value="blue" checked /></div>
+    <input type="checkbox" id="colorsBlueInput" class="colors valueblue checkbox" name="colors[]" value="blue" checked />
+    <label for="colorsBlueInput">Colors</label>
+</div>
 <div id="colorsGreenField" class="field colors valuegreen checkbox">
-<label for="colorsGreenInput">Colors</label>
-<input type="checkbox" id="colorsGreenInput" class="colors valuegreen checkbox" name="colors[]" value="green" /></div>
+    <input type="checkbox" id="colorsGreenInput" class="colors valuegreen checkbox" name="colors[]" value="green" />
+    <label for="colorsGreenInput">Colors</label>
+</div>
 <div id="colorsPinkField" class="field colors valuepink checkbox">
-<label for="colorsPinkInput">Colors</label>
-<input type="checkbox" id="colorsPinkInput" class="colors valuepink checkbox" name="colors[]" value="pink" checked /></div></form>
+    <input type="checkbox" id="colorsPinkInput" class="colors valuepink checkbox" name="colors[]" value="pink" checked />
+    <label for="colorsPinkInput">Colors</label>
+</div>
+</form>
 END;
 
-        $this->assertEquals(
+        $this->assertHtmlEquals(
             $expect,
             $form->render(true)
         );
@@ -264,26 +276,27 @@ END;
         $_SERVER['REQUEST_METHOD'] = 'post';
 
         $this->assertTrue($form->submitted(), 'The form was submitted');
-
-        $result = $form->validate();
-        $this->assertTrue($result->success, 'The form was validated');
+        $this->assertTrue($form->validate(), 'The form was validated');
 
 
         $expect = <<<END
-
-<form id="test" method="post">
+<form id="test" method="post" novalidate>
 <div id="colorsBlueField" class="field colors valueblue checkbox required">
-<label for="colorsBlueInput">Colors</label>
-<input type="checkbox" id="colorsBlueInput" class="colors valueblue checkbox required" name="colors[]" value="blue" /></div>
+    <input type="checkbox" id="colorsBlueInput" class="colors valueblue checkbox required" name="colors[]" value="blue" />
+    <label for="colorsBlueInput">Colors</label>
+</div>
 <div id="colorsGreenField" class="field colors valuegreen checkbox required">
-<label for="colorsGreenInput">Colors</label>
-<input type="checkbox" id="colorsGreenInput" class="colors valuegreen checkbox required" name="colors[]" value="green" /></div>
+    <input type="checkbox" id="colorsGreenInput" class="colors valuegreen checkbox required" name="colors[]" value="green" />
+    <label for="colorsGreenInput">Colors</label>
+</div>
 <div id="colorsPinkField" class="field colors valuepink checkbox required">
-<label for="colorsPinkInput">Colors</label>
-<input type="checkbox" id="colorsPinkInput" class="colors valuepink checkbox required" name="colors[]" value="pink" /></div></form>
+    <input type="checkbox" id="colorsPinkInput" class="colors valuepink checkbox required" name="colors[]" value="pink" />
+    <label for="colorsPinkInput">Colors</label>
+</div>
+</form>
 END;
 
-        $this->assertEquals(
+        $this->assertHtmlEquals(
             $expect,
             $form->render(true)
         );
