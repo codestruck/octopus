@@ -168,9 +168,11 @@
      */
     function get_true_filename($file, $force = false) {
 
-        if (!$force && is_file($file)) {
+        if (is_file($file)) {
             return $file;
         }
+        
+        return false;
 
         $parts = explode('/', $file);
         $result = '';
@@ -206,7 +208,7 @@
 
         $pattern = _globify($name, 3) . _globify($ext);
 
-        foreach(glob($filename . '/' . $pattern) as $candidate) {
+        foreach(safe_glob($filename . '/' . $pattern) as $candidate) {
 
             $candidateName = basename($candidate);
 
@@ -266,4 +268,12 @@
 
     }
 
+    function safe_glob($args) {
+        $ret = glob($args);
+        if (!is_array($ret)) {
+            $ret = array();
+        }
+        
+        return $ret;
+    }
 ?>
