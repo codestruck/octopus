@@ -261,7 +261,7 @@ class Octopus_App {
 
         foreach($dirs as $d) {
 
-            foreach(glob($d . 'controllers/*.php') as $f) {
+            foreach(safe_glob($d . 'controllers/*.php') as $f) {
 
                 $parts = explode('_', basename($f, '.php'));
 
@@ -706,7 +706,7 @@ class Octopus_App {
 
     private function _loadFilesFromDirectory($dir) {
 
-        foreach(glob(rtrim($dir, '/') . '/*.php') as $file) {
+        foreach(safe_glob(rtrim($dir, '/') . '/*.php') as $file) {
             require_once($file);
         }
 
