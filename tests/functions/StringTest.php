@@ -135,7 +135,7 @@ class StringTests extends PHPUnit_Framework_TestCase
     function testNormalizeSql() {
 
         $this->assertEquals(
-            "SELECT * FROM `foo` WHERE id = 42 AND name = 'whatever'",
+            "SELECT * FROM `foo` WHERE id = '42' AND name = 'whatever'",
             normalize_sql(
                 "SELECT * FROM `foo` WHERE id = ? AND name = ?",
                 array(42, 'whatever')
