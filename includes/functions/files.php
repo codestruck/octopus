@@ -159,101 +159,6 @@
     }
 
     /**
-     * Determines the actual, real name of $file. Emulates a case-insensitive
-     * file system.
-     * @param $file String Filename to examine
-     * @param $force bool Whether to allow shortcutting out if the file exists
-     * @return Mixed The actual full filename (correct case) if found,
-     * otherwise false.
-     */
-    function get_true_filename($file, $force = false) {
-
-        if (is_file($file)) {
-            return $file;
-        }
-        
-        return false;
-
-        $parts = explode('/', $file);
-        $result = '';
-
-        if (_get_true_filename_worker($parts, 0, $result)) {
-            return $result;
-        }
-
-        return false;
-    }
-
-    function _get_true_filename_worker(&$pathParts, $index, &$filename) {
-
-        if ($index >= count($pathParts)) {
-            return true;
-        }
-
-        $fullName = $pathParts[$index];
-
-        if (!$fullName) {
-            return _get_true_filename_worker($pathParts, $index + 1, $filename);
-        }
-
-        $dotPos = strrpos($fullName, '.');
-
-        if ($dotPos) {
-            $ext = substr($fullName, $dotPos);
-            $name = substr($fullName, 0, $dotPos);
-        } else {
-            $ext = '';
-            $name = $fullName;
-        }
-
-        $pattern = _globify($name, 3) . _globify($ext);
-
-        foreach(safe_glob($filename . '/' . $pattern) as $candidate) {
-
-            $candidateName = basename($candidate);
-
-            if (strcasecmp($fullName, $candidateName) == 0) {
-                $filename .= '/' . $candidateName;
-                return _get_true_filename_worker($pathParts, $index+1, $filename);
-            }
-        }
-
-        return false;
-    }
-
-    function _globify($str, $maxLen = 0) {
-
-        $len = strlen($str);
-        $result = '';
-
-        for($i = 0; (!$maxLen) || $i < $maxLen; $i++) {
-
-            if ($i >= $len) {
-                break;
-            }
-
-            $uc = strtoupper(substr($str, $i, 1));
-            $lc = strtolower($uc);
-
-            if ($lc == '[') {
-                $result .= '[\\' . $lc . ']';
-            } else if ($lc == $uc) {
-                $result .= $lc;
-            } else {
-                $result .= '[' . $uc . $lc . ']';
-            }
-        }
-
-        if ($maxLen && $maxLen < $len) {
-            $result .= '*';
-        }
-
-
-        return $result;
-
-    }
-
-    /**
      * Creates all directories necessary, and then touches the given file. Also,
      * the function name sounds slightly dirty.
      */
@@ -268,12 +173,15 @@
 
     }
 
+    /**
+     * A glob that always returns an array.
+     */
     function safe_glob($args) {
         $ret = glob($args);
         if (!is_array($ret)) {
             $ret = array();
         }
-        
+
         return $ret;
     }
 ?>

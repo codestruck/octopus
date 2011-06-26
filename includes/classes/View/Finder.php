@@ -201,8 +201,8 @@ class Octopus_View_Finder {
                 if (strncmp($view, '/', 1) == 0) {
 
                     // This is an absolute path
-                    if ($returnFirstValid && ($f = get_true_filename($view))) {
-                        return $f;
+                    if ($returnFirstValid && is_file($view)) {
+                        return $view;
                     } else {
                         $result[$f] = true;
                         continue;
@@ -216,8 +216,8 @@ class Octopus_View_Finder {
 
                     $file = $d . $view . $ext;
 
-                    if ($returnFirstValid && ($f = get_true_filename($file))) {
-                        return $f;
+                    if ($returnFirstValid && is_file($file)) {
+                        return $file;
                     } else {
                         $result[$file] = true;
                         continue;
