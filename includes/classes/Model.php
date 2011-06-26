@@ -30,6 +30,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
      * used. Once the correct field is selected, it is cached.
      */
     protected $displayField = array('name', 'title', 'text', 'summary', 'description');
+
     private static $fieldHandles = array();
 
     protected $data = array();
@@ -332,6 +333,11 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
         return $ar;
     }
 
+    // THIS IS A DIRTY HACK AND SHOULD BE KILLED
+    public function hasProperty($p) {
+        return isset($this->data[$p]);
+    }
+
     public function validate() {
 
         $pass = true;
@@ -470,6 +476,11 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
         $criteria = func_get_args();
         $class = self::_getClassName();
 
+        if (count($criteria) == 1 && is_string($criteria[0])) {
+            // treat as a free text search
+            $criteria = self::createFreeTextCriteria($class, $criteria[0]);
+        }
+
         $result = new Octopus_Model_ResultSet($class, $criteria);
         return $result;
     }
@@ -479,7 +490,16 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
      * @param $orderBy mixed Order stuff
      * @return Mixed The first matching record found, or false if nothing is found.
      */
-    public static function &get($idOrName, $orderBy = null) {
+    public static function get($idOrName, $orderBy = null) {
+
+        if ($idOrName === null) {
+            return false;
+        }
+
+        if (is_object($idOrName) && get_class($idOrName) == self::_getClassName()) {
+            // Support passing in a model reference (this is useful sometimes)
+            return $idOrName;
+        }
 
         if (is_array($idOrName)) {
             $result = self::find($idOrName);
@@ -517,6 +537,16 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
 
         return $result;
 
+    }
+
+    /**
+     * @return An empty resultset.
+     */
+    public static function none() {
+
+        $class = self::_getClassName();
+        $result = new Octopus_Model_ResultSet($class, null, null, true);
+        return $result;
     }
 
     public function escape() {

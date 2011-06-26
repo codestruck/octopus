@@ -13,7 +13,14 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
     public function __construct($type, $name, $label, $attributes = null) {
 
         $options = null;
-        if (isset($attributes['options'])) {
+
+        if ($attributes instanceof Octopus_Model_ResultSet) {
+            $options = $attributes;
+            $attributes = array();
+        } else if ($label instanceof Octopus_Model_ResultSet) {
+            $options = $label;
+            $label = null;
+        } else if ($attributes && isset($attributes['options'])) {
             $options = $attributes['options'];
             unset($attributes['options']);
         }
@@ -45,34 +52,39 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
      */
     public function addOptions($options) {
 
-        if (empty($options)) {
-            return $this;
-        }
+        $args = func_get_args();
 
-        if (is_string($options) || (is_array($options) && count($options) == 2 && is_callable($options))) {
+        foreach($args as $options) {
 
-            $options = call_user_func($options, $this);
-            $this->addOptions($options);
-            return $this;
+            if (empty($options)) {
+                continue;
+            }
 
-        }
+            if (is_string($options) || (is_array($options) && count($options) == 2 && is_callable($options))) {
 
-        $attributes = null;
-
-
-        foreach($options as $value => $text) {
-
-            if (is_numeric($value)) {
-
-                if (is_array($text) || is_object($text)) {
-                    $value = $text;
-                    $text = null;
-                }
+                $options = call_user_func($options, $this);
+                $this->addOptions($options);
+                return $this;
 
             }
 
-            $opt = $this->createOption($value, $text, null);
-            $this->append($opt);
+            $attributes = null;
+
+
+            foreach($options as $value => $text) {
+
+                if (is_numeric($value)) {
+
+                    if (is_array($text) || is_object($text)) {
+                        $value = $text;
+                        $text = null;
+                    }
+
+                }
+
+                $opt = $this->createOption($value, $text, null);
+                $this->append($opt);
+            }
         }
 
         return $this;

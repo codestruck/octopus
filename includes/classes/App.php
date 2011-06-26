@@ -6,6 +6,7 @@ Octopus::loadClass('Octopus_Dispatcher');
 Octopus::loadClass('Octopus_Request');
 Octopus::loadClass('Octopus_Response');
 Octopus::loadClass('Octopus_Controller');
+Octopus::loadClass('Octopus_Controller_Api');
 Octopus::loadClass('Octopus_Settings');
 
 // Shortcut functions
@@ -67,7 +68,7 @@ class Octopus_App {
     private $_nav;
     private $_settings;
     private $_controllers = null, $_flatControllers = null;
-
+    private $_prevErrorHandler = null;
     private $_currentRequest = null;
 
     private function __construct($options = array()) {
@@ -84,7 +85,31 @@ class Octopus_App {
         $this->_setEnvironmentFlags();
         $this->_ensurePrivateDir();
         $this->_initSettings();
+        $this->watchForErrors();
+    }
 
+    protected function watchForErrors() {
+        //$this->_prevErrorHandler = set_error_handler(array($this, 'errorHandler'));
+    }
+
+    public function errorHandler($level, $err, $file, $line) {
+
+        if (!($level & E_DEPRECATED)) {
+
+            dump_r($err);
+
+            if (!empty($this->_options['cancel_redirects_on_error']) || $this->isDevEnvironment()) {
+                cancel_redirects();
+            }
+
+
+        }
+
+
+        if (is_callable($this->_prevErrorHandler)) {
+            $args = func_get_args();
+            call_user_func_array($this->_prevErrorHandler, $args);
+        }
     }
 
     public function __get($name) {
@@ -153,19 +178,6 @@ class Octopus_App {
         $nav = $this->getNav();
         $nav->alias($what, $toWhat);
         return $this;
-    }
-
-    /**
-     * Locates a view to use for the given request.
-     * @return Array A view info array.
-     * @see Octopus_View_Finder::findView()
-     */
-    public function findView($req) {
-
-        Octopus::loadClass('Octopus_View_Finder');
-        $finder = new Octopus_View_Finder();
-
-        return $finder->findView($req, $this);
     }
 
     /**
@@ -674,7 +686,16 @@ class Octopus_App {
 
         $configFile = $o['SITE_DIR'] . 'config.php';
 
-        $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : trim(`hostname`);
+        $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : false;
+        if (!$host && isset($o['HTTP_HOST'])) $host = $o['HTTP_HOST'];
+
+        if (!$host) {
+            // NOTE: Getting the hostname via `hostname` can have unintended
+            // consequences when multiple app installations are running on the
+            // same server.
+            die("No hostname is known.");
+        }
+
         $hostConfigFile = SITE_DIR . "config.$host.php";
 
         if (! (file_exists($configFile) || file_exists($hostConfigFile))) {

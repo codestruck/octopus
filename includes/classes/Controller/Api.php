@@ -7,7 +7,27 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
 
     var $protect = true;
 
+    private static $contentTypes = array(
+        'json' => 'application/json',
+        'jsonp' => 'text/javascript',
+        'text' => 'text/html'
+    );
+
+    protected function setResponseContentType() {
+
+        $format = strtolower(trim(get('octopus_api_format', '')));
+        if ($format && isset(self::$contentTypes[$format])) {
+            $this->response->contentType(self::$contentTypes[$format]);
+        }
+
+        // TODO: Detect JSONP
+
+        $this->response->contentType(self::$contentTypes['json']);
+    }
+
     public function _before($action, $args) {
+
+        $this->setResponseContentType();
 
         if (empty($this->protect)) {
             return true;
@@ -23,6 +43,12 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
         }
 
         return $this->__protect($action, $args);
+    }
+
+    public function _after($action, $args, $data) {
+        $this->response->append(json_encode($data));
+        $this->response->stop();
+        return $data;
     }
 
     protected function __protect($action, $args) {
@@ -87,6 +113,7 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
             }
 
             $positionalArgs[$pos] = isset($args[$name]) ? $args[$name] : $default;
+            unset($args[$name]);
         }
 
         if (count($errors)) {
@@ -94,7 +121,11 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
 
         }
 
-        return call_user_func_array(array($this, $action), $positionalArgs);
+        // Append all remaining args to the end
+        // TODO test
+        $positionalArgs[] = $args;
+
+        return parent::__executeAction($action, $positionalArgs);
     }
 
 }

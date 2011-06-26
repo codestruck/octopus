@@ -27,7 +27,7 @@ class Octopus_Html_Table_Content extends Octopus_Html_Element {
      */
     public function fillCell($table, $column, $cell, &$obj) {
 
-        $pattern = '/\{\$([a-z0-9_\.]+)\}/i';
+        $pattern = '/\{\$([a-z0-9_\.\|\>\(\)-]+)\}/i';
 
         $html = $this->render(true);
 
@@ -40,33 +40,68 @@ class Octopus_Html_Table_Content extends Octopus_Html_Element {
 
     private function replaceCallback($matches) {
 
-        $key = $matches[1];
+        $keys = explode('|', $matches[1]);
+        $notFound = array();
 
-        $parts = explode('.', $key);
-        $value = $this->_currentObj;
+        while($keys) {
 
-        foreach($parts as $p) {
+            $key = array_shift($keys);
+            $key = str_replace('->', '.', $key);
+            $parts = explode('.', $key);
+            $value = $this->_currentObj;
+            $path = '';
+            $found = false;
 
-            // HACK: model doesn't support isset()
+            // Given something like key.key.value, resolve it.
+            foreach($parts as $p) {
 
-            if (is_object($value)) {
-                if (isset($value->$p) || $value instanceof Octopus_Model) {
-                    $value = $value->$p;
-                } else {
-                    return '(Key ' . htmlspecialchars($p) . ' not found)';
+                $path .= ($path ? '.' : '') . $p;
+
+                if (is_object($value)) {
+
+                    // HACK: model doesn't support isset()
+                    $method = null;
+
+                    if (ends_with($p, '()', false, $method) && method_exists($value, $method)) {
+
+                        $value = $value->$method();
+                        $found = true;
+                    } else if (isset($value->$p) || $value instanceof Octopus_Model) {
+                        $value = $value->$p;
+                        $found = true;
+                    } else {
+                        $notFound[] = $path;
+                        $found = false;
+                        break;
+                    }
+                } else if (is_array($value)) {
+                    if (isset($value[$p])) {
+                        $value = $value[$p];
+                        $found = true;
+                    } else {
+                        $notFound[] = $path;
+                        $found = false;
+                        break;
+                    }
                 }
-            } else if (is_array($value)) {
-                if (isset($value[$p])) {
-                    $value = $value[$p];
-                } else {
-                    return '(Key ' . htmlspecialchars($p) . ' not found)';
-                }
+
             }
 
+            if ($found) {
+                $value = trim($value);
+                if ($value === '') {
+                    if (empty($keys)) {
+                        return $value;
+                    }
+                } else {
+                    return $value;
+                }
+            }
         }
 
-        return $value;
+        return 'Key(s) not found: ' . implode(', ', $notFound);
     }
 
 }
 
+?>

@@ -5,7 +5,19 @@ require_once(dirname(dirname(__FILE__)) . '/Octopus_DB_TestCase.php');
 class FindAuthor extends Octopus_Model {
 
     protected $fields = array(
-        'name' => array('type' => 'string')
+        'name' => array('type' => 'string'),
+        'posts' => array(
+            'type' => 'hasMany',
+            'model' => 'FindPost'
+        ),
+    );
+
+}
+
+class FindCategory extends Octopus_Model {
+
+    protected $fields = array(
+        'name',
     );
 
 }
@@ -25,6 +37,10 @@ class FindPost extends Octopus_Model {
         'author' => array(
             'model' => 'FindAuthor',
             'type' => 'hasOne'
+        ),
+        'category' => array(
+            'type' => 'manyToMany',
+            'model' => 'FindCategory'
         ),
         'active' => array(
             'type' => 'boolean',
@@ -86,11 +102,207 @@ class FindTest extends Octopus_DB_TestCase {
 
         $db->query($sql);
 
+        $sql = "
+                CREATE TABLE find_categories (
+                    `find_category_id` INT(10) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                    `name` varchar(255) NOT NULL
+                )
+        ";
+        $db->query($sql);
+
+        $sql = "
+
+                CREATE TABLE find_category_find_post_join (
+                    `find_post_id` int not null,
+                    `find_category_id` int not null
+                )
+
+        ";
+        $db->query($sql);
+
     }
 
     function dropTables(&$db) {
+        $db->query("DROP TABLE IF EXISTS find_category_find_post_join");
         $db->query("DROP TABLE IF EXISTS find_posts");
         $db->query("DROP TABLE IF EXISTS find_authors");
+        $db->query("DROP TABLE IF EXISTS find_categories");
+    }
+
+    function testParentheses() {
+
+        $criteria = array(
+            'title' => 'foo',
+            array('NOT' => array('title' => 'bar', 'active' => 0)),
+            'OR',
+            'title', 'baz'
+        );
+
+        $expectedWhereClause = <<<END
+
+        (
+            (`find_posts`.`title` LIKE 'foo')
+            AND
+            (NOT ((`find_posts`.`title` LIKE 'bar') AND (`find_posts`.`active` = '0')))
+        )
+        OR
+        (`find_posts`.`title` LIKE 'baz')
+
+END;
+
+        $this->assertSqlEquals(
+            "SELECT * FROM find_posts WHERE $expectedWhereClause",
+            FindPost::all()->where($criteria)
+        );
+
+    }
+
+    function testDelete() {
+        $all = FindPost::all();
+
+        $this->assertEquals(6, count($all));
+        $all->delete();
+        $this->assertEquals(0, count($all));
+    }
+
+    function testDeleteChain() {
+        $all = FindPost::all();
+
+        $this->assertEquals(6, count($all));
+        $this->assertEquals(0, count($all->delete()));
+    }
+
+    function testOr() {
+
+        $posts = FindPost::all()->whereActive();
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`active` = '1'", $posts);
+
+        $posts = $posts->where(array('title' => 'foo'), 'OR', 'title', 'bar', 'OR', 'slug', 'foobar');
+        $this->assertSqlEquals(
+            "
+                SELECT * FROM find_posts WHERE
+                    (`find_posts`.`active` = '1')
+                    AND
+                        (
+                            (
+                                (`find_posts`.`title` LIKE 'foo')
+                                OR
+                                (`find_posts`.`title` LIKE 'bar')
+                            )
+                            OR
+                            (`find_posts`.`slug` = 'foobar')
+                        )
+            ",
+            $posts
+        );
+
+    }
+
+    function testHasOneCriteria() {
+
+        $this->markTestIncomplete();
+
+        $posts = FindPost::all();
+        $posts = $posts->where('author.name', 'foo');
+
+        $this->assertSqlEquals(
+            "SELECT * FROM find_posts WHERE EXISTS (SELECT find_author_id FROM find_authors WHERE find_authors.find_author_id = find_posts.author_id AND find_authors.name LIKE 'foo')",
+            $posts
+        );
+
+    }
+
+    function testAddQuery() {
+
+        $expectedSql =
+            "
+            SELECT
+                *
+            FROM
+                find_posts
+            WHERE
+                (
+                    (`find_posts`.`active` = '1')
+                    AND
+                    (`find_posts`.`title` LIKE 'foo')
+                )
+                OR
+                (
+                    `find_posts`.`title` LIKE 'bar'
+                )
+            ";
+
+        $posts = FindPost::all()->whereActive()->where('title', 'foo');
+
+        $viaArray = $posts->add(array('title' => 'bar'));
+        $this->assertSqlEquals($expectedSql, $viaArray, 'Failed using array args');
+
+        $viaStringArgs = $posts->add('title', 'bar');
+        $this->assertSqlEquals($expectedSql, $viaStringArgs, 'Failed using string args');
+
+    }
+
+    function testAddResultSet() {
+
+        $foos = FindPost::all()->where('title', 'foo');
+        $bars = FindPost::all()->where('title', 'bar');
+
+        $posts = $foos->add($bars);
+
+        $this->assertSqlEquals(
+            "SELECT * FROM find_posts WHERE (`find_posts`.`title` LIKE 'foo') OR (`find_posts`.`title` LIKE 'bar')",
+            $posts
+        );
+    }
+
+    function testRemoveQuery() {
+
+        $posts = FindPost::all()->whereActive();
+        $posts = $posts->remove('title', 'foo');
+
+        $this->assertSqlEquals(
+            "SELECT * FROM find_posts WHERE (`find_posts`.`active` = '1') AND (NOT (`find_posts`.`title` LIKE 'foo'))",
+            $posts
+        );
+
+    }
+
+    function testRemoveResultSet() {
+
+        $active = FindPost::all()->whereActive();
+        $foos = FindPost::all()->where('title', 'foo');
+
+        $posts = $active->remove($foos);
+
+        $this->assertSqlEquals(
+            "SELECT * FROM find_posts WHERE (`find_posts`.`active` = '1') AND (NOT (`find_posts`.`title` LIKE 'foo'))",
+            $posts
+        );
+
+    }
+
+    function testHasOneCount() {
+
+        $this->markTestIncomplete();
+
+        $authors = FindAuthor::all()->whereActive();
+        $authors = $authors->where('count(posts) >', 5);
+
+        $this->assertSqlEquals(
+            "
+            SELECT
+                `find_authors`.*,
+                COUNT(`find_posts`.*) posts_count
+            FROM
+                `find_authors`
+            WHERE
+                (`find_authors`.`active` = 1)
+            HAVING
+                posts_count > 5
+            ",
+            $authors
+        );
+
     }
 
     function testOrderByHasOne() {
@@ -110,13 +322,13 @@ class FindTest extends Octopus_DB_TestCase {
     function testLimit() {
 
         $posts = FindPost::all()->where('title', 'foo');
-        $this->assertSqlEquals("SELECT * FROM find_posts WHERE (`find_posts`.`title` LIKE 'foo')", $posts);
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`title` LIKE 'foo'", $posts);
 
         $posts = $posts->limit(10, 30);
-        $this->assertSqlEquals("SELECT * FROM find_posts WHERE (`find_posts`.`title` LIKE 'foo') LIMIT 10, 30", $posts);
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`title` LIKE 'foo' LIMIT 10, 30", $posts);
 
         $posts = $posts->unlimit();
-        $this->assertSqlEquals("SELECT * FROM find_posts WHERE (`find_posts`.`title` LIKE 'foo')", $posts);
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`title` LIKE 'foo'", $posts);
 
     }
 
@@ -200,7 +412,7 @@ class FindTest extends Octopus_DB_TestCase {
         $test = 'Find w/o array, mixed case, no explicit LIKE';
         $posts = FindPost::find('title', '* Foo');
         $this->assertSqlEquals(
-            "SELECT * FROM find_posts WHERE (`find_posts`.`title` LIKE '% Foo')",
+            "SELECT * FROM find_posts WHERE `find_posts`.`title` LIKE '% Foo'",
             $posts,
             $test
         );
@@ -210,7 +422,7 @@ class FindTest extends Octopus_DB_TestCase {
         $test = 'Find w/o array, mixed case, explicit LIKE';
         $posts = FindPost::find('title LIKE', '* Foo');
         $this->assertSqlEquals(
-            "SELECT * FROM find_posts WHERE (`find_posts`.`title` LIKE '% Foo')",
+            "SELECT * FROM find_posts WHERE `find_posts`.`title` LIKE '% Foo'",
             $posts,
             $test
         );
@@ -220,7 +432,7 @@ class FindTest extends Octopus_DB_TestCase {
         $test = 'Find w/ array, mixed case, no explicit LIKE';
         $posts = FindPost::find(array('title' => '* Foo'));
         $this->assertSqlEquals(
-            "SELECT * FROM find_posts WHERE (`find_posts`.`title` LIKE '% Foo')",
+            "SELECT * FROM find_posts WHERE `find_posts`.`title` LIKE '% Foo'",
             $posts,
             $test
         );
@@ -230,7 +442,7 @@ class FindTest extends Octopus_DB_TestCase {
         $test = 'Find w/ array, mixed case, explicit LIKE';
         $posts = FindPost::find(array('title LIKE' => '* Foo'));
         $this->assertSqlEquals(
-            "SELECT * FROM find_posts WHERE (`find_posts`.`title` LIKE '% Foo')",
+            "SELECT * FROM find_posts WHERE `find_posts`.`title` LIKE '% Foo'",
             $posts,
             $test
         );
@@ -318,13 +530,13 @@ class FindTest extends Octopus_DB_TestCase {
 
         $query = FindPost::all()->whereActive();
         $this->assertSqlEquals(
-            "SELECT * FROM find_posts WHERE (`find_posts`.`active` = 1)",
+            "SELECT * FROM find_posts WHERE `find_posts`.`active` = '1'",
             $query
         );
 
         $query = FindPost::all()->whereNotActive();
         $this->assertSqlEquals(
-            "SELECT * FROM find_posts WHERE (`find_posts`.`active` = 0)",
+            "SELECT * FROM find_posts WHERE `find_posts`.`active` = '0'",
             $query
         );
 
@@ -357,23 +569,9 @@ class FindTest extends Octopus_DB_TestCase {
         $posts = $filteredPosts;
 
         $this->assertSqlEquals(
-            "SELECT * FROM find_posts WHERE (`find_posts`.`title` LIKE 'test')",
+            "SELECT * FROM find_posts WHERE `find_posts`.`title` LIKE 'test'",
             $posts,
             'simple key/value restriction w/ implicit operator'
-        );
-
-        $posts = $posts->or_('body', '*foo*');
-        $this->assertSqlEquals(
-            "SELECT * FROM find_posts WHERE (`find_posts`.`title` LIKE 'test') OR (`find_posts`.`body` LIKE '%foo%')",
-            $posts,
-            'add or'
-        );
-
-        $posts = $posts->and_('created <', '2008-01-01');
-        $this->assertSqlEquals(
-            "SELECT * FROM find_posts WHERE (`find_posts`.`title` LIKE 'test') OR (`find_posts`.`body` LIKE '%foo%') AND (`find_posts`.`created` < '2008-01-01')",
-            $posts,
-            'add and'
         );
 
     }
@@ -421,7 +619,7 @@ class FindTest extends Octopus_DB_TestCase {
 
             $posts = FindPost::all()->where(array('title' => '/[a-z]\d+\s*\(in parens\)/' . $flag));
             $this->assertSqlEquals(
-                "SELECT * FROM find_posts WHERE (`find_posts`.`title` $operator '[a-z]\\d+\\s*[(]in parens[)]')",
+                "SELECT * FROM find_posts WHERE `find_posts`.`title` $operator '[a-z]\\d+\\s*[(]in parens[)]'",
                 $posts
             );
         }
@@ -443,19 +641,22 @@ class FindTest extends Octopus_DB_TestCase {
 
         $this->assertSqlEquals(
             "
-            SELECT
-                *
-            FROM find_posts
-            WHERE
+                SELECT * FROM find_posts WHERE
+
+                (
                     (`find_posts`.`title` LIKE 'foo')
                     AND
-                    (`find_posts`.`created` < '2008-01-01')
-                    OR
-                    (`find_posts`.`updated` > '2009-01-01')
-                    OR
+                        (
+                            (`find_posts`.`created` < '2008-01-01')
+                            OR
+                            (`find_posts`.`updated` > '2009-01-01')
+                        )
+                )
+                OR (
                     (`find_posts`.`title` LIKE 'bar')
                     OR
                     (`find_posts`.`title` LIKE 'baz')
+                )
             ",
             $posts
         );
@@ -470,14 +671,14 @@ class FindTest extends Octopus_DB_TestCase {
 
             $posts = FindPost::all()->where(array("title $op" => 'foo'));
             $this->assertSqlEquals(
-                "SELECT * FROM find_posts WHERE (`find_posts`.`title` $op 'foo')",
+                "SELECT * FROM find_posts WHERE `find_posts`.`title` $op 'foo'",
                 $posts,
                 "Operator: $op"
             );
 
             $posts = FindPost::all()->where(array("title not $op" => 'foo'));
             $this->assertSqlEquals(
-                "SELECT * FROM find_posts WHERE (NOT (`find_posts`.`title` $op 'foo'))",
+                "SELECT * FROM find_posts WHERE NOT (`find_posts`.`title` $op 'foo')",
                 $posts,
                 "Operator: $op (NOT)"
             );
@@ -490,25 +691,25 @@ class FindTest extends Octopus_DB_TestCase {
     function testNotCriteria() {
 
         $posts = FindPost::all()->where(array('title NOT' => 'foo'));
-        $this->assertSqlEquals("SELECT * FROM find_posts WHERE (NOT (`find_posts`.`title` LIKE 'foo'))", $posts, 'NOT');
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE NOT (`find_posts`.`title` LIKE 'foo')", $posts, 'NOT');
 
         $posts = FindPost::all()->where(array('display_order NOT' => 42));
-        $this->assertSqlEquals("SELECT * FROM find_posts WHERE (NOT (`find_posts`.`display_order` = 42))", $posts, 'NOT');
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE NOT (`find_posts`.`display_order` = '42')", $posts, 'NOT');
     }
 
     function testInCriteria() {
 
         $ids = array(1,2,3,4);
-        $idSql = '(' . implode(',', $ids) . ')';
+        $idSql = "('" . implode("','", $ids) . "')";
 
         $posts = FindPost::all()->where('Id', $ids);
-        $this->assertSqlEquals("SELECT * FROM find_posts WHERE (`find_posts`.`find_post_id` IN $idSql)", $posts, 'implicit IN');
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`find_post_id` IN $idSql", $posts, 'implicit IN');
 
         $posts = FindPost::all()->where('ID IN', $ids);
-        $this->assertSqlEquals("SELECT * FROM find_posts WHERE (`find_posts`.`find_post_id` IN $idSql)", $posts, 'explicit IN');
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`find_post_id` IN $idSql", $posts, 'explicit IN');
 
         $posts = FindPost::all()->where('id NOT IN', $ids);
-        $this->assertSqlEquals("SELECT * FROM find_posts WHERE (NOT (`find_posts`.`find_post_id` IN $idSql))", $posts, 'NOT IN');
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE NOT (`find_posts`.`find_post_id` IN $idSql)", $posts, 'NOT IN');
     }
 
     function testRelatedCriteria() {
@@ -593,20 +794,6 @@ class FindTest extends Octopus_DB_TestCase {
         $this->assertEquals('Title for Post 2', $result->first()->title);
     }
 
-    function testDelete() {
-        $all = FindPost::all();
-
-        $this->assertEquals(6, count($all));
-        $all->delete();
-        $this->assertEquals(0, count($all));
-    }
-
-    function testDeleteChain() {
-        $all = FindPost::all();
-
-        $this->assertEquals(6, count($all));
-        $this->assertEquals(0, count($all->delete()));
-    }
 
     function assertTrueish($condition, $message = null) {
         $this->assertTrue($condition == true, $message);
@@ -620,6 +807,22 @@ class FindTest extends Octopus_DB_TestCase {
         if (!is_string($actual)) {
             $actual = $actual->getSql($params);
         }
+
+        $expected = normalize_sql($expected);
+        $actual = normalize_sql($actual);
+
+        $expected = preg_replace('/\s*([\(\)])\s*/', '$1', $expected);
+        $actual = preg_replace('/\s*([\(\)])\s*/', '$1', $actual);
+
+        $expected = str_replace('WHERE(', 'WHERE (', $expected);
+        $actual = str_replace('WHERE(', 'WHERE (', $actual);
+
+        $expected = preg_replace('/(AND|OR|NOT)\(/', '$1 (', $expected);
+        $actual = preg_replace('/(AND|OR|NOT)\(/', '$1 (', $actual);
+
+                $expected = preg_replace('/\)(AND|OR|NOT)/', ') $1', $expected);
+        $actual = preg_replace('/\)(AND|OR|NOT)/', ') $1', $actual);
+
 
         $this->assertEquals(
             normalize_sql($expected),

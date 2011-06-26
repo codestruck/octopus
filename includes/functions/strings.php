@@ -30,6 +30,19 @@
     }
 
     /**
+     * Capitalizes the first word in sentences.
+     */
+    function capitalize_sentences($str) {
+
+        $str = strtolower($str);
+        return preg_replace_callback('/(^|\.\s*)([a-z])/', '_capitalize_sentences_helper');
+
+    }
+    function _capitalize_sentences_helper($matches) {
+        return $matches[1] . strtoupper($matches[2]);
+    }
+
+    /**
      * Converts a StringOfSomeKind to a string-of-some-kind
      */
     function dashed($s) {
@@ -144,6 +157,33 @@
         }
     }
 
+    function is_email($input) {
+        return !!parse_email($input);
+    }
+
+    /**
+     * Attempts to parse an email address out of some input.
+     * @return Mixed false if unsuccessful.
+     */
+    function parse_email($input) {
+
+        // TODO TEST
+
+        $input = trim($input);
+        if (!$input) return false;
+
+        if (preg_match('/^\s*(([A-Z0-9._%+-]+)@([A-Z0-9.-]+\.[A-Z]{2,4}))\s*$/i', $input, $m)) {
+            return array(
+                'email' => $m[1],
+                'user' => $m[2],
+                'domain' => $m[3]
+            );
+        } else {
+            return false;
+        }
+
+    }
+
     /**
      * Examines a string and tells you if it looks like a regular expression.
      * For our purposes, regexes look like this:
@@ -190,9 +230,7 @@
         while(count($params) && ($pos = strpos($sql, '?', $pos)) !== false) {
 
             $p = array_shift($params);
-            if (!is_numeric($p)) {
-                $p = "'" . str_replace("'", "\\'", $p) . "'";
-            }
+            $p = "'" . str_replace("'", "\\'", $p) . "'";
 
             $sql = substr($sql,0,$pos) . $p . substr($sql,$pos + 1);
             $pos += strlen($p);
@@ -360,5 +398,6 @@
         return $s;
     }
 
+    // TODO: function escape_wildcards()
 
 ?>

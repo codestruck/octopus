@@ -78,6 +78,12 @@ class Octopus_Request {
     }
 
     /**
+     * @return Octopus_Controller
+     */
+    public function getController() {
+    }
+
+    /**
      * @return String The class of controller to use for this request, or
      * false if none is found.
      */

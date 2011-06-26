@@ -71,6 +71,12 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         'maxSortColumns' => 2,
 
         /**
+         * Function to call to prepare a row for render. Will be called like:
+         * prepareRow($tr, $data, $index)
+         */
+        'prepareRow' => false,
+
+        /**
          * Argument used on the querystring to specify the col to sort on.
          */
         'sortArg' => 'sort',
@@ -127,7 +133,13 @@ class Octopus_Html_Table extends Octopus_Html_Element {
          * the new redirect path. To prevent any autoredirection, set this
          * to false.
          */
-        'redirectCallback' => 'redirect'
+        'redirectCallback' => 'redirect',
+
+        /**
+         * Whether, when the user clicks 'clear filters', to also reset the
+         * sorting to the default.
+         */
+        'resetSortingOnClearFilters' => true
     );
 
     private $_options;
@@ -227,6 +239,13 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         $actions = array();
 
         if ($id == 'actions' || $id == 'toggles') {
+
+            // Allow passing 'actions' or 'toggles' directly to addColumn()
+
+            foreach(Octopus_Html_Table_Column::$defaults as $key => $value) {
+                unset($options[$key]);
+            }
+
             foreach($options as $actionID => $actionOptions) {
 
                 if (is_numeric($actionID)) {
@@ -387,15 +406,17 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      */
     public function filter() {
 
+        $this->initFromEnvironment();
+
         $args = func_get_args();
 
-        if (empty($args)) {
-            return $this;
-        } else if (count($args) == 1 && $args[0] === false) {
+        // let $table->filter(false) == $table->unfilter()
+        if (count($args) == 1 && $args[0] === false) {
             return $this->unfilter();
         }
 
         $filterID = null;
+        $toApply = array();
 
         foreach($args as $arg) {
 
@@ -403,19 +424,21 @@ class Octopus_Html_Table extends Octopus_Html_Element {
                 if ($filterID === null) {
                     $filterID = $arg;
                 } else {
-                    $this->filter(array($filterID => $arg));
+                    $toApply[$filterID] = $arg;
                     $filterID = null;
                 }
                 continue;
             }
 
             foreach($arg as $id => $value) {
-
-                $filter = $this->getFilter($id);
-                if (!$filter) continue;
-
-                $filter->val($value);
+                $toApply[$id] = $value;
             }
+        }
+
+        foreach($toApply as $id => $value) {
+            $filter = $this->getFilter($id);
+            if (!$filter) continue;
+            $filter->val($value);
         }
 
         $ds = $this->_originalDataSource;
@@ -424,7 +447,6 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         }
 
         $this->internalSetDataSource($ds, false);
-
         $this->rememberState();
 
         return $this;
@@ -551,6 +573,11 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         return $this->getPagerData('totalItems');
     }
 
+    public function isSorted() {
+        $this->initFromEnvironment();
+        return !!count($this->_sortColumns);
+    }
+
     /**
      * @return Mixed The data being shown in the table.
      */
@@ -649,7 +676,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
                 $this->_pagerData = $this->getPagerDataForArray($ds);
             } else if (is_string($ds)) {
                 $this->_pagerData = $this->getPagerDataForSql($ds);
-            } else {
+            } else if ($ds) {
                 trigger_error("Unsupported data source for table: " . $ds);
                 return false;
             }
@@ -780,7 +807,7 @@ END;
 
         $_SESSION[$sort] = self::buildSortString($this->_sortColumns);
         $_SESSION[$page] = $this->getPage();
-        $_SESSION[$filter] = $this->getFilterValues();
+        $_SESSION[$filter] = $this->internalGetFilterValues();
     }
 
     /**
@@ -827,7 +854,7 @@ END;
         return $result;
     }
 
-    protected function &getFilterValues($source = null) {
+    protected function &internalGetFilterValues($source = null) {
 
         $values = array();
         foreach($this->_filters as $f) {
@@ -836,13 +863,21 @@ END;
                     $values[$f->id] = $source[$f->id];
                 }
             } else {
-                $val = trim($f->val());
-                if ($val) $values[$f->id] = $val;
+                $val = $f->val();
+
+                if (trim($val) !== '') {
+                    $values[$f->id] = $val;
+                }
             }
         }
 
         return $values;
+    }
 
+    public function &getFilterValues() {
+        $this->initFromEnvironment();
+        $values = $this->internalGetFilterValues();
+        return $values;
     }
 
     /**
@@ -990,26 +1025,42 @@ END;
         }
         $this->_shouldInitFromEnvironment = false;
 
+        $useSession = $this->_options['useSession'];
+        $sortArg = $this->_options['sortArg'];
+        $pageArg = $this->_options['pageArg'];
+
+
         $uri = $this->getRequestURI(false);
         $qs = $this->getQueryString();
         $this->getSessionKeys($uri, $sessionSortKey, $sessionPageKey, $sessionFilterKey);
 
         $clearFiltersArg = $this->_options['clearFiltersArg'];
         if (isset($qs[$clearFiltersArg]) && $qs[$clearFiltersArg]) {
+
             $this->clearFilters();
             unset($qs[$clearFiltersArg]);
+
+            if ($this->_options['resetSortingOnClearFilters']) {
+                $this->sort(false);
+                unset($qs[$sortArg]);
+            }
+
             $qs = http_build_query($qs);
             if ($qs) $uri .= '?' . $qs;
             $this->redirect($uri);
             return;
         }
 
-        $useSession = $this->_options['useSession'];
-        $sortArg = $this->_options['sortArg'];
-        $pageArg = $this->_options['pageArg'];
 
         $sort = null;
         $page = null;
+
+        $filterValues = $this->internalGetFilterValues($qs);
+        if (empty($filterValues) && isset($_SESSION[$sessionFilterKey])) {
+            $filterValues = $this->internalGetFilterValues($_SESSION[$sessionFilterKey]);
+        }
+
+        $this->unfilter()->filter($filterValues);
 
         if (isset($qs[$sortArg])) {
             $sort = rawurldecode($qs[$sortArg]);
@@ -1020,17 +1071,13 @@ END;
         if (isset($qs[$pageArg])) {
             $page = $qs[$pageArg];
         } else if ($useSession && isset($_SESSION[$sessionPageKey])) {
-            $page = $_SESSION[$sessionPageKey];
+
+            // Ensure that changing the sorting resets the page.
+            if (!isset($qs[$sortArg])) {
+                $page = $_SESSION[$sessionPageKey];
+            }
         }
 
-        $filterValues = $this->getFilterValues($qs);
-        if (empty($filterValues) && isset($_SESSION[$sessionFilterKey])) {
-            $filterValues = $this->getFilterValues($_SESSION[$sessionFilterKey]);
-        }
-
-        if (!empty($filterValues)) {
-            $this->unfilter()->filter($filterValues);
-        }
 
         // Ensure the current page's URL reflects the actual state
         if ($this->_options['redirectCallback']) {
@@ -1066,13 +1113,22 @@ END;
         if ($sort) {
             $this->sort(explode(',', $sort));
         }
+
+        // This needs to be called last or it won't be applied
+        $this->setPage($page);
     }
 
     /**
      * Hook to tweak a row before it is loaded up with junk.
      */
-    protected function prepareBodyRow($tr, $rowIndex) {
+    protected function prepareBodyRow($tr, &$data, $rowIndex) {
+
         $tr->class = ($rowIndex % 2 ? 'odd' : 'even');
+
+        if (is_callable($this->_options['prepareRow'])) {
+            call_user_func($this->_options['prepareRow'], $tr, $data, $rowIndex);
+        }
+
     }
 
     /**
@@ -1125,7 +1181,7 @@ END;
 
         $rows = $this->getData();
 
-        if (empty($rows)) {
+        if (count($rows) == 0) {
             $td = new Octopus_Html_Element('td', array('class' => 'emptyNotice'));
             $td->html($this->_options['emptyContent']);
             return '<tbody class="emptyNotice"><tr>' . $td . '</tr></tbody>';
@@ -1144,7 +1200,7 @@ END;
         foreach($rows as $row) {
 
             $tr->reset();
-            $this->prepareBodyRow($tr, $rowIndex);
+            $this->prepareBodyRow($tr, $row, $rowIndex);
 
             if ($array) $rowArray = array();
 
@@ -1277,7 +1333,8 @@ END;
 
         $html = '<div class="pagerLinks">';
 
-        if (count($p['data']) < $p['totalItems']) {
+
+        if ($p['page_numbers']['total'] > 1) {
 
             // Pager fucks up our nice urls, so we substitute in good ones.
 

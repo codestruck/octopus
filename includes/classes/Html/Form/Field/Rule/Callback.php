@@ -11,12 +11,8 @@ class Octopus_Html_Form_Field_Rule_Callback extends Octopus_Html_Form_Field_Rule
         $this->callback = $callback;
     }
 
-    public function validate($field, $data) {
-
-        $input = $this->getInput($field, $data);
-        if (trim($input) === '') return true;
-
-        return call_user_func($this->callback, $field, $input, $data);
+    protected function doValidation($input, $field, $data) {
+        return call_user_func($this->callback, $input, $data, $field);
     }
 
 }

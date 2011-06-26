@@ -14,13 +14,9 @@ class Octopus_Html_Form_Field_Rule_Range extends Octopus_Html_Form_Field_Rule {
         $this->max = max($inclusiveMin, $inclusiveMax);
     }
 
-    public function validate($field, $data) {
+    protected function doValidation($input, $field, $data) {
 
-        $input = trim($this->getInput($field, $data));
-
-        if ($input === '') {
-            return true;
-        }
+        $input = trim($input);
 
         if (!is_numeric($input)) {
             return false;

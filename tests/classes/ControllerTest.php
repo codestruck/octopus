@@ -73,9 +73,8 @@ END
         $resp = preg_replace('/>\s+</', '><', $resp);
         $resp = trim($resp);
 
-        $this->assertEquals(
-            'HTTP/1.1 200 OK <div class="sgSquashedRedirectNotice"> Suppressed redirect to: <a href="foo"><strong>foo</strong></a></div>',
-            $resp
+        $this->assertTrue(
+            !!preg_match('#HTTP/1.1 200 OK.*Suppressed redirect#im', trim($resp))
         );
     }
 

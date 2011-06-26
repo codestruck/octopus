@@ -31,6 +31,8 @@ abstract class Octopus_Model_Field {
         $class = 'Octopus_Model_Field_' . ucfirst($type);
         Octopus::loadClass($class);
 
+        $options['type'] = $type;
+
         $obj = new $class($field, $options);
         return $obj;
     }
@@ -76,7 +78,7 @@ abstract class Octopus_Model_Field {
         return $this->field;
     }
 
-    protected function getOption($option, $default = null) {
+    public function getOption($option, $default = null) {
         if (isset($this->options[$option])) {
             return $this->options[$option];
         } else if (isset($this->defaultOptions[$option])) {
@@ -191,14 +193,14 @@ abstract class Octopus_Model_Field {
                 $expr .= ($expr == '' ? '' : ',') . '?';
             }
 
-            $expr = "(`$table`.`$fieldName` IN ($expr))";
+            $expr = "`$table`.`$fieldName` IN ($expr)";
         } else {
             $params[] = $value;
-            $expr = "(`$table`.`$fieldName` $operator ?)";
+            $expr = "`$table`.`$fieldName` $operator ?";
         }
 
         if ($not) {
-            $expr = "(NOT $expr)";
+            $expr = "NOT ($expr)";
         }
 
         return $expr;

@@ -258,6 +258,10 @@ class Octopus_Settings extends Octopus_Base implements Iterator {
 
     /* End Iterator Implementation }}} */
 
+    public static function singleton() {
+        return Octopus_App::singleton()->getSettings();
+    }
+
 }
 
 ?>

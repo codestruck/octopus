@@ -21,7 +21,7 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
             $dataField = 'item_id';
         }
 
-        $value = $model->$dataField; // seems scary to access the join id as a var on the model
+        $value = $model->$dataField;
 
         $result = new $class($value);
         $result->escaped = $model->escaped;

@@ -2,11 +2,11 @@
 
 class Octopus_Cookie {
 
-    function get($key) {
+    public static function get($key) {
         return isset($_COOKIE[$key]) ? $_COOKIE[$key] : false;
     }
 
-    function set($key, $value, $expires = null, $path = null, $domain = null, $secure = false, $httpOnly = true) {
+    public static function set($key, $value, $expires = null, $path = null, $domain = null, $secure = false, $httpOnly = true) {
 
         if (isset($_SERVER['HTTP_USER_AGENT'])) {
 
@@ -23,7 +23,7 @@ class Octopus_Cookie {
 
     }
 
-    function destroy($key) {
+    public static function destroy($key) {
         if (isset($_SERVER['HTTP_USER_AGENT'])) {
             setcookie($key, '', time() - 3600, '/');
         } else {

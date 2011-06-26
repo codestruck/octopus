@@ -44,6 +44,7 @@ class Octopus_Smarty extends Octopus_Base {
         $this->smarty->error_reporting = E_ALL & ~E_NOTICE;
         $this->smarty->template_dir = $templateDir;
         $this->smarty->compile_dir = $compileDir;
+        $this->smarty->allow_php_tag = true;
 
         if (DEV) {
             $this->smarty->_file_perms = 0666;

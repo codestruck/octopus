@@ -9,11 +9,15 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
     private $_values = null;
     private $_validationResult = null;
-    private $_security_user_id = null;
-    private $_security_action = null;
-    private $_security_field = '__security_token';
-    private $_submitted_field = null;
+    private $_securityUserID = null;
+    private $_securityAction = null;
+    private $_securityField = null;
+    private $_securityToken = null;
 
+    private $errorList = null;
+
+    private $sectionStack = array();
+    private $currentSection = null;
 
     /**
      * Custom template to use when rendering this form.
@@ -21,6 +25,8 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     public $template = null;
 
     public function __construct($id, $attributes = null) {
+
+        $this->currentSection = $this;
 
         if (is_string($attributes)) {
             $attributes = array('method' => $attributes);
@@ -31,6 +37,10 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
         if (empty($attributes['method'])) {
             $attributes['method'] = 'post';
+        }
+
+        if (!isset($attributes['novalidate'])) {
+            $attributes['novalidate'] = true;
         }
 
         parent::__construct('form', $attributes);
@@ -51,12 +61,12 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
         if ($typeOrElement instanceof Octopus_Html_Element) {
             $field = $typeOrElement;
-            $this->append($field);
+            $this->currentSection->append($field);
         } else {
             $field = Octopus_Html_Form_Field::create($typeOrElement, $name, $label, $attributes);
             if ($field) {
                 $wrapper = $this->wrapField($field);
-                if ($wrapper) $this->append($wrapper);
+                $this->currentSection->append($wrapper);
             }
         }
 
@@ -90,21 +100,89 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         return $button;
     }
 
+    /**
+     * Adds a security token to this form to ensure it is only valid for the
+     * given user and action for a limited amount of time.
+     */
     public function secure($user_id, $action = null) {
+
         if ($action === null) {
             $action = $this->id;
         }
 
-        $this->_security_user_id = $user_id;
-        $this->_security_action = $action;
-        $token = get_security_token($user_id, $action);
+        $this->_securityUserID = $user_id;
+        $this->_securityAction = $action;
 
-        $el = new Octopus_Html_Element('input', array('type' => 'hidden'));
-        $el->name = $this->_security_field;
-        $el->value = $token;
+        $this->setSecurityToken(get_security_token($user_id, $action));
 
-        $this->append($el);
+        return $this;
     }
+
+    public function isSecured() {
+        return !!$this->getSecurityToken();
+    }
+
+    /**
+     * @return String The name of the field being used to store the security
+     * token for this form. If the form hasn't been secured, returns an empty
+     * string.
+     */
+    public function getSecurityTokenFieldName() {
+        return $this->_securityField ? $this->_securityField->name : '';
+    }
+
+    public function getSecurityToken() {
+        if ($this->_securityField) {
+            return $this->_securityField->val();
+        }
+    }
+
+    private function setSecurityToken($token) {
+
+        if ($token) {
+
+            if (!$this->_securityField) {
+                $this->_securityField = new Octopus_Html_Form_Field('input', 'hidden', '__octsec', '', null);
+
+                // Don't really need class or id
+                unset($this->_securityField->id);
+                unset($this->_securityField->class);
+
+                $this->add($this->_securityField);
+            }
+
+            $this->_securityField->val($token);
+
+        } else {
+
+            if ($this->_securityField) {
+                $this->_securityField->remove();
+                $this->_securityField = null;
+            }
+
+        }
+    }
+
+    private function verifySecurityToken() {
+
+        if (!$this->_securityField) {
+            return true;
+        }
+
+        if ($this->_securityUserID !== null) {
+
+            $values = $this->getValues();
+            $token = isset($values[$this->_securityField->name]) ? $values[$this->_securityField->name] : false;
+
+            if (!$token || !verify_security_token($token, $this->_securityUserID, $this->_securityAction)) {
+                return false;
+            }
+        }
+
+        return true;
+
+    }
+
 
     /**
      * Adds a validation rule to this form.
@@ -145,6 +223,86 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     }
 
     /**
+     * Starts a new section in this form.
+     * @return Octopus_Html_Element The section <div>.
+     */
+    public function beginSection($id, $label = null, $attributes = null) {
+
+        if ($attributes === null) {
+            if (is_array($label)) {
+                $attributes = $label;
+                $label = null;
+            } else {
+                $attributes = array();
+            }
+        }
+
+        $attributes['id'] = $id;
+
+        $tag = 'div';
+        if (isset($attributes['tag'])) {
+            $tag = $attributes['tag'];
+            unset($attributes['tag']);
+        }
+
+        $section = new Octopus_Html_Element($tag, $attributes);
+        $section->addClass('formSection');
+
+        $title = null;
+        $headingTag = 'h' . (count($this->sectionStack) + 2);
+
+        if ($label === null) {
+            $label = humanize($id);
+        } else {
+
+            $label = trim($label);
+
+            if ($label && preg_match('/^h\d+$/i', $label, $m)) {
+                $headingTag = $m[1];
+                $label = humanize($id);
+            } else if (preg_match('#<h(\d+)[^>]*>.*</h\1>#i', $label)) {
+                // We got actual HTML for the title
+                $title = $label;
+            }
+
+        }
+
+        if ($label) {
+
+            if (!$title) {
+                $title = new Octopus_Html_Element($headingTag, array('class' => 'formSectionTitle'));
+                $title->html($label);
+            }
+
+            $section->append($title);
+        }
+
+        $this->currentSection = $section;
+        $this->sectionStack[] = $section;
+
+        $this->append($section);
+
+        return $section;
+    }
+
+    /**
+     * Ends the last section started with beginSection.
+     */
+    public function endSection() {
+
+        array_pop($this->sectionStack);
+
+        $ct = count($this->sectionStack);
+        if ($ct) {
+            $this->currentSection = $this->sectionStack[$ct - 1];
+        } else {
+            $this->currentSection = $this;
+        }
+
+        return $this;
+    }
+
+    /**
      * Finds in this form by name.
      */
     public function getField($name) {
@@ -175,7 +333,7 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      */
     public function getValue($field, $default = null) {
 
-        $values =& $this->getValues();
+        $values = $this->getValues();
 
         if (isset($values[$field])) {
             return $values[$field];
@@ -213,10 +371,6 @@ class Octopus_Html_Form extends Octopus_Html_Element {
             self::getValuesRecursive($child, $sourceArray, $this->_values);
         }
 
-        if ($this->_security_action !== null) {
-            $this->_values[$this->_security_field] = isset($sourceArray[$this->_security_field]) ? $sourceArray[$this->_security_field] : '';
-        }
-
         return $this->_values;
     }
 
@@ -241,6 +395,15 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     }
 
     /**
+     * Sets the value of a single field in this form.
+     */
+    public function setValue($field, $value) {
+        $field = $this->getField($field);
+        $field->val($value);
+        return $this;
+    }
+
+    /**
      * Sets the data in this form.
      */
     public function setValues($values) {
@@ -251,12 +414,17 @@ class Octopus_Html_Form extends Octopus_Html_Element {
             $values = get_object_vars($values);
         }
 
+        // Don't overwrite the security token when setting values.
+        $token = $this->getSecurityToken();
+
         $this->_values = $values;
         $this->_validationResult = null;
 
         foreach($this->children() as $child) {
             $this->setValuesRecursive($child, $values);
         }
+
+        $this->setSecurityToken($token);
 
         return $this;
     }
@@ -328,22 +496,44 @@ class Octopus_Html_Form extends Octopus_Html_Element {
             $this->toArrayRecursive($child, $result);
         }
 
+        if ($this->_buttonsDiv) {
+
+            $result['buttons'] = array();
+
+            foreach($this->_buttonsDiv->children() as $button) {
+                if ($button instanceof Octopus_Html_Element) {
+                    $result['buttons'][$button->id] = $button->render(true);
+                }
+            }
+
+            $result['buttons']['html'] = $this->_buttonsDiv->render(true);
+
+        }
+
         return $result;
 
     }
 
-    private function toArrayRecursive($el, &$result) {
+    private function toArrayRecursive($el, &$result, $ignore = array()) {
 
         if (!$el || !($el instanceof Octopus_Html_Element)) {
             return;
         }
 
         if ($el instanceof Octopus_Html_Form_Field) {
-            $ar = $el->toArray();
-            if (!isset($result[$el->name])) {
-                $result[$el->name] = $ar;
+
+            $name = $el->name;
+
+            if (empty($ignore[$name])) {
+
+                $ar = $el->toArray();
+
+                if (!isset($result[$name])) {
+                    $result[$name] = $ar;
+                }
+
+                $result['fields'][$name] = $ar;
             }
-            $result['fields'][$el->name] = $ar;
         }
 
         foreach($el->children() as $child) {
@@ -352,18 +542,21 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     }
 
     /**
-     * Validates data in this form.
-     * @param $values Array Data to validate. If not specified, then either
-     * $_GET or $_POST will be used as appropriate.
-     * @return Object An object with two properties: success and errors.
+     * Validates data in this form. Use <b>setValues</b> to set the values
+     * to be validated.
+     * @param $result Object Will be set to an object w/ details about the
+     * validation result, with the following keys:
+     *
+     *  <ul>
+     *      <li>success</li>
+     *      <li>errors</li>
+     *  </ul>
+     *
+     * @return bool True on success, false otherwise.
      */
-    public function validate($values = null) {
+    public function validate(&$result = null) {
 
-        if ($values === null) {
-            $values = $this->getValues();
-        } else {
-            $this->setValues($values);
-        }
+        $values = $this->getValues();
 
         $result = new StdClass();
         $result->errors = array();
@@ -381,8 +574,12 @@ class Octopus_Html_Form extends Octopus_Html_Element {
                 continue;
             } else if ($ruleResult === false) {
                 $result->errors[] = $r->getMessage($this, $values);
-            } else {
-                $result->errors += $ruleResult;
+            } else if (is_string($ruleResult)) {
+                $result->errors[] = $ruleResult;
+            } else if (is_array($ruleResult)) {
+                foreach($ruleResult as $err) {
+                    $result->errors[] = $err;
+                }
             }
 
         }
@@ -392,11 +589,39 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         }
 
         $result->success = (count($result->errors) == 0);
-        $result->hasErrors = !$result->success;
 
         $this->_validationResult = $result;
 
-        return $result;
+        $this->updateErrorList($result);
+
+        return $result->success;
+    }
+
+    protected function updateErrorList($validationResult) {
+
+        if ($validationResult->success) {
+
+            if ($this->errorList !== null) {
+                $this->remove($this->errorList);
+                $this->errorList = null;
+            }
+
+            return;
+        }
+
+        if (!$this->errorList) {
+            $this->errorList = new Octopus_Html_Element('ul', array('class' => 'formErrors'));
+            $this->prepend($this->errorList);
+        } else {
+            $this->errorList->clear();
+        }
+
+        foreach($validationResult->errors as $err) {
+            $li = new Octopus_Html_Element('li');
+            $li->html($err);
+            $this->errorList->append($li);
+        }
+
 
     }
 
@@ -439,7 +664,6 @@ class Octopus_Html_Form extends Octopus_Html_Element {
             }
 
         }
-
 
 
         if ($text === null && isset($attributes['label'])) {
@@ -488,13 +712,14 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
                 return $button;
 
+            case 'a':
             case 'link':
             case 'submit-link':
             case 'reset-link':
 
-                $attributes['href'] = '#';
+                if (!isset($attributes['href'])) $attributes['href'] = '#';
                 $link = new Octopus_Html_Element('a', $attributes);
-                $link->addClass(preg_replace('/-?link/', '', $type), 'button');
+                $link->addClass(preg_replace('/-?link/', '', $type));
 
                 if ($text !== null) $link->html($text);
 
@@ -520,6 +745,10 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      */
     protected function wrapField($field) {
 
+        if ($field->type == 'hidden') {
+            return $field;
+        }
+
         $label = new Octopus_Html_Element('label');
         $field->addLabel($label);
 
@@ -527,8 +756,17 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         $wrapper->id = $field->wrapperId;
         $wrapper->addClass('field', $field->wrapperClass);
 
-        $wrapper->append($label);
-        $wrapper->append($field);
+        if ($field->type == 'checkbox') {
+
+            // HACK: Checkboxes are usually like [x] Label rather than Label [x]
+
+
+            $wrapper->append($field);
+            $wrapper->append($label);
+        } else {
+            $wrapper->append($label);
+            $wrapper->append($field);
+        }
 
         $field->wrapper = $wrapper;
 
@@ -542,7 +780,9 @@ class Octopus_Html_Form extends Octopus_Html_Element {
             if ($el instanceof Octopus_Html_Form_Field) {
 
                 $fieldResult = $el->validate($values);
-                $result->errors += $fieldResult->errors;
+                foreach($fieldResult->errors as $err) {
+                    $result->errors[] = $err;
+                }
 
             }
 
@@ -585,20 +825,6 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
     }
 
-    private function verifySecurityToken() {
-
-        if ($this->_security_user_id !== null) {
-            $values = $this->getValues();
-
-            $token = $values[ $this->_security_field ];
-            if (!verify_security_token($token, $this->_security_user_id, $this->_security_action)) {
-                return false;
-            }
-        }
-
-        return true;
-
-    }
 
     /**
      * @return Bool Whether the form has been submitted.

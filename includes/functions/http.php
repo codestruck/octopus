@@ -174,11 +174,19 @@
 
             $location = h($location);
 
+            ob_start();
+            print_backtrace();
+            $stackTrace = h(ob_get_clean());
+
             $d = new Octopus_Debug('suppressedRedirect');
             $d->add('content', <<<END
         <div class="sgSquashedRedirectNotice">
             Suppressed redirect to:
             <a href="$location"><strong>$location</strong></a>
+            <br />
+            <pre>
+            $stackTrace
+            </pre>
         </div>
 END
             );
@@ -224,6 +232,34 @@ END
         }
 
         redirect($dest);
+    }
+
+    /**
+     * @return String A full external URL to the given path.
+     * @param $path String Path in the app.
+     * @param $secure bool Whether or not to use HTTPS. If null, the current
+     * scheme is used.
+     */
+    function get_full_url($path, $secure = null) {
+
+        if ($secure === null) {
+            $secure = (isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) == 'on');
+        }
+
+        $scheme = $secure ? 'https' : 'http';
+        $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : trim(`hostname`);
+        $port = isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT'] : ($secure ? 443 : 80);
+
+        if (($scheme == 'https' && $port == 443) ||
+            ($scheme == 'http' && $port == 80)) {
+            $port = '';
+        } else {
+            $port = ':' . $port;
+        }
+
+        $path = u($path);
+
+        return "{$scheme}://{$host}{$port}{$path}";
     }
 
 ?>

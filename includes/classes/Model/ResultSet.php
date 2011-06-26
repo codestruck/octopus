@@ -8,11 +8,16 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
     public $escaped = false;
 
     private $_parent;
+    private $_conjunction = '';
+
     private $_modelClass;
+    private $_modelInstance = null;
+
     private $_criteria;
     private $_orderBy;
     private $_select;
-    private $_query;
+    private $query;
+
     private $_currentQuery = null;
     private $_current = null;
     private $_arrayAccessResults = null;
@@ -28,14 +33,22 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
         /**
          * e.g., for whereActive() and whereNotActive()
          */
-        '/^where(?P<not>Not)?(?P<field>[A-Z][a-zA-Z0-9_]*)$/' => '_whereBoolean'
+        '/^where(?P<not>Not)?(?P<field>[A-Z][a-zA-Z0-9_]*)$/' => 'whereBoolean'
 
     );
 
     /**
-     * Creates a new ResultSet for the given model class.
+     * Creates a new result set.
+     * @param $parentOrModelClass mixed Either another Octopus_Model_ResultSet
+     * to build upon or the name of a model class for which to create a new
+     * result set.
+     * @param $criteria Mixed Criteria used to filter things in this result set.
+     * @param $orderBy mixed Sorting to use for this result set.
+     * @param $conjunction string If $parentOrModelClass is a result set,
+     * this is the conjunction used to join the SQL in the parent to the SQL
+     * for this result set.
      */
-    public function __construct($parentOrModelClass, $criteria = null, $orderBy = null) {
+    public function __construct($parentOrModelClass, $criteria = null, $orderBy = null, $conjunction = 'AND') {
 
         if (is_string($parentOrModelClass)) {
             $this->_parent = null;
@@ -45,25 +58,48 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
             $this->_modelClass = $this->_parent->_modelClass;
         }
 
-        $this->_criteria = $criteria ? $criteria : array();
+        $this->_criteria = $criteria ? self::normalizeCriteria($criteria) : array();
         $this->_orderBy = $orderBy ? $orderBy : array();
+        $this->_conjunction = $conjunction;
 
     }
 
+    // Public Methods {{{
+
     /**
-     * @return Object A new ResultSet with extra constraints added via AND.
+     * Appends the contents of another result set to this result set and
+     * returns the result. Maintains sorting of $this.
      */
-    public function &and_(/* Variable */) {
-        $args = func_get_args();
-        $derivedSet = $this->_restrict('AND', $args);
-        return $derivedSet;
+    public function add(/* Variable */) {
+        return $this->derive(func_get_args(), 'OR');
+    }
+
+    /**
+     * Removes the contents of another result set from this result set and
+     * returns the result. Keeps the sorting of $this.
+     */
+    public function remove(/* Variable */) {
+        return $this->derive(func_get_args(), array('AND', 'NOT'));
+    }
+
+    /**
+     * Deletes all results
+     */
+    public function delete() {
+
+        foreach ($this as $item) {
+            $item->delete();
+        }
+
+        $this->query = null;
+        return $this;
     }
 
     /**
      * Sends the SQL for the current query to dump_r().
      * @return $this to continue the chain.
      */
-    public function &dumpSql($normalize = true) {
+    public function dumpSql($normalize = true) {
 
         $params = array();
         $sql = $this->getSql($params);
@@ -76,19 +112,19 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
     /**
      * @return Mixed the first result matched, or false if none were matched.
      */
-    public function &first() {
+    public function first() {
 
-        $q = $this->_query(true);
+        $q = $this->query(true);
         $row = $q->fetchRow();
-        if (!$row) return $row;
+        if (!$row) return false;
 
-        return $this->_createModelInstance($row);
+        return $this->createModelInstance($row);
     }
 
     /**
      * @param $offset Number Record at which to start returning results.
      * @param $maxRecords Mixed Number of records to return. If null, all records are returned.
-     * @return Octopus_ResultSet A result set that starts returning records
+     * @return Octopus_Model_ResultSet A result set that starts returning records
      * at $offset, and returns at most $maxRecords.
      */
     public function limit($offset, $maxRecords = null) {
@@ -97,15 +133,16 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
             return $this;
         }
 
-        $result = new Octopus_Model_ResultSet($this, null, $this->_orderBy);
+        $result = $this->createChild(null, null, null);
         $result->_offset = $offset;
         $result->_maxRecords = $maxRecords;
+
         return $result;
 
     }
 
     /**
-     * @return Octopus_ResultSet A copy of this resultset with any limiting
+     * @return Octopus_Model_ResultSet A copy of this resultset with any limiting
      * restrictions removed.
      */
     public function unlimit() {
@@ -114,7 +151,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
             return $this;
         }
 
-        return new Octopus_Model_ResultSet($this, null, $this->_orderBy);
+        return $this->createChild(null, null, null);
     }
 
     /**
@@ -125,12 +162,22 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
     }
 
     /**
+     * @return Octopus_Model_Field
+     */
+    public function getModelField($name) {
+        $mc = $this->_modelClass;
+        $obj = new $mc();
+        $field = $obj->getField($name);
+        return $field;
+    }
+
+    /**
      * @param $params Array array into which to put the parameters.
      * @return string The SQL for the current query.
      */
     public function getSql(&$params = null) {
 
-        $s = $this->_buildSelect();
+        $s = $this->buildSelect();
         $sql = $s->getSql();
 
         if ($params !== null) {
@@ -143,12 +190,10 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
     }
 
     /**
-     * @return Object A new ResultSet with extra constraints added via OR.
+     * Restricts via free-text search.
      */
-    public function &or_(/* Variable */) {
-        $args = func_get_args();
-        $derivedSet = $this->_restrict('OR', $args);
-        return $derivedSet;
+    public function matching($text) {
+        return $this->where($this->createFreeTextCriteria($text));
     }
 
     /**
@@ -160,7 +205,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
         $newOrderBy = array();
 
         foreach($args as $arg) {
-            $this->_processOrderByArg($arg, $newOrderBy);
+            $this->processOrderByArg($arg, $newOrderBy);
         }
 
         if (empty($newOrderBy) && empty($this->_orderBy)) {
@@ -168,33 +213,328 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
             return $this;
         }
 
-        $derivedSet = new Octopus_Model_ResultSet($this, null, $newOrderBy);
+        $derivedSet = $this->createChild(null, $newOrderBy, null);
+
         return $derivedSet;
     }
 
     /**
-     * Adds additional criteria to the resultset, filtering whatever is
-     * presently in there.
+     * @return Octopus_Model_ResultSet A ResultSet derived from this one with
+     * additional filters applied.
      */
-    public function &where(/* Variable */) {
-        $args = func_get_args();
-        $rs = $this->_restrict('AND', $args);
-        return $rs;
+    public function where(/* Variable */) {
+        return $this->createChild(func_get_args(), null, 'AND');
+    }
+
+    // End Public Methods }}}
+
+    // Protected Methods {{{
+
+    /**
+     * Takes a big fat criteria array and generates a WHERE clause.
+     * @param $criteria Array Set of criteria, pre-filtered by normalizeCriteria
+     * @param $s Octopus_DB_Select being constructed.
+     * @param $params Array Set of parameters referenced by the generated SQL.
+     * @return string SQL for a WHERE clause (minus the WHERE keyword)
+     */
+    protected function buildWhereClause($criteria, $s, &$params) {
+
+        /* Examples of what $criteria might be:
+         *
+         *  array('field1' => 'value1', 'field2' => 'value2')
+         *  array(array('field1' => 'value1'), 'AND', array('field2' => 'value2'))
+         *  array('NOT' => array('field1' => 'value1'))
+         */
+
+        $sql = '';
+        $conjunction = '';
+
+        foreach($criteria as $key => $value) {
+
+            $expression = '';
+
+            if ($key === 'AND' || $key === 'OR') {
+
+                // e.g., array('AND' => array('field1' => 'value1'))
+                $conjunction = $key;
+                $expression = self::buildWhereClause($value, $s, $params);
+
+            } else if ($key === 'NOT') {
+
+                // e.g. array('NOT' => array('field1' => 'value1'))
+                $expression = trim(self::buildWhereClause($value, $s, $params));
+
+                if ($expression) {
+                    $expression = "$key ($expression)";
+                }
+
+            } else if (is_numeric($key)) {
+
+                if ($value == 'AND' || $value == 'OR') {
+
+                    // e.g. array('field1' => 'value1', 'AND', 'field2' => 'value2')
+                    $conjunction = $value;
+
+                } else if (is_array($value)) {
+
+                    // e.g. array(array('field1' => 'value1), array('field2' => 'value2'))
+                    $expression = $this->buildWhereClause($value, $s, $params);
+
+                } else {
+
+                    // e.g. array('field1 = 5')
+                    // TODO: Handle
+
+                }
+
+            } else {
+
+                // e.g. array('key' => 'value')
+                $expression = $this->restrictField($key, $value, $s, $params);
+            }
+
+            $expression = trim($expression);
+
+            if ($expression) {
+                $sql = self::joinSql($conjunction ? $conjunction : 'AND', $sql, $expression);
+                $conjunction = '';
+            }
+        }
+
+        return $sql;
     }
 
     /**
-     * Deletes all results
+     * @return An Octopus_Model_ResultSet based on this one.
      */
-    public function &delete() {
-        foreach ($this as $item) {
-            $item->delete();
+    protected function createChild($criteria, $orderBy, $conjunction) {
+
+        if ($orderBy === null) {
+            $orderBy = $this->_orderBy;
         }
 
-        $this->_query = null;
-        return $this;
+        $child = new Octopus_Model_ResultSet($this, $criteria, $orderBy, $conjunction);
+        $child->escaped = $this->escaped;
+
+        return $child;
     }
 
-    private function _applyOrderByClause(&$s, &$orderBy) {
+    protected function createFreeTextCriteria($text) {
+
+        $class = $this->getModel();
+
+        $dummy = new $class();
+        $searchFields = null;
+        $text = trim($text);
+        if (!$text) return array();
+
+        if (isset($dummy->search)) {
+            $searchFields = is_array($dummy->search) ? $dummy->search : array($dummy->search);
+        }
+
+        if ($searchFields === null) {
+
+            $searchFields = array();
+
+            foreach($dummy->getFields() as $field) {
+
+                $isText = $field->getOption('type', 'text') == 'string';
+
+                if ($field->getOption('searchable', $isText)) {
+                    $searchFields[] = $field;
+                }
+            }
+
+        } else {
+
+            $fields = array();
+            foreach($searchFields as $name) {
+                $field = $dummy->getField($name);
+                if ($field) $fields[] = $field;
+            }
+            $searchFields = $fields;
+        }
+
+        $criteria = array();
+        foreach($searchFields as $field) {
+
+            if (count($criteria)) $criteria[] = 'OR';
+            $criteria[$field->getFieldName() . ' LIKE'] = wildcardify($text);
+
+        }
+
+        return $criteria;
+
+    }
+
+    /**
+     * Factory method used to generate an instance of Octopus_Model from the given
+     * row of data.
+     * @return Object A new model instance from the given row.
+     */
+    protected function createModelInstance(&$row) {
+
+        // NOTE: Because $row might contain extra fields (like from a join,
+        // We have to use the public 'setData' (which only tries to set fields
+        // that exist).
+
+        $class = $this->_modelClass;
+        $id = $row[$this->getModelPrimaryKey()];
+        $instance = new $class($id);
+        $instance->setData($row);
+        $instance->escaped = $this->escaped;
+        return $instance;
+    }
+
+    /**
+     * @return A new Octopus_Model_ResultSet based on $this, adding the
+     * given criteria w/ the given conjunction.
+     */
+    protected function derive($criteria, $conjunction) {
+
+        $result = $this;
+        $lastFieldName = null;
+
+        foreach($criteria as $arg) {
+
+            if ($arg instanceof Octopus_Model_ResultSet) {
+                $result = $this->createChild($arg->_criteria, null, $conjunction);
+                $lastFieldName = null;
+            } else if (is_array($arg)) {
+                $result = $this->createChild($arg, null, $conjunction);
+                $lastFieldName = null;
+            } else if (is_string($arg)) {
+
+                if ($lastFieldName === null) {
+                    $lastFieldName = $arg;
+                } else {
+                    $result = $this->createChild(array($lastFieldName => $arg), null, $conjunction);
+                    $lastFieldName = null;
+                }
+
+            } else {
+                throw new Octopus_Exception('Unsupported arg to Octopus_Model_ResultSet::derive(): ' . $arg);
+            }
+
+        }
+
+        return $result;
+
+    }
+
+    /**
+     * @return Octopus_Model An instance of the model this result set contains.
+     */
+    protected function getModelInstance() {
+
+        // TODO: Lots of these methods should be static on Octopus_Model.
+
+        if (!$this->_modelInstance) {
+            $class = $this->getModel();
+            $this->_modelInstance = new $class();
+        }
+
+        return $this->_modelInstance;
+    }
+
+    protected function getModelPrimaryKey() {
+        $instance = $this->getModelInstance();
+        return $instance->getPrimaryKey();
+    }
+
+    protected function getModelTableName() {
+        $instance = $this->getModelInstance();
+        return $instance->getTableName();
+    }
+
+    /**
+     * Takes a key from a criteria array and parses it out into field name,
+     * operator, and function.
+     * @return Array field, operator, and function
+     */
+    protected function parseCriteriaKey($key) {
+
+        /* Formats a key can take:
+         * 'field'
+         * 'field [not] operator'
+         * (TODO) 'function(field) [not] operator
+         */
+
+
+        $key = str_replace('`', '', $key);
+        $key = preg_replace('/\s+/', ' ', $key);
+        $key = trim($key);
+
+        $field = $operator = $function = null;
+
+        $spacePos = strpos($key, ' ');
+
+        if ($spacePos === false) {
+            $field = $key;
+        } else {
+            $field = substr($key, 0, $spacePos);
+            $operator = substr($key, $spacePos + 1);
+        }
+
+        // Special-case ID
+        if (strcasecmp($field, 'id') == 0) {
+            $field = $this->getModelPrimaryKey();
+        }
+
+        return compact('field', 'operator', 'function');
+    }
+
+    /**
+     * Generates SQL for a single "field = value" type statement.
+     * @param $key string Raw key from a criteria array.
+     * @param $value mixed Value used to restrict.
+     * @param $s Octopus_DB_Select Query being built.
+     * @param $params Array Parameters to be passed to the query.
+     */
+    protected function restrictField($key, $value, $s, &$params) {
+
+        // Parse out field name, etc.
+        $info = $this->parseCriteriaKey($key);
+        extract($info);
+
+        if ($field == $this->getModelPrimaryKey()) {
+
+            // IDs don't have associated fields, so we use the default
+            // restriction logic.
+            return Octopus_Model_Field::defaultRestrict($field, $operator, '=', $value, $s, $params, $this->getModelInstance());
+
+        }
+
+        if ($value instanceof Octopus_Model_ResultSet) {
+
+            // TODO: Do this using a subquery rather than IN ()
+            $resultSet = $value;
+            $value = array();
+
+            foreach($resultSet as $item) {
+                $value[] = $item->id;
+            }
+
+        } else if ($value instanceof Octopus_Model) {
+            $value = $value->id;
+        }
+
+
+
+        $f = $this->getModelField($field);
+
+        if ($f) {
+            return $f->restrict($operator, $value, $s, $params, $this->getModelInstance());
+        }
+
+        throw new Octopus_Exception("Field not found: " . $field);
+    }
+
+    // End Protected Methods }}}
+
+    // Private Methods {{{
+
+    private function applyOrderByClause(&$s, &$orderBy) {
 
         if (empty($orderBy)) {
             return;
@@ -214,7 +554,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
                 Octopus_Model_Field::defaultOrderBy($this, $s, $pk, $dir);
             }
 
-            $field = $this->_getField($fieldName);
+            $field = $this->getModelField($fieldName);
             if ($field) {
                 $field->orderBy($this, $s, $dir);
             }
@@ -222,180 +562,26 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
 
     }
 
-    private $_hackyModelInstance = null;
-    private function getModelPrimaryKey() {
-
-        // TODO Octopus_Model::getPrimaryKey() should be static
-
-        if (!$this->_hackyModelInstance) {
-            $class = $this->getModel();
-            $this->_hackyModelInstance = new $class();
-        }
-
-        return $this->_hackyModelInstance->getPrimaryKey();
-    }
-
-    /**
-     * Takes a big fat criteria array and generates a WHERE clause.
-     * @param $criteria Array Set of criteria to compile into a WHERE clause.
-     * @param $s Object Octopus_DB_Select being used.
-     * @param $sql String Variable to hold generated SQL.
-     * @param $params Array Set of parameters referenced by $sql.
-     */
-    private function _generateWhereClause(&$criteria, &$s, &$sql, &$params, $processParent = false) {
-
-        if ($processParent && $this->_parent) {
-            $this->_parent->_generateWhereClause($this->_parent->_criteria, $s, $sql, $params, true);
-        }
-
-        if (empty($criteria)) {
-            return;
-        }
-
-        $lastFieldName = null;
-        $conjunction = 'AND';
-
-        foreach($criteria as $key => $value) {
-
-            $criteriaSql = '';
-
-            if (is_numeric($key)) {
-
-                // This is probably something w/o an explicit key set.
-
-                if (is_array($value)) {
-
-                    // Handle ('Id In', array(1,2,3,4)
-                    if ($lastFieldName) {
-                        $c = array($lastFieldName => $value);
-                        $this->_generateWhereClause($c, $s, $criteriaSql, $params);
-                    } else {
-                        // Process as an array of criteria
-                        $this->_generateWhereClause($value, $s, $criteriaSql, $params);
-                    }
-
-                    $lastFieldName = null;
-
-                } else {
-
-                    // Could be 'AND' or 'OR'
-                    if (strcasecmp($value, 'or') == 0 || strcasecmp($value, 'and') == 0) {
-                        $conjunction = strtoupper($value);
-                        $lastFieldName = null;
-                    } else {
-                        // Handle ('field name', 'value')
-                        if ($lastFieldName) {
-                            $c = array($lastFieldName => $value);
-                            $this->_generateWhereClause($c, $s, $criteriaSql, $params);
-                            $lastFieldName = null;
-                        } else {
-                            $lastFieldName = $value;
-                        }
-                    }
-                }
-
-            } else {
-
-                // check if we are passed a result set
-                if (is_object($value)) {
-                    $newValue = array();
-
-                    foreach ($value as $item) {
-                        $newValue[] = $item->id;
-                    }
-
-                    $value = $newValue;
-                }
-
-                // standard field = whatever syntax
-                self::_readCriteriaKey($key, $fieldName, $operator);
-
-                // HACK: special-case id
-                if (strcasecmp($fieldName, 'id') == 0) {
-                    $mc = $this->_modelClass;
-                    $obj = new $mc();
-                    $fieldName = $obj->getPrimaryKey();
-                    $criteriaSql = Octopus_Model_Field::defaultRestrict($fieldName, $operator, '=', $value, $s, $params, $obj);
-                } else {
-                    $field = $this->_getField($fieldName);
-
-                    $mc = $this->_modelClass;
-                    $obj = new $mc();
-
-                    if ($field) {
-                        $criteriaSql = $field->restrict($operator, $value, $s, $params, $obj);
-                    } else {
-                        $criteriaSql = Octopus_Model_Field::defaultRestrict($fieldName, $operator, '=', $value, $s, $params, $obj);
-                    }
-                }
-            }
-
-            if (!empty($criteriaSql)) {
-
-                if ($conjunction) {
-
-                    if (strlen($sql)) {
-                        $sql .= "$conjunction ";
-                    }
-
-                    $conjunction = 'AND';
-                }
-
-                $sql .= $criteriaSql . ' ';
-            }
-        }
-    }
-
-    private function &_getField($name) {
-        $mc = $this->_modelClass;
-        $obj = new $mc();
-        $field = $obj->getField($name);
-        return $field;
-    }
-
-    /**
-     * Takes a key from a criteria array and parses it out into field name
-     * and operator.
-     */
-    private function _readCriteriaKey($key, &$fieldName, &$operator) {
-
-        $fieldName = $operator = null;
-
-        $spacePos = strpos($key, ' ');
-        if ($spacePos !== false) {
-            $fieldName = substr($key, 0, $spacePos);
-            $operator = substr($key, $spacePos + 1);
-        } else {
-            $fieldName = $key;
-        }
-
-        $fieldName = trim($fieldName, '`');
-    }
-
     /**
      * @return Object A new Octopus_DB_Select instance.
      */
-    private function &_buildSelect($recreate = false) {
+    private function buildSelect($recreate = false) {
 
         if (!$recreate && $this->_select) {
             return $this->_select;
         }
 
-        $mc = $this->_modelClass;
-        $obj = new $mc();
-
         $s = new Octopus_DB_Select();
-        $s->table($obj->getTableName());
+        $s->table($this->getModelTableName());
 
-        $sql = '';
         $params = array();
-        $this->_generateWhereClause($this->_criteria, $s, $sql, $params, true);
+        $whereClause = trim($this->getFullWhereClause($s, $params));
 
-        if (strlen($sql) > 0) {
-            $s->where($sql, $params);
+        if ($whereClause) {
+            $s->where($whereClause, $params);
         }
 
-        $this->_applyOrderByClause($s, $this->_orderBy);
+        $this->applyOrderByClause($s, $this->_orderBy);
 
         if ($this->_offset !== null || $this->_maxRecords !== null) {
             $s->limit(($this->_offset === null ? 0 : $this->_offset), $this->_maxRecords);
@@ -406,37 +592,17 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
     }
 
     /**
-     * Factory method used to generate an instance of Octopus_Model from the given
-     * row of data.
-     * @return Object A new model instance from the given row.
+     * @return String The full WHERE clause for this result set, including
+     * any restrictions placed by the parent.
      */
-    protected function &_createModelInstance(&$row) {
+    private function getFullWhereClause($s, &$params) {
 
-        //HACK: Because $row might contain extra fields (like from a join,
-        // We have to use the public 'setData' (which only tries to set fields
-        // that exist).
+        return self::joinSql(
+            $this->_conjunction ? $this->_conjunction : 'AND',
+            $this->_parent ? $this->_parent->getFullWhereClause($s, $params) : '',
+            $this->buildWhereClause($this->_criteria, $s, $params)
+        );
 
-        $class = $this->_modelClass;
-        $id = $row[$this->getModelPrimaryKey()];
-        $instance = new $class($id);
-        $instance->setData($row);
-        $instance->escaped = $this->escaped;
-        return $instance;
-    }
-
-    /**
-     * Runs the backing query and
-     */
-    private function &_query($new = false) {
-
-        if ($this->_query && !$new) {
-            return $this->_query;
-        }
-
-        $s = $this->_buildSelect();
-        $this->_query = $s->query();
-
-        return $this->_query;
     }
 
     /**
@@ -444,7 +610,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
      * 'whatever DESC') or an array (e.g. array('whatever' => 'DESC') ).
      * @return boolean TRUE if something is made of the argument, FALSE otherwise.
      */
-    private function _processOrderByArg($arg, &$orderBy) {
+    private function processOrderByArg($arg, &$orderBy) {
 
         if (is_string($arg)) {
 
@@ -477,7 +643,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
                     // this is an entry at a numeric index, e.g.
                     // ------vvvvvv-----------------------------
                     // array('name', 'created' => 'desc')
-                    if ($this->_processOrderByArg(array($dir => 'ASC'), $orderBy)) {
+                    if ($this->processOrderByArg(array($dir => 'ASC'), $orderBy)) {
                         $processed++;
                         continue;
                     }
@@ -500,33 +666,128 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
     }
 
     /**
-     * Internal handler for and() and or().
+     * Runs the backing query and
      */
-    private function &_restrict($operator, $args) {
+    private function &query($new = false) {
 
-        if (empty($args)) {
-            return $this;
+        if ($this->query && !$new) {
+            return $this->query;
         }
 
-        array_unshift($args, $operator);
+        $s = $this->buildSelect();
+        $this->query = $s->query();
 
-        $derivedSet = new Octopus_Model_ResultSet($this, $args, $this->_orderBy);
-        $derivedSet->escaped = $this->escaped;
-        return $derivedSet;
+        return $this->query;
+    }
+
+    // End Private Methods }}}
+
+    // Static Methods {{{
+
+    /**
+     * Combines two pieces of a where clause.
+     */
+    private static function joinSql($conj, $left, $right) {
+
+        $left = trim($left);
+        $right = trim($right);
+
+        if (!($left || $right)) {
+            return '';
+        } else if ($left && !$right) {
+            return $left;
+        } else if ($right && !$left) {
+            return $right;
+        }
+
+        if (!is_array($conj)) {
+            return '(' . $left . ') ' . $conj . ' (' . $right . ')';
+        }
+
+        $left = "($left) ";
+
+        foreach($conj as $c) {
+            $left .= "$c (";
+            $right .= ')';
+        }
+
+        return $left . $right;
     }
 
     /**
-     * Handles the where____ magic method for boolean fields.
-     * @param $matches Array set of matched groups from the magic method pattern.
+     * Given a set of criteria in any of the following formats:
+     *
+     *  array('field', 'value')
+     *  array('field1' => 'value1', 'field2' => 'value2')
+     *  array('field1' => 'value1', 'OR', array('field2' => 'value2'))
+     *  array('NOT' => array('field1' => 'value1'))
+     *
+     *  and returns an array in a standard format:
+     *
+     *  array(
+     *      array('field1' => 'value1'),
+     *      'OR',
+     *      array('field2' => 'value2')
+     *  )
+     *
+     * @param $criteria Array Criteria to normalize.
      */
-    private function &_whereBoolean($matches) {
+    private static function &normalizeCriteria($criteria) {
 
-        $field = underscore($matches['field']);
-        $not = isset($matches['not']) ? (strcasecmp('not', $matches['not']) == 0) : false;
+        $result = array();
+        $lastFieldName = null;
 
-        $derivedSet = $this->_restrict('AND', array($field => $not ? 0 : 1));
-        return $derivedSet;
+        foreach($criteria as $key => $value) {
+
+            if (is_numeric($key)) {
+
+                // $value is either a field name, value, conjunction, or another array of criteria
+
+                if ($lastFieldName !== null) {
+                    $result[] = array($lastFieldName => $value);
+                    $lastFieldName = null;
+                } else if (is_array($value)) {
+                    $result[] = self::normalizeCriteria($value);
+                    $lastFieldName = null;
+                } else {
+
+                    $uvalue = strtoupper($value);
+
+                    if ($uvalue === 'OR' || $uvalue === 'AND') {
+                        if (count($result)) {
+                            $result[] = $uvalue;
+                        }
+                        $lastFieldName = null;
+                    } else if ($lastFieldName === null) {
+                        $lastFieldName = $value;
+                    }
+                }
+
+                continue;
+            }
+
+            // $key is either a field name or a conjunction or NOT
+            $ukey = strtoupper($key);
+
+            if ($ukey == 'NOT') {
+                $result[] = array('NOT' => self::normalizeCriteria($value));
+            } else if ($ukey == 'AND' || $ukey == 'OR') {
+                $result[] = $ukey;
+                $result[] = self::normalizeCriteria($value);
+            } else {
+
+                // $key is a field name
+                // $value is the corresponding value
+                $result[] = array($key => $value);
+            }
+        }
+
+        return $result;
     }
+
+    // }}}
+
+    // Magic Methods {{{
 
     public function __call($name, $args) {
 
@@ -536,9 +797,22 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
             }
         }
 
-        throw new Octopus_Exception("'$name' is not a valid method on Octopus_ResultSet");
-
+        throw new Octopus_Exception("'$name' is not a valid method on Octopus_Model_ResultSet");
     }
+
+    /**
+     * Handles the where____ magic method for boolean fields.
+     * @param $matches Array set of matched groups from the magic method pattern.
+     */
+    private function whereBoolean($matches) {
+
+        $field = underscore($matches['field']);
+        $not = isset($matches['not']) ? (strcasecmp('not', $matches['not']) == 0) : false;
+
+        return $this->where(array($field => $not ? 0 : 1));
+    }
+
+    // End Magic Methods }}}
 
     // Iterator Implementation {{{
 
@@ -557,7 +831,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
     }
 
     public function rewind() {
-        $this->_currentQuery = $this->_query(true);
+        $this->_currentQuery = $this->query(true);
     }
 
     public function valid() {
@@ -574,7 +848,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
             return false;
         }
 
-        $this->_current = $this->_createModelInstance($row);
+        $this->_current = $this->createModelInstance($row);
         return true;
     }
 
@@ -582,7 +856,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
      * @return Number The # of records in this ResultSet.
      */
     public function count() {
-        return $this->_query()->numRows();
+        return $this->query()->numRows();
     }
 
     // }}}
@@ -591,7 +865,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
 
     private function getArrayAccessResult() {
         if (!$this->_arrayAccessResults) {
-            $query = $this->_query(true);
+            $query = $this->query(true);
             $this->_arrayAccessResults = $query->fetchAll();
         }
 
@@ -606,7 +880,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
     public function offsetGet($offset) {
         $all = $this->getArrayAccessResult();
         if (isset($all[$offset])) {
-            return $this->_createModelInstance($all[$offset]);
+            return $this->createModelInstance($all[$offset]);
         }
 
         return null;
@@ -624,8 +898,5 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
 
     // }}}
 
-
 }
-
-
 ?>

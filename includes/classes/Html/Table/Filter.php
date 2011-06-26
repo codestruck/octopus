@@ -74,20 +74,22 @@ abstract class Octopus_Html_Table_Filter {
      */
     public function apply($dataSource) {
 
-        if (empty($dataSource)) {
-            return $dataSource;
-        }
-
         if (class_exists('Octopus_Model_ResultSet') && $dataSource instanceof Octopus_Model_ResultSet) {
             return $this->applyToResultSet($dataSource);
         } else if (is_array($dataSource)) {
             return $this->applyToArray($dataSource);
         } else if (is_string($dataSource)) {
             return $this->applyToSql($dataSource);
-        } else {
+        } else if ($dataSource) {
             throw new Octopus_Exception('Unsupported dataSource: ' . $dataSource);
+        } else {
+            return $dataSource;
         }
 
+    }
+
+    protected function callFunction($func, &$data) {
+        return call_user_func($func, $this, $data);
     }
 
     /**
@@ -121,6 +123,10 @@ abstract class Octopus_Html_Table_Filter {
             return $this->callFunction($this->options['function'], $resultSet);
         }
 
+        return $this->defaultApplyToResultSet($resultSet);
+    }
+
+    protected function defaultApplyToResultSet($resultSet) {
         return $resultSet->where($this->id, $this->val());
     }
 
@@ -181,7 +187,6 @@ abstract class Octopus_Html_Table_Filter {
 
         if ($id === null) {
             $id = $type;
-            $type = 'text';
         }
 
         if (is_array($label) && $options === null) {
@@ -206,7 +211,13 @@ abstract class Octopus_Html_Table_Filter {
 Octopus::loadClass('Octopus_Html_Table_Filter_Text');
 Octopus_Html_Table_Filter::register('text', 'Octopus_Html_Table_Filter_Text');
 
+Octopus::loadClass('Octopus_Html_Table_Filter_Search');
+Octopus_Html_Table_Filter::register('search', 'Octopus_Html_Table_Filter_Search');
+
 Octopus::loadClass('Octopus_Html_Table_Filter_Select');
 Octopus_Html_Table_Filter::register('select', 'Octopus_Html_Table_Filter_Select');
+
+Octopus::loadClass('Octopus_Html_Table_Filter_Checkbox');
+Octopus_Html_Table_Filter::register('checkbox', 'Octopus_Html_Table_Filter_Checkbox');
 
 ?>

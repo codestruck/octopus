@@ -1,5 +1,7 @@
 <?php
 
+    define('OCTOPUS_FLASH_SESSION_KEY', '__octopus_flash__');
+
     function octopus_api_key($scope = '') {
 
         $sessionKey = 'OCTOPUS_API_KEY';
@@ -27,7 +29,6 @@
 
     }
 
-
     /**
      * Helper for reading $_GET.
      * @return mixed The value of $_GET[$arg] if present, $default otherwise,
@@ -51,6 +52,22 @@
             $value = $_GET[$arg];
             if (is_numeric($value)) return $value;
         }
+        return false;
+    }
+
+    function get_or_post($arg, $default = null) {
+        if (isset($_POST[$arg])) {
+            return $_POST[$arg];
+        } else if (isset($_GET[$arg])) {
+            return $_GET[$arg];
+        } else {
+            return $default;
+        }
+    }
+
+    function get_or_post_numeric($arg) {
+        $value = get_or_post($arg, null);
+        if (is_numeric($value)) return $value;
         return false;
     }
 
@@ -216,6 +233,159 @@
         }
 
         return isset($_POST[$arg]) ? $_POST[$arg] : $default;
+    }
+
+    /**
+     * Sets a flash message.
+     */
+    function set_flash($content, $type = 'success', $options = null) {
+
+        if ($options === null && is_array($type)) {
+            $options = $type;
+            $type = 'success';
+        }
+
+        if (isset($options['type'])) {
+            $type = $options['type'];
+            unset($options['type']);
+        }
+
+        if (empty($_SESSION[OCTOPUS_FLASH_SESSION_KEY])) {
+            $_SESSION[OCTOPUS_FLASH_SESSION_KEY] = array();
+        }
+
+        if (!$options) $options = array();
+
+        // Don't auto-hide error messages by default
+        if ($type == 'error' && !isset($options['persist'])) {
+            $options['persist'] = true;
+        }
+
+        $_SESSION[OCTOPUS_FLASH_SESSION_KEY][$type] = array(
+            'content' => $content,
+            'options' => $options
+        );
+    }
+
+    /**
+     * Removes any flash messages set.
+     */
+    function clear_flash($type = null) {
+
+        if ($type === null) {
+            unset($_SESSION[OCTOPUS_FLASH_SESSION_KEY]);
+        } else if (isset($_SESSION[OCTOPUS_FLASH_SESSION_KEY])) {
+            unset($_SESSION[OCTOPUS_FLASH_SESSION_KEY][$type]);
+        }
+
+    }
+
+    function get_flash($type = 'success', $clear = true) {
+
+        if (is_bool($type)) {
+            $clear = $type;
+            $type = 'success';
+        }
+
+        if (!isset($_SESSION[OCTOPUS_FLASH_SESSION_KEY])) {
+            return '';
+        }
+
+        if (isset($_SESSION[OCTOPUS_FLASH_SESSION_KEY][$type])) {
+            $result = $_SESSION[OCTOPUS_FLASH_SESSION_KEY][$type];
+        } else {
+            $result = '';
+        }
+
+        if ($clear) {
+            clear_flash($type);
+        }
+
+        return $result;
+    }
+
+    function render_flash($type = null, $clear = true) {
+
+        if (empty($_SESSION[OCTOPUS_FLASH_SESSION_KEY])) {
+            return false;
+        }
+
+        if ($type === null) {
+
+            // By default, render all flash messages
+
+            $rendered = false;
+            foreach($_SESSION[OCTOPUS_FLASH_SESSION_KEY] as $type => $rawContent) {
+                $rendered = render_flash($type, $clear) || $rendered;
+            }
+
+            return $rendered;
+        }
+
+        $flash = get_flash($type, $clear);
+
+        if (empty($flash)) {
+            return false;
+        }
+
+        $class = array(to_css_class($type) => true);
+        $title = null;
+        $content = null;
+
+        if (!empty($flash['options'])) {
+
+            foreach($flash['options'] as $key => $value) {
+                if ($value) {
+                    $class[$key] = true;
+                }
+            }
+        }
+        $class = implode(' ', array_keys($class));
+
+        $rawContent = $flash['content'];
+
+        // Allow specifying a separate title/content
+        if (is_array($rawContent)) {
+
+            if (isset($rawContent['title'])) {
+                $title = $rawContent['title'];
+                unset($rawContent['title']);
+            }
+
+            if (isset($rawContent['content'])) {
+                $content = $rawContent['content'];
+                unset($rawContent['content']);
+            }
+
+            if ($rawContent) {
+                $title = array_shift($rawContent);
+
+               if ($rawContent) {
+                   $content = array_shift($rawContent);
+               }
+            }
+
+        } else {
+            $content = $rawContent;
+        }
+
+        if (!($content || $title)) {
+            return false;
+        }
+
+        $titleHtml = $contentHtml = '';
+        if ($title) $titleHtml = '<h3 class="flashTitle">' . $title . '</h3>';
+        if ($content) $contentHtml = '<div class="flashContent">' . $content . '</div>';
+
+        echo <<<END
+        <div class="flash $class">
+            $titleHtml
+            $contentHtml
+        </div>
+END;
+
+        return true;
+
     }
 
 ?>

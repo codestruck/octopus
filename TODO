@@ -1,22 +1,63 @@
 
 Model
-- Model Iterator support
 - find by image_id not just id
 - ->not on result doesn't work with image_id or id
-- How do isset() and unset() relate to model properties? (what counts as a property that is 'not set')?
 - implement Decimal field type
 - Doing 'order by' a hasone creates a join and sorts on the display field. Maybe make the sort
   field configurable per-hasone?
 - customize escaping (allowed tags?)
+- functions in queries, e.g.
+
+    $products = $products->where('count(categories) > 5');
+
+- Batch update support of some sort?
+
+    User::update()->where(array('group' => 3))->set('group', 5),
+
+    - If fields have afterSave logic, this should error out
+
+- Custom getters per-field, e.g.
+
+    $fields = array('name')
+
+    protected function getName($value) {
+        return strtoupper($value);
+    }
+
+- LIKE for string fields
+
+    LIKE is the default search operator, which is good (case-insensitive searching),
+    but has some unintended side effects, e.g.:
+
+        $input = '%';
+        $site = Site::get(array('api_key' => $input));
+        Will return you something :-)
+
+    Possibly redefine string operators as:
+
+        - '=' (default) case-insensitive comparison, no wildcards
+        - '==' case-sensitive comparison, no wildcards
+        - 'LIKE' case-insensitive, wildcards * and ?
+
+
 
 Controller
 - way for actions to trigger 404s
+- before_action and after_action methods should be _before_action and _after_action
+  so they aren't callable as actions.
+
+Views
+- Have a backing controller for the template (get logic out of page.php)
 
 Forms
 - review classnames in regards to checkboxes, radios, selects regarding values, wrappers and labels
 - required support for radios, multi-checkboxes
 
+Tables
+- Checkbox selection / actions on 1 or more rows
+
 Misc Ideas
+
 - dependency injection / class binding?
     echo Octopus::getBinding('View_Finder');
     > Octopus_View_Finder
@@ -24,3 +65,23 @@ Misc Ideas
     echo Octopus::loadClass('View_Finder')
     > 'My_Custom_View_Finder_Class'
     Octopus::create('View_Finder')
+
+
+interface HtmlString {
+
+    var $value;
+
+    bool isSafe {
+
+    }
+
+    function __toString() {
+        return $this->isSafe() ? $this->value : htmlspecialchars($this->value);
+    }
+
+
+}
+
+Email
+- Allow selectively sending email when in dev mode, e.g. if the to is @solegraphics.com,
+let it through
