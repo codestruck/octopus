@@ -193,14 +193,14 @@ abstract class Octopus_Model_Field {
                 $expr .= ($expr == '' ? '' : ',') . '?';
             }
 
-            $expr = "(`$table`.`$fieldName` IN ($expr))";
+            $expr = "`$table`.`$fieldName` IN ($expr)";
         } else {
             $params[] = $value;
-            $expr = "(`$table`.`$fieldName` $operator ?)";
+            $expr = "`$table`.`$fieldName` $operator ?";
         }
 
         if ($not) {
-            $expr = "(NOT $expr)";
+            $expr = "NOT ($expr)";
         }
 
         return $expr;

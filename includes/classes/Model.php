@@ -30,6 +30,7 @@ abstract class Octopus_Model implements ArrayAccess /*, Countable, Iterator*/ {
      * used. Once the correct field is selected, it is cached.
      */
     protected $displayField = array('name', 'title', 'text', 'summary', 'description');
+
     private static $fieldHandles = array();
 
     protected $data = array();
