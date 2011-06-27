@@ -27,6 +27,7 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
         $form->add('foo')->mustBe('email');
 
         foreach($tests as $input => $expectedResult) {
+
             $this->runValidationTest($form, $input, $expectedResult);
         }
 
@@ -38,6 +39,9 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
         if ($input !== NO_INPUT) $data['foo'] = $input;
 
         $form->setValues($data);
+
+        $this->assertEquals($data, $form->getValues());
+
         $result = $form->validate();
 
         $input = ($input === NO_INPUT ? $input : "'$input'");

@@ -74,6 +74,20 @@ class FormTest extends Octopus_Html_TestCase {
 
     }
 
+    function testSetValuesToEmptyArray() {
+
+        $form = new Octopus_Html_Form('emptyArray');
+        $form->add('foo');
+
+        $values = array('foo' => 'bar');
+        $form->setValues($values);
+        $this->assertEquals($values, $form->getValues());
+
+        $form->setValues(array());
+        $this->assertEquals(array(), $form->getValues());
+
+    }
+
     function testBasicFormUsage() {
 
         $form = new Octopus_Html_Form('testForm', 'post');
@@ -416,7 +430,7 @@ END
 
         $_POST['name'] = 'foo';
         $_POST[$form->getSecurityTokenFieldName()] = get_security_token($user_id, 'security_test');
-		$_POST['__form_security_test_submitted'] = 1;
+        $_POST['__form_security_test_submitted'] = 1;
         $_SERVER['REQUEST_METHOD'] = 'POST';
 
         $this->assertTrue($form->submitted());

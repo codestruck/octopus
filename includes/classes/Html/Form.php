@@ -350,7 +350,7 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      */
     public function getValues() {
 
-        if (!empty($this->_values)) {
+        if ($this->_values !== null) {
             return $this->_values;
         }
 
@@ -564,7 +564,6 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         $result->errors = array();
 
         foreach($this->children() as $c) {
-
             $this->validateRecursive($c, $values, $result);
         }
 
