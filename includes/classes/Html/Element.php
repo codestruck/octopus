@@ -243,13 +243,11 @@ class Octopus_Html_Element {
      */
     public function closest($tag) {
 
-        for($e = $this->parent(); $e; $e = $e->parent()) {
-            if (strcasecmp($e->tag, $tag) == 0) {
-                return $e;
-            }
+        if (strcasecmp($this->_tag, $tag) == 0) {
+            return $this;
         }
 
-        return false;
+        return $this->parent($tag);
     }
 
     /**
@@ -313,8 +311,25 @@ class Octopus_Html_Element {
         return $this->_content;
     }
 
-    public function parent() {
-        return $this->_parentElement;
+    /**
+     * @return bool The parent of this element, or, if
+     * $tag is specified, the first ancestor with that tag. If no parent is
+     * found, returns false.
+     * @todo TEST
+     */
+    public function parent($tag = null) {
+
+        if (!$tag) {
+            return $this->_parentElement;
+        }
+
+        for($e = $this->_parentElement; $e; $e = $e->_parentElement) {
+            if (strcasecmp($e->_tag, $tag) == 0) {
+                return $e;
+            }
+        }
+
+        return $false;
     }
 
     /**
