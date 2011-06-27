@@ -5,6 +5,11 @@
  */
 class RenderTests extends Octopus_App_TestCase
 {
+    function __construct() {
+        $db = Octopus_DB::singleton();
+        $db->query('TRUNCATE settings', true);
+        parent::__construct();
+    }
 
     function testBasicViewRendering() {
 
