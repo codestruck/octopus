@@ -14,6 +14,8 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     private $_securityField = null;
     private $_securityToken = null;
 
+    private $_submittedField = null;
+
     private $errorList = null;
 
     private $sectionStack = array();
@@ -45,10 +47,10 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
         parent::__construct('form', $attributes);
 
-        $this->_submitted_field = '__form_' . $id . '_submitted';
+        $this->_submittedField = '__form_' . $id . '_submitted';
 
         $el = new Octopus_Html_Element('input', array('type' => 'hidden'));
-        $el->name = $this->_submitted_field;
+        $el->name = $this->_submittedField;
         $el->value = 1;
         $this->append($el);
 
@@ -838,7 +840,7 @@ class Octopus_Html_Form extends Octopus_Html_Element {
             return false;
         }
 
-        return ($actualMethod( $this->_submitted_field ) == 1);
+        return ($actualMethod( $this->_submittedField ) == 1);
     }
 
     public function submitted() {
