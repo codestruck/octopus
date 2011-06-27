@@ -69,14 +69,14 @@ class RequestTest extends Octopus_App_TestCase {
     function testFindMostSpecificController() {
 
         $app = $this->startApp();
-        $baseFile = $this->createControllerFile('MSBase');
-        $childFile = $this->createControllerFile('MSBase_Child');
+        $baseFile = $this->createControllerFile('MostSpecific');
+        $childFile = $this->createControllerFile('MostSpecific_Child');
 
         $tests = array(
-            '/msbase' => $baseFile,
-            '/msbase/index' => $baseFile,
-            '/msbase/child' => $childFile,
-            '/msbase/child/index' => $childFile
+            '/most-specific' => $baseFile,
+            '/most-specific/index' => $baseFile,
+            '/most-specific/child' => $childFile,
+            '/most-specific/child/index' => $childFile
         );
 
         foreach($tests as $path => $expected) {

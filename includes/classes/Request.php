@@ -242,25 +242,61 @@ class Octopus_Request {
         return $result;
     }
 
-    private static function scanForControllerFile($dir, $seps, &$pathParts, &$potentialNames) {
+    private static function buildListOfControllerLocations(&$pathParts, &$seps, &$underscoreParts) {
 
-        $potentialNames = array();
+        /*
+         * Places a controller for the path '/my/really-fun/controller' can be:
+         *
+         *  My/ReallyFun/Controller.php
+         *  my/really_fun/Controller.php
+         *  my/really_fun/controller.php
+         *  my/reallyfun/controller.php
+         *  My_ReallyFun_Controller.php
+         *  my_really_fun_controller.php
+         *  myreallyfuncontroller.php
+         *  my_really_fun_Controller.php
+         *
+         */
 
-        $usParts = array_map('underscore', $pathParts);
+        $underscoreParts =  array_map('underscore', $pathParts);
+        $camelCaseParts =   array_map('camel_case_with_initial_capital', $underscoreParts);
+        $lowerCaseParts =   array_map('strtolower', $camelCaseParts);
+        $comboParts = false;
 
-        $camelParts = array();
-        foreach($usParts as $p) {
-            $camelParts[] = camel_case($p, true);
+        $partCount = count($pathParts);
+
+        if ($partCount > 1) {
+
+            // Allow e.g. api/1/Controller.php in addition to
+            // Api/1/Controller.php
+
+            $comboParts = array_slice($underscoreParts, 0, $partCount - 1);
+            $comboParts[] = $camelCaseParts[$partCount - 1];
         }
-
-        $lParts = array_map('strtolower', $camelParts);
 
         $toTry = array();
+
         foreach($seps as $sep) {
-            $toTry[implode($sep, $usParts)] = true;
-            $toTry[implode($sep, $camelParts)] = true;
-            $toTry[implode($sep, $lParts)] = true;
+
+            if ($comboParts) {
+                $toTry[implode($sep, $comboParts)] = true;
+            }
+
+            $toTry[implode($sep, $camelCaseParts)] = true;
+            $toTry[implode($sep, $underscoreParts)] = true;
+            $toTry[implode($sep, $lowerCaseParts)] = true;
         }
+
+        return $toTry;
+    }
+
+    private static function scanForControllerFile($dir, $seps, &$pathParts, &$potentialNames) {
+
+        $underscoreParts = null;
+
+        $toTry = self::buildListOfControllerLocations($pathParts, $seps, $underscoreParts);
+
+        $potentialNames = array();
 
         foreach($toTry as $name => $unused) {
 
@@ -275,7 +311,7 @@ class Octopus_Request {
 
                 $potentialNames[str_replace(' ', '_', $fullName) . 'Controller'] = true;
                 $potentialNames[str_replace(' ', '', $fullName) . 'Controller'] = true;
-                $potentialNames[camel_case(array_pop($usParts), true) . 'Controller'] = true;
+                $potentialNames[camel_case(array_pop($underscoreParts), true) . 'Controller'] = true;
 
                 $potentialNames = array_keys($potentialNames);
 
