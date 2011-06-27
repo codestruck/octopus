@@ -3,7 +3,7 @@
     /**
      * Converts an input string to a camelCased string.
      */
-    function camel_case($s, $initialCap = false) {
+    function camel_case($s, $initialCapital = false) {
 
         $s = trim($s);
         $s = preg_replace('/([\p{Ll}\d])(\p{Lu})/', '$1_$2', $s);
@@ -12,7 +12,7 @@
 
         $result = '';
         foreach($parts as $part) {
-            if ($result || $initialCap) {
+            if ($result || $initialCapital) {
                 $result .= strtoupper(substr($part, 0, 1)) . strtolower(substr($part, 1));
             } else {
                 $result .= strtolower($part);
@@ -21,6 +21,15 @@
 
         return $result;
     }
+
+    /**
+     * Alias for camel_case($s, true) for use in e.g.
+     * array_map.
+     */
+    function camel_case_with_initial_capital($s) {
+        return camel_case($s, true);
+    }
+
     function _camel_case_helper($matches) {
 
         $prev = $matches[1];
