@@ -252,4 +252,12 @@ class ModelOneToManyTest extends Octopus_DB_TestCase
 
     }
 
+    function testFindStaticCalledClass() {
+
+        $nail = Hammer::find(array(
+            'nail' => 1,
+        ))->first();
+
+    }
+
 }

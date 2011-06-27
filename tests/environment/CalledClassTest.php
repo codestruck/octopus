@@ -51,6 +51,13 @@ class CalledClassTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('Calling', Calling::c());
     }
 
+    function testMultilineStaticCalls()
+    {
+        $this->assertEquals('Calling', Calling::a(array(
+            'foo' => 'bar',
+        )));
+    }
+
 }
 
 ?>

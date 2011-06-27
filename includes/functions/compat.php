@@ -12,10 +12,19 @@ if(!function_exists('get_called_class')) {
             }
 
             $lines = file($bt[$i]['file']);
+            $line = '';
+            $lineI = 0;
+
+            // for multiline calls, look back in the file for matching ::function call
+            do {
+                ++$lineI;
+                $line = $lines[$bt[$i]['line'] - $lineI];
+            } while (stripos($line, '::' . $bt[$i]['function']) === false);
 
             preg_match_all('/([a-zA-Z0-9\_]+)::'.$bt[$i]['function'].'/',
-                            $lines[$bt[$i]['line']-1],
+                            $line,
                             $matches);
+
 
             $class = $matches[1][0];
 
