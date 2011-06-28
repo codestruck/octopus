@@ -23,7 +23,7 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
         return $resultSet;
     }
 
-    public function restrict($operator, $value, &$s, &$params, $model) {
+    public function restrict($expression, $operator, $value, &$s, &$params, $model) {
 
         $type = strtolower(get_class($model));
         $joinTable = $this->getJoinTableName(array($this->field, $type));

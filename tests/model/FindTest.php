@@ -200,15 +200,37 @@ END;
 
     function testHasOneCriteria() {
 
-        $this->markTestIncomplete();
-
         $posts = FindPost::all();
-        $posts = $posts->where('author.name', 'foo');
+        $posts = $posts->where('author.name', '%Hinz');
 
-        $this->assertSqlEquals(
-            "SELECT * FROM find_posts WHERE EXISTS (SELECT find_author_id FROM find_authors WHERE find_authors.find_author_id = find_posts.author_id AND find_authors.name LIKE 'foo')",
-            $posts
-        );
+        $this->assertEquals(3, count($posts));
+
+        $ids = array();
+
+        foreach($posts as $p) {
+
+            $this->assertFalse(isset($ids[$p->id]), "id {$p->id} already seen");
+            $this->assertTrue(!!$p->author, "{$p->id} has no author");
+            $this->assertEquals("Matt Hinz", $p->author->name);
+
+        }
+
+    }
+
+    function testMultipleHasOneCriteria() {
+
+        $mattPosts = FindPost::find('author.name', '%Hinz');
+        $mikePosts = FindPost::find('author.name', '%Estes');
+
+        $this->assertEquals(3, count($mattPosts));
+        $this->assertEquals(2, count($mikePosts));
+
+        $posts = $mattPosts->add($mikePosts);
+        $this->assertEquals(5, count($posts));
+
+        foreach($posts as $post) {
+            $this->assertTrue(!!$post->author, 'author not set on post ' . $post->id);
+        }
 
     }
 

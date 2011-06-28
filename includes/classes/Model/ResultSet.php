@@ -450,7 +450,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
     /**
      * Takes a key from a criteria array and parses it out into field name,
      * operator, and function.
-     * @return Array field, operator, and function
+     * @return Array optional relation, field, operator, and function
      */
     protected function parseCriteriaKey($key) {
 
@@ -465,7 +465,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
         $key = preg_replace('/\s+/', ' ', $key);
         $key = trim($key);
 
-        $field = $operator = $function = null;
+        $field = $relation = $operator = $function = null;
 
         $spacePos = strpos($key, ' ');
 
@@ -481,7 +481,12 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
             $field = $this->getModelPrimaryKey();
         }
 
-        return compact('field', 'operator', 'function');
+        $dotPos = strpos($field, '.');
+        if ($dotPos !== false) {
+            $relation = substr($field, 0, $dotPos);
+        }
+
+        return compact('field', 'relation', 'operator', 'function');
     }
 
     /**
@@ -497,13 +502,8 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
         $info = $this->parseCriteriaKey($key);
         extract($info);
 
-        if ($field == $this->getModelPrimaryKey()) {
-
-            // IDs don't have associated fields, so we use the default
-            // restriction logic.
-            return Octopus_Model_Field::defaultRestrict($field, $operator, '=', $value, $s, $params, $this->getModelInstance());
-
-        }
+        $actualField = $relation ? $relation : $field;
+        $fieldExpression = $field;
 
         if ($value instanceof Octopus_Model_ResultSet) {
 
@@ -519,15 +519,21 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
             $value = $value->id;
         }
 
+        if ($actualField == $this->getModelPrimaryKey()) {
 
+            // IDs don't have associated fields, so we use the default
+            // restriction logic.
+            return Octopus_Model_Field::defaultRestrict($actualField, $operator, '=', $value, $s, $params, $this->getModelInstance());
 
-        $f = $this->getModelField($field);
-
-        if ($f) {
-            return $f->restrict($operator, $value, $s, $params, $this->getModelInstance());
         }
 
-        throw new Octopus_Exception("Field not found: " . $field);
+        $f = $this->getModelField($actualField);
+
+        if ($f) {
+            return $f->restrict($fieldExpression, $operator, $value, $s, $params, $this->getModelInstance());
+        }
+
+        throw new Octopus_Exception("Field not found: " . $actualField);
     }
 
     // End Protected Methods }}}

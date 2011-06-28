@@ -15,7 +15,7 @@ class Octopus_Model_Field_Virtual extends Octopus_Model_Field {
         }
     }
 
-    public function restrict($operator, $value, &$s, &$params, $model) {
+    public function restrict($expression, $operator, $value, &$s, &$params, $model) {
         return null;
     }
 

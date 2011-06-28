@@ -7,11 +7,18 @@
     active="1"
     />
 
+<find_authors
+    find_author_id="2"
+    name="Mike Estes"
+    active="1"
+    />
+
 <find_posts
     find_post_id="1"
     title="Title for Post 1"
     slug="slug-for-post-1"
     body="Body for Post 1"
+    author_id="2"
     display_order="0"
     active="1"
   />
@@ -20,6 +27,7 @@
     title="Title for Post 2"
     slug="slug-for-post-2"
     body="Body for Post 2"
+    author_id="2"
     display_order="0"
     active="1"
   />
@@ -36,6 +44,7 @@
     title="Post 4 - Case Test - foo"
     slug="post-4-case-test-foo"
     body=""
+    author_id="1"
     display_order="0"
     active="1"
   />

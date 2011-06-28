@@ -72,7 +72,7 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         }
     }
 
-    public function restrict($operator, $value, &$s, &$params, $model) {
+    public function restrict($expression, $operator, $value, &$s, &$params, $model) {
        $sql = $this->defaultRestrict($model->to_id($this->field), $operator, $this->getDefaultSearchOperator(), $value, $s, $params, $model);
         return $sql;
     }

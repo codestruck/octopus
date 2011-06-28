@@ -134,6 +134,9 @@ abstract class Octopus_Model_Field {
     }
 
     /**
+     * @param $expression string The full field expression. In most cases, this
+     * will be the field name. However, for relations this might be something
+     * like "relation.relation.field".
      * @param $operator string Operator (=, LIKE, etc) to use. If null, the
      * field's default operator will be used.
      * @param $value Mixed value to restrict this field to.
@@ -143,7 +146,7 @@ abstract class Octopus_Model_Field {
      * the where() method.
      * @return String A chunk of SQL for a WHERE clause.
      */
-    public function restrict($operator, $value, &$s, &$params, $model) {
+    public function restrict($expression, $operator, $value, &$s, &$params, $model) {
         $sql = self::defaultRestrict($this->getFieldName(), $operator, $this->getDefaultSearchOperator(), $value, $s, $params, $model);
         return $sql;
     }
