@@ -100,23 +100,25 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         return "`{$model->getTableName()}`.`$col` IN (SELECT `{$itemModel->getPrimaryKey()}` FROM `{$itemModel->getTableName()}` WHERE $sql)";
     }
 
-    public function orderBy($resultSet, $s, $dir) {
-
-        $class = $resultSet->getModel();
-        $dummyModel = new $class();
+    public function orderBy($expression, $dir, $s, &$params, $model) {
 
         $class = $this->getItemClass();
         $dummyItem = new $class();
 
-        $table = $dummyItem->getTableName();
-        $key = $dummyItem->getPrimaryKey();
-        $modelTable = $dummyModel->getTableName();
-        $foreignKey = $dummyModel->to_id($this->field);
+        // FindPost::all()->orderBy('author')
+        // ^^ model ^^             ^^ item ^^
 
+        $modelTable = $model->getTableName();
+        $modelPrimaryKey = $model->getPrimaryKey();
+
+        $itemTable = $dummyItem->getTableName();
+        $itemPrimaryKey = $dummyItem->getPrimaryKey();
+
+        $foreignKey = $model->to_id($this->field);
         $displayField = $dummyItem->getDisplayField()->getFieldName();
 
-        $s->leftJoin($table, array("`$modelTable`.`$key`", "`$table`.`$foreignKey`"), array());
-        $s->orderBy("`$table`.`$displayField` $dir");
+        $s->leftJoin($itemTable, array("`$itemTable`.`$itemPrimaryKey`","`$modelTable`.`$foreignKey`"), array());
+        $s->orderBy("`$itemTable`.`$displayField` $dir");
     }
 
 

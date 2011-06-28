@@ -226,7 +226,7 @@ END;
         $this->assertEquals(3, count($mattPosts));
         $this->assertEquals(2, count($mikePosts));
 
-        $posts = $mattPosts->add($mikePosts)->dumpSql();
+        $posts = $mattPosts->add($mikePosts);
         $this->assertEquals(5, count($posts));
 
         foreach($posts as $post) {
@@ -332,7 +332,18 @@ END;
 
         $posts = FindPost::all()->orderBy('author');
 
-        $this->assertSqlEquals("SELECT find_posts.* FROM find_posts LEFT JOIN find_authors ON `find_posts`.`find_author_id` = `find_authors`.`author_id` ORDER BY `find_authors`.`name` ASC", $posts);
+        $this->assertSqlEquals("SELECT find_posts.* FROM find_posts LEFT JOIN find_authors ON `find_authors`.`find_author_id` = `find_posts`.`author_id` ORDER BY `find_authors`.`name` ASC", $posts);
+    }
+
+    function testOrderByHasOneOtherField() {
+
+        $posts = FindPost::all()->orderBy('author.id');
+
+        $this->assertSqlEquals(
+            "SELECT find_posts.* FROM find_posts LEFT JOIN find_authors ON `find_authors`.`find_author_id` = `find_posts`.`author_id` ORDER BY `find_authors`.`find_author_id`",
+            $posts
+        );
+
     }
 
     function testFindAuthorDisplayField() {
@@ -610,14 +621,16 @@ END;
 
             $test = "single string, $marker";
 
+            $expectedMarker = $marker ? $marker : 'ASC';
+
             $posts = $allPosts->orderBy("title $marker");
             $this->assertNotSame($posts, $allPosts, 'orderBy should return a new result set instance');
-            $this->assertSqlEquals("SELECT * FROM find_posts ORDER BY `find_posts`.`title` $marker", $posts, $test);
+            $this->assertSqlEquals("SELECT * FROM find_posts ORDER BY `find_posts`.`title` $expectedMarker", $posts, $test);
 
             if ($marker) {
                 $test = "single item array, $marker";
                 $posts = $allPosts->orderBy(array('title' => $marker));
-                $this->assertSqlEquals("SELECT * FROM find_posts ORDER BY `find_posts`.`title` $marker", $posts, $test);
+                $this->assertSqlEquals("SELECT * FROM find_posts ORDER BY `find_posts`.`title` $expectedMarker", $posts, $test);
             }
 
         }

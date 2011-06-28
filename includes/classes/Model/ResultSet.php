@@ -197,9 +197,22 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
     }
 
     /**
-     * @return Object A new ResultSet sorted by the given arguments.
+     * Sorts the contents of this result set.
+     *
+     * Examples:
+     *
+     * <code>
+     *  $resultSet->orderBy('name');
+     *  $resultSet->orderBy('name ASC');
+     *  $resultSet->orderBy(array('name' => true));  // true = ascending
+     *  $resultSet->orderBy(array('name' => false)); // false = descending
+     *  $resultSet->orderBy('category.name')
+     * </code>
+     *
+     * @return Octopus_Model_ResultSet A new result set sorted by the given
+     * arguments.
      */
-    public function &orderBy(/* Variable */) {
+    public function orderBy(/* Variable */) {
 
         $args = func_get_args();
         $newOrderBy = array();
@@ -213,9 +226,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
             return $this;
         }
 
-        $derivedSet = $this->createChild(null, $newOrderBy, null);
-
-        return $derivedSet;
+        return $this->createChild(null, $newOrderBy, null);
     }
 
     /**
@@ -546,22 +557,21 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
 
         foreach($orderBy as $fieldName => $dir) {
 
-            if (!is_string($dir)) {
-                $dir = $dir ? 'ASC' : 'DESC';
-            } else {
-                $dir = strtoupper($dir);
+            $info = $this->parseCriteriaKey($fieldName);
+            extract($info);
+
+            if ($field === $this->getModelPrimaryKey()) {
+                Octopus_Model_Field::defaultOrderBy($field, $dir, $s, $s->params, $this->getModelInstance());
+                continue;
             }
 
-            // Special-case id
-            $pk = $this->getModelPrimaryKey();
-            if ($fieldName == 'id' || $fieldName == $pk) {
-                Octopus_Model_Field::defaultOrderBy($this, $s, $pk, $dir);
+            $f = $this->getModelField($field);
+
+            if (!$f) {
+                throw new Octopus_Model_Exception("Field not found on {$this->getModel()}: $field");;
             }
 
-            $field = $this->getModelField($fieldName);
-            if ($field) {
-                $field->orderBy($this, $s, $dir);
-            }
+            $f->orderBy($subexpression, $dir, $s, $s->params, $this->getModelInstance());
         }
 
     }
@@ -610,32 +620,30 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
     }
 
     /**
-     * Handles a single 'order by' argument. This could be a string (e.g.
-     * 'whatever DESC') or an array (e.g. array('whatever' => 'DESC') ).
-     * @return boolean TRUE if something is made of the argument, FALSE otherwise.
+     * Handles a single argument passed to orderBy(). This could be a string
+     * (e.g. 'whatever DESC') or an array (e.g. array('whatever' => 'DESC') ).
+     * @return boolean TRUE if something is made of the argument,
+     * FALSE otherwise.
      */
     private function processOrderByArg($arg, &$orderBy) {
 
         if (is_string($arg)) {
 
-            $parts = explode(' ', $arg);
-            $count = count($parts);
+            $arg = trim(preg_replace('/\s+/', ' ', $arg));
+            if (!$arg) return false;
 
-            if ($count == 1) {
+            $spacePos = strrpos($arg, ' ');
 
-                // default = column ASC
-                $orderBy[$parts[0]] = 'ASC';
-                return true;
-
-            } else if ($count > 1) {
-
-                $dir = strtoupper(array_pop($parts));
-                $orderBy[$count == 2 ? $parts[0] : implode(' ', $parts)] = $dir;
-                return true;
-
+            if ($spacePos === false) {
+                // No order provided, so default to ascending
+                $orderBy[$arg] = 'ASC';
+            } else {
+                $dir = strtoupper(substr($arg, $spacePos + 1));
+                $arg = substr($arg, 0, $spacePos);
+                $orderBy[$arg] = $dir;
             }
 
-            return false;
+            return true;
         }
 
         if (is_array($arg)) {
@@ -644,9 +652,11 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
             foreach($arg as $field => $dir) {
 
                 if (is_numeric($field)) {
+
                     // this is an entry at a numeric index, e.g.
-                    // ------vvvvvv-----------------------------
+                    //       vvvvvv
                     // array('name', 'created' => 'desc')
+
                     if ($this->processOrderByArg(array($dir => 'ASC'), $orderBy)) {
                         $processed++;
                         continue;

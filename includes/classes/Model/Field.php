@@ -235,22 +235,15 @@ abstract class Octopus_Model_Field {
      * @param $s Object Octopus_DB_Select being built.
      * @param $dir string Direction to order this field by.
      */
-    public function orderBy($resultSet, $s, $dir) {
-        self::defaultOrderBy($resultSet, $s, $this->getFieldName(), $dir);
+    public function orderBy($expression, $dir, $s, &$params, $model) {
+        self::defaultOrderBy($this->getFieldName(), $dir, $s, $params, $model);
     }
 
     /**
      * Helper to support ordering by ids, which don't have associated fields.
      */
-    public static function defaultOrderBy($resultSet, $s, $fieldName, $dir) {
-
-        // TODO YUCK
-        $class = $resultSet->getModel();
-        $dummy = new $class();
-        $table = $dummy->getTableName();
-
-
-        $s->orderBy("`$table`.`$fieldName` $dir");
+    public static function defaultOrderBy($fieldName, $dir, $s, &$params, $model) {
+        $s->orderBy("`{$model->getTableName()}`.`{$fieldName}` $dir");
     }
 
     /**
@@ -260,7 +253,5 @@ abstract class Octopus_Model_Field {
     public function getDefaultSearchOperator() {
         return '=';
     }
-
 }
-
 ?>
