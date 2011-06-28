@@ -6,35 +6,53 @@ abstract class Octopus_Model_Field {
     protected $options;
     protected $defaultOptions = array();
 
+    /**
+     * For fields w/ certain conventional names, some default options.
+     */
+    private static $magicFieldDefaults = array(
+
+        'created' => array( 'type' => 'datetime'),
+        'updated' => array( 'type' => 'datetime'),
+        'active' => array( 'type' => 'boolean')
+
+    );
+
+    /**
+     * Because I always forget what field types are, provide a few aliases.
+     */
+    private static $fieldTypeAliases = array(
+        'text' => 'string',
+        'bool' => 'boolean',
+    );
+
     public function __construct($field, $options) {
         $this->field = $field;
         $this->options = $options;
     }
 
-    public static function getField($field, $options) {
+    public static function getField($name, $options) {
 
         if (is_string($options)) {
             $field = $options;
             $options = array();
         }
 
-        $type = 'string';
-
-        if (isset($options['type'])) {
-            $type = $options['type'];
+        if (isset(self::$magicFieldDefaults[$name])) {
+            $options = array_merge(self::$magicFieldDefaults[$name], $options);
         }
 
-        if (($field === 'created' || $field === 'updated') && count($options) == 0) {
-            $type = 'datetime';
+        $type = isset($options['type']) ? $options['type'] : 'string';
+
+        if (isset(self::$fieldTypeAliases[$type])) {
+            $type = self::$fieldTypeAliases[$type];
         }
 
-        $class = 'Octopus_Model_Field_' . ucfirst($type);
+        $class = 'Octopus_Model_Field_' . camel_case($type);
         Octopus::loadClass($class);
 
         $options['type'] = $type;
 
-        $obj = new $class($field, $options);
-        return $obj;
+        return new $class($name, $options);
     }
 
     public function accessValue($model, $saving = false) {
@@ -134,9 +152,10 @@ abstract class Octopus_Model_Field {
     }
 
     /**
-     * @param $expression string The full field expression. In most cases, this
-     * will be the field name. However, for relations this might be something
-     * like "relation.relation.field".
+     * @param $expression string For relations, the subexpression being
+     * used for filtering. For example, for a field named 'category', for the
+     * expression 'category.name', 'name' would be passed as the subexpression
+     * to the 'category' field.
      * @param $operator string Operator (=, LIKE, etc) to use. If null, the
      * field's default operator will be used.
      * @param $value Mixed value to restrict this field to.
