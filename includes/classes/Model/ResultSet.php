@@ -450,7 +450,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
     /**
      * Takes a key from a criteria array and parses it out into field name,
      * operator, and function.
-     * @return Array optional relation, field, operator, and function
+     * @return Array field, subexpression, operator, and function
      */
     protected function parseCriteriaKey($key) {
 
@@ -465,7 +465,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
         $key = preg_replace('/\s+/', ' ', $key);
         $key = trim($key);
 
-        $field = $relation = $operator = $function = null;
+        $field = $subexpression = $operator = $function = null;
 
         $spacePos = strpos($key, ' ');
 
@@ -483,10 +483,11 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
 
         $dotPos = strpos($field, '.');
         if ($dotPos !== false) {
-            $relation = substr($field, 0, $dotPos);
+            $subexpression = substr($field, $dotPos + 1);
+            $field = substr($field, 0, $dotPos);
         }
 
-        return compact('field', 'relation', 'operator', 'function');
+        return compact('field', 'subexpression', 'operator', 'function');
     }
 
     /**
@@ -497,13 +498,6 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
      * @param $params Array Parameters to be passed to the query.
      */
     protected function restrictField($key, $value, $s, &$params) {
-
-        // Parse out field name, etc.
-        $info = $this->parseCriteriaKey($key);
-        extract($info);
-
-        $actualField = $relation ? $relation : $field;
-        $fieldExpression = $field;
 
         if ($value instanceof Octopus_Model_ResultSet) {
 
@@ -519,21 +513,25 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
             $value = $value->id;
         }
 
-        if ($actualField == $this->getModelPrimaryKey()) {
+        // Parse out field name, etc.
+        $info = $this->parseCriteriaKey($key);
+        extract($info);
+
+        if ($field == $this->getModelPrimaryKey()) {
 
             // IDs don't have associated fields, so we use the default
             // restriction logic.
-            return Octopus_Model_Field::defaultRestrict($actualField, $operator, '=', $value, $s, $params, $this->getModelInstance());
+            return Octopus_Model_Field::defaultRestrict($field, $operator, '=', $value, $s, $params, $this->getModelInstance());
 
         }
 
-        $f = $this->getModelField($actualField);
+        $f = $this->getModelField($field);
 
         if ($f) {
-            return $f->restrict($fieldExpression, $operator, $value, $s, $params, $this->getModelInstance());
+            return $f->restrict($subexpression, $operator, $value, $s, $params, $this->getModelInstance());
         }
 
-        throw new Octopus_Exception("Field not found: " . $actualField);
+        throw new Octopus_Exception("Field not found: " . $field);
     }
 
     // End Protected Methods }}}

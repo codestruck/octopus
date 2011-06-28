@@ -73,8 +73,31 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
     }
 
     public function restrict($expression, $operator, $value, &$s, &$params, $model) {
-       $sql = $this->defaultRestrict($model->to_id($this->field), $operator, $this->getDefaultSearchOperator(), $value, $s, $params, $model);
-        return $sql;
+
+        // Handle e.g. relation.field
+        $expression = is_array($expression) ? $expression : explode('.', $expression);
+        $expression = array_filter($expression, 'trim');
+
+        if (!$expression) {
+            // Do simple ID comparison
+            return $this->defaultRestrict($model->to_id($this->field), $operator, $this->getDefaultSearchOperator(), $value, $s, $params, $model);
+        }
+
+        // TODO: Make all this stuff static someday
+        $itemClass = $this->getItemClass();
+        $itemModel = new $itemClass();
+
+        $id = array_shift($expression);
+        $field = $itemModel->getField($id);
+
+        if (!$field) {
+            throw new Octopus_Model_Exception("Field not found on {$itemClass}: " . $id);
+        }
+
+        $sql = $field->restrict($expression, $operator, $value, $s, $params, $itemModel);
+        $col = $model->to_id($this->getFieldName());
+
+        return "`{$model->getTableName()}`.`$col` IN (SELECT `{$itemModel->getPrimaryKey()}` FROM `{$itemModel->getTableName()}` WHERE $sql)";
     }
 
     public function orderBy($resultSet, $s, $dir) {

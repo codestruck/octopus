@@ -10,6 +10,7 @@ class FindAuthor extends Octopus_Model {
             'type' => 'hasMany',
             'model' => 'FindPost'
         ),
+        'active'
     );
 
 }
@@ -225,7 +226,7 @@ END;
         $this->assertEquals(3, count($mattPosts));
         $this->assertEquals(2, count($mikePosts));
 
-        $posts = $mattPosts->add($mikePosts);
+        $posts = $mattPosts->add($mikePosts)->dumpSql();
         $this->assertEquals(5, count($posts));
 
         foreach($posts as $post) {
