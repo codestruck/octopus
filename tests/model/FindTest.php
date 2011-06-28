@@ -340,7 +340,7 @@ END;
         $posts = FindPost::all()->orderBy('author.id');
 
         $this->assertSqlEquals(
-            "SELECT find_posts.* FROM find_posts LEFT JOIN find_authors ON `find_authors`.`find_author_id` = `find_posts`.`author_id` ORDER BY `find_authors`.`find_author_id`",
+            "SELECT find_posts.* FROM find_posts LEFT JOIN find_authors ON `find_authors`.`find_author_id` = `find_posts`.`author_id` ORDER BY `find_authors`.`find_author_id` ASC",
             $posts
         );
 

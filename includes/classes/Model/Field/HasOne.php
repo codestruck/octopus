@@ -102,11 +102,33 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
 
     public function orderBy($expression, $dir, $s, &$params, $model) {
 
+        $expression = is_array($expression) ? $expression : explode('.', $expression);
+        $expression = array_filter($expression, 'trim');
+
         $class = $this->getItemClass();
         $dummyItem = new $class();
 
+        if (!$expression) {
+
+            $displayField = $dummyItem->getDisplayField()->getFieldName();
+
+            // TODO: Support multiple candidate display fields.
+            return $this->orderBy($displayField, $dir, $s, $params, $model);
+        }
+
         // FindPost::all()->orderBy('author')
         // ^^ model ^^             ^^ item ^^
+
+        $id = array_shift($expression);
+        $field = null;
+        $isPrimaryKey = (strcasecmp($id, 'id') == 0) || (strcasecmp($id, $dummyItem->getPrimaryKey()) == 0);
+
+        if (!$isPrimaryKey) {
+            $field = $dummyItem->getField($id);
+            if (!$field) {
+                throw new Octopus_Model_Exception("Field not found on {$this->getItemClass()}: $id");
+            }
+        }
 
         $modelTable = $model->getTableName();
         $modelPrimaryKey = $model->getPrimaryKey();
@@ -115,10 +137,24 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         $itemPrimaryKey = $dummyItem->getPrimaryKey();
 
         $foreignKey = $model->to_id($this->field);
-        $displayField = $dummyItem->getDisplayField()->getFieldName();
 
         $s->leftJoin($itemTable, array("`$itemTable`.`$itemPrimaryKey`","`$modelTable`.`$foreignKey`"), array());
-        $s->orderBy("`$itemTable`.`$displayField` $dir");
+
+        if (empty($expression)) {
+
+            if ($isPrimaryKey) {
+                Octopus_Model_Field::defaultOrderBy($dummyItem->getPrimaryKey(), $dir, $s, $params, $dummyItem);
+            } else {
+                $s->orderBy("`$itemTable`.`{$field->getFieldName()}` $dir");
+            }
+
+        } else {
+            $field->orderBy($expression, $dir, $s, $params, $dummyItem);
+        }
+    }
+
+    protected function orderBySubexpression($expression, $dir, $s, &$params, $model) {
+
     }
 
 
