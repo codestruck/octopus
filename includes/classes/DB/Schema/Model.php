@@ -6,8 +6,8 @@ class Octopus_DB_Schema_Model {
 
     public static function makeTable($model) {
 
-        $table = underscore(pluralize($model));
-        $key = underscore($model) . '_id';
+        $table = to_table_name($model);
+        $key = to_id($model);
 
         $d = new Octopus_DB_Schema();
         $t = $d->newTable($table);

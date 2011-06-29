@@ -402,7 +402,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
         if (isset($this->table)) {
             return $this->table;
         } else {
-            return underscore(pluralize($this->getClassName()));
+            return to_table_name($this->getClassName());
         }
     }
 
