@@ -28,6 +28,14 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         return $result;
     }
 
+    public function migrate($schema, $table) {
+
+        $col = to_id($this->getFieldName());
+
+        $table->newKey($col);
+        $table->newIndex($col);
+    }
+
     public function save($model, $sqlQuery) {
         $field = $this->getFieldName();
 
@@ -152,11 +160,6 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
             $field->orderBy($expression, $dir, $s, $params, $dummyItem);
         }
     }
-
-    protected function orderBySubexpression($expression, $dir, $s, &$params, $model) {
-
-    }
-
 
     private function getItemClass() {
         // use the 'model' option as the classname, otherwise the fieldname

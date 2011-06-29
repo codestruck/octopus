@@ -6,6 +6,11 @@ class Octopus_Model_Field_String extends Octopus_Model_Field {
         return 'LIKE';
     }
 
+    public function migrate($schema, $table) {
+        // TODO: What about large string fields?
+        $table->newTextSmall($this->getFieldName());
+    }
+
     public function restrict($expression, $operator, $value, &$selectStatement, &$params, $model) {
 
         if (!$operator) {

@@ -26,6 +26,13 @@ class Octopus_Model_Field_HasMany extends Octopus_Model_Field {
         return $resultSet;
     }
 
+    public function migrate($schema, $table) {
+
+        // TODO: should hasMany require a hasOne on the other class? Or can we
+        // do the migration here as well?
+
+    }
+
 
     public function handleRelation($action, $obj, $model) {
 

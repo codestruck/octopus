@@ -23,6 +23,23 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
         return $resultSet;
     }
 
+    public function migrate($schema, $table) {
+
+        $tableA = singularize($this->getFieldName());
+        $tableB = singularize($table->tableName);
+
+        $joinTable = $schema->newTable($this->getJoinTableName($tableA, $tableB));
+
+        $colA = to_id($tableA);
+        $colB = to_id($tableB);
+
+        $joinTable->newKey($colA);
+        $joinTable->newIndex($colA);
+        $joinTable->newKey($colB);
+        $joinTable->newIndex($colB);
+        $joinTable->create();
+    }
+
     public function restrict($expression, $operator, $value, &$s, &$params, $model) {
 
         $type = strtolower(get_class($model));
@@ -39,7 +56,12 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
         return pluralize($this->field);
     }
 
-    public function getJoinTableName($tables) {
+    public function getJoinTableName() {
+
+        $tables = func_get_args();
+        if (count($tables) === 1) $tables = array_shift($tables);
+        if (!is_array($tables)) $tables = array($tables);
+
         sort($tables);
         return sprintf('%s_%s_join', $tables[0], $tables[1]);
     }

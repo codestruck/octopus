@@ -3,6 +3,7 @@
 class Octopus_Model_Field_Datetime extends Octopus_Model_Field {
 
     private $format = 'Y-m-d H:i:s';
+
     public function __construct($field, $options) {
         parent::__construct($field, $options);
 
@@ -15,6 +16,10 @@ class Octopus_Model_Field_Datetime extends Octopus_Model_Field {
                 'onSave' => '_setNow',
             );
         }
+    }
+
+    public function migrate($schema, $table) {
+        $table->newDateTime($this->getFieldName());
     }
 
     function _setNow() {

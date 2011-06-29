@@ -13,7 +13,9 @@ abstract class Octopus_Model_Field {
 
         'created' => array( 'type' => 'datetime'),
         'updated' => array( 'type' => 'datetime'),
-        'active' => array( 'type' => 'boolean')
+        'active' => array( 'type' => 'boolean'),
+        'order' => array( 'type' => 'order'),
+        'slug' => array('type' => 'slug')
 
     );
 
@@ -23,6 +25,7 @@ abstract class Octopus_Model_Field {
     private static $fieldTypeAliases = array(
         'text' => 'string',
         'bool' => 'boolean',
+        'number' => 'numeric'
     );
 
     public function __construct($field, $options) {
@@ -105,6 +108,26 @@ abstract class Octopus_Model_Field {
             return $default;
         }
     }
+
+    /**
+     * Called before any migrations have been performed.
+     */
+    public function beforeMigrate($schema) {
+    }
+
+    /**
+     * Creates DB resources required by this field.
+     * @param $schema Octopus_DB_Schema
+     * @param $table Main table being built.
+     */
+    abstract public function migrate($schema, $table);
+
+    /**
+     * Called after migrations have been performed and
+     */
+    public function afterMigrate($schema) {
+    }
+
 
     public function validate($model) {
 

@@ -29,6 +29,11 @@ function to_unique_slug(Octopus_Model $model, Octopus_Model_Field $field) {
 }
 
 class Octopus_Model_Field_Slug extends Octopus_Model_Field {
+
+    public function migrate($schema, $table) {
+        $table->newTextSmall($this->getFieldName());
+    }
+
 }
 
 ?>

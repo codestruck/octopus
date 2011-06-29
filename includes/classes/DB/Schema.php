@@ -5,8 +5,10 @@ Octopus::loadClass('Octopus_DB_Schema_Writer');
 
 class Octopus_DB_Schema {
 
-    function Octopus_DB_Schema() {
-        $this->db =& Octopus_DB::singleton();
+    private $db;
+
+    function Octopus_DB_Schema($db = null) {
+        $this->db = $db ? $db : Octopus_DB::singleton();
     }
 
     /**
@@ -15,7 +17,7 @@ class Octopus_DB_Schema {
      * @param string $table Name of table to check
      * @return bool True if table exists
      */
-    function checkTable($table) {
+    public function checkTable($table) {
         $database = $this->db->driver->database;
         $sql = "show tables";
         $query = $this->db->query($sql, true);

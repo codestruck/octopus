@@ -4,58 +4,38 @@ Octopus::loadClass('Octopus_DB_Schema');
 
 class Octopus_DB_Schema_Model {
 
-    public static function makeTable($model) {
+    public static function makeTable($modelClass) {
 
-        $table = to_table_name($model);
-        $key = to_id($model);
+        $schema = new Octopus_DB_Schema();
 
-        $d = new Octopus_DB_Schema();
-        $t = $d->newTable($table);
-        $t->newKey($key, true);
-        $t->newPrimaryKey($key);
+        if ($modelClass instanceof Octopus_Model) {
+            $model = $modelClass;
+            $modelClass = get_class($model);
+        } else {
 
-        $modelClass = camel_case($model, true);
-
-        if (!class_exists($modelClass)) {
+            $modelClass = camel_case($modelClass, true);
             Octopus::loadModel($modelClass);
-        }
-        $obj = new $modelClass();
 
-        foreach ($obj->getFields() as $field) {
-            $fieldName = $field->getFieldName();
-
-            if ($field instanceof Octopus_Model_Field_Html) {
-                $t->newTextLarge($fieldName);
-            } else if ($field instanceof Octopus_Model_Field_String) {
-                $t->newTextSmall($fieldName);
-            } else if ($field instanceof Octopus_Model_Field_Slug) {
-                $t->newTextSmall($fieldName);
-            } else if ($field instanceof Octopus_Model_Field_Numeric) {
-                $t->newBigInt($fieldName);
-            } else if ($field instanceof Octopus_Model_Field_Boolean) {
-                $t->newBool($fieldName);
-            } else if ($field instanceof Octopus_Model_Field_HasOne) {
-                $t->newKey($fieldName . '_id');
-                $t->newIndex($fieldName . '_id');
-            } else if ($fieldName == 'created') {
-                $t->newDateTime($fieldName);
-            } else if ($fieldName == 'updated') {
-                $t->newDateTime($fieldName);
-            } else if ($field instanceof Octopus_Model_Field_ManyToMany) {
-                $tableA = singularize($fieldName);
-                $joinTable = $field->getJoinTableName(array($tableA, singularize($table)));
-
-                $j = $d->newTable($joinTable);
-                $j->newKey(to_id($tableA));
-                $j->newIndex(to_id($tableA));
-                $j->newKey(to_id($model));
-                $j->newIndex(to_id($model));
-                $j->create();
-
-            }
+            $model = new $modelClass();
         }
 
-        $t->create();
+        foreach($model->getFields() as $field) {
+            $field->beforeMigrate($schema);
+        }
+
+        $table = $schema->newTable(to_table_name($modelClass));
+        $table->newKey(to_id($modelClass), true);
+        $table->newPrimaryKey(to_id($modelClass));
+
+        foreach($model->getFields() as $field) {
+            $field->migrate($schema, $table);
+        }
+
+        $table->create();
+
+        foreach($model->getFields() as $field) {
+            $field->afterMigrate($schema);
+        }
 
     }
 
