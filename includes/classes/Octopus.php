@@ -90,8 +90,6 @@ class Octopus {
      */
     public static function loadModel($classname) {
 
-        $classname = start_in('Octopus_Model_', $classname);
-
         if (!class_exists($classname)) {
 
             $filedir = str_replace('Octopus_Model_', '', $classname);
