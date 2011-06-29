@@ -478,7 +478,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
 
         if (count($criteria) == 1 && is_string($criteria[0])) {
             // treat as a free text search
-            $criteria = self::createFreeTextCriteria($class, $criteria[0]);
+            return self::all()->matching($criteria[0]);
         }
 
         $result = new Octopus_Model_ResultSet($class, $criteria);
