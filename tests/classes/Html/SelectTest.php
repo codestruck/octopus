@@ -206,21 +206,19 @@ END;
                 'id' => 'fooInput',
                 'class' => 'foo select',
                 'name' => 'foo',
-                'html' => $select->render(true),
+                'html' => trim($select->render(true)),
                 'label' => array(
                    'text' => 'Foo:',
-                   'html' => '
-<label for="fooInput">Foo:</label>'
+                   'html' => '<label for="fooInput">Foo:</label>'
                 ),
                 'valid' => true,
                 'errors' => array(),
                 'options' => array(1 => 'Option 1', 2 => 'Option 2'),
                 'label' => array(
                     'text' => 'Foo:',
-                    'html' => '
-<label for="fooInput">Foo:</label>'
+                    'html' => '<label for="fooInput">Foo:</label>'
                 ),
-                'full_html' => $select->wrapper->render(true)
+                'full_html' => trim($select->wrapper->render(true))
             ),
             $select->toArray()
         );

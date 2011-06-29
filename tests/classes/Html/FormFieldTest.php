@@ -83,12 +83,11 @@ class FormFieldTest extends Octopus_Html_TestCase {
                 'id' => 'fooInput',
                 'class' => 'foo textarea',
                 'name' => 'foo',
-                'html' => $textarea->render(true),
-                'full_html' => $textarea->wrapper->render(true),
+                'html' => trim($textarea->render(true)),
+                'full_html' => trim($textarea->wrapper->render(true)),
                 'label' => array(
                     'text' => 'Foo:',
-                    'html' => '
-<label for="fooInput">Foo:</label>',
+                    'html' => '<label for="fooInput">Foo:</label>',
                 ),
                 'valid' => true,
                 'errors' => array(),

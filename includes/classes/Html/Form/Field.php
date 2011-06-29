@@ -284,7 +284,7 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
         $result = array();
         Octopus_Html_Form::attributesToArray($this->getAttributes(), $result);
 
-        $result['html'] = $this->render(true);
+        $result['html'] = trim($this->render(true));
 
         if ($this->_validationResult) {
             $result['valid'] = $this->_validationResult->success;
@@ -300,13 +300,13 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
                 'text' => $label
             );
             foreach($this->_labelElements as $l) {
-                $result['label']['html'] = $l->render(true);
+                $result['label']['html'] = trim($l->render(true));
                 break;
             }
         }
 
         if ($this->wrapper) {
-            $result['full_html'] = $this->wrapper->render(true);
+            $result['full_html'] = trim($this->wrapper->render(true));
         } else {
             $result['full_html'] = $result['html'];
         }

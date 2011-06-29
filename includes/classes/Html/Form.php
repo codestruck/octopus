@@ -504,11 +504,11 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
             foreach($this->_buttonsDiv->children() as $button) {
                 if ($button instanceof Octopus_Html_Element) {
-                    $result['buttons'][$button->id] = $button->render(true);
+                    $result['buttons'][$button->id] = trim($button->render(true));
                 }
             }
 
-            $result['buttons']['html'] = $this->_buttonsDiv->render(true);
+            $result['buttons']['html'] = trim($this->_buttonsDiv->render(true));
 
         }
 

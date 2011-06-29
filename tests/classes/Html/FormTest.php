@@ -179,14 +179,13 @@ END
                 'name' => 'name',
                 'value' => '',
                 'required' => 'required',
-                'html' => $name->render(true),
-                'full_html' => $name->wrapper->render(true),
+                'html' => trim($name->render(true)),
+                'full_html' => trim($name->wrapper->render(true)),
                 'valid' => false,
                 'errors' => array('Name is required.'),
                 'label' => array(
                     'text' => 'Name:',
-                    'html' => '
-<label for="nameInput">Name:</label>'
+                    'html' => '<label for="nameInput">Name:</label>'
                 ),
 
             )
@@ -222,15 +221,14 @@ END
                     'name' => 'name',
                     'value' => 'something &lt;b&gt;with markup&lt;/b&gt;',
                     'required' => 'required',
-                    'html' => $name->render(true),
+                    'html' => trim($name->render(true)),
                     'valid' => true,
                     'errors' => array(),
                     'label' => array(
                         'text' => 'Name:',
-                        'html' => '
-<label for="nameInput">Name:</label>'
+                        'html' => '<label for="nameInput">Name:</label>'
                     ),
-                    'full_html' => $name->wrapper->render(true),
+                    'full_html' => trim($name->wrapper->render(true)),
 
                 )
             );
@@ -266,16 +264,15 @@ END
                         'id' => 'close_tagInput',
                         'class' => 'close_tag text',
                         'name' => 'close_tag',
-                        'html' => $closeTag->render(true),
+                        'html' => trim($closeTag->render(true)),
                         'valid' => true,
                         'errors' => array(),
                         'label' => array(
                             'text' => 'Close Tag:',
-                            'html' => '
-<label for="close_tagInput">Close Tag:</label>'
+                            'html' => '<label for="close_tagInput">Close Tag:</label>'
 
                         ),
-                        'full_html' => $closeTag->wrapper->render(true)
+                        'full_html' => trim($closeTag->wrapper->render(true))
 
                     )
                 ),
