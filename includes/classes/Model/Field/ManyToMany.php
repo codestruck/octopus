@@ -27,9 +27,9 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
 
         $type = strtolower(get_class($model));
         $joinTable = $this->getJoinTableName(array($this->field, $type));
-        $s->innerJoin($joinTable, $model->to_id($type), array());
+        $s->innerJoin($joinTable, to_id($type), array());
 
-        $foreignKey = $model->to_id($this->field);
+        $foreignKey = to_id($this->field);
 
         $sql = $this->defaultRestrict(array($joinTable, $foreignKey), $operator, $this->getDefaultSearchOperator(), $value, $s, $params, $model);
         return $sql;
@@ -109,8 +109,8 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
 
         $s = new Octopus_DB_Select();
         $s->table($table);
-        $s->where($model->to_id($this->field) . ' = ?', $obj);
-        $s->where($model->to_id($type) . ' = ?', $model->id);
+        $s->where(to_id($this->field) . ' = ?', $obj);
+        $s->where(to_id($type) . ' = ?', $model->id);
         $query = $s->query();
         return $query->numRows() > 0;
 

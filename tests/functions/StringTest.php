@@ -7,6 +7,24 @@
 class StringTests extends PHPUnit_Framework_TestCase
 {
 
+    function testToID() {
+
+        $tests = array(
+            '' => '',
+            'foo' => 'foo_id',
+            '  foo  ' => 'foo_id',
+            'FOO' => 'foo_id',
+            'Foo' => 'foo_id',
+            'Foos' => 'foo_id',
+            'categories' => 'category_id'
+        );
+
+        foreach($tests as $input => $expected) {
+            $this->assertEquals($expected, to_id($input), "Failed on '$input'");
+        }
+
+    }
+
     function testStartsWith() {
 
         $tests = array(

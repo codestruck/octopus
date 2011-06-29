@@ -46,10 +46,10 @@ class Octopus_DB_Schema_Model {
                 $joinTable = $field->getJoinTableName(array($tableA, singularize($table)));
 
                 $j = $d->newTable($joinTable);
-                $j->newKey($obj->to_id($tableA));
-                $j->newIndex($obj->to_id($tableA));
-                $j->newKey($obj->to_id($model));
-                $j->newIndex($obj->to_id($model));
+                $j->newKey(to_id($tableA));
+                $j->newIndex(to_id($tableA));
+                $j->newKey(to_id($model));
+                $j->newIndex(to_id($model));
                 $j->create();
 
             }

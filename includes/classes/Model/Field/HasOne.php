@@ -13,7 +13,7 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         // setup a model class for this object based on the ID in the DB
         $field = $this->getFieldName();
         $class = $this->getItemClass();
-        $dataField = $model->to_id($field);
+        $dataField = to_id($field);
 
         $filtering = $this->getOption('filter', false);
         if ($filtering) {
@@ -49,7 +49,7 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         $value = $obj->$primaryKey;
 
         // save id of subobject in this field
-        $sqlQuery->set($model->to_id($field), $value);
+        $sqlQuery->set(to_id($field), $value);
     }
 
     public function setValue($model, $value) {
@@ -80,7 +80,7 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
 
         if (!$expression) {
             // Do simple ID comparison
-            return $this->defaultRestrict($model->to_id($this->field), $operator, $this->getDefaultSearchOperator(), $value, $s, $params, $model);
+            return $this->defaultRestrict(to_id($this->field), $operator, $this->getDefaultSearchOperator(), $value, $s, $params, $model);
         }
 
         // TODO: Make all this stuff static someday
@@ -95,7 +95,7 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         }
 
         $sql = $field->restrict($expression, $operator, $value, $s, $params, $itemModel);
-        $col = $model->to_id($this->getFieldName());
+        $col = to_id($this->getFieldName());
 
         return "`{$model->getTableName()}`.`$col` IN (SELECT `{$itemModel->getPrimaryKey()}` FROM `{$itemModel->getTableName()}` WHERE $sql)";
     }
@@ -136,7 +136,7 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         $itemTable = $dummyItem->getTableName();
         $itemPrimaryKey = $dummyItem->getPrimaryKey();
 
-        $foreignKey = $model->to_id($this->field);
+        $foreignKey = to_id($this->field);
 
         $s->leftJoin($itemTable, array("`$itemTable`.`$itemPrimaryKey`","`$modelTable`.`$foreignKey`"), array());
 

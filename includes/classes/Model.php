@@ -393,13 +393,10 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
         if (isset($this->primaryKey)) {
             return $this->primaryKey;
         } else {
-            return $this->to_id($this->getClassName());
+            return to_id($this->getClassName());
         }
     }
 
-    public function to_id($name) {
-        return underscore($name) . '_id';
-    }
 
     public function getTableName() {
         if (isset($this->table)) {

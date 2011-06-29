@@ -336,6 +336,19 @@
     }
 
     /**
+     * Converts a string (plural or singular) into a database_id.
+     * <example>
+     * to_id('foo') = 'foo_id',
+     * to_id('categories') = 'category_id'
+     */
+    function to_id($s) {
+        $s = singularize(trim($s));
+        if (!$s) return $s;
+
+        return underscore($s) . '_id';
+    }
+
+    /**
      * Takes a PHP regex pattern and converts it for use in mysql queries.
      */
     function to_mysql_regex($pattern) {
