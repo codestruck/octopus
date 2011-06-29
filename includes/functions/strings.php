@@ -381,6 +381,17 @@
     }
 
     /**
+     * Given a singular or plural string, returns a pluralized table name.
+     */
+    function to_table_name($s) {
+
+        $s = trim($s);
+        if (!$s) return $s;
+
+        return pluralize(underscore($s));
+    }
+
+    /**
      * Converts a camelCased string to an underscore_separated_string
      */
     function underscore($s, $sep = '_') {

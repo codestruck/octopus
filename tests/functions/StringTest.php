@@ -7,6 +7,25 @@
 class StringTests extends PHPUnit_Framework_TestCase
 {
 
+    function testToTableName() {
+
+        $tests = array(
+            '' => '',
+            'foo' => 'foos',
+            '  foo  ' => 'foos',
+            'FOO' => 'foos',
+            'Foo' => 'foos',
+            'Foos' => 'foos',
+            'categories' => 'categories',
+            'category' => 'categories'
+        );
+
+        foreach($tests as $input => $expected) {
+            $this->assertEquals($expected, to_table_name($input), "Failed on '$input'");
+        }
+
+    }
+
     function testToID() {
 
         $tests = array(
