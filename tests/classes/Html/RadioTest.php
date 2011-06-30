@@ -113,7 +113,7 @@ END;
 <div class="colorRadioGroup radioGroup required">
 <div class="radioItem colorRadioItem colorpinkRadioItem">
 <label for="colorInputpink">Pink</label>
-<input type="radio" id="colorInputpink" class="color radio valuepink required" name="color" value="pink" /></div>
+<input type="radio" id="colorInputpink" class="color radio valuepink required" name="color" value="pink" checked /></div>
 <div class="radioItem colorRadioItem colorblueRadioItem">
 <label for="colorInputblue">Blue</label>
 <input type="radio" id="colorInputblue" class="color radio valueblue required" name="color" value="blue" /></div>

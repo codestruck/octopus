@@ -289,7 +289,7 @@ END;
 <form id="test" method="post" novalidate>
 <input type="hidden" name="__form_test_submitted" value="1" />
 <div id="colorsBlueField" class="field colors valueblue checkbox required">
-    <input type="checkbox" id="colorsBlueInput" class="colors valueblue checkbox required" name="colors[]" value="blue" />
+    <input type="checkbox" id="colorsBlueInput" class="colors valueblue checkbox required" name="colors[]" value="blue" checked />
     <label for="colorsBlueInput">Colors</label>
 </div>
 <div id="colorsGreenField" class="field colors valuegreen checkbox required">
@@ -297,7 +297,7 @@ END;
     <label for="colorsGreenInput">Colors</label>
 </div>
 <div id="colorsPinkField" class="field colors valuepink checkbox required">
-    <input type="checkbox" id="colorsPinkInput" class="colors valuepink checkbox required" name="colors[]" value="pink" />
+    <input type="checkbox" id="colorsPinkInput" class="colors valuepink checkbox required" name="colors[]" value="pink" checked />
     <label for="colorsPinkInput">Colors</label>
 </div>
 </form>
