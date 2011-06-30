@@ -15,7 +15,8 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
      */
     private static $_formats = array(
         'email' => array(
-            'function' => 'is_email'
+            'function' => 'is_email',
+            'emptyIsValid' => true
         )
     );
 
@@ -238,9 +239,11 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
     /**
      * Adds a callback rule to this field.
      */
-    public function mustPass($callback, $message = null) {
+    public function mustPass($callback, $message = null, $emptyIsValid = null) {
         Octopus::loadClass('Octopus_Html_Form_Field_Rule_Callback');
-        return $this->addRule(new Octopus_Html_Form_Field_Rule_Callback($callback, $message));
+        $rule = new Octopus_Html_Form_Field_Rule_Callback($callback, $message);
+        if ($emptyIsValid !== null) $rule->emptyIsValid = $emptyIsValid;
+        return $this->addRule($rule);
     }
 
     /**
