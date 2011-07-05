@@ -31,7 +31,13 @@ class Octopus_DB_Schema_Model {
             } else if ($field instanceof Octopus_Model_Field_Slug) {
                 $t->newTextSmall($fieldName);
             } else if ($field instanceof Octopus_Model_Field_Numeric) {
-                $t->newBigInt($fieldName);
+
+                if ($decimal_places = $field->getOption('decimal_places')) {
+                    $precision = $field->getOption('precision', 60);
+                    $t->newDecimal($fieldName, $precision, $decimal_places);
+                } else {
+                    $t->newBigInt($fieldName);
+                }
             } else if ($field instanceof Octopus_Model_Field_Boolean) {
                 $t->newBool($fieldName);
             } else if ($field instanceof Octopus_Model_Field_HasOne) {
