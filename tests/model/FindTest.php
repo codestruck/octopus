@@ -895,6 +895,23 @@ END;
 
     }
 
+    function testWhereId() {
+        $item = FindAuthor::all()->where(array('id' => 2));
+        $this->assertEquals($item->first()->name, 'Mike Estes');
+
+        $item = FindAuthor::find(array('id' => 2));
+        $this->assertEquals($item->first()->name, 'Mike Estes');
+
+    }
+
+    function testWherePK() {
+        $item = FindAuthor::all()->where(array('find_author_id' => 2));
+        $this->assertEquals($item->first()->name, 'Mike Estes');
+
+        $item = FindAuthor::find(array('find_author_id' => 2));
+        $this->assertEquals($item->first()->name, 'Mike Estes');
+    }
+
 }
 
 
