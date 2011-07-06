@@ -12,18 +12,12 @@ class Minpost extends Octopus_Model {
         ),
         'slug' => array(
             'type' => 'slug', // implies hidden input
-            //'onCreate' => 'to_unique_slug',
-            //'onSave' => 'to_slug',
             'onEmpty' => 'to_unique_slug',
-            //'' => 'dealwith'
         ),
         'body' => array(
             'type' => 'html',
             'sanitize' => 'mce_cleanup',
         ),
-        //'author' => array(
-        //    'type' => 'has_one'
-        //),
         'active' => array(
             'type' => 'boolean',
         ),
@@ -32,6 +26,11 @@ class Minpost extends Octopus_Model {
         ),
         'created',
         'updated',
+        'cost' => array(
+            'type' => 'numeric',
+            'decimal_places' => 2,
+            'precision' => 6,
+        ),
     );
 }
 
@@ -57,7 +56,8 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
                 `active` TINYINT NOT NULL,
                 `display_order` INT( 10 ) NOT NULL,
                 `created` DATETIME NOT NULL,
-                `updated` DATETIME NOT NULL
+                `updated` DATETIME NOT NULL,
+                `cost` DECIMAL (6, 2) NOT NULL
                 )
                 ";
 
@@ -447,6 +447,8 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
         $post->display_order = '$9,901.11';
         $post->save();
 
+        $this->assertEquals(3, $post->minpost_id);
+
         $post = new Minpost(3);
         $this->assertEquals(9901, $post->display_order);
 
@@ -529,7 +531,7 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
             $i++;
         }
 
-        $this->assertEquals(8, $i);
+        $this->assertEquals(9, $i);
 
     }
 
@@ -578,18 +580,88 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
             $i++;
         }
 
-        $this->assertEquals(8, $i);
+        $this->assertEquals(9, $i);
 
     }
 
     function testCount() {
         $post = new Minpost(1);
-        $this->assertEquals(8, count($post));
+        $this->assertEquals(9, count($post));
 
         $post = new Minpost();
-        $this->assertEquals(8, count($post));
+        $this->assertEquals(9, count($post));
 
     }
+
+    function testDecimalNew() {
+        $post = new Minpost();
+        $post->title = 'foo';
+        $post->cost = 1;
+
+        $post->save();
+        $post_id = $post->minpost_id;
+
+        $post = new Minpost($post_id);
+
+        $this->assertEquals(1.00, $post->cost);
+    }
+
+    function testDecimalReuse() {
+        $post = new Minpost();
+        $post->title = 'foo';
+        $post->cost = 1;
+
+        $post->save();
+
+        $this->assertEquals(1.00, $post->cost);
+    }
+
+    function testDecimalOverflowNew() {
+        $post = new Minpost();
+        $post->title = 'foo';
+        $post->cost = 12345678.90;
+
+        $post->save();
+        $post_id = $post->minpost_id;
+
+        $post = new Minpost($post_id);
+
+        $this->assertEquals(9999.99, $post->cost);
+    }
+
+    function testDecimalOverflowReuse() {
+        $post = new Minpost();
+        $post->title = 'foo';
+        $post->cost = 12345678.90;
+
+        $post->save();
+
+        $this->assertEquals(9999.99, $post->cost);
+    }
+
+    function testDecimalOverflowMaxNew() {
+        $post = new Minpost();
+        $post->title = 'foo';
+        $post->cost = 99999999.99;
+
+        $post->save();
+        $post_id = $post->minpost_id;
+
+        $post = new Minpost($post_id);
+
+        $this->assertEquals(9999.99, $post->cost);
+    }
+
+    function testDecimalOverflowMaxReuse() {
+        $post = new Minpost();
+        $post->title = 'foo';
+        $post->cost = 99999999.99;
+
+        $post->save();
+
+        $this->assertEquals(9999.99, $post->cost);
+    }
+
 
 
 }

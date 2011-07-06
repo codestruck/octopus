@@ -26,7 +26,7 @@ class Octopus_Html_Form_Field_Rule_MatchField extends Octopus_Html_Form_Field_Ru
 
     protected function doValidation($input, $field, $data) {
         $otherValue = isset($data[$this->fieldName]) ? $data[$this->fieldName] : '';
-        return $value == $otherValue;
+        return $input == $otherValue;
     }
 
 }

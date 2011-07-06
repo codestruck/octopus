@@ -367,11 +367,13 @@ class Octopus_Html_Form extends Octopus_Html_Element {
                 break;
         }
 
-        $this->_values = array();
+        $values = array();
 
         foreach($this->children() as $child) {
-            self::getValuesRecursive($child, $sourceArray, $this->_values);
+            self::getValuesRecursive($child, $sourceArray, $values);
         }
+
+        $this->setValues($values);
 
         return $this->_values;
     }

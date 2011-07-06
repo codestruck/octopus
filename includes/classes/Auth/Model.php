@@ -186,8 +186,6 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
 
         $u->where($this->primaryKey . ' = ?', $this->$pk);
 
-        $this->filterActive($u, true);
-
         $u->execute();
 
         return true;

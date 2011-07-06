@@ -94,7 +94,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         /**
          * # of records per page.
          */
-        'pageSize' => 30,
+        'pageSize' => 20,
 
         /**
          * Pages to show around the current one.

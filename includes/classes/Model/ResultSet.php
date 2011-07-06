@@ -234,6 +234,9 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
      * additional filters applied.
      */
     public function where(/* Variable */) {
+
+        $args = func_get_args();
+
         return $this->createChild(func_get_args(), null, 'AND');
     }
 
@@ -286,15 +289,16 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
                     // e.g. array('field1' => 'value1', 'AND', 'field2' => 'value2')
                     $conjunction = $value;
 
+                } else if (is_string($value)) {
+
+                    // Literal SQL
+                    $value = trim($value);
+                    if ($value) $expression = "($value)";
+
                 } else if (is_array($value)) {
 
                     // e.g. array(array('field1' => 'value1), array('field2' => 'value2'))
                     $expression = $this->buildWhereClause($value, $s, $params);
-
-                } else {
-
-                    // e.g. array('field1 = 5')
-                    // TODO: Handle
 
                 }
 
@@ -728,6 +732,12 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
         return $left . $right;
     }
 
+    private static function looksLikeFieldName($str) {
+
+        return preg_match('/^[a-z0-9_]\s*([<>=]|LIKE|NOT|IN|\s)*/i', $str);
+
+    }
+
     /**
      * Given a set of criteria in any of the following formats:
      *
@@ -773,7 +783,14 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
                         }
                         $lastFieldName = null;
                     } else if ($lastFieldName === null) {
-                        $lastFieldName = $value;
+
+                        if (self::looksLikeFieldName($value)) {
+                            $lastFieldName = $value;
+                        } else {
+                            // Literal SQL?
+                            $result[] = $value;
+                        }
+
                     }
                 }
 

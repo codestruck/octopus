@@ -50,7 +50,7 @@ abstract class Octopus_Model_Field {
             $type = self::$fieldTypeAliases[$type];
         }
 
-        $class = 'Octopus_Model_Field_' . camel_case($type);
+        $class = 'Octopus_Model_Field_' . camel_case($type, true);
         Octopus::loadClass($class);
 
         $options['type'] = $type;
