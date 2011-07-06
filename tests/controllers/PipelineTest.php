@@ -5,7 +5,7 @@
  */
 class PipelineTests extends Octopus_App_TestCase {
 
-    function dontTestDefaultActionReceivesActionAndArgs() {
+    function testDefaultActionReceivesActionAndArgs() {
 
         file_put_contents(
             "{$this->siteDir}/controllers/DefaultAction.php",
@@ -39,7 +39,7 @@ END
 
     }
 
-    function dontTestBeforeAndAfterActionsCalled() {
+    function testBeforeAndAfterActionsCalled() {
 
         file_put_contents(
             "{$this->siteDir}/controllers/BeforeAndAfter.php",
@@ -233,7 +233,7 @@ END
         );
     }
 
-    function dontTestBeforeAndAfterNotCallableAsActions() {
+    function testBeforeAndAfterNotCallableAsActions() {
 
         $app = $this->startApp();
 
@@ -299,7 +299,7 @@ END
         }
     }
 
-    function dontTestRedirectToAddSlashOnIndex() {
+    function testRedirectToAddSlashOnIndex() {
 
         $app = $this->startApp();
 

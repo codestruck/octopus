@@ -69,7 +69,7 @@
         if ($options['start_app']) {
 
             if ($options['handle_exceptions']) {
-                if (null !== set_exception_handler('octopus_handle_exception')) {
+                if (set_exception_handler('octopus_handle_exception') !== null) {
                     restore_exception_handler();
                 }
             }
