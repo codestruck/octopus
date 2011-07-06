@@ -402,6 +402,10 @@ abstract class Octopus_Controller {
      */
     protected function renderJson($data = array(), $options = null) {
 
+        $dumped_content = get_dumped_content();
+        $data = array_merge($data, $dumped_content);
+        output_dumped_content_header(array_pop($dumped_content), $this->response);
+
         $this->response
             ->contentType('application/json')
             ->append(json_encode($data))
@@ -416,6 +420,10 @@ abstract class Octopus_Controller {
             // 'callback' argument.
             $function = $_GET['callback'];
         }
+
+        $dumped_content = get_dumped_content();
+        $data = array_merge($data, $dumped_content);
+        output_dumped_content_header(array_pop($dumped_content), $this->response);
 
         $this->response
             ->contentType('application/javascript')

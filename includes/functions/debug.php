@@ -1,5 +1,27 @@
 <?php /*:folding=explicit:collapseFolds=1:*/
 
+$_OCTOPUS_DUMPED_CONTENT = array();
+
+function get_dumped_content() {
+    global $_OCTOPUS_DUMPED_CONTENT;
+    return array('_octopus_dumped_content' => $_OCTOPUS_DUMPED_CONTENT);
+}
+
+function output_dumped_content_header($data, $response) {
+    $key = 'X-Dumped-Content';
+    $value = print_r($data, true);
+    $lines = explode("\n", trim($value));
+    $padding = ceil(log(count($lines), 10));
+
+    $i = 0;
+    foreach ($lines as $line) {
+        $response->addHeader($key . sprintf('-%0' . $padding . 'd', $i), $line);
+
+        $i++;
+    }
+
+}
+
 // Octopus_Debug Class {{{
 
 /**
@@ -95,6 +117,8 @@ END;
     public function render($return = false) {
         if (self::inWebContext()) {
             return $this->renderHtml($return);
+        } else if (self::inJavascriptContext()) {
+            return $this->renderJson($return);
         } else {
             return $this->renderText($return);
         }
@@ -193,8 +217,29 @@ END;
         }
     }
 
+    public function renderJson($return = false) {
+        global $_OCTOPUS_DUMPED_CONTENT;
+
+        $result = '';
+
+        foreach($this->_content as $name => $c) {
+
+            foreach($c as $text) {
+                $result .= $text;
+            }
+
+        }
+
+        $_OCTOPUS_DUMPED_CONTENT[] = $result;
+
+    }
+
+    public static function inJavascriptContext() {
+        return isset($_SERVER['HTTP_X_REQUESTED_WITH']);
+    }
+
     public static function inWebContext() {
-        return isset($_SERVER['HTTP_USER_AGENT']) && !isset($_GET['callback']) && !isset($_SERVER['X-Requested-With']);
+        return isset($_SERVER['HTTP_USER_AGENT']) && !isset($_GET['callback']) && !isset($_SERVER['HTTP_X_REQUESTED_WITH']);
     }
 
     /**
@@ -370,7 +415,7 @@ END;
 
         ob_start();
         var_dump($x);
-        return ob_get_clean();
+        return trim(ob_get_clean());
     }
 
     public static function saneBacktrace($bt = null) {

@@ -35,6 +35,11 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
     }
 
     public function _after($action, $args, $data) {
+
+        $dumped_content = get_dumped_content();
+        $data = array_merge($data, $dumped_content);
+        output_dumped_content_header(array_pop($dumped_content), $this->response);
+
         $this->response->append(json_encode($data));
         $this->response->stop();
         return $data;
