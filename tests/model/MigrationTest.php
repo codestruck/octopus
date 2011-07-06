@@ -19,6 +19,11 @@ class MigrateTestPerson extends Octopus_Model {
             'type' => 'many_to_many',
             'model' => 'MigrateTestCategory'
         ),
+        'net_worth' => array(
+            'type' => 'numeric',
+            'decimal_places' => 2,
+            'precision' => 4
+        ),
         'slug',
         'order',
         'dummy' => array('type' => 'virtual'),
@@ -125,6 +130,13 @@ class MigrationTest extends PHPUnit_Framework_TestCase {
             'bio' => array(
                 'type' => 'text',
                 'size' => '',
+                'options' => 'NOT NULL',
+                'index' => ''
+            ),
+
+            'net_worth' => array(
+                'type' => 'decimal',
+                'size' => '4,2',
                 'options' => 'NOT NULL',
                 'index' => ''
             ),

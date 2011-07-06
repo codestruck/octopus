@@ -2,10 +2,6 @@
 
 class Octopus_Model_Field_Numeric extends Octopus_Model_Field {
 
-    public function migrate($schema, $table) {
-        $table->newBigInt($this->getFieldName());
-    }
-
     public function accessValue($model, $saving = false) {
 
         $value = parent::accessValue($model, $saving);
@@ -22,6 +18,17 @@ class Octopus_Model_Field_Numeric extends Octopus_Model_Field {
         }
 
         return $value;
+
+    }
+
+    public function migrate($schema, $table) {
+
+        if ($decimalPlaces = $this->getOption('decimal_places')) {
+            $precision = $this->getOption('precision', 60);
+            $table->newDecimal($this->getFieldName(), $precision, $decimalPlaces);
+        } else {
+            $table->newBigInt($this->getFieldName());
+        }
 
     }
 
