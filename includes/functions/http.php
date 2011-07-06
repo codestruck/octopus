@@ -85,6 +85,10 @@
         return $cancel;
     }
 
+    function uncancel_redirects() {
+        return cancel_redirects(false);
+    }
+
     /**
      * @return mixed The base path for the site, off which all URLs should be
      * built. If the path can't be determined, returns false.

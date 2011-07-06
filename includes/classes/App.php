@@ -22,6 +22,12 @@ class Octopus_App {
     public static $defaults = array(
 
         /**
+         * Whether to squash redirects when a PHP error occurs. This will only
+         * happen in DEV mode.
+         */
+        'cancel_redirects_on_error' => true,
+
+        /**
          * Whether the app is running over HTTPS. NULL means the app will
          * figure it out for itself.
          */
@@ -89,26 +95,26 @@ class Octopus_App {
     }
 
     protected function watchForErrors() {
-        //$this->_prevErrorHandler = set_error_handler(array($this, 'errorHandler'));
+        $this->_prevErrorHandler = set_error_handler(array($this, 'errorHandler'));
     }
 
+    /**
+     * Custom PHP error handler used by the application.
+     */
     public function errorHandler($level, $err, $file, $line) {
 
-        if (!($level & E_DEPRECATED)) {
+        $isErrorOrWarning = ($level & E_ERROR) || ($level & E_WARNING) || ($level & E_USER_WARNING) || ($level & E_USER_ERROR);
 
-            dump_r($err);
+        if ($isErrorOrWarning && $this->isDevEnvironment()) {
 
-            if (!empty($this->_options['cancel_redirects_on_error']) || $this->isDevEnvironment()) {
+            if (!empty($this->_options['cancel_redirects_on_error'])) {
                 cancel_redirects();
             }
 
-
         }
 
-
-        if (is_callable($this->_prevErrorHandler)) {
-            $args = func_get_args();
-            call_user_func_array($this->_prevErrorHandler, $args);
+        if ($this->_prevErrorHandler) {
+            call_user_func_array($this->_prevErrorHandler, func_get_args());
         }
     }
 

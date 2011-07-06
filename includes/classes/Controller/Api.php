@@ -5,8 +5,6 @@
  */
 abstract class Octopus_Controller_Api extends Octopus_Controller {
 
-    var $protect = true;
-
     private static $contentTypes = array(
         'json' => 'application/json',
         'jsonp' => 'text/javascript',
@@ -25,40 +23,21 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
         $this->response->contentType(self::$contentTypes['json']);
     }
 
+    public function _default($action, $args) {
+        return $this->buildErrorResponse("Invalid action: $action");
+    }
+
     public function _before($action, $args) {
 
         $this->setResponseContentType();
 
-        if (empty($this->protect)) {
-            return true;
-        } else if (is_array($this->protect)) {
-
-            if (!in_array($action, $this->protect) && !in_array(camel_case($action), $this->protect)) {
-                return true;
-            }
-
-        } else if ((strcasecmp($action, $this->protect) != 0) &&
-            (strcasecmp(camel_case($action), $this->protect) != 0)) {
-            return true;
-        }
-
-        return $this->__protect($action, $args);
+        return true;
     }
 
     public function _after($action, $args, $data) {
         $this->response->append(json_encode($data));
         $this->response->stop();
         return $data;
-    }
-
-    protected function __protect($action, $args) {
-
-        $key = octopus_api_key();
-        if (empty($args['octopus_api_key']) || $args['octopus_api_key'] != $key) {
-            return array('success' => false, 'errors' => array('Invalid api key.'));;
-        }
-
-        return true;
     }
 
     protected function buildSuccessResponse($data) {

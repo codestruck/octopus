@@ -200,7 +200,7 @@ END;
     /**
      * @return array The names of all enabled error reporting flags.
      */
-    private static function &getErrorReportingFlags($er = null) {
+    public static function &getErrorReportingFlags($er = null) {
 
         $allExceptDeprecated = E_ALL & ~E_DEPRECATED;
 
@@ -215,7 +215,13 @@ END;
 
 
         if (empty($flags)) {
-            foreach(array('E_NOTICE', 'E_ERROR', 'E_WARNING', 'E_PARSE', 'E_DEPRECATED') as $level) {
+
+            $all = array(
+                'E_NOTICE', 'E_ERROR', 'E_WARNING', 'E_PARSE', 'E_DEPRECATED',
+                'E_USER_NOTICE', 'E_USER_ERROR', 'E_USER_WARNING', 'E_USER_DEPRECATED'
+            );
+
+            foreach($all as $level) {
                 $val = constant($level);
                 if (($er & $val) === $val) {
                     $flags[] = $level;

@@ -53,6 +53,7 @@ END
         $resp = new Octopus_Response(true);
         $controller = new ControllerTestController($app, new Octopus_Request($app, ''), $resp);
 
+        uncancel_redirects();
         $controller->test_redirect('foo');
         $this->assertEquals(<<<END
 HTTP/1.1 302 Found

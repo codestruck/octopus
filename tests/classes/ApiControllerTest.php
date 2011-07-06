@@ -54,24 +54,5 @@ class ApiControllerTest extends Octopus_App_TestCase {
 
     }
 
-    function testApiKeyRequirement() {
-
-        $app = $this->startApp();
-        $resp = new Octopus_Response(true);
-
-        $controller = new TestApiController($app, new Octopus_Request($app,''), $resp);
-
-
-        $result = $controller->__execute('protected-add-member', array('name' => 'Matt', 'password' => 'test', 'favoriteColor' => 'green'));
-
-        $this->assertEquals(
-            array('success' => false, 'errors' => array('Invalid api key.')),
-            $result
-        );
-
-        $result = $controller->__execute('protected-add-member', array('octopus_api_key' => octopus_api_key(), 'name' => 'Matt', 'password' => 'test', 'favoriteColor' => 'green'));
-        $this->assertEquals(array('name' => 'Matt', 'password' => 'test', 'favoriteColor' => 'green'), $result);
-
-    }
 
 }
