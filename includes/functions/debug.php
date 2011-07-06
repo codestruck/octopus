@@ -202,7 +202,11 @@ END;
      */
     public static function &getErrorReportingFlags($er = null) {
 
-        $allExceptDeprecated = E_ALL & ~E_DEPRECATED;
+        $allExceptDeprecated = E_ALL;
+
+        if (defined('E_DEPRECATED')) {
+            $allExceptDeprecated = $allExceptDeprecated & ~E_DEPRECATED;
+        }
 
         $er = $er == null ? error_reporting() : $er;
         $flags = array();
@@ -222,9 +226,12 @@ END;
             );
 
             foreach($all as $level) {
-                $val = constant($level);
-                if (($er & $val) === $val) {
-                    $flags[] = $level;
+
+                if (defined($level)) {
+                    $val = constant($level);
+                    if (($er & $val) === $val) {
+                        $flags[] = $level;
+                    }
                 }
             }
         }

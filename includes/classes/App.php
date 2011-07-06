@@ -114,7 +114,8 @@ class Octopus_App {
         }
 
         if ($this->_prevErrorHandler) {
-            call_user_func_array($this->_prevErrorHandler, func_get_args());
+            $args = func_get_args();
+            call_user_func_array($this->_prevErrorHandler, $args);
         }
     }
 

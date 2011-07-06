@@ -28,7 +28,8 @@ class AppTests extends Octopus_App_TestCase {
     function errorHandler($num, $str) {
         $this->errorHandlerCalled = $num;
         if ($this->prevErrorHandler) {
-            call_user_func_array($this->prevErrorHandler, func_get_args());
+            $args = func_get_args();
+            call_user_func_array($this->prevErrorHandler, $args);
         }
         return false;
     }
