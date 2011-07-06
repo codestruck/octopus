@@ -42,7 +42,7 @@ abstract class Octopus_Controller {
 
         foreach($beforeMethods as $beforeMethod => $includeActionInArgs) {
 
-            if (!method_exists($this, $beforeMethod)) {
+            if (!is_callable_and_public($this, $beforeMethod)) {
                 continue;
             }
 
@@ -71,7 +71,7 @@ abstract class Octopus_Controller {
 
         foreach($afterMethods as $afterMethod => $includeAction) {
 
-            if (!method_exists($this, $afterMethod)) {
+            if (!is_callable_and_public($this, $afterMethod)) {
                 continue;
             }
 
@@ -106,19 +106,19 @@ abstract class Octopus_Controller {
 
         $action = $actionMethod = camel_case($originalAction);
 
-        if (!method_exists($this, $actionMethod)) {
+        if (!is_callable_and_public($this, $actionMethod)) {
 
             $actionMethod .= 'Action';
 
-            if (!method_exists($this, $actionMethod)) {
+            if (!is_callable_and_public($this, $actionMethod)) {
 
                 $action = $actionMethod = underscore($action);
 
-                if (!method_exists($this, $actionMethod)) {
+                if (!is_callable_and_public($this, $actionMethod)) {
 
                     $actionMethod .= '_action';
 
-                    if (!method_exists($this, $actionMethod)) {
+                    if (!is_callable_and_public($this, $actionMethod)) {
                         $action = $actionMethod = '_default';
                     }
 
@@ -194,7 +194,7 @@ abstract class Octopus_Controller {
         if (!$haveArgs) {
 
             // Easy enough
-            return $this->$action();
+            return $this->$actionMethod();
 
         } else {
 
@@ -204,7 +204,7 @@ abstract class Octopus_Controller {
              */
 
             if (is_associative_array($args)) {
-                return $this->$action($args);
+                return $this->$actionMethod($args);
             } else {
                 return call_user_func_array(array($this, $actionMethod), $args);
             }
@@ -236,7 +236,25 @@ abstract class Octopus_Controller {
             return false;
         }
 
-        return method_exists($this, camel_case($action));
+        $camelAction = camel_case($action);
+        if (is_callable_and_public($this, $camelAction)) {
+            return true;
+        }
+
+        if (is_callable_and_public($this, $camelAction . 'Action')) {
+            return true;
+        }
+
+        $underscoreAction = underscore($camelAction);
+        if (is_callable_and_public($this, $underscoreAction)) {
+            return true;
+        }
+
+        if (is_callable_and_public($this, $underscoreAction . '_action')) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

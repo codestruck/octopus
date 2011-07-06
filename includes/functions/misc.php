@@ -93,6 +93,13 @@
     }
 
     /**
+     * @return true if $method is callable and public on $obj.
+     */
+    function is_callable_and_public($obj, $method) {
+        return is_callable(array($obj, $method));
+    }
+
+    /**
      * @return bool Whether or not we are currently running in a dev environment,
      * e.g. on a dev's computer.
      *

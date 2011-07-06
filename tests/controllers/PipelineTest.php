@@ -5,7 +5,7 @@
  */
 class PipelineTests extends Octopus_App_TestCase {
 
-    function testDefaultActionReceivesActionAndArgs() {
+    function dontTestDefaultActionReceivesActionAndArgs() {
 
         file_put_contents(
             "{$this->siteDir}/controllers/DefaultAction.php",
@@ -39,7 +39,7 @@ END
 
     }
 
-    function testBeforeAndAfterActionsCalled() {
+    function dontTestBeforeAndAfterActionsCalled() {
 
         file_put_contents(
             "{$this->siteDir}/controllers/BeforeAndAfter.php",
@@ -172,7 +172,68 @@ END
 
     }
 
-    function testBeforeAndAfterNotCallableAsActions() {
+    /**
+     * @dataProvider privateAndProtectedPathProvider
+     */
+    public function testPrivateAndProtectedMethodsNotCallableAsActions($path) {
+
+        $app = $this->startApp();
+
+        global $_PP_TEST_CASE;
+        $_PP_TEST_CASE = $this;
+
+        $this->createControllerFile(
+            'PrivateAndProtectedActions',
+            <<<END
+            <?php
+
+            class PrivateAndProtectedActionsController extends Octopus_Controller {
+
+                private function privateAction() {
+                    global \$_PP_TEST_CASE;
+                    \$_PP_TEST_CASE->assertTrue(false, __METHOD__ . ' was called on the controller!');
+                }
+
+                private function privateFoo() {
+                    global \$_PP_TEST_CASE;
+                    \$_PP_TEST_CASE->assertTrue(false, __METHOD__ . ' was called on the controller!');
+                }
+
+                protected function protectedAction() {
+                    global \$_PP_TEST_CASE;
+                    \$_PP_TEST_CASE->assertTrue(false, __METHOD__ . ' was called on the controller!');
+                }
+
+                protected function protectedFoo() {
+                    global \$_PP_TEST_CASE;
+                    \$_PP_TEST_CASE->assertTrue(false, __METHOD__ . ' was called on the controller!');
+                }
+
+            }
+
+            ?>
+END
+        );
+        $this->createViewFile('private_and_protected_actions/private');
+        $this->createViewFile('private_and_protected_actions/private_foo');
+        $this->createViewFile('private_and_protected_actions/protected');
+        $this->createViewFile('private_and_protected_actions/protected_foo');
+
+        $app->getResponse($path, true);
+
+    }
+
+    public static function privateAndProtectedPathProvider() {
+
+        return array(
+            array('/private-and-protected-actions/private'),
+            array('/private-and-protected-actions/private-foo'),
+            array('/private-and-protected-actions/protected'),
+            array('/private-and-protected-actions/protected-foo')
+        );
+    }
+
+    function dontTestBeforeAndAfterNotCallableAsActions() {
 
         $app = $this->startApp();
 
@@ -238,7 +299,7 @@ END
         }
     }
 
-    function testRedirectToAddSlashOnIndex() {
+    function dontTestRedirectToAddSlashOnIndex() {
 
         $app = $this->startApp();
 

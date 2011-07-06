@@ -8,12 +8,8 @@ abstract class Octopus_App_TestCase extends PHPUnit_Framework_TestCase {
     protected $siteDir;
     protected $app;
 
-    public function __construct() {
-        parent::__construct();
-        $this->siteDir =  dirname(__FILE__) . '/.working/' . get_called_class() . '-sitedir';
-    }
-
     function setUp() {
+        $this->siteDir =  dirname(__FILE__) . '/.working/' . get_called_class() . '-sitedir';
         $this->initSiteDir();
     }
 
