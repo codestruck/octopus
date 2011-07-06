@@ -88,14 +88,14 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
         return parent::__execute($action, $args);
     }
 
-    protected function __executeAction($action, $args) {
+    protected function __executeAction($action, $actionMethod, $args) {
 
         if ($action == 'defaultAction') {
             return parent::__executeAction($action, $args);
         }
 
         $class = new ReflectionClass($this);
-        $method = $class->getMethod($action);
+        $method = $class->getMethod($actionMethod);
 
         $positionalArgs = array();
         $errors = array();
@@ -125,7 +125,7 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
         // TODO test
         $positionalArgs[] = $args;
 
-        return parent::__executeAction($action, $positionalArgs);
+        return parent::__executeAction($action, $actionMethod, $positionalArgs);
     }
 
 }

@@ -25,74 +25,64 @@ abstract class Octopus_Controller {
      */
     public function __execute($action, $args) {
 
-        if (strncmp($action, '_', 1) == 0) {
-            // Public methods starting with '_' can't be actions.
+        $action = trim($action);
+
+        if (preg_match('/^(_|before_|after_)/i', $action)) {
+
+            // Public methods starting with '_' can't be actions
+            // before_ and after_ methods can't be actions
+
             return;
         }
 
         $originalAction = $action;
         if (!$args) $args = array();
+        $action = $actionMethod = null;
 
-        if (!method_exists($this, $action)) {
-            $action = $originalAction = camel_case($action);
-            if (!method_exists($this, $action)) {
-                $action = 'defaultAction';
+        $this->figureOutActions($originalAction, $action, $actionMethod);
+
+        $beforeMethods = $this->getBeforeMethods($originalAction, $action, $actionMethod);
+
+        foreach($beforeMethods as $beforeMethod => $includeActionInArgs) {
+
+            if (!method_exists($this, $beforeMethod)) {
+                continue;
             }
-        }
 
-        // Execute the global _before action
-        if (method_exists($this, '_before')) {
-            $result = $this->_before($originalAction, $args);
-            if ($this->isFailure($result)) {
-                return $result;
-            }
-        }
-
-        // Execute the action-specific _before
-        $beforeMethod = 'before_' . $originalAction;
-        if (method_exists($this, $beforeMethod)) {
-            $result = $this->$beforeMethod($args);
-            if ($this->isFailure($result)) {
-                return $result;
-            }
-        }
-
-        if ($originalAction != $action) {
-            // Support before_defaultAction as well
-            $beforeMethod = 'before_' . $action;
-            if (method_exists($this, $beforeMethod)) {
+            if ($includeActionInArgs) {
                 $result = $this->$beforeMethod($originalAction, $args);
-                if ($this->isFailure($result)) {
-                    // Short-circuit
-                    return $result;
-                }
+            } else {
+                $result = $this->$beforeMethod($args);
             }
+
+            if ($this->isFailure($result)) {
+                return $result;
+            }
+
         }
 
         $originalArgs = $args;
 
-        if ($action == 'defaultAction') {
+        if ($action === '_default') {
             $args = array($originalAction, $args);
         }
 
         $this->executedActions[] = array('action' => $originalAction, 'args' => $args);
-        $data = $this->__executeAction($action, $args);
+        $data = $this->__executeAction($action, $actionMethod, $args);
 
-        // Support after_defaultAction
-        if ($originalAction != $action) {
-            $afterMethod = 'after_' . $action;
-            if (method_exists($this, $afterMethod)) {
-                $data = $this->$afterMethod($originalAction, $originalArgs, $data);
+        $afterMethods = $this->getAfterMethods($originalAction, $action, $actionMethod);
+
+        foreach($afterMethods as $afterMethod => $includeAction) {
+
+            if (!method_exists($this, $afterMethod)) {
+                continue;
             }
-        }
 
-        $afterMethod = 'after_'. $originalAction;
-        if (method_exists($this, $afterMethod)) {
-            $data = $this->$afterMethod($originalArgs, $data);
-        }
-
-        if (method_exists($this, '_after')) {
-            $data = $this->_after($originalAction, $originalArgs, $data);
+            if ($includeAction) {
+                $data = $this->$afterMethod($originalAction, $originalArgs, $data);
+            } else {
+                $data = $this->$afterMethod($originalArgs, $data);
+            }
         }
 
         if (is_array($data)) {
@@ -102,13 +92,105 @@ abstract class Octopus_Controller {
         return $data;
     }
 
+    /**
+     * Given an incoming action name, resolves the 'true' name of the action
+     * as well as the method to use to call it.
+     */
+    private function figureOutActions($originalAction, &$action, &$actionMethod) {
+
+        /*
+         * Possible methods for an action called 'foo-bar':
+         *
+         *  fooBar
+         *  fooBarAction
+         *  foo_bar
+         *  foo_bar_action
+         */
+
+        $action = $actionMethod = camel_case($originalAction);
+
+        if (!method_exists($this, $actionMethod)) {
+
+            $actionMethod .= 'Action';
+
+            if (!method_exists($this, $actionMethod)) {
+
+                $action = $actionMethod = underscore($action);
+
+                if (!method_exists($this, $actionMethod)) {
+
+                    $actionMethod .= '_action';
+
+                    if (!method_exists($this, $actionMethod)) {
+                        $action = $actionMethod = '_default';
+                    }
+
+                }
+
+            }
+
+        }
+
+        $action = preg_replace('/(_action|Action)$/', '', $action);
+    }
+
+    /**
+     * @return An array of '_after' methods to call for the given action.
+     */
+    private function &getAfterMethods($originalAction, $action, $actionMethod) {
+
+        $isDefault = ($action === '_default');
+
+        $a = array();
+
+        if ($isDefault) {
+            $a['after_default'] = true;
+        } else if ($action !== $actionMethod) {
+            $a['after_' . $actionMethod] = false;
+        }
+
+        $a['after_' . $action] = $isDefault;
+        $a['after_' . $originalAction] = false;
+
+        $a['_after'] = true;
+
+        return $a;
+    }
+
+    /**
+     * @return An array of '_before' methods to call for the given action.
+     */
+    private function &getBeforeMethods($originalAction, $action, $actionMethod) {
+
+        $isDefault = ($action === '_default');
+
+        $b = array('_before' => true);
+
+        $b['before_' . $originalAction] = false;
+        $b['before_' . $action] = $isDefault;
+
+        if ($isDefault) {
+            $b['before_default'] = true;
+        } else if ($action !== $actionMethod) {
+            $b['before_' . $actionMethod] = false;
+        }
+
+        return $b;
+    }
+
     private function isFailure($result) {
 
         return ($result === false) ||
                (is_array($result) && isset($result['success']) && $result['success'] === false);
     }
 
-    protected function __executeAction($action, $args) {
+    /**
+     * Actually calls the method that corresponds to $action on this controller.
+     * @param string $action Name of action, e.g. 'fooBar',
+     * @param string $actionMethod Name of the method, e.g. 'fooBarAction'
+     * @param Array $args Arguments to pass to the action.
+     */
+    protected function __executeAction($action, $actionMethod, $args) {
 
         $haveArgs = !!count($args);
 
@@ -127,7 +209,7 @@ abstract class Octopus_Controller {
             if (is_associative_array($args)) {
                 return $this->$action($args);
             } else {
-                return call_user_func_array(array($this, $action), $args);
+                return call_user_func_array(array($this, $actionMethod), $args);
             }
         }
     }
@@ -256,10 +338,10 @@ abstract class Octopus_Controller {
     }
 
     /**
-     * If the action specified does not exist on this class, defaultAction()
+     * If the action specified does not exist on this class, _default()
      * gets called.
      */
-    public function defaultAction($action, $args) {}
+    public function _default($action, $args) {}
 
     /**
      * Returns whether a given action is currently being executed, taking into

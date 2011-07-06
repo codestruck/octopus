@@ -421,7 +421,6 @@ class Octopus_App {
         }
 
         $dispatch = new Octopus_Dispatcher($this);
-
         $this->_currentRequest = $this->createRequest($path, $options);
         $response = $dispatch->getResponse($this->_currentRequest, !empty($options['buffer']));
 
