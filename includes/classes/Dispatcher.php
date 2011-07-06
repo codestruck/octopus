@@ -174,14 +174,21 @@ class Octopus_Dispatcher {
 
         if ($info && !empty($info['file'])) {
 
-            if (!$info['found'] && $this->_app->isDevEnvironment()) {
+            if (!$info['found']) {
+
                 // View wasn't found, so provide some extra data for the 'view not found' view.
                 $data = array(
-                    'controller_data' => $data,
+                    'controller_data' => array(),
                     'path' => $request->getPath(),
-                    'resolved_path' => $request->getResolvedPath(),
-                    'view_paths' => $finder->getViewPaths($request, $controller)
+                    'resolved_path' => '',
+                    'view_paths' => array()
                 );
+
+                if ($this->_app->isDevEnvironment()) {
+                    $data['controller_data'] = $data;
+                    $data['resolved_path'] = $request->getResolvedPath();
+                    $data['view_paths'] = $finder->getViewPaths($request, $controller);
+                }
             }
 
             return $info['file'];
