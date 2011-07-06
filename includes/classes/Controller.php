@@ -27,11 +27,8 @@ abstract class Octopus_Controller {
 
         $action = trim($action);
 
-        if (preg_match('/^(_|before_|after_)/i', $action)) {
-
+        if (strncmp($action, '_', 1) == 0) {
             // Public methods starting with '_' can't be actions
-            // before_ and after_ methods can't be actions
-
             return;
         }
 
@@ -144,13 +141,13 @@ abstract class Octopus_Controller {
         $a = array();
 
         if ($isDefault) {
-            $a['after_default'] = true;
+            $a['_after_default'] = true;
         } else if ($action !== $actionMethod) {
-            $a['after_' . $actionMethod] = false;
+            $a['_after_' . $actionMethod] = false;
         }
 
-        $a['after_' . $action] = $isDefault;
-        $a['after_' . $originalAction] = false;
+        $a['_after_' . $action] = $isDefault;
+        $a['_after_' . $originalAction] = false;
 
         $a['_after'] = true;
 
@@ -166,13 +163,13 @@ abstract class Octopus_Controller {
 
         $b = array('_before' => true);
 
-        $b['before_' . $originalAction] = false;
-        $b['before_' . $action] = $isDefault;
+        $b['_before_' . $originalAction] = false;
+        $b['_before_' . $action] = $isDefault;
 
         if ($isDefault) {
-            $b['before_default'] = true;
+            $b['_before_default'] = true;
         } else if ($action !== $actionMethod) {
-            $b['before_' . $actionMethod] = false;
+            $b['_before_' . $actionMethod] = false;
         }
 
         return $b;

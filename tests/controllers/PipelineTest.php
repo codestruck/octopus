@@ -58,19 +58,19 @@ class BeforeAndAfterController extends Octopus_Controller {
         \$GLOBALS[__METHOD__] = array(\$this->i++, \$action, \$args);
     }
 
-    function before_default(\$action, \$args) {
+    function _before_default(\$action, \$args) {
         \$GLOBALS[__METHOD__] = array(\$this->i++, \$args);
     }
 
-    function after_default(\$action, \$args, \$data) {
+    function _after_default(\$action, \$args, \$data) {
         \$GLOBALS[__METHOD__] = array(\$this->i++, \$args);
     }
 
-    function before_foo(\$args) {
+    function _before_foo(\$args) {
         \$GLOBALS[__METHOD__] = array(\$this->i++, \$args);
     }
 
-    function after_foo(\$args, \$data) {
+    function _after_foo(\$args, \$data) {
         \$GLOBALS[__METHOD__] = array(\$this->i++, \$args);
     }
 
@@ -78,15 +78,15 @@ class BeforeAndAfterController extends Octopus_Controller {
         \$GLOBALS[__METHOD__] = array(\$this->i++, \$arg1, \$arg2);
     }
 
-    function before_missing(\$args) {
+    function _before_missing(\$args) {
         \$GLOBALS[__METHOD__] = array(\$this->i++, \$args);
     }
 
-    function after_missing(\$args, \$data) {
+    function _after_missing(\$args, \$data) {
         \$GLOBALS[__METHOD__] = array(\$this->i++, \$args, \$data);
     }
 
-    function before_cancel(\$args) {
+    function _before_cancel(\$args) {
         \$GLOBALS[__METHOD__] = array(\$this->i++, \$args);
         return false;
     }
@@ -95,7 +95,7 @@ class BeforeAndAfterController extends Octopus_Controller {
         \$GLOBALS[__METHOD__] = array(\$this->i++, \$arg1, \$arg2);
     }
 
-    function after_cancel(\$args, \$data) {
+    function _after_cancel(\$args, \$data) {
         \$GLOBALS[__METHOD__] = array(\$this->i++, \$args, \$data);
     }
 
@@ -103,11 +103,11 @@ class BeforeAndAfterController extends Octopus_Controller {
     \$GLOBALS[__METHOD__] = array(\$this->i++, \$arg1, \$arg2);
     }
 
-    function before_emptyAction(\$args) {
+    function _before_emptyAction(\$args) {
         \$GLOBALS[__METHOD__] = array(\$this->i++, \$args);
     }
 
-    function after_emptyAction(\$args, \$data) {
+    function _after_emptyAction(\$args, \$data) {
         \$GLOBALS[__METHOD__] = array(\$this->i++, \$args, \$data);
     }
 
@@ -121,17 +121,17 @@ END
 
         $app = $this->startApp();
 
-        $this->createViewFile('before_and_after/foo');
-        $this->createViewFile('before_and_after/missing');
-        $this->createViewFile('before_and_after/cancel');
-        $this->createViewFile('before_and_after/empty');
+        $this->createViewFile('_before_and_after/foo');
+        $this->createViewFile('_before_and_after/missing');
+        $this->createViewFile('_before_and_after/cancel');
+        $this->createViewFile('_before_and_after/empty');
 
         $resp = $app->getResponse('before-and-after/foo/arg1/arg2', true);
 
         $this->assertEquals(array(0, 'foo', array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::_before'], '_before is wrong');
-        $this->assertEquals(array(1, array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::before_foo'], 'before_foo is wrong');
+        $this->assertEquals(array(1, array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::_before_foo'], '_before_foo is wrong');
         $this->assertEquals(array(2, 'arg1', 'arg2'), $GLOBALS['BeforeAndAfterController::foo'], 'foo is wrong');
-        $this->assertEquals(array(3, array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::after_foo'], 'after_foo is wrong');
+        $this->assertEquals(array(3, array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::_after_foo'], '_after_foo is wrong');
         $this->assertEquals(array(4, 'foo', array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::_after'], '_after is wrong');
 
 
@@ -140,10 +140,10 @@ END
 
         $resp = $app->getResponse('before-and-after/missing/arg1/arg2', true);
         $this->assertEquals(array(0, 'missing', array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::_before'], '_before is wrong');
-        $this->assertEquals(array(1, array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::before_missing'], 'before_missing is wrong');
-        $this->assertEquals(array(2, array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::before_default'], 'before_default is wrong');
-        $this->assertEquals(array(3, array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::after_default'], 'after_default is wrong');
-        $this->assertEquals(array(4, array('arg1', 'arg2'), null), $GLOBALS['BeforeAndAfterController::after_missing'], 'after_missing is wrong');
+        $this->assertEquals(array(1, array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::_before_missing'], '_before_missing is wrong');
+        $this->assertEquals(array(2, array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::_before_default'], '_before_default is wrong');
+        $this->assertEquals(array(3, array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::_after_default'], '_after_default is wrong');
+        $this->assertEquals(array(4, array('arg1', 'arg2'), null), $GLOBALS['BeforeAndAfterController::_after_missing'], '_after_missing is wrong');
         $this->assertEquals(array(5, 'missing', array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::_after'], '_after is wrong');
 
         unset($GLOBALS['BeforeAndAfterController::_before']);
@@ -152,22 +152,22 @@ END
 
         $resp = $app->getResponse('before-and-after/cancel/arg1/arg2', true);
         $this->assertEquals(array(0, 'cancel', array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::_before'], '_before is wrong');
-        $this->assertEquals(array(1, array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::before_cancel'], 'before_cancel is wrong');
+        $this->assertEquals(array(1, array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::_before_cancel'], '_before_cancel is wrong');
         $this->assertFalse(isset($GLOBALS['BeforeAndAfterController::cancel']), 'cancel should not have been called');
-        $this->assertFalse(isset($GLOBALS['BeforeAndAfterController::after_cancel']), 'after_cancel should not have been called.');
+        $this->assertFalse(isset($GLOBALS['BeforeAndAfterController::_after_cancel']), '_after_cancel should not have been called.');
         $this->assertFalse(isset($GLOBALS['BeforeAndAfterController::_after']), '_after should not have been called.');
 
         unset($GLOBALS['BeforeAndAfterController::_before']);
         unset($GLOBALS['BeforeAndAfterController::_after']);
-        unset($GLOBALS['BeforeAndAfterController::before_emptyAction']);
-        unset($GLOBALS['BeforeAndAfterController::after_emptyAction']);
+        unset($GLOBALS['BeforeAndAfterController::_before_emptyAction']);
+        unset($GLOBALS['BeforeAndAfterController::_after_emptyAction']);
         unset($GLOBALS['BeforeAndAfterController::emptyAction']);
 
         $resp = $app->getResponse('before-and-after/empty/arg1/arg2', true);
         $this->assertEquals(array(0, 'empty', array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::_before'], '_before is wrong for *Action');
-        $this->assertEquals(array(1, array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::before_emptyAction'], 'before_emptyAction is wrong for *Action');
+        $this->assertEquals(array(1, array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::_before_emptyAction'], '_before_emptyAction is wrong for *Action');
         $this->assertEquals(array(2, 'arg1', 'arg2'), $GLOBALS['BeforeAndAfterController::emptyAction'], 'emptyAction is wrong');
-        $this->assertEquals(array(3, array('arg1', 'arg2'), null), $GLOBALS['BeforeAndAfterController::after_emptyAction'], 'after_emptyAction is wrong');
+        $this->assertEquals(array(3, array('arg1', 'arg2'), null), $GLOBALS['BeforeAndAfterController::_after_emptyAction'], '_after_emptyAction is wrong');
         $this->assertEquals(array(4, 'empty', array('arg1', 'arg2')), $GLOBALS['BeforeAndAfterController::_after'], '_after is wrong for *Action');
 
     }
@@ -194,17 +194,17 @@ END
                 }
 
 
-                public function before_default(\$action, \$args) {
+                public function _before_default(\$action, \$args) {
                     \$GLOBALS[__METHOD__] = array(\$this->i++, \$action, \$args);
                 }
 
-                public function after_default(\$action, \$args, \$data) {
+                public function _after_default(\$action, \$args, \$data) {
                     \$GLOBALS[__METHOD__] = array(\$this->i++, \$action, \$args);
                     return \$data;
                 }
 
 
-                public function before_foo(\$args) {
+                public function _before_foo(\$args) {
                     \$GLOBALS[__METHOD__] = array(\$this->i++, \$args);
                 }
 
@@ -212,7 +212,7 @@ END
                     \$GLOBALS[__METHOD__] = array(\$this->i++, \$arg);
                 }
 
-                public function after_foo(\$args, \$data) {
+                public function _after_foo(\$args, \$data) {
                     \$GLOBALS[__METHOD__] = array(\$this->i++, \$args, \$data);
                     return \$data;
                 }
@@ -223,17 +223,17 @@ END
 END
         );
 
-        $this->createViewFile('before-and-after-not-actions/before_foo');
-        $this->createViewFile('before-and-after-not-actions/after_foo');
+        $this->createViewFile('before-and-after-not-actions/_before_foo');
+        $this->createViewFile('before-and-after-not-actions/_after_foo');
         $this->createViewFile('before-and-after-not-actions/_before');
         $this->createViewFile('before-and-after-not-actions/_after');
-        $this->createViewFile('before-and-after-not-actions/before_default');
-        $this->createViewFile('before-and-after-not-actions/after_default');
+        $this->createViewFile('before-and-after-not-actions/_before_default');
+        $this->createViewFile('before-and-after-not-actions/_after_default');
 
 
-        $resp = $app->getResponse('before-and-after-not-actions/before_foo', true);
+        $resp = $app->getResponse('before-and-after-not-actions/_before_foo', true);
 
-        foreach(array('before_foo', 'after_foo') as $m) {
+        foreach(array('_before_foo', '_after_foo') as $m) {
             $this->assertFalse(isset($GLOBALS['BeforeAndAfterNotActionsController::' . $m]), "$m is set");
         }
     }
