@@ -91,7 +91,7 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
     protected function __executeAction($action, $actionMethod, $args) {
 
         if ($action == '_default') {
-            return parent::__executeAction($action, $args);
+            return parent::__executeAction($action, $actionMethod, $args);
         }
 
         $class = new ReflectionClass($this);
