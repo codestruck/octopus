@@ -1,33 +1,28 @@
 <?php
-
 Octopus::loadClass('Octopus_Logger_File');
 
 class Octopus_DB_Driver_Pdo {
 
-    function Octopus_DB_Driver_Pdo() {
-        $this->handle = null;
-        $this->lastSql = '';
-    }
+    public $handle = null;
+    private $lastSql = '';
 
-    function connect() {
+    /**
+     * Establish a DB connection.
+     */
+    public function connect() {
 
-        if ($this->handle === null) {
-
-            $this->handle = new PDO(sprintf('mysql:host=%s;dbname=%s', DB_hostname, DB_database), DB_username, DB_password);
-            $this->handle->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
-
-            if (!$this->handle) {
-                $msg = 'Problem connecting to database server.';
-                $logger = new Octopus_Logger_File(LOG_DIR . 'db.txt');
-                $logger->log($msg);
-                die($msg);
-            }
-
-            $this->database = DB_database;
-            $this->connection = $this->handle;
-
+        if ($this->handle !== null) {
+            return;
         }
 
+        if (!(defined('DB_hostname') && defined('DB_database') && defined('DB_username') && defined('DB_password'))) {
+            throw new Octopus_DB_Exception("DB configuration is not available.");
+        }
+
+        $this->handle = new PDO(sprintf('mysql:host=%s;dbname=%s', DB_hostname, DB_database), DB_username, DB_password);
+        $this->handle->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
+        $this->database = DB_database;
+        $this->connection = $this->handle;
     }
 
     /**
