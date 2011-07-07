@@ -23,6 +23,11 @@ class Octopus_App {
     public static $defaults = array(
 
         /**
+         * Alias to define for the '/' path. Set to false to not define one.
+         */
+        'root_alias' => 'home',
+
+        /**
          * Whether to squash redirects when a PHP error occurs. This will only
          * happen in DEV mode.
          */
@@ -83,6 +88,10 @@ class Octopus_App {
     private $_controllers = null, $_flatControllers = null;
     private $_prevErrorHandler = null;
     private $_currentRequest = null;
+
+    private $_haveSiteDir = false;
+    private $_haveSiteViews = false;
+    private $_haveSiteControllers = false;
     private $_haveSiteConfig = false;
 
     private function __construct($options = array()) {
@@ -96,11 +105,49 @@ class Octopus_App {
         $this->_figureOutLocation();
         $this->_initNav();
         $this->_loadSystemModels();
+        $this->_examineSiteDir();
         $this->_loadSiteConfig();
         $this->_setEnvironmentFlags();
         $this->_ensurePrivateDir();
         $this->_initSettings();
         $this->watchForErrors();
+    }
+
+    private function _examineSiteDir() {
+
+        $o =& $this->_options;
+
+        $this->_haveSiteConfig = false;
+        $this->_haveSiteViews = false;
+        $this->_haveSiteControllers = false;
+
+        $siteDir = $o['SITE_DIR'];
+        if (!is_dir($siteDir)) {
+            return;
+        }
+
+        $viewsDir = $o['SITE_DIR'] . 'views/';
+
+        if (is_dir($viewsDir)) {
+
+            foreach($o['view_extensions'] as $ext) {
+
+                $files = glob($viewsDir . '*' . $ext);
+                if (!empty($files)) {
+                    $this->_haveSiteViews = true;
+                    break;
+                }
+
+            }
+
+        }
+
+        $controllersDir = $o['SITE_DIR'] . 'controllers/';
+        if (is_dir($controllersDir)) {
+            $files = glob($controllersDir . '*.php');
+            $this->_haveSiteViews = !empty($files);
+        }
+
     }
 
     protected function watchForErrors() {
@@ -187,6 +234,11 @@ class Octopus_App {
     private function _initNav() {
 
         $this->_nav = new Octopus_Nav();
+
+        $o =& $this->_options;
+        if ($o['root_alias']) {
+            $this->_nav->alias($o['root_alias'], '/');
+        }
 
     }
 
@@ -438,35 +490,23 @@ class Octopus_App {
             unset($_GET[$arg]);
         }
 
-        if ($o['show_welcome'] && !$this->haveSiteConfig()) {
-            // Redirect to a welcome view w/ setup instructions
+        $this->_currentRequest = $req = $this->createRequest($path, $options);
 
-            $path = 'sys/welcome';
+        if ($o['show_welcome']) {
+
+            if (!($this->_haveSiteConfig || $this->_haveSiteControllers || $this->_haveSiteViews)) {
+
+                // No config, views, or controllers = show a welcome message.
+                if (!preg_match('/^sys($|\/.*)$/i', $req->getResolvedPath())) {
+                    $path = 'sys/welcome';
+                }
+
+            }
         }
 
         $dispatch = new Octopus_Dispatcher($this);
-        $this->_currentRequest = $req = $this->createRequest($path, $options);
-
-        if ($o['show_welcome'] && !$this->haveSiteConfig()) {
-
-            // Redirect to a welcome page
-            if (!preg_match('/^sys($|\/.*)$/i', $req->getResolvedPath())) {
-                $response = new Octopus_Response($options['buffer']);
-                $response->redirect('/sys/welcome');
-                return $response;
-            }
-
-        }
 
         return $dispatch->getResponse($this->_currentRequest, !empty($options['buffer']));
-    }
-
-    /**
-     * @return bool Whether a site config file was loaded when this app was
-     * started.
-     */
-    public function haveSiteConfig() {
-        return $this->_haveSiteConfig;
     }
 
     /**
@@ -777,6 +817,8 @@ class Octopus_App {
 
         $o =& $this->_options;
 
+        error_reporting(E_ALL);
+
         $flags = array('DEV', 'LIVE', 'STAGING');
         foreach($flags as $f) {
 
@@ -797,8 +839,8 @@ class Octopus_App {
 
             if (!$o['DEV'] && !(isset($o['STAGING']) || isset($o['LIVE']))) {
                 // If we have no other evidence, default to a dev environment
-                // if the site config is not present
-                $o['DEV'] = !$this->haveSiteConfig();
+                // if there's nothing in the site dir
+                $o['DEV'] = !($this->_haveSiteConfig || $this->_haveSiteViews || $this->_haveSiteControllers);
             }
 
         }

@@ -32,6 +32,10 @@ abstract class Octopus_Controller {
             return;
         }
 
+        if (!$action) {
+            $action = 'index';
+        }
+
         $originalAction = $action;
         if (!$args) $args = array();
         $action = $actionMethod = null;

@@ -6,11 +6,12 @@
 class Octopus_View_Finder {
 
     /**
-     * @return Array An array of all the paths a view for $path could live,
+     * @return Array An array of all the paths a view for $request could live,
      * in order of priority.
      */
     public function getViewPaths(Octopus_Request $request, Octopus_Controller $controller) {
-        return $this->internalGetViewPaths($request, $controller, null, false);
+        $paths = $this->internalGetViewPaths($request, $controller, null, false);
+        return array_filter($paths, 'trim');
     }
 
     /**
@@ -80,7 +81,10 @@ class Octopus_View_Finder {
 
         $r = null;
 
-        if ($controllerFile && starts_with($controllerFile, $siteDir . 'controllers/', false, $r)) {
+        // slight HACK: DefaultController should not be used to locate views.
+        if ($controllerFile === $octopusDir . 'controllers/Default.php') {
+            $controller = '';
+        } else if ($controllerFile && starts_with($controllerFile, $siteDir . 'controllers/', false, $r)) {
             $controller = preg_replace('/\.php$/i', '', $r);
         } else if ($controllerFile && starts_with($controllerFile, $octopusDir . 'controllers/', false, $r)) {
             $controller = preg_replace('/\.php$/i', '', $r);
@@ -162,18 +166,7 @@ class Octopus_View_Finder {
             if (!empty($controller->view)) {
                 $view = $controller->view;
             } else {
-
-                $c = $request->getControllerInfo();
-
-                if (!$c || empty($c['file'])) {
-                    // TODO: Does this make sense?
-                    $view = $request->getPath();
-                } else {
-                    $controllerFile = $c['file'];
-                    $controllerClass = $request->getControllerClass();
-
-                    $view = $this->buildCandidateViewList($request, $action);
-                }
+                $view = $this->buildCandidateViewList($request, $action);
             }
 
         }

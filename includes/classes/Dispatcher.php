@@ -51,7 +51,9 @@ class Octopus_Dispatcher {
 
         if (!$controller) {
 
-            // TODO: Somehow report that the controller wasn't found.
+            if ($this->debug) {
+                dump_r('Controller not found for path', $request->getResolvedPath());
+            }
 
             $controller = $this->createDefaultController($request, $response);
         }
@@ -155,8 +157,9 @@ class Octopus_Dispatcher {
 
         if ($this->debug) {
 
-            dump_r($controller->__getExecutedActions());
-            dump_r($viewFile);
+            dump_r('Controller Class', get_class($controller));
+            dump_r('Executed Actions', $controller->__getExecutedActions());
+            dump_r('View File', $viewFile);
 
         }
 

@@ -78,12 +78,6 @@ class Octopus_Request {
     }
 
     /**
-     * @return Octopus_Controller
-     */
-    public function getController() {
-    }
-
-    /**
      * @return String The class of controller to use for this request, or
      * false if none is found.
      */
@@ -238,6 +232,14 @@ class Octopus_Request {
             }
 
         }
+
+        // No controller was found. Use the DefaultController
+        $result = array(
+            'file' => $this->app->getSetting('OCTOPUS_DIR') . 'controllers/Default.php',
+            'potential_names' => 'DefaultController',
+            'action' => $pathParts ? array_shift($pathParts) : '',
+            'args' => $pathParts ? $pathParts : array(),
+        );
 
         return $result;
     }

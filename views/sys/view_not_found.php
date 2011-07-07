@@ -12,6 +12,13 @@
 
     </p>
 
+<?php if (empty($view_paths)): ?>
+    <p>
+        <strong>There was not enough information in the path to guess
+        where the view might be stored.</strong>
+    </p>
+<?php else: ?>
+
     <p>
     Here is where we looked for views:
     </p>
@@ -30,6 +37,8 @@ END;
         }
     ?>
     </ul>
+
+<?php endif ?>
 
     <p>
         To change the contents of this view, edit the file
