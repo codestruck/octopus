@@ -217,11 +217,19 @@ class Octopus_Settings extends Octopus_Base implements Iterator {
     private function loadFromDB() {
 
         if ($this->_loaded) return;
-        $this->_loaded = true;
 
-        $s = new Octopus_DB_Select();
-        $s->table('settings', array('name', 'value'));
-        $this->_values = $s->getMap();
+        try {
+            $s = new Octopus_DB_Select();
+            $s->table('settings', array('name', 'value'));
+            $this->_values = $s->getMap();
+            $this->_loaded = true;
+        } catch(Octopus_DB_Exception $ex) {
+
+            // If there is no DB configuration, fall back
+            $this->_values = array();
+            $this->_loaded = false;
+
+        }
 
     }
 
