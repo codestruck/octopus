@@ -62,21 +62,21 @@ class Octopus_Debug {
         padding: 10px;
     }
 
-    .sgDebugContentTable {
-        width: 100%;
+    table.sgDebugContentTable {
+        border-spacing: 10px;
     }
 
     table.sgDebugContentTable tr td {
+        background: #DDD;
+        border: 1px solid #333;
+        padding: 5px;
+        text-align: left;
         vertical-align: top;
-        text-align: center;
     }
-    table.sgDebugContentTable tr td.sgDebugLast { text-align: right; }
     table.sgDebugContentTable tr td.sgDebugFirst { text-align: left; }
 
 
     .sgDebug_var {
-        background: #eee;
-        padding: 5px;
         margin-bottom: 10px;
     }
 
@@ -95,6 +95,15 @@ class Octopus_Debug {
         padding: 0;
     }
     ul.sgDebugBacktrace li.sgDebugFirst { font-weight: bold; }
+
+
+    table.sgDebug_footer {
+        width: 100%;
+    }
+    table.sgDebug_footer tr td {
+        background: none;
+        border: none;
+    }
 
     .sgDebugErrorReporting {
         border-top: 1px dotted #555;
