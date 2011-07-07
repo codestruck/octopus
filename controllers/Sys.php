@@ -6,6 +6,10 @@ class SysController extends Octopus_Controller {
 
         /* Restrict access to the system actions when not running in DEV mode */
 
+        if ($action === 'welcome') {
+            return true;
+        }
+
         if (!$this->app->isDevEnvironment()) {
             $this->response->forbidden();
             return false;
@@ -59,6 +63,10 @@ class SysController extends Octopus_Controller {
 
     }
 
+    public function welcome() {
+
+
+    }
 }
 
 ?>

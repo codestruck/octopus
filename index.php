@@ -2,7 +2,9 @@
 
     require_once('includes/core.php');
 
-    bootstrap();
+    bootstrap(array(
+        'show_welcome' => true
+    ));
 
     render_page();
 

@@ -1,5 +1,6 @@
 <?php
 
+
 Octopus::loadClass('Octopus_Model');
 Octopus::loadClass('Octopus_Nav');
 Octopus::loadClass('Octopus_Dispatcher');
@@ -62,6 +63,12 @@ class Octopus_App {
         'session_name' => 'octopus',
 
         /**
+         * Whether or not to redirect to a 'welcome to octopus' view if no
+         * config file is available.
+         */
+        'show_welcome' => false,
+
+        /**
          * Extensions that view files can have.
          */
         'view_extensions' => array('.php', '.tpl')
@@ -76,10 +83,12 @@ class Octopus_App {
     private $_controllers = null, $_flatControllers = null;
     private $_prevErrorHandler = null;
     private $_currentRequest = null;
+    private $_haveSiteConfig = false;
 
     private function __construct($options = array()) {
 
         $this->_options = empty($options) ? self::$defaults : array_merge(self::$defaults, $options);
+
 
         $this->_setUpPHP();
         $this->_figureOutDirectories();
@@ -409,6 +418,8 @@ class Octopus_App {
      */
     public function getResponse($path = null, $options = null) {
 
+        $o =& $this->_options;
+
         if (is_array($path) && $options === null) {
             // Support getResponse(array('option' => 'value'));
             $options = $path;
@@ -427,11 +438,35 @@ class Octopus_App {
             unset($_GET[$arg]);
         }
 
-        $dispatch = new Octopus_Dispatcher($this);
-        $this->_currentRequest = $this->createRequest($path, $options);
-        $response = $dispatch->getResponse($this->_currentRequest, !empty($options['buffer']));
+        if ($o['show_welcome'] && !$this->haveSiteConfig()) {
+            // Redirect to a welcome view w/ setup instructions
 
-        return $response;
+            $path = 'sys/welcome';
+        }
+
+        $dispatch = new Octopus_Dispatcher($this);
+        $this->_currentRequest = $req = $this->createRequest($path, $options);
+
+        if ($o['show_welcome'] && !$this->haveSiteConfig()) {
+
+            // Redirect to a welcome page
+            if (!preg_match('/^sys($|\/.*)$/i', $req->getResolvedPath())) {
+                $response = new Octopus_Response($options['buffer']);
+                $response->redirect('/sys/welcome');
+                return $response;
+            }
+
+        }
+
+        return $dispatch->getResponse($this->_currentRequest, !empty($options['buffer']));
+    }
+
+    /**
+     * @return bool Whether a site config file was loaded when this app was
+     * started.
+     */
+    public function haveSiteConfig() {
+        return $this->_haveSiteConfig;
     }
 
     /**
@@ -685,6 +720,7 @@ class Octopus_App {
     private function _loadSiteConfig() {
 
         $o =& $this->_options;
+        $this->_haveSiteConfig = false;
 
         if (!$o['use_site_config']) {
             return;
@@ -701,19 +737,17 @@ class Octopus_App {
             // same server.
             die("No hostname is known.");
         }
+        $host = strtolower($host);
 
         $hostConfigFile = SITE_DIR . "config.$host.php";
 
-        if (! (file_exists($configFile) || file_exists($hostConfigFile))) {
-            //$this->error('No config file found.', E_USER_NOTICE);
-            //return false;
-        }
-
         if (file_exists($configFile)) {
+            $this->_haveSiteConfig = true;
             require_once($configFile);
         }
 
         if (file_exists($hostConfigFile)) {
+            $this->_haveSiteConfig = true;
             require_once($hostConfigFile);
         }
 
@@ -757,7 +791,18 @@ class Octopus_App {
             }
         }
 
-        if (!isset($o['DEV'])) $o['DEV'] = is_dev_environment($o['LIVE'], $o['STAGING'], false, $this->getHostname());
+        if (!isset($o['DEV'])) {
+
+            $o['DEV'] = is_dev_environment($o['LIVE'], $o['STAGING'], false, $this->getHostname());
+
+            if (!$o['DEV'] && !(isset($o['STAGING']) || isset($o['LIVE']))) {
+                // If we have no other evidence, default to a dev environment
+                // if the site config is not present
+                $o['DEV'] = !$this->haveSiteConfig();
+            }
+
+        }
+
         if (!isset($o['STAGING'])) $o['STAGING'] = is_staging_environment($o['DEV'], $o['LIVE'], false, $this->getHostname());
         if (!isset($o['LIVE'])) $o['LIVE'] = is_live_environment($o['DEV'], $o['STAGING'], false);
 
