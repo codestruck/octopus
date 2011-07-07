@@ -4,11 +4,17 @@ $_OCTOPUS_DUMPED_CONTENT = array();
 
 function get_dumped_content() {
     global $_OCTOPUS_DUMPED_CONTENT;
-    return array('_octopus_dumped_content' => $_OCTOPUS_DUMPED_CONTENT);
+    if (count($_OCTOPUS_DUMPED_CONTENT)) {
+        return array('_octopus_dumped_content' => $_OCTOPUS_DUMPED_CONTENT);
+    }
+    return array();
 }
 
 function output_dumped_content_header($data, $response) {
     $key = 'X-Dumped-Content';
+    if (!count($data)) {
+        return;
+    }
     $value = print_r($data, true);
     $lines = explode("\n", trim($value));
     $padding = ceil(log(count($lines), 10));
