@@ -19,6 +19,22 @@ END
 
     }
 
+    function testDev() {
+        $this->assertTrue(is_dev_environment(null, null, false, 'dvsas.local'));
+        $this->assertTrue(is_dev_environment(null, null, false, 'dvsas.estes'));
+
+        $this->assertFalse(is_dev_environment(null, null, false, 'dvsas.com'));
+        $this->assertFalse(is_dev_environment(null, null, false, 'dvsas.org'));
+    }
+
+    function testStaging() {
+        $this->assertFalse(is_staging_environment(null, null, false, 'dvsas.local', '/'));
+        $this->assertFalse(is_staging_environment(null, null, false, 'dvsas.com', '/'));
+        $this->assertTrue(is_staging_environment(null, null, false, 'dev.dvsas.org', '/'));
+        $this->assertTrue(is_staging_environment(null, null, false, 'dvsas.org', '/dev/'));
+    }
+
+
 }
 
 ?>
