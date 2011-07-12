@@ -153,7 +153,7 @@
             }
         }
 
-        return !isset($_SERVER['HTTP_USER_AGENT']);
+        return true;
     }
 
     /**
@@ -215,7 +215,9 @@
         }
 
         if ($hostname !== null) {
-            return preg_match('/^dev\./i', $hostname) ? true : false;
+            if (preg_match('/^dev\./i', $hostname)) {
+                return true;
+            }
         }
 
         // TODO Read path from $_SERVER
