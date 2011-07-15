@@ -12,7 +12,7 @@ class Octopus_Smarty extends Octopus_Base {
 
         if ($templateDir == null) {
 
-            if ($app->template_dir) {
+            if (isset($app->template_dir)) {
                 $templateDir = $app->template_dir;
             } else if (defined('SITE_DIR')) {
                 $templateDir = SITE_DIR . 'views/';
