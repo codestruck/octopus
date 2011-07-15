@@ -26,7 +26,7 @@
 
         function testInStagingEnvironment() {
 
-            $this->assertTrue(is_staging_environment(false, false, false));
+            $this->assertFalse(is_staging_environment(false, false, false));
             $this->assertFalse(is_staging_environment(true, false, false));
             $this->assertFalse(is_staging_environment(false, true, false));
             $this->assertFalse(is_staging_environment(true, true, false));

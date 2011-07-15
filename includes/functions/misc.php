@@ -227,7 +227,7 @@
             return preg_match('#^/?dev(/|$)#i', $path) ? true : false;
         }
 
-        return true;
+        return false;
     }
 
     /**
