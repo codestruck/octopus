@@ -2,7 +2,7 @@
 
 Octopus::loadClass('Http_Request_Base');
 
-class Octopus_Http_Request_Sockets extends OCtopus_Http_Request_Base {
+class Octopus_Http_Request_Sockets extends Octopus_Http_Request_Base {
 
     public function request($url, $data = null, $args = array()) {
 
@@ -13,6 +13,10 @@ class Octopus_Http_Request_Sockets extends OCtopus_Http_Request_Base {
         $ip = gethostbyname($host);
 
         if ($secure) {
+            $protos = stream_get_transports();
+            if (!in_array('ssl', $protos)) {
+                throw new Octopus_Exception('No SSL Support in fsockopen');
+            }
             $ip = 'ssl://' . $ip;
         }
 
@@ -69,7 +73,7 @@ class Octopus_Http_Request_Sockets extends OCtopus_Http_Request_Base {
     }
 
     public static function usable() {
-        if (!function_exists('curl_init')) {
+        if (ini_get('allow_url_fopen') == false) {
             return false;
         }
 
