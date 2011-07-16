@@ -415,6 +415,8 @@ END;
                 $u->where('realm = ?', $this->realm);
                 $u->execute();
 
+                $this->onAccess();
+
                 return true;
 
             } else {
@@ -445,6 +447,8 @@ END;
 
         return $ip;
     }
+
+    protected function onAccess() {}
 
     function getApiKey() {
 
