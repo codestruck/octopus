@@ -34,10 +34,6 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
 
 
     protected $groups = array();
-    protected $last_login;
-    protected $total_logins;
-    protected $last_host;
-    protected $last_ip;
 
     function __construct($arg = null) {
         $this->rememberSeconds = 60*60*24 * $this->rememberDays;
