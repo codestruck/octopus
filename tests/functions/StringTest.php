@@ -7,6 +7,23 @@
 class StringTests extends PHPUnit_Framework_TestCase
 {
 
+    function testGlobToRegex() {
+
+        $tests = array(
+            '' => '',
+            'foo.bar' => '^foo\.bar$',
+            '*.txt' => '^.+\.txt$',
+            '/path/to/*.txt' => '^/path/to/.+\.txt$',
+            'foo.???' => '^foo\....$',
+            '[abc][def].*' => '^[abc][def]\..+$'
+        );
+
+        foreach($tests as $input => $expected) {
+            $this->assertEquals($expected, glob_to_regex($input), "Failed on '$input'");
+        }
+
+    }
+
     function testToTableName() {
 
         $tests = array(

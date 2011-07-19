@@ -124,6 +124,19 @@
     }
 
     /**
+     * Converts a glob expression to a regular expression.
+     */
+    function glob_to_regex($glob) {
+
+        $glob = str_replace('.', '\.', $glob);
+        $glob = str_replace('+', '\+', $glob);
+        $glob = str_replace('*', '.+', $glob);
+        $glob = str_replace('?', '.', $glob);
+
+        return $glob ? "^$glob$" : $glob;
+    }
+
+    /**
      * Alias for htmlspecialchars.
      * @param mixed Individual strings to escape and concatenate.
      * @return string All arguments, escaped and concatenated.
@@ -138,14 +151,14 @@
 
             case 1:
                 $arg = func_get_arg(0);
-                return htmlspecialchars($arg);
+                return htmlspecialchars($arg, ENT_QUOTES);
 
         }
 
         $result = '';
         for($i = 0; $i < $count; $i++) {
             $arg = func_get_arg($i);
-            $result .= htmlspecialchars($arg);
+            $result .= htmlspecialchars($arg, ENT_QUOTES);
         }
 
         return $result;
