@@ -173,6 +173,22 @@
     }
 
     /**
+     * Given some input, tries to turn it into a well-formed http:// url.
+     * @todo TEST
+     */
+    function normalize_url($url) {
+
+        $url = trim($url);
+        if (!$url) return $url;
+
+        if (preg_match('~^([a-z0-9_-]+)://~i', $url)) {
+            return $url;
+        }
+
+        return 'http://' . $url;
+    }
+
+    /**
      * Attempts to parse an email address out of some input.
      * @return Mixed false if unsuccessful.
      */
