@@ -15,6 +15,7 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     private $_securityToken = null;
 
     private $_submittedField = null;
+    private $_hiddenSubmissionInput = null;
 
     private $errorList = null;
 
@@ -47,9 +48,9 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
         parent::__construct('form', $attributes);
 
-        $this->_submittedField = '__form_' . $id . '_submitted';
 
-        $el = new Octopus_Html_Element('input', array('type' => 'hidden'));
+        $this->_submittedField = '__octopus_form_' . $this->id . '_submitted';
+        $this->_hiddenSubmissionInput = $el = new Octopus_Html_Element('input', array('type' => 'hidden'));
         $el->name = $this->_submittedField;
         $el->value = 1;
         $this->append($el);
@@ -484,6 +485,12 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         self::attributesToArray($this->getAttributes(), $result);
 
         $result['open_tag'] = '<form ' . $result['attributes'] . '>';
+
+        // TODO: Do all this an a 'real' meta field
+        if ($this->_hiddenSubmissionInput) {
+            $result['open_tag'] .= $this->_hiddenSubmissionInput->render(true);
+        }
+
         $result['close_tag'] = '</form>';
 
         $result['fields'] = array();
