@@ -78,4 +78,26 @@ if (!function_exists('fuzzy_date')) {
     }
 }
 
+    /**
+     * @return Number the UNIX timestamp for 12:00:00 AM on the given date.
+     * @TODO test
+     */
+    function get_day($date) {
+
+        if (!is_numeric($date)) {
+            $date = strtotime($date);
+        }
+
+        if (!$date) return 0;
+
+        $date = date('Y-m-d', $date);
+
+        return strtotime($date);
+    }
+
+    function add_days($date, $days) {
+        $date = get_day($date);
+        return $date + ($days * 24 * 60 * 60);
+    }
+
 ?>
