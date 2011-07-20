@@ -306,26 +306,41 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     }
 
     /**
+     * @return Array All fields in this form.
+     */
+    public function &getFields() {
+        $result = array();
+        self::getFieldsRecursive($this, $result);
+        return $result;
+    }
+
+    /**
      * Finds in this form by name.
      */
     public function getField($name) {
-        return self::getFieldRecursive($this, $name);
+        $result = array();
+        self::getFieldsRecursive($this, $result, $name);
+        return array_shift($result);
     }
 
-    private static function getFieldRecursive($el, $name) {
+    private static function getFieldsRecursive($el, &$array, $name = null) {
 
         if (!$el || !($el instanceof Octopus_Html_Element)) {
             return;
         }
 
         if ($el instanceof Octopus_Html_Form_Field) {
-            if ($el->name == $name) {
-                return $el;
+
+            if ($name === null) {
+                $array[$el->name] = $el;
+            } else if ($el->name === $name) {
+                $array[$el->name] = $el;
+                return true;
             }
         }
 
         foreach($el->children() as $child) {
-            $found = self::getFieldRecursive($child, $name);
+            $found = self::getFieldsRecursive($child, $array, $name);
             if ($found) return $found;
         }
 
