@@ -8,3 +8,5 @@ site.theme.*:
   desc: The theme to use. To set the theme for a specific path, use the setting site.theme.your.path
   default: default
 
+site.default_password_length:
+  default: 12
