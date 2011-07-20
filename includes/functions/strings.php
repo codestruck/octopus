@@ -172,6 +172,8 @@
         $str = strtolower(trim(str_replace('_', ' ', $str)));
         if (!$str) return $str;
 
+        $str = preg_replace('/\[\s*\]$/', '', $str);
+
         if ($titleCaps) {
             return ucwords($str);
         } else {
