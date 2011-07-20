@@ -193,6 +193,10 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
 
         // TODO: is value case-sensitive?
 
+        if ($value instanceof Octopus_Model) {
+            $value = $value->id;
+        }
+
         $options = $this->children();
         $set = false;
 
