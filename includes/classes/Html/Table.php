@@ -733,16 +733,12 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
         $order = array();
 
-        foreach($this->_sortColumns as $col) {
+        $cols = $this->_sortColumns;
+        array_reverse($cols);
 
-            if (!$col->isSorted($resultSet)) {
-                continue;
-            }
-
-            $order[$col->id] = $col->getSorting();
+        foreach($cols as $col) {
+            $resultSet = $col->sortResultSet($resultSet);
         }
-
-        $resultSet = $resultSet->orderBy($order);
 
         if ($this->debugging()) {
             $resultSet->dumpSql();

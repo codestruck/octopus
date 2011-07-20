@@ -35,6 +35,11 @@ class Octopus_Html_Table_Column {
          */
         'sortable' => null,
 
+        /**
+         * Column name to use for sorting, if not this one.
+         */
+        'sortUsing' => null
+
 
     );
 
@@ -240,6 +245,21 @@ class Octopus_Html_Table_Column {
         return $this;
     }
 
+    /**
+     * Applies this column's sorting to the given result set.
+     * @return A sorted result set.
+     */
+    public function sortResultSet($resultSet) {
+
+        if (!$this->isSorted($resultSet)) {
+            return $resultSet;
+        }
+
+        $sortCol = $this->options['sortUsing'] ? $this->options['sortUsing'] : $this->id;
+
+        return $resultSet->orderBy(array($sortCol => $this->getSorting()));
+    }
+
     public function getSorting() {
         return $this->_sorting;
     }
@@ -278,7 +298,9 @@ class Octopus_Html_Table_Column {
      */
     public function shouldBeSortable(&$dataSource) {
 
-        if (class_exists('Octopus_Model_ResultSet') && $dataSource instanceof Octopus_Model_ResultSet) {
+        if (!empty($this->options['sortUsing'])) {
+            return true;
+        } else if (class_exists('Octopus_Model_ResultSet') && $dataSource instanceof Octopus_Model_ResultSet) {
             return $this->shouldBeSortableAgainstResultSet($dataSource);
         } else if (is_array($dataSource)) {
             return true;
@@ -371,7 +393,7 @@ class Octopus_Html_Table_Column {
             $count++;
         }
 
-        return $result ? "<ul class=\"octopusResultSet{$count}\">" . $result . '</ul>' : $result;
+        return $result ? "<ul class=\"octopusResultSet octopusCount{$count}\">" . $result . '</ul>' : $result;
 
     }
 
