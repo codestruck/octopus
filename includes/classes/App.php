@@ -173,6 +173,8 @@ class Octopus_App {
             $args = func_get_args();
             call_user_func_array($this->_prevErrorHandler, $args);
         }
+
+        return false;
     }
 
     public function __get($name) {
