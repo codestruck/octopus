@@ -257,7 +257,7 @@ class Octopus_Html_Table_Column {
 
         $sortCol = $this->options['sortUsing'] ? $this->options['sortUsing'] : $this->id;
 
-        return $resultSet->orderBy(array($sortCol => $this->getSorting()));
+        return $resultSet->thenOrderBy(array($sortCol => $this->getSorting()));
     }
 
     public function getSorting() {

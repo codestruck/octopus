@@ -178,7 +178,7 @@ class FormFieldTest extends Octopus_Html_TestCase {
         $expect = <<<END
 
 <form id="test" method="post" novalidate>
-<input type="hidden" name="__form_test_submitted" value="1" />
+<input type="hidden" name="__octopus_form_test_submitted" value="1" />
 <div id="optinField" class="field optin checkbox">
 <input type="checkbox" id="optinInput" class="optin checkbox" name="optin" />
 <label for="optinInput">Are you in</label>
@@ -202,7 +202,7 @@ END;
         $expect = <<<END
 
 <form id="test" method="post" novalidate>
-<input type="hidden" name="__form_test_submitted" value="1" />
+<input type="hidden" name="__octopus_form_test_submitted" value="1" />
 <div id="colorsBlueField" class="field colors valueblue checkbox">
 <input type="checkbox" id="colorsBlueInput" class="colors valueblue checkbox" name="colors[]" value="blue" />
 <label for="colorsBlueInput">Colors</label>
@@ -229,7 +229,7 @@ END;
         $expect = <<<END
 
 <form id="test" method="post" novalidate>
-<input type="hidden" name="__form_test_submitted" value="1" />
+<input type="hidden" name="__octopus_form_test_submitted" value="1" />
 <div id="colorsBlueField" class="field colors valueblue checkbox">
     <input type="checkbox" id="colorsBlueInput" class="colors valueblue checkbox" name="colors[]" value="blue" checked />
     <label for="colorsBlueInput">Colors</label>
@@ -276,7 +276,7 @@ END;
         $form->add('checkbox', 'colors[]', 'Colors', array('value' => 'pink'))->required();
 
         $_POST['colors'] = array('pink', 'blue');
-        $_POST['__form_test_submitted'] = 1;
+        $_POST['__octopus_form_test_submitted'] = 1;
         $_SERVER['REQUEST_METHOD'] = 'post';
 
         $this->assertTrue($form->submitted(), 'The form was submitted');
@@ -286,7 +286,7 @@ END;
         $expect = <<<END
 
 <form id="test" method="post" novalidate>
-<input type="hidden" name="__form_test_submitted" value="1" />
+<input type="hidden" name="__octopus_form_test_submitted" value="1" />
 <div id="colorsBlueField" class="field colors valueblue checkbox required">
     <input type="checkbox" id="colorsBlueInput" class="colors valueblue checkbox required" name="colors[]" value="blue" checked />
     <label for="colorsBlueInput">Colors</label>
