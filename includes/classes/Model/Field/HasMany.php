@@ -7,6 +7,7 @@ class Octopus_Model_Field_HasMany extends Octopus_Model_Field {
     }
 
     public function accessValue($model, $saving = false) {
+
         $type = $this->getOption('model', $this->field);
         $key = $this->getOption('key', strtolower(get_class($model)));
         $value = $model->id;
@@ -62,7 +63,6 @@ class Octopus_Model_Field_HasMany extends Octopus_Model_Field {
 
         $key = strtolower(get_class($model));
         $value = $model->id;
-
         if ($value < 1) {
             throw new Octopus_Model_Exception('Can not add ' . ucfirst($this->field) . ' to unsaved ' . get_class($model));
         }

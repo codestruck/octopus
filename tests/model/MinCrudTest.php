@@ -52,7 +52,6 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
                 `title` varchar ( 255 ) NOT NULL,
                 `slug` varchar ( 255 ) NOT NULL,
                 `body` text NOT NULL,
-                `author_id` INT( 10 ) NOT NULL,
                 `active` TINYINT NOT NULL,
                 `display_order` INT( 10 ) NOT NULL,
                 `created` DATETIME NOT NULL,
@@ -336,7 +335,7 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
 
         $error = array_pop($errors);
         $this->assertEquals('title', $error['field']);
-        $this->assertEquals('is Required', $error['message']);
+        $this->assertEquals('is required', $error['message']);
     }
 
     function testToString()

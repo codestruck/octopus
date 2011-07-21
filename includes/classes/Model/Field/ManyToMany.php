@@ -11,7 +11,8 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
     }
 
     public function accessValue($model, $saving = false) {
-        $type = $this->field;
+
+        $type = camel_case(singularize($this->field));
         $key = pluralize(strtolower(get_class($model)));
         $value = $model->id;
 
