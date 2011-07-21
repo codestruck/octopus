@@ -20,7 +20,7 @@ class RadioTest extends Octopus_Html_TestCase {
         $expected = <<<END
 
 <form id="myform" method="post" novalidate>
-<input type="hidden" name="__form_myform_submitted" value="1" />
+<input type="hidden" name="__octopus_form_myform_submitted" value="1" />
 <div id="testField" class="field test radio">
 <label>Test:</label>
 <div class="testRadioGroup radioGroup">
@@ -96,7 +96,7 @@ END;
         $field->addOption('green', 'Green');
 
         $_POST['color'] = array('pink');
-        $_POST['__form_test_submitted'] = 1;
+        $_POST['__octopus_form_test_submitted'] = 1;
         $_SERVER['REQUEST_METHOD'] = 'post';
 
         $this->assertTrue($form->submitted(), 'The form was submitted');
@@ -107,7 +107,7 @@ END;
         $expect = <<<END
 
 <form id="test" method="post" novalidate>
-<input type="hidden" name="__form_test_submitted" value="1" />
+<input type="hidden" name="__octopus_form_test_submitted" value="1" />
 <div id="colorField" class="field color radio required">
 <label>Color:</label>
 <div class="colorRadioGroup radioGroup required">
@@ -138,7 +138,7 @@ END;
         $field->addOption('green', 'Green');
 
         $_POST['color'] = array('pink');
-        $_POST['__form_test_submitted'] = 1;
+        $_POST['__octopus_form_test_submitted'] = 1;
         $_SERVER['REQUEST_METHOD'] = 'post';
 
         $this->assertTrue($form->submitted(), 'The form was submitted');
@@ -148,7 +148,7 @@ END;
         $expect = <<<END
 
 <form id="test" method="post" novalidate>
-<input type="hidden" name="__form_test_submitted" value="1" />
+<input type="hidden" name="__octopus_form_test_submitted" value="1" />
 <div id="colorField" class="field color radio">
 <label>Color:</label>
 <div class="colorRadioGroup radioGroup">
