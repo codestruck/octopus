@@ -16,11 +16,5 @@
     <th><?php echo h($key); ?></th>
     <td><pre><?php echo h(debug_var($value)); ?></pre></td>
 </tr>
-<? endforeach ?>
+<?php endforeach ?>
 </table>
-
-
-
-
-
-
