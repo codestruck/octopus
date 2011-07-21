@@ -186,7 +186,7 @@ class Octopus_Html_Header extends Octopus_Base {
 
     function useTabs() {
         $this->addJavascript('../includes/js/jquery/jquery.blockUI.js');
-        $this->addJavascript('../includes/js/Octopus_tabs.js');
+        $this->addJavascript('../includes/js/sg_tabs.js');
         $this->addCss('../includes/css/tabs.css');
         $this->addJavascript(JS_JQUERY_UI);
         $this->addCss(CSS_JQUERY_UI);
