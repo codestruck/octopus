@@ -683,9 +683,9 @@ END;
                     (`find_posts`.`title` LIKE 'foo')
                     AND
                         (
-                            (`find_posts`.`created` < '2008-01-01')
+                            (`find_posts`.`created` < '2008-01-01 00:00:00')
                             OR
-                            (`find_posts`.`updated` > '2009-01-01')
+                            (`find_posts`.`updated` > '2009-01-01 00:00:00')
                         )
                 )
                 OR (
