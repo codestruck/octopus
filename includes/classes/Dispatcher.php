@@ -68,9 +68,34 @@ class Octopus_Dispatcher {
             return $response;
         }
 
+        // TODO: Does this belong here?
+        $this->augmentViewData($data);
+
         $this->render($controller, $data, $request, $response);
 
         return $response;
+    }
+
+    protected function augmentViewData(&$data) {
+
+        $qs = $_GET;
+
+        $pathArg = $this->_app->getOption('path_querystring_arg');
+        unset($qs[$pathArg]);
+
+        $queryString = http_build_query($qs);
+
+        $extra = array(
+            'QS' => $queryString,
+            'FULL_QS' => ($queryString ? '?' : '') . $queryString,
+            'QS_AND' => ($queryString ? '&amp;' : '?')
+        );
+
+        foreach($extra as $key => $value) {
+            if (!isset($data[$key])) {
+                $data[$key] = $value;
+            }
+        }
     }
 
     /**
