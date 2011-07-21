@@ -51,7 +51,7 @@ abstract class Octopus_Controller {
             }
 
             if ($includeActionInArgs) {
-                $result = $this->$beforeMethod($originalAction, $args);
+                $result = $this->$beforeMethod(camel_case($originalAction), $args);
             } else {
                 $result = $this->$beforeMethod($args);
             }
@@ -80,7 +80,7 @@ abstract class Octopus_Controller {
             }
 
             if ($includeAction) {
-                $data = $this->$afterMethod($originalAction, $originalArgs, $data);
+                $data = $this->$afterMethod(camel_case($originalAction), $originalArgs, $data);
             } else {
                 $data = $this->$afterMethod($originalArgs, $data);
             }
