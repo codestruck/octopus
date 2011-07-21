@@ -463,11 +463,33 @@ END;
 
     if (!function_exists('dump_r')) {
 
+    function enable_dump_r($enable = true) {
+
+        if (!isset($GLOBALS['__OCTOPUS_DISABLE_DUMP_R'])) {
+            $GLOBALS['__OCTOPUS_DISABLE_DUMP_R'] = 0;
+        }
+
+        if ($enable) {
+            $GLOBALS['__OCTOPUS_DISABLE_DUMP_R'] = max(0, $GLOBALS['__OCTOPUS_DISABLE_DUMP_R'] - 1);
+        } else {
+            $GLOBALS['__OCTOPUS_DISABLE_DUMP_R']++;
+        }
+
+    }
+
+    function disable_dump_r() {
+        enable_dump_r(false);
+    }
+
     /**
      * Outputs the arguments passed to it along w/ debugging info.
      * @param mixed Any arguments you want dumped.
      */
     function dump_r() {
+
+        if (!empty($GLOBALS['__OCTOPUS_DISABLE_DUMP_R'])) {
+            return;
+        }
 
         $args = func_get_args();
         if (empty($args)) return;
