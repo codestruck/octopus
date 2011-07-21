@@ -138,14 +138,14 @@
 
             case 1:
                 $arg = func_get_arg(0);
-                return htmlspecialchars($arg);
+                return htmlspecialchars($arg, ENT_QUOTES, 'UTF-8');
 
         }
 
         $result = '';
         for($i = 0; $i < $count; $i++) {
             $arg = func_get_arg($i);
-            $result .= htmlspecialchars($arg);
+            $result .= htmlspecialchars($arg, ENT_QUOTES, 'UTF-8');
         }
 
         return $result;

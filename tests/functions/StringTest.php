@@ -148,15 +148,17 @@ class StringTests extends PHPUnit_Framework_TestCase
 
     function testH() {
 
-        $this->assertEquals(
-            '&lt;b&gt;Foo&lt;/b&gt;',
-            h('<b>Foo</b>')
+        $tests = array(
+            '<b>Foo</b>' => '&lt;b&gt;Foo&lt;/b&gt;',
+            '<b class="test">Foo</b>' => '&lt;b class=&quot;test&quot;&gt;Foo&lt;/b&gt;',
+            '<b class=\'test\'>Foo</b>' => '&lt;b class=&#039;test&#039;&gt;Foo&lt;/b&gt;'
         );
 
-        $this->assertEquals(
-            '&lt;b&gt;Foo&lt;/b&gt;',
-            h('<b>', 'Foo', '</b>')
-        );
+        foreach($tests as $input => $expected) {
+            $this->assertEquals($expected, h($input), "Failed on '$input'");
+        }
+
+        $this->assertEquals('thisshouldconcat', h('this', 'should', 'concat'));
     }
 
     function testParseRegex() {
