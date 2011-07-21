@@ -3,6 +3,7 @@
 abstract class Octopus_Model_Field {
 
     protected $field;
+    protected $modelClass;
     protected $options;
     protected $defaultOptions = array();
 
@@ -28,12 +29,13 @@ abstract class Octopus_Model_Field {
         'number' => 'numeric'
     );
 
-    public function __construct($field, $options) {
+    public function __construct($field, $modelClass, $options) {
         $this->field = $field;
+        $this->modelClass = $modelClass;
         $this->options = $options;
     }
 
-    public static function getField($name, $options) {
+    public static function getField($name, $modelClass, $options) {
 
         if (is_string($options)) {
             $field = $options;
@@ -55,7 +57,7 @@ abstract class Octopus_Model_Field {
 
         $options['type'] = $type;
 
-        return new $class($name, $options);
+        return new $class($name, $modelClass, $options);
     }
 
     public function accessValue($model, $saving = false) {
@@ -84,6 +86,7 @@ abstract class Octopus_Model_Field {
     }
 
     public function save($model, $sqlQuery) {
+
         $sqlQuery->set($this->getFieldName(), $this->accessValue($model, true));
     }
 
@@ -92,7 +95,9 @@ abstract class Octopus_Model_Field {
     }
 
     public function setValue($model, $value) {
+
         $model->setInternalValue($this->getFieldName(), $value);
+
     }
 
     public function getFieldName() {
@@ -149,25 +154,35 @@ abstract class Octopus_Model_Field {
 
         $fnc = $this->getOption($type);
 
+        if (is_callable($fnc)) {
+            $newValue = call_user_func($fnc, $model, $this);
+            $model->setInternalValue($this->getFieldName(), $newValue);
+            return $newValue;
+        }
+
         // check for standalone function
-        if ($fnc && function_exists($fnc)) {
-            $newValue = $fnc($model, $this);
-            $model->setInternalValue($this->getFieldName(), $newValue);
-            return $newValue;
-        }
+        if (is_string($fnc)) {
 
-        // check for custom function on the model subclass
-        if ($fnc && method_exists($model, $fnc)) {
-            $newValue = $model->$fnc($model, $this);
-            $model->setInternalValue($this->getFieldName(), $newValue);
-            return $newValue;
-        }
+            if ($fnc && function_exists($fnc)) {
+                $newValue = $fnc($model, $this);
+                $model->setInternalValue($this->getFieldName(), $newValue);
+                return $newValue;
+            }
 
-        // check for default function on the field subclass
-        if ($fnc && method_exists($this, $fnc)) {
-            $newValue = $this->$fnc($model, $this);
-            $model->setInternalValue($this->getFieldName(), $newValue);
-            return $newValue;
+            // check for custom function on the model subclass
+            if ($fnc && method_exists($model, $fnc)) {
+                $newValue = $model->$fnc($model, $this);
+                $model->setInternalValue($this->getFieldName(), $newValue);
+                return $newValue;
+            }
+
+            // check for default function on the field subclass
+            if ($fnc && method_exists($this, $fnc)) {
+                $newValue = $this->$fnc($model, $this);
+                $model->setInternalValue($this->getFieldName(), $newValue);
+                return $newValue;
+            }
+
         }
 
         return $default;
@@ -276,5 +291,58 @@ abstract class Octopus_Model_Field {
     public function getDefaultSearchOperator() {
         return '=';
     }
+
+    /**
+     * Adds controls for this field to an Octopus_Html_Form.
+     */
+    public function addToForm($form) {
+
+        if (!$this->getOption('form', true)) {
+            return;
+        }
+
+        $field = $form->add('text', $this->getFieldName());
+
+        if ($this->getOption('required')) {
+            $field->required();
+        }
+
+        if ($this->getOption('unique')) {
+            $field->mustPass(array($this, 'validateUniqueness'));
+        }
+
+    }
+
+    public function addToTable($table) {
+
+        if (!$this->getOption('table', true)) {
+            return;
+        }
+
+        $table->addColumn($this->getFieldName());
+    }
+
+    public function validateUniqueness($value, $data, $formField) {
+
+        $modelClass = $this->modelClass;
+        $idName = to_id($modelClass);
+        $id = isset($data[$idName]) ? $data[$idName] : null;
+
+        $value = trim($value);
+        if (!$value) return true;
+
+        $criteria = array(
+            $this->getFieldName() => $value
+        );
+
+        if ($id !== null) $criteria['id !='] = $id;
+
+        $existing = $modelClass::get($criteria);
+
+        if ($existing) return humanize($this->getFieldName()) . ' must be unique.';
+
+        return true;
+    }
+
 }
 ?>

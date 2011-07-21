@@ -34,9 +34,13 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
     private static $fieldHandles = array();
 
     protected $data = array();
+
+    private $_id = null;
+    private $dataLoaded = false;
+
     private $errors = array();
-    private $load_id = null;
     private $touchedFields = array();
+
     public $escaped = false;
 
     public function __construct($id = null) {
@@ -45,11 +49,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
             // We're receiving a row of data
             $this->_setData($id);
         } else if (is_numeric($id)) {
-
-            $this->load_id = $id;
-            return;
-
-            // when fetching by id, don't call out to find and ResultSet
+            $this->_id = $id;
         } else if ($id) {
             $item = self::get($id);
             if ($item) {
@@ -62,59 +62,64 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
 
         // TODO: always store primary key in a 'real' var?
 
-        if ($var == 'id') {
-            // special case for id
-            $pk = $this->getPrimaryKey();
-            return $pk == 'id' ? null : $this->$pk;
+        if ($var === 'id' || $var === $this->getPrimaryKey())  {
+
+            if ($this->_id && !$this->recordStillExists()) {
+                $this->_id = null;
+            }
+
+            return $this->_id;
         }
 
         $field = $this->getField($var);
+
         if ($field) {
+
             return $field->accessValue($this);
-        } else {
-            $pk = $this->getPrimaryKey();
-            $lookForObject = str_replace('_id', '', $var);
-            if ($var === $pk) {
-                if ($this->load_id !== null) {
-                    // verify that this row exists
-                    $this->loadData();
-                    return isset($this->$pk) ? $this->$pk : null;
-                } else {
-                    return null;
-                }
-            } else if (preg_match('/_id$/', $var)) {
-                $obj = $this->getField($lookForObject);
-                if ($obj) {
-                    return $obj->accessValue($this)->id;
-                } else {
-                    return null;
-                }
+
+        } else if (preg_match('/_id$/', $var)) {
+
+            $field = $this->getField(preg_replace('/_id$/', '', $var));
+
+            if ($field) {
+                return $field->accessValue($this)->id;
             } else {
-                throw new Octopus_Model_Exception('Cannot access field ' . $var . ' on Model ' . $this->getClassName());
+                return null;
             }
+
+        } else {
+            throw new Octopus_Model_Exception('Cannot access field ' . $var . ' on Model ' . $this->getClassName());
         }
+
     }
 
     public function __set($var, $value) {
 
-        if ($this->escaped && $this->load_id === null) {
+        if ($this->escaped && !empty($this->touchedFields[$var])) {
             throw new Octopus_Model_Exception('Cannot set field ' . $var . ' on Model ' . $this->getClassName() . ' when it is escaped.');
         }
 
+        if ($var === 'id' || $var === $this->getPrimaryKey()) {
+            $this->_id = $value;
+            return;
+        }
+
         $field = $this->getField($var);
+
+        if (!$field && ends_with($var, '_id', false, $fieldName)) {
+            $field = $this->getField($fieldName);
+        }
+
         if ($field) {
             $field->setValue($this, $value);
-        } else {
-            $pk = $this->getPrimaryKey();
-            if ($var === $pk || preg_match('/_id$/', $var)) {
-                $this->$var = $value;
-            } else {
-                throw new Octopus_Model_Exception('Cannot set field ' . $var . ' on Model ' . $this->getClassName());
-            }
+            return;
         }
+
+        throw new Octopus_Model_Exception('Cannot set field ' . $var . ' on Model ' . $this->getClassName());
     }
 
     public function __call($name, $arguments) {
+
         if (preg_match('/^(add|remove(All)?)(.*?)$/', $name, $matches)) {
             $action = $matches[1];
             $type = $matches[3];
@@ -181,41 +186,62 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
     }
 
     public function exists() {
-        $primaryKey = $this->getPrimaryKey();
-        return ($this->load_id !== null || $this->$primaryKey !== null);
+        return ($this->_id !== null);
     }
 
     // lazy load from id
     private function loadData() {
+
+        if ($this->dataLoaded) {
+            return;
+        }
+
         $s = new Octopus_DB_Select();
         $s->table($this->getTableName());
-        $s->where($this->getPrimaryKey() . ' = ?', $this->load_id);
+        $s->where($this->getPrimaryKey() . ' = ?', $this->_id);
         $row = $s->fetchRow();
 
         if ($row) {
             $this->_setData($row);
         }
 
-        $this->load_id = null;
+    }
+
+    private function recordStillExists() {
+        $s = new Octopus_DB_Select();
+        $s->table($this->getTableName(), array($this->getPrimaryKey()));
+        $s->where($this->getPrimaryKey() . ' = ?', $this->_id);
+        return !!$s->getOne();
     }
 
     public function setInternalValue($field, $value) {
-        $this->touchedFields[] = $field;
+        $this->touchedFields[$field] = true;
         $this->data[$field] = $value;
     }
 
-    public function getInternalValue($field, $default = '') {
-        if ($this->load_id !== null && !in_array($field, $this->touchedFields)) {
+    public function getInternalValue($field, $default = '', $lazyLoad = true) {
+        if ($this->_id !== null && empty($this->touchedFields[$field]) && $lazyLoad) {
             $this->loadData();
         }
 
         return isset($this->data[$field]) ? $this->data[$field] : $default;
     }
 
+    public function isFieldDirty($fieldName) {
+        return !empty($this->touchedFields[$fieldName]);
+    }
+
     protected function _setData($data) {
+
         foreach ($data as $key => $value) {
+
             $this->$key = $value;
+
+            $field = $this->getField($key);
+            if ($field) $this->touchedFields[$key] = true;
         }
+
+        $this->dataLoaded = true;
     }
 
     public function setData($data) {
@@ -243,12 +269,13 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
             return false;
         }
 
-        if ($this->load_id === null) {
+        if ($this->_id === null) {
             $fields = $this->getFields();
-            return $this->internalSave($this->id, $fields);
         } else {
-            return $this->internalSave($this->load_id, $this->touchedFields);
+            $fields = array_keys($this->touchedFields);
         }
+
+        return $this->internalSave($this->_id, $fields);
 
     }
 
@@ -298,23 +325,19 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
 
     public function delete() {
 
-        $pk = $this->getPrimaryKey();
+        if ($this->_id !== null) {
 
-        if ($this->load_id !== null) {
-            $item_id = $this->load_id;
-            $this->load_id = null;
-        } else {
-            $item_id = $this->$pk;
+            $d = new Octopus_DB_Delete();
+            $d->table($this->getTableName());
+            $d->where($this->getPrimaryKey() . ' = ?', $this->_id);
+            $d->execute();
+
+            $this->_id = null;
+
+            return true;
         }
 
-        $table = $this->getTableName();
-
-        $d = new Octopus_DB_Delete();
-        $d->table($table);
-        $d->where($pk . ' = ?', $item_id);
-        $d->execute();
-
-        return true;
+        return false;
     }
 
     public function toArray() {
@@ -343,16 +366,22 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
         $pass = true;
         $this->errors = array();
 
+        if ($this->_id !== null) {
 
-        if ($this->load_id !== null) {
-            $fields = array_map(array($this, 'getField'), $this->touchedFields);
+            $fields = array();
+            foreach($this->touchedFields as $name => $unused) {
+                $field = $this->getField($name);
+                if (!$field) throw new Octopus_Model_Exception("Invalid field: " . $name);
+                $fields[] = $field;
+            }
+
         } else {
             $fields = $this->getFields();
         }
 
-        foreach ($fields as $obj) {
-            if (!$obj->validate($this)) {
-                $this->errors[] = array('field' => $obj->getFieldname(), 'message' => 'is Required');
+        foreach ($fields as $field) {
+            if (!$field->validate($this)) {
+                $this->errors[] = array('field' => $field->getFieldname(), 'message' => 'is required');
                 $pass = false;
             }
         }
@@ -434,7 +463,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
                 $name = is_array($options) ? $options['name'] : $options;
             }
 
-            $field = Octopus_Model_Field::getField($name, $options);
+            $field = Octopus_Model_Field::getField($name, $class, $options);
             $fieldName = $field->getFieldName();
             self::$fieldHandles[$class][$fieldName] = $field;
         }

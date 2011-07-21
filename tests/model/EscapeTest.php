@@ -130,7 +130,10 @@ class ModelEscapeTest extends Octopus_DB_TestCase
         $nail = new Nail();
         $nail->name = 'foo';
         $nail->save();
+
         $id = $nail->nail_id;
+        $this->assertTrue(!!$nail->nail_id, 'nail_id not accessible');
+        $this->assertTrue(!!$nail->id, 'ID not accessible');
 
         $hammer = new Hammer();
         $hammer->name = $str;

@@ -24,6 +24,9 @@ class MigrateTestPerson extends Octopus_Model {
             'decimal_places' => 2,
             'precision' => 4
         ),
+        'website' => array(
+            'type' => 'url'
+        ),
         'slug',
         'order',
         'dummy' => array('type' => 'virtual'),
@@ -142,6 +145,13 @@ class MigrationTest extends PHPUnit_Framework_TestCase {
             ),
 
             'slug' => array(
+                'type' => 'varchar',
+                'size' => 250,
+                'options' => 'NOT NULL',
+                'index' => ''
+            ),
+
+            'website' => array(
                 'type' => 'varchar',
                 'size' => 250,
                 'options' => 'NOT NULL',
