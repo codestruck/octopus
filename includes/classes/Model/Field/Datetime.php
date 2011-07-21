@@ -5,6 +5,7 @@ class Octopus_Model_Field_Datetime extends Octopus_Model_Field {
     private $format = 'Y-m-d H:i:s';
 
     public function __construct($field, $modelClass, $options) {
+
         parent::__construct($field, $modelClass, $options);
 
         if ($field == 'created') {
@@ -22,22 +23,34 @@ class Octopus_Model_Field_Datetime extends Octopus_Model_Field {
         $table->newDateTime($this->getFieldName());
     }
 
-   public function save($model, $sqlQuery) {
+    public function restrict($expression, $operator, $value, &$s, &$params, $model) {
+        $value = self::formatDate($value);
+        return parent::restrict($expression, $operator, $value, $s, $params, $model);
+    }
 
-       $value = $this->accessValue($model, true);
+    public function save($model, $sqlQuery) {
 
-       if (is_string($value)) {
-           $value = strtotime($value);
-       }
+        $value = $this->accessValue($model, true);
+        $value = self::formatDate($value);
 
-       $value = date('Y-m-d H:i:s', $value);
+        $sqlQuery->set($this->getFieldName(), $value);
+    }
 
-       $sqlQuery->set($this->getFieldName(), $value);
+    private static function formatDate($value) {
+
+        if ($value === '' || $value === null) {
+            return '';
+        }
+
+        if (!is_numeric($value)) {
+            $value = strtotime($value);
+        }
+
+        return date('Y-m-d H:i:s', $value);
     }
 
     function _setNow() {
         return date($this->format, time());
     }
 }
-
 ?>
