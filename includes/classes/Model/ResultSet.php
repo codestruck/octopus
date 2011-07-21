@@ -217,8 +217,9 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
     public function orderBy(/* Variable */) {
 
         $child = $this->createChild(null, array(), null);
-        return call_user_func_array(array($child, 'thenOrderBy'), func_get_args());
+        $args = func_get_args();
 
+        return call_user_func_array(array($child, 'thenOrderBy'), $args);
     }
 
     /**
