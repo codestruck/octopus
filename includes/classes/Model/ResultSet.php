@@ -197,7 +197,9 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
     }
 
     /**
-     * Sorts the contents of this result set.
+     * Sorts the contents of this result set. Calling this will overwrite
+     * whatever the current ordering is. To append to the current ordering,
+     * use @see thenOrderBy.
      *
      * Examples:
      *
@@ -214,6 +216,16 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
      */
     public function orderBy(/* Variable */) {
 
+        $child = $this->createChild(null, array(), null);
+        return call_user_func_array(array($child, 'thenOrderBy'), func_get_args());
+
+    }
+
+    /**
+     * Adds a subordering to this resultset.
+     */
+    public function thenOrderBy(/* Variable */) {
+
         $args = func_get_args();
         $newOrderBy = array();
 
@@ -221,12 +233,17 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
             $this->processOrderByArg($arg, $newOrderBy);
         }
 
-        if (empty($newOrderBy) && empty($this->_orderBy)) {
+        if (empty($newOrderBy)) {
             // Don't create new objects when we don't have to
             return $this;
         }
 
-        return $this->createChild(null, $newOrderBy, null);
+        $combined = $this->_orderBy;
+        foreach($newOrderBy as $key => $value) {
+            $combined[$key] = $value;
+        }
+
+        return $this->createChild(null, $combined, null);
     }
 
     /**
