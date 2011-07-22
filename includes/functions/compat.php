@@ -11,6 +11,10 @@ if(!function_exists('get_called_class')) {
                 return get_class($bt[$i]['object']);
             }
 
+            if (!isset($bt[$i]['file'])) {
+                throw new Octopus_Exception('get_called_class failed.');
+            }
+
             $lines = file($bt[$i]['file']);
             $line = '';
             $lineI = 0;
