@@ -490,25 +490,49 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
     /**
      * @return Object An Octopus_Model_ResultSet containing all records.
      */
-    public static function &all() {
+    public static function all() {
         return self::find();
     }
 
     /**
      * @return Object an Octopus_Model_ResultSet
      */
-    public static function &find(/* Variable */) {
+    public static function find(/* Variable */) {
 
         $criteria = func_get_args();
         $class = self::_getClassName();
 
-        if (count($criteria) == 1 && is_string($criteria[0])) {
+        return self::internalFind($class, $criteria);
+    }
+
+    private static function internalFind($className, $criteria) {
+
+        if (count($criteria) === 1 && isset($criteria[0]) && is_string($criteria[0])) {
             // treat as a free text search
-            return self::all()->matching($criteria[0]);
+            $result = new Octopus_Model_ResultSet($className);
+            return $result->matching($criteria[0]);
         }
 
-        $result = new Octopus_Model_ResultSet($class, $criteria);
-        return $result;
+        return new Octopus_Model_ResultSet($className, $criteria);
+    }
+
+    /**
+     * HACK To support magic stuff in PHP 5.2
+     */
+    public function _find(/* Variable */) {
+
+        $criteria = func_get_args();
+        $class = $this->getClassName();
+
+        return self::internalFind($class, $criteria);
+    }
+
+    /**
+     * HACK To support magic in PHP 5.2
+     */
+    public function _get($idOrName, $orderBy = null) {
+        $class = $this->getClassName();
+        return self::internalGet($class, $idOrName, $orderBy);
     }
 
     /**
@@ -517,26 +541,30 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
      * @return Mixed The first matching record found, or false if nothing is found.
      */
     public static function get($idOrName, $orderBy = null) {
+        $class = self::_getClassName();
+        return self::internalGet($class, $idOrName, $orderBy);
+    }
+
+    private static function internalGet($className, $idOrName, $orderBy = null) {
 
         if ($idOrName === null) {
             return false;
         }
 
-        if (is_object($idOrName) && get_class($idOrName) == self::_getClassName()) {
+        if (is_object($idOrName) && get_class($idOrName) === $className) {
             // Support passing in a model reference (this is useful sometimes)
             return $idOrName;
         }
 
         if (is_array($idOrName)) {
-            $result = self::find($idOrName);
+            $result = self::internalFind($className, $idOrName);
             if ($orderBy) $result = $result->orderBy($orderBy);
             return $result->first();
         }
 
-
         if (is_numeric($idOrName)) {
 
-            $result = self::find(array('id' => $idOrName));
+            $result = self::internalFind($className, array('id' => $idOrName));
             if ($orderBy) $result = $result->orderBy($orderBy);
 
             $result = $result->first();
@@ -544,25 +572,22 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
             return $result;
         }
 
-        $class = self::_getClassName();
-        $obj = new $class();
-
+        // TODO make this stuff static
+        $obj = new $className();
 
         $displayField = $obj->getDisplayField();
         $result = null;
 
         if ($displayField) {
-
             $displayField = $displayField->getFieldName();
 
-            $result = self::find(array($displayField => $idOrName));
+            $result = self::internalFind($className, array($displayField => $idOrName));
             if ($orderBy) $result = $result->orderBy($orderBy);
 
             $result = $result->first();
         }
 
         return $result;
-
     }
 
     /**
