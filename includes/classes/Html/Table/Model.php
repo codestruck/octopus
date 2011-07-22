@@ -93,8 +93,8 @@ END;
     private function getResults() {
 
         $class = camel_case($this->modelType, true);
-        return call_user_func(array($class, 'all'));
-
+        $model = new $class();
+        return $model->_find();
     }
 
     private function renderRows() {
