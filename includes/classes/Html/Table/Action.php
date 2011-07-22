@@ -44,7 +44,7 @@ class Octopus_Html_Table_Action extends Octopus_Html_Table_Content {
         }
 
 
-        parent::__construct($id, 'a', array('href' => $url), $label);
+        parent::__construct($id, 'a', array('href' => u($url)), $label);
 
         $this->addClass('action', $id);
         if ($options['method'] != 'get') $this->addClass('method' . ucwords($options['method']));

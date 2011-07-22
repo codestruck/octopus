@@ -743,6 +743,8 @@ class Octopus_Html_Form extends Octopus_Html_Element {
             case 'reset-link':
 
                 if (!isset($attributes['href'])) $attributes['href'] = '#';
+                $attributes['href'] = u($attributes['href']);
+
                 $link = new Octopus_Html_Element('a', $attributes);
                 $link->addClass(preg_replace('/-?link/', '', $type));
 
