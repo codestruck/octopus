@@ -337,8 +337,8 @@ abstract class Octopus_Model_Field {
 
         if ($id !== null) $criteria['id !='] = $id;
 
-        // NOTE $modelClass::get($criteria) fails in < PHP 5.3
-        $existing = call_user_func(array($modelClass, 'get'), $criteria);
+        $dummy = new $modelClass();
+        $existing = $dummy->_get($criteria);
 
         if ($existing) return humanize($this->getFieldName()) . ' must be unique.';
 
