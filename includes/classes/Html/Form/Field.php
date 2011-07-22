@@ -516,5 +516,6 @@ Octopus_Html_Form_Field::register('textarea', 'Octopus_Html_Form_Field_Textarea'
 Octopus_Html_Form_Field::register('select', 'Octopus_Html_Form_Field_Select');
 Octopus_Html_Form_Field::register('radio', 'Octopus_Html_Form_Field_Radio');
 Octopus_Html_Form_Field::register('checkbox', 'Octopus_Html_Form_Field_Checkbox');
+Octopus_Html_Form_Field::register('static', 'Octopus_Html_Form_Field_Static');
 
 ?>
