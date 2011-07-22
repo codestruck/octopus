@@ -32,6 +32,12 @@ class HttpTests extends PHPUnit_Framework_TestCase
             'should support "://"'
         );
 
+        $this->assertEquals(
+            '#',
+            u('#'),
+            'should not do anything to #links'
+        );
+
     }
 
     function testFindUrlBase() {

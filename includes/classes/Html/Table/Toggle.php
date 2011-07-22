@@ -114,15 +114,15 @@ class Octopus_Html_Table_Toggle extends Octopus_Html_Table_Content {
 
         if ($this->isActive($obj)) {
             $this->html($this->_activeContent);
-            $this->attr('href', $this->_activeUrl);
+            $this->attr('href', u($this->_activeUrl));
             $this->setAttribute($altContentAttr, $this->_inactiveContent);
-            $this->setAttribute($altHrefAttr, $this->_inactiveUrl);
+            $this->setAttribute($altHrefAttr, u($this->_inactiveUrl));
             $this->removeClass($inactiveClass)->addClass($activeClass);
         } else {
             $this->html($this->_inactiveContent);
-            $this->attr('href', $this->_inactiveUrl);
+            $this->attr('href', u($this->_inactiveUrl));
             $this->setAttribute($altContentAttr, $this->_activeContent);
-            $this->setAttribute($altHrefAttr, $this->_activeUrl);
+            $this->setAttribute($altHrefAttr, u($this->_activeUrl));
             $this->removeClass($activeClass)->addClass($inactiveClass);
         }
 
