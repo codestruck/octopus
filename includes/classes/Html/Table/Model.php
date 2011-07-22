@@ -93,7 +93,7 @@ END;
     private function getResults() {
 
         $class = camel_case($this->modelType, true);
-        return $class::all();
+        return call_user_func(array($class, 'all'));
 
     }
 
