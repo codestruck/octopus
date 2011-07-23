@@ -215,7 +215,10 @@ class Octopus_Dispatcher {
                 if ($this->_app->isDevEnvironment()) {
                     $data['controller_data'] = $data;
                     $data['resolved_path'] = $request->getResolvedPath();
-                    $data['view_paths'] = $finder->getViewPaths($request, $controller);
+
+                    $paths = $finder->getViewPaths($request, $controller);
+                    $paths = preg_replace('/^' . preg_quote(ROOT_DIR, '/') . '/i', '', $paths);
+                    $data['view_paths'] = $paths;
                 }
             }
 
