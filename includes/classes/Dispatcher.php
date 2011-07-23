@@ -40,7 +40,7 @@ class Octopus_Dispatcher {
             // path ends with a '/'.
             if (substr($request->getPath(), -1) != '/') {
 
-                $slashUrl = $this->_app->makeUrl('/' . trim($request->getPath(), '/') . '/');
+                $slashUrl = $this->_app->makeUrl('/' . trim($request->getPath(), '/') . '/', $_GET);
                 $response->redirect($slashUrl);
 
                 return $response;

@@ -574,11 +574,14 @@ class Octopus_App {
         return $this->_options['STAGING'];
     }
 
-    public function makeUrl($path) {
+    public function makeUrl($path, $querystring = null, $options = array()) {
+
+        $options['URL_BASE'] = $this->_options['URL_BASE'];
+
         return make_url(
             $path,
-            null,
-            array('URL_BASE' => $this->_options['URL_BASE'])
+            $querystring,
+            $options
         );
     }
 
