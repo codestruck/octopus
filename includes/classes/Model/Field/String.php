@@ -2,10 +2,6 @@
 
 class Octopus_Model_Field_String extends Octopus_Model_Field {
 
-    public function getDefaultSearchOperator() {
-        return 'LIKE';
-    }
-
     public function migrate($schema, $table) {
         // TODO: What about large string fields?
         $table->newTextSmall($this->getFieldName());
@@ -24,9 +20,9 @@ class Octopus_Model_Field_String extends Octopus_Model_Field {
             }
         }
 
-        if (strtoupper($operator) == 'LIKE') {
-            $value = str_replace('*', '%', $value);
-            $value = str_replace('?', '_', $value);
+        $op = strtoupper($operator);
+        if ($op === 'LIKE' || $op === 'NOT LIKE') {
+            $value = wildcardify($value);
         }
 
         return parent::restrict($expression, $operator, $value, $selectStatement, $params, $model);
