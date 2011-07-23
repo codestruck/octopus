@@ -22,33 +22,6 @@ class RequestTest extends Octopus_App_TestCase {
 
     }
 
-    function testKeepQuerystringWhenAddingSlash() {
-
-        $app = $this->startApp();
-        $this->createControllerFile('KeepQsWhenAddingSlash');
-
-
-        $tests = array(
-            "/keep-qs-when-adding-slash",
-        );
-
-        $_GET['foo'] = 'bar';
-
-        foreach($tests as $path) {
-            $resp = $app->getResponse($path, true);
-            $this->assertEquals(
-                <<<END
-HTTP/1.1 302 Found
-Location: /keep-qs-when-adding-slash/?foo=bar
-END
-                ,
-                trim($resp)
-            );
-        }
-
-
-    }
-
     function testDontAllowPathMonkeyBusiness() {
 
         $app = $this->startApp();

@@ -141,8 +141,6 @@ class Octopus_Dispatcher {
 
         $controller->template = null;
         $controller->view = null;
-
-
     }
 
     /**
@@ -211,6 +209,8 @@ class Octopus_Dispatcher {
                     'resolved_path' => '',
                     'view_paths' => array()
                 );
+
+                $response->setStatus(404);
 
                 if ($this->_app->isDevEnvironment()) {
                     $data['controller_data'] = $data;
