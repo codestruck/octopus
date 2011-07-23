@@ -130,6 +130,15 @@ class FindTest extends Octopus_DB_TestCase {
         $db->query("DROP TABLE IF EXISTS find_categories");
     }
 
+    function testStringDefaultsToEqualsOperator() {
+
+        $author = new FindAuthor();
+        $name = $author->getField('name');
+
+        $this->assertEquals('=', $name->getDefaultSearchOperator());
+
+    }
+
     function testParentheses() {
 
         $criteria = array(
@@ -142,12 +151,12 @@ class FindTest extends Octopus_DB_TestCase {
         $expectedWhereClause = <<<END
 
         (
-            (`find_posts`.`title` LIKE 'foo')
+            (`find_posts`.`title` = 'foo')
             AND
-            (NOT ((`find_posts`.`title` LIKE 'bar') AND (`find_posts`.`active` = '0')))
+            (NOT ((`find_posts`.`title` = 'bar') AND (`find_posts`.`active` = '0')))
         )
         OR
-        (`find_posts`.`title` LIKE 'baz')
+        (`find_posts`.`title` = 'baz')
 
 END;
 
@@ -186,9 +195,9 @@ END;
                     AND
                         (
                             (
-                                (`find_posts`.`title` LIKE 'foo')
+                                (`find_posts`.`title` = 'foo')
                                 OR
-                                (`find_posts`.`title` LIKE 'bar')
+                                (`find_posts`.`title` = 'bar')
                             )
                             OR
                             (`find_posts`.`slug` = 'foobar')
@@ -202,7 +211,7 @@ END;
     function testHasOneCriteria() {
 
         $posts = FindPost::all();
-        $posts = $posts->where('author.name', '%Hinz');
+        $posts = $posts->where('author.name LIKE', '*Hinz');
 
         $this->assertEquals(3, count($posts));
 
@@ -220,8 +229,8 @@ END;
 
     function testMultipleHasOneCriteria() {
 
-        $mattPosts = FindPost::find('author.name', '%Hinz');
-        $mikePosts = FindPost::find('author.name', '%Estes');
+        $mattPosts = FindPost::find('author.name LIKE', '*Hinz');
+        $mikePosts = FindPost::find('author.name LIKE', '*Estes');
 
         $this->assertEquals(3, count($mattPosts));
         $this->assertEquals(2, count($mikePosts));
@@ -247,11 +256,11 @@ END;
                 (
                     (`find_posts`.`active` = '1')
                     AND
-                    (`find_posts`.`title` LIKE 'foo')
+                    (`find_posts`.`title` = 'foo')
                 )
                 OR
                 (
-                    `find_posts`.`title` LIKE 'bar'
+                    `find_posts`.`title` = 'bar'
                 )
             ";
 
@@ -273,7 +282,7 @@ END;
         $posts = $foos->add($bars);
 
         $this->assertSqlEquals(
-            "SELECT * FROM find_posts WHERE (`find_posts`.`title` LIKE 'foo') OR (`find_posts`.`title` LIKE 'bar')",
+            "SELECT * FROM find_posts WHERE (`find_posts`.`title` = 'foo') OR (`find_posts`.`title` = 'bar')",
             $posts
         );
     }
@@ -284,7 +293,7 @@ END;
         $posts = $posts->remove('title', 'foo');
 
         $this->assertSqlEquals(
-            "SELECT * FROM find_posts WHERE (`find_posts`.`active` = '1') AND (NOT (`find_posts`.`title` LIKE 'foo'))",
+            "SELECT * FROM find_posts WHERE (`find_posts`.`active` = '1') AND (NOT (`find_posts`.`title` = 'foo'))",
             $posts
         );
 
@@ -298,7 +307,7 @@ END;
         $posts = $active->remove($foos);
 
         $this->assertSqlEquals(
-            "SELECT * FROM find_posts WHERE (`find_posts`.`active` = '1') AND (NOT (`find_posts`.`title` LIKE 'foo'))",
+            "SELECT * FROM find_posts WHERE (`find_posts`.`active` = '1') AND (NOT (`find_posts`.`title` = 'foo'))",
             $posts
         );
 
@@ -356,13 +365,13 @@ END;
     function testLimit() {
 
         $posts = FindPost::all()->where('title', 'foo');
-        $this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`title` LIKE 'foo'", $posts);
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`title` = 'foo'", $posts);
 
         $posts = $posts->limit(10, 30);
-        $this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`title` LIKE 'foo' LIMIT 10, 30", $posts);
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`title` = 'foo' LIMIT 10, 30", $posts);
 
         $posts = $posts->unlimit();
-        $this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`title` LIKE 'foo'", $posts);
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`title` = 'foo'", $posts);
 
     }
 
@@ -446,11 +455,11 @@ END;
         $test = 'Find w/o array, mixed case, no explicit LIKE';
         $posts = FindPost::find('title', '* Foo');
         $this->assertSqlEquals(
-            "SELECT * FROM find_posts WHERE `find_posts`.`title` LIKE '% Foo'",
+            "SELECT * FROM find_posts WHERE `find_posts`.`title` = '* Foo'",
             $posts,
             $test
         );
-        $this->assertCountEquals(2, $posts, $test);
+        $this->assertCountEquals(0, $posts, $test);
         $this->assertTitlesMatch($fooExpr, $posts, $test);
 
         $test = 'Find w/o array, mixed case, explicit LIKE';
@@ -466,11 +475,11 @@ END;
         $test = 'Find w/ array, mixed case, no explicit LIKE';
         $posts = FindPost::find(array('title' => '* Foo'));
         $this->assertSqlEquals(
-            "SELECT * FROM find_posts WHERE `find_posts`.`title` LIKE '% Foo'",
+            "SELECT * FROM find_posts WHERE `find_posts`.`title` = '* Foo'",
             $posts,
             $test
         );
-        $this->assertCountEquals(2, $posts, $test);
+        $this->assertCountEquals(0, $posts, $test);
         $this->assertTitlesMatch($fooExpr, $posts, $test);
 
         $test = 'Find w/ array, mixed case, explicit LIKE';
@@ -603,7 +612,7 @@ END;
         $posts = $filteredPosts;
 
         $this->assertSqlEquals(
-            "SELECT * FROM find_posts WHERE `find_posts`.`title` LIKE 'test'",
+            "SELECT * FROM find_posts WHERE `find_posts`.`title` = 'test'",
             $posts,
             'simple key/value restriction w/ implicit operator'
         );
@@ -680,7 +689,7 @@ END;
                 SELECT * FROM find_posts WHERE
 
                 (
-                    (`find_posts`.`title` LIKE 'foo')
+                    (`find_posts`.`title` = 'foo')
                     AND
                         (
                             (`find_posts`.`created` < '2008-01-01 00:00:00')
@@ -689,9 +698,9 @@ END;
                         )
                 )
                 OR (
-                    (`find_posts`.`title` LIKE 'bar')
+                    (`find_posts`.`title` = 'bar')
                     OR
-                    (`find_posts`.`title` LIKE 'baz')
+                    (`find_posts`.`title` = 'baz')
                 )
             ",
             $posts
@@ -702,19 +711,37 @@ END;
 
     function testCustomOperators() {
 
-        $operators = array('=', '!=', 'LIKE', 'LIKE', '<', '<=', '>', '>=');
-        foreach($operators as $op) {
+        $tests = array(
+            '=',
+            '!=',
+            'LIKE' => '%$1%',
+            '<',
+            '<=',
+            '>',
+            '>='
+        );
 
-            $posts = FindPost::all()->where(array("title $op" => 'foo'));
+        foreach($tests as $key => $format) {
+
+            $value = $sqlValue = 'foo';
+
+            if (is_numeric($key)) {
+                $op = $format;
+            } else {
+                $op = $key;
+                $sqlValue = str_replace('$1', $sqlValue, $format);
+            }
+
+            $posts = FindPost::all()->where(array("title $op" => $value));
             $this->assertSqlEquals(
-                "SELECT * FROM find_posts WHERE `find_posts`.`title` $op 'foo'",
+                "SELECT * FROM find_posts WHERE `find_posts`.`title` $op '$sqlValue'",
                 $posts,
                 "Operator: $op"
             );
 
-            $posts = FindPost::all()->where(array("title not $op" => 'foo'));
+            $posts = FindPost::all()->where(array("title not $op" => $value));
             $this->assertSqlEquals(
-                "SELECT * FROM find_posts WHERE NOT (`find_posts`.`title` $op 'foo')",
+                "SELECT * FROM find_posts WHERE NOT (`find_posts`.`title` $op '$sqlValue')",
                 $posts,
                 "Operator: $op (NOT)"
             );
@@ -727,7 +754,7 @@ END;
     function testNotCriteria() {
 
         $posts = FindPost::all()->where(array('title NOT' => 'foo'));
-        $this->assertSqlEquals("SELECT * FROM find_posts WHERE NOT (`find_posts`.`title` LIKE 'foo')", $posts, 'NOT');
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE NOT (`find_posts`.`title` = 'foo')", $posts, 'NOT');
 
         $posts = FindPost::all()->where(array('display_order NOT' => 42));
         $this->assertSqlEquals("SELECT * FROM find_posts WHERE NOT (`find_posts`.`display_order` = '42')", $posts, 'NOT');
