@@ -11,6 +11,15 @@ abstract class Octopus_App_TestCase extends PHPUnit_Framework_TestCase {
     function setUp() {
         $this->siteDir =  dirname(__FILE__) . '/.working/' . get_called_class() . '-sitedir';
         $this->initSiteDir();
+
+        $this->clear($_GET);
+        $this->clear($_POST);
+    }
+
+    private function clear(&$ar) {
+        foreach($ar as $key => $value) {
+            unset($ar[$key]);
+        }
     }
 
     function tearDown() {
