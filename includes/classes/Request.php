@@ -236,7 +236,7 @@ class Octopus_Request {
         // No controller was found. Use the DefaultController
         $result = array(
             'file' => $this->app->getSetting('OCTOPUS_DIR') . 'controllers/Default.php',
-            'potential_names' => 'DefaultController',
+            'potential_names' => array('DefaultController'),
             'action' => $pathParts ? array_shift($pathParts) : '',
             'args' => $pathParts ? $pathParts : array(),
         );
