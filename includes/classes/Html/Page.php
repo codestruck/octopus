@@ -1,54 +1,170 @@
 <?php
 
-Octopus::loadClass('Octopus_Base');
-Octopus::loadClass('Octopus_Html_Header');
+class Octopus_Html_Page {
 
-class Octopus_Html_Page extends Octopus_Base {
+    private static $instance = null;
 
-    private $_navItem;
+    public static $defaults = array(
+        'titleSeparator' => ' | '
+    );
 
+    protected $options;
 
-    function __construct($navItem, $options = null) {
+    protected $stylesheets = array();
+    protected $scripts = array();
+    protected $vars = array();
+    protected $meta = array();
+    protected $links = array();
 
-        $options = $options ? $options : array();
+    protected $fullTitle = null;
+    protected $title = null;
+    protected $subtitles = array();
+    protected $titleSeparator = ' | ';
+    protected $breadcrumbs = array();
 
-        if (is_array($navItem)) {
+    public function __construct($options = array()) {
+
+        $this->options = array_merge(self::$defaults, $options);
+
+        if (!isset($this->options['URL_BASE'])) {
+
+            if (class_exists('Octopus_App') && Octopus_App::isStarted()) {
+                $app = Octopus_App::singleton();
+                $this->options['URL_BASE'] = $app->getOption('URL_BASE');
+            } else {
+                $this->options['URL_BASE'] = find_url_base();
+            }
 
         }
-    }
-    function singleton() {
-        return Octopus_Base::base_singleton('Octopus_Html_Page');
+
+
     }
 
     /**
-     * Adds content to the page.
+     * Adds a breadcrumb to this page. Breadcrumbs should be added in order
+     * from least specific to most specific, e.g.:
+     * <example>
+     * $page->addBreadcrumb('/products', 'Products');
+     * $page->addBreadcrumb('/products/shirts', 'Shirts');
+     * </example>
+     *
+     * Will result in:
+     *
+     * Home > Products > Shirts
+     *
+     * And produce a default full title of:
+     *
+     * (Page Title) | Shirts | Products
+     *
      */
-    function add($area, $content) {
+    public function addBreadcrumb($url, $text) {
 
-        if (!isset($this->_areas[$area])) {
-            $this->_areas[$area] = array();
-        }
+        $url = $this->u($url);
+        $this->breadcrumbs[$url] = $text;
+        $this->subtitles[] = $text;
 
-        $this->_areas[$area][] = $content;
+        return $this;
+    }
 
+    public function removeBreadcrumb($url) {
+        $url = $this->u($url);
+        unset($this->breadcrumbs[$url]);
+        return $this;
+    }
+
+    public function removeAllBreadcrumbs() {
+        $this->breadcrumbs = array();
+    }
+
+    public function getBreadcrumbs() {
+        return $this->breadcrumbs;
     }
 
     /**
-     * Outputs the page's content.
+     * Helper that calls u() with the appropriate args.
      */
-    function render($return = false) {
-        if ($return) {
-            return $this->__toString();
+    protected function u($url) {
+        return u($url, null, array('URL_BASE' => $this->options['URL_BASE']));
+    }
+
+    public function getFullTitle() {
+        if ($this->fullTitle !== null) {
+            return $this->fullTitle;
         } else {
-            echo $this->__toString();
+            return $this->buildFullTitle();
         }
     }
 
-    /**
-     * Returns the full HTML for the page.
-     */
-    function __toString() {
+    public function setFullTitle($fullTitle) {
 
+        if ($fullTitle === null || $fullTitle === false) {
+            $this->fullTitle = null;
+        } else {
+            $this->fullTitle = $fullTitle;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Resets the full title to the default.
+     */
+    public function resetFullTitle() {
+        return $this->setFullTitle(null);
+    }
+
+    public function getTitle() {
+        return $this->title;
+    }
+
+    public function setTitle($title) {
+        $this->title = $title;
+        return $this;
+    }
+
+    public function getTitleSeparator() {
+        return $this->options['titleSeparator'];
+    }
+
+    public function setTitleSeparator($sep) {
+        $this->options['titleSeparator'] = $sep;
+    }
+
+    /**
+     * Given all the available elements, assembles a full title like
+     * <example>
+     * Page Title | Site Name
+     * </example>
+     */
+    protected function buildFullTitle() {
+
+        $result = '';
+        $sep = $this->options['titleSeparator'];
+
+        foreach($this->subtitles as $subtitle) {
+
+            $subtitle = trim($subtitle);
+            if ($subtitle) {
+                if ($result) $result = $sep . $result;
+                $result = $subtitle . $result;
+            }
+
+        }
+
+        $title = trim($this->getTitle());
+        if ($title) {
+            if ($result) $result = $sep . $result;
+            $result = $title . $result;
+        }
+
+        return $result;
+    }
+
+    public static function singleton() {
+        if (!self::$instance) {
+            self::$instance = new Octopus_Html_Page();
+        }
+        return self::$instance;
     }
 
 
