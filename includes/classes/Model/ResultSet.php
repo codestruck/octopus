@@ -392,7 +392,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
         foreach($searchFields as $field) {
 
             if (count($criteria)) $criteria[] = 'OR';
-            $criteria[$field->getFieldName() . ' LIKE'] = wildcardify($text);
+            $criteria[$field->getFieldName() . ' LIKE'] = $text;
 
         }
 
