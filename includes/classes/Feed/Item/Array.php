@@ -30,6 +30,10 @@ class Octopus_Feed_Item_Array implements Octopus_Feed_Item {
         return $this->get(array('date'), time());
     }
 
+    public function getExtra() {
+        return $this->get(array('rss_extra', array()));
+    }
+
     private function get($keys, $default = '') {
 
         foreach($keys as $key) {

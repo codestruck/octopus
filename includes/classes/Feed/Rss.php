@@ -44,6 +44,7 @@ END;
         $link = $item->getLink();
         $guid = $item->getGuid();
         $pubDate = $this->formatDate($item->getDate());
+        $extra = $item->getExtra();
 
         if (!$guid) {
             $guid = $link;
@@ -58,6 +59,14 @@ END;
             }
             $value = h($$attr);
             $result .= "<$attr>$value</$attr>";
+        }
+
+        if ($extra) {
+            foreach($extra as $key => $value) {
+                $key = h($key);
+                $value = h($value);
+                $result .= "<$key>$value</$key>";
+            }
         }
 
         $result .= '
