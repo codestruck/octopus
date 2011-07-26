@@ -12,6 +12,11 @@ interface Octopus_Feed_Item {
 
     function getDate();
 
+    /**
+     * @return Array key/value store of extra stuff to attach to this item.
+     */
+    function getExtra();
+
 }
 
 ?>
