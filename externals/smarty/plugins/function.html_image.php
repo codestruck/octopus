@@ -180,7 +180,7 @@ function smarty_function_html_image($params, $template)
 
     }
 
-    if (isset($ignoredims)) {
+    if ($ignoredims) {
         return $prefix . '<img src="'.$path_prefix.$file.'" alt="'.$alt.'" '.$extra.' />' . $suffix;
     }
     // end custom
