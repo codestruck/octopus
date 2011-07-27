@@ -130,6 +130,94 @@ class Octopus_Html_Page {
         $this->options['titleSeparator'] = $sep;
     }
 
+    public function getJavascriptVar($name, $default = null) {
+        return isset($this->vars[$name]) ? $this->vars[$name]['value'] : $default;
+    }
+
+    /**
+     * @return Array of defined javascript variables.
+     */
+    public function &getJavascriptVars() {
+
+        $result = array();
+
+        foreach($this->vars as $name => $info) {
+            $result[$name] = $info['value'];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Sets a global javascript variable.
+     * @param $name Name of the variable.
+     * @param $value Value for the variable.
+     * @param $priority Order in which variable should be set. Higher
+     * priority = render sooner.
+     */
+    public function setJavascriptVar($name, $value, $priority = 0) {
+        $this->vars[$name] = array('value' => $value, 'priority' => $priority);
+        return $this;
+    }
+
+    /**
+     * @param $vars Array of variables to set.
+     */
+    public function setJavascriptVars($vars) {
+        foreach($vars as $var => $value) {
+            $this->setJavascriptVar($var, $value);
+        }
+        return $this;
+    }
+
+    /**
+     * Generates the HTML for the Javascript variables section.
+     */
+    public function renderJavascriptVars($return = false) {
+
+        if (empty($this->vars)) {
+            if ($return) {
+                return '';
+            } else {
+                return;
+            }
+        }
+
+        uasort($this->vars, array('Octopus_Html_Page', 'comparePriorities'));
+
+        $html = <<<END
+<script type="text/javascript">
+
+END;
+
+        foreach($this->vars as $name => $value) {
+            $value = json_encode($value['value']);
+            $html .= <<<END
+var $name = $value;
+
+END;
+        }
+
+        $html .= <<<END
+</script>
+
+END;
+
+        if ($return) {
+            return $html;
+        }
+
+        echo $html;
+    }
+
+    private static function comparePriorities($x, $y) {
+
+        $x = isset($x['priority']) ? $x['priority'] : 0;
+        $y = isset($y['priority']) ? $y['priority'] : 0;
+
+        return $y - $x;
+    }
+
     /**
      * Given all the available elements, assembles a full title like
      * <example>

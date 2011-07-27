@@ -4,7 +4,7 @@ Octopus::loadClass('Octopus_Html_Page');
 
 class PageTest extends Octopus_Html_TestCase {
 
-    function testSetTitle() {
+    function dontTestSetTitle() {
 
         $page = new Octopus_Html_Page();
 
@@ -18,7 +18,7 @@ class PageTest extends Octopus_Html_TestCase {
         $this->assertEquals('Test Full Title', $page->getFullTitle());
     }
 
-    function testBreadcrumbs() {
+    function dontTestBreadcrumbs() {
 
         $page = new Octopus_Html_Page(array(
             'URL_BASE' => '/subdir/'
@@ -54,7 +54,9 @@ class PageTest extends Octopus_Html_TestCase {
 
     }
 
-    function dontTestJavascriptVars() {
+    function testJavascriptVars() {
+
+        $page = new Octopus_Html_Page();
 
         $page->setJavascriptVar('foo', 'bar');
         $this->assertEquals('bar', $page->getJavascriptVar('foo'));
@@ -77,10 +79,8 @@ class PageTest extends Octopus_Html_TestCase {
         $this->assertHtmlEquals(
             <<<END
 <script type="text/javascript">
-<!--
-    var higher_priority = 'test';
-    var foo = 'bar';
-//-->
+    var higher_priority = "test";
+    var foo = "bar";
 </script>
 END
             ,
