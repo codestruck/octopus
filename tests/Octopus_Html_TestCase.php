@@ -47,10 +47,10 @@ abstract class Octopus_Html_TestCase extends PHPUnit_Framework_TestCase {
             $html = preg_replace('#\s*(<(option|tr|td|th|thead|tbody|tfoot)(\s|>))#i', '$1', $html);
 
             // Consume whitespace at the start of some elements
-            $html = preg_replace('#(<td[^>]*>)\s+#i', '$1', $html);
+            $html = preg_replace('#(<(td|style|script)[^>]*>)\s+#i', '$1', $html);
 
             // Consume whitespace before the close of some elements
-            $html = preg_replace('#\s+(</(td|th|tr)>)#i', '$1', $html);
+            $html = preg_replace('#\s+(</(td|th|tr|style|script)>)#i', '$1', $html);
 
             // Consume whitespace after some elements end
             $html = preg_replace('#(</(thead|tbody|tfoot|tr|td|th)>)\s+#i', '$1', $html);
@@ -62,8 +62,10 @@ abstract class Octopus_Html_TestCase extends PHPUnit_Framework_TestCase {
 
             // Consume all whitespace between elements
             $html = preg_replace('#>\s+<#', '><', $html);
-
         }
+
+        $html = preg_replace('#(<(style|script)[^>]*>)\s+#i', '$1', $html);
+        $html = preg_replace('#\s+(</(style|script)>)#i', '$1', $html);
 
         return $html;
     }

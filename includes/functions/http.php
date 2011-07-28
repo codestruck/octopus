@@ -241,27 +241,56 @@ END
     /**
      * @return String A full external URL to the given path.
      * @param $path String Path in the app.
-     * @param $secure bool Whether or not to use HTTPS. If null, the current
+     * @param $secure Mixed Whether or not to use HTTPS. If null, the current
      * scheme is used.
+     * @param $options Array extra options
      */
-    function get_full_url($path, $secure = null) {
+    function get_full_url($path, $secure = null, $options = array()) {
 
-        if ($secure === null) {
-            $secure = (isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) == 'on');
+        if (is_array($secure)) {
+            $options = array_merge($secure, $options);
+            $secure = null;
         }
 
-        $scheme = $secure ? 'https' : 'http';
-        $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : trim(`hostname`);
-        $port = isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT'] : ($secure ? 443 : 80);
+        if (!empty($options['secure'])) {
+            $secure = true;
+        } else if (isset($options['HTTPS'])) {
+            $secure = strcasecmp('on', $options['HTTPS']) == 0;
+            unset($options['HTTPS']);
+        }
 
-        if (($scheme == 'https' && $port == 443) ||
-            ($scheme == 'http' && $port == 80)) {
+        if ($secure === null) {
+            $secure = (isset($_SERVER['HTTPS']) && strcasecmp('on', $_SERVER['HTTPS']) === 0);
+        }
+
+        $host = '';
+
+        if (isset($options['HTTP_HOST'])) {
+            $host = $options['HTTP_HOST'];
+        } else if (isset($_SERVER['HTTP_HOST'])) {
+            $host = $_SERVER['HTTP_HOST'];
+        } else {
+            $host = trim(`hostname`);
+        }
+
+        if (isset($options['SERVER_PORT'])) {
+            $port = $options['SERVER_PORT'];
+        } else if (isset($_SERVER['SERVER_PORT'])) {
+            $port = $_SERVER['SERVER_PORT'];
+        } else {
+            $port = $secure ? 443 : 80;
+        }
+
+        if ($secure && ($port === 443)) {
+            $port = '';
+        } else if (!$secure && ($port === 80)) {
             $port = '';
         } else {
             $port = ':' . $port;
         }
 
-        $path = u($path);
+        $scheme = $secure ? 'https' : 'http';
+        $path = u($path, null, $options);
 
         return "{$scheme}://{$host}{$port}{$path}";
     }
