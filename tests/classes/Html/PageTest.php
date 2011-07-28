@@ -4,7 +4,7 @@ Octopus::loadClass('Octopus_Html_Page');
 
 class PageTest extends Octopus_Html_TestCase {
 
-    function dontTestSetTitle() {
+    function testSetTitle() {
 
         $page = new Octopus_Html_Page();
 
@@ -18,7 +18,7 @@ class PageTest extends Octopus_Html_TestCase {
         $this->assertEquals('Test Full Title', $page->getFullTitle());
     }
 
-    function dontTestBreadcrumbs() {
+    function testBreadcrumbs() {
 
         $page = new Octopus_Html_Page(array(
             'URL_BASE' => '/subdir/'
@@ -89,7 +89,7 @@ END
 
     }
 
-    function dontTestCssPathTranslation() {
+    function testCssPathTranslation() {
 
         $page = new Octopus_Html_Page(array(
             'URL_BASE' => '/subdir/'
@@ -112,15 +112,16 @@ END
 
             $page->addCss($toAdd);
             $soFar[$expected] = array(
-                'href' => $expected,
-                'media' => 'all'
+                'url' => $expected,
+                'attributes' => array('media' => 'all'),
+                'priority' => 0
             );
 
             $html .= <<<END
 <link href="$expected" rel="stylesheet" type="text/css" media="all" />
 END;
 
-            $this->assertHtmlEquals(
+            $this->assertEquals(
                 $soFar,
                 $page->getCssFiles()
             );
@@ -129,14 +130,15 @@ END;
         $this->assertHtmlEquals($html, $page->renderCss(true));
     }
 
-    function dontTestCssMedia() {
+    function testCssMedia() {
 
         $page = new Octopus_Html_Page();
         $page->addCss('foo.css', 'screen');
         $this->assertEquals(
             array(
-                'href' => 'foo.css',
-                'media' => 'screen'
+                'url' => 'foo.css',
+                'attributes' => array('media' => 'screen'),
+                'priority' => 0
             ),
             $page->getCssFile('foo.css')
         );
@@ -145,36 +147,16 @@ END;
         $page->addCss('foo.css', array('media' => 'screen'));
         $this->assertEquals(
             array(
-                'href' => 'foo.css',
-                'media' => 'screen'
+                'url' => 'foo.css',
+                'attributes' => array('media' => 'screen'),
+                'priority' => 0
             ),
             $page->getCssFile('foo.css')
         );
 
-        $page = new Octopus_Html_Page();
-        $page->addCss(array('href' => 'foo.css', 'media' => 'screen'));
-        $this->assertEquals(
-            array(
-                'href' => 'foo.css',
-                'media' => 'screen'
-            ),
-            $page->getCssFile('foo.css'),
-            'array -> href key'
-        );
-
-        $page = new Octopus_Html_Page();
-        $page->addCss(array('url' => 'foo.css', 'media' => 'screen'));
-        $this->assertEquals(
-            array(
-                'href' => 'foo.css',
-                'media' => 'screen'
-            ),
-            $page->getCssFile('foo.css'),
-            'array -> url key'
-        );
     }
 
-    function dontTestCssPriority() {
+    function testCssPriority() {
 
         $page = new Octopus_Html_Page();
         $page->addCss('high_priority.css', 100);
@@ -183,7 +165,7 @@ END;
         $this->assertHtmlEquals(
             <<<END
 <link href="low_priority.css" rel="stylesheet" type="text/css" media="all" />
-<link href="high_priority.css rel="stylesheet" type="text/css" media="all" />
+<link href="high_priority.css" rel="stylesheet" type="text/css" media="all" />
 END
             ,
             $page->renderCss(true)
@@ -191,7 +173,7 @@ END
 
     }
 
-    function dontTestLiteralCss() {
+    function testLiteralCss() {
 
         $css = <<<END
 .myrule {
@@ -200,29 +182,39 @@ END
 END;
         $inTag = <<<END
 <style type="text/css">
+$css
+</style>
+END;
+
+        $inTagWithComment = <<<END
+<style type="text/css">
 <!--
 $css
 -->
 </style>
 END;
 
+
         $page = new Octopus_Html_Page();
-        $page->addCss($css);
+        $page->addLiteralCss($css);
         $this->assertHtmlEquals($inTag, $page->renderCss(true));
 
         $page = new Octopus_Html_Page();
-        $page->addCss($inTag);
+        $page->addLiteralCss($inTag);
+        $this->assertHtmlEquals($inTag, $page->renderCss(true));
+
+        $page = new Octopus_Html_Page();
+        $page->addLiteralCss($inTagWithComment);
         $this->assertHtmlEquals($inTag, $page->renderCss(true));
 
     }
 
-    function dontTestJavascript() {
+    function testJavascript() {
 
         $tests = array(
             'http://external.com/file.js',
             'relative/file.js',
             '/absolute/path/file.js' => '/subdir/absolute/path/file.js',
-            '/subdir/absolute/path/file.js'
         );
 
         $page = new Octopus_Html_Page(array(
@@ -238,7 +230,8 @@ END;
 
             $page->addJavascript($toAdd);
             $soFar[$expected] = array(
-                'src' => $expected,
+                'url' => $expected,
+                'attributes' => array(),
                 'priority' => 0
             );
 
@@ -259,7 +252,7 @@ END;
         );
     }
 
-    function dontTestLiteralJavascript() {
+    function testLiteralJavascript() {
 
         $script = <<<END
 function myfunc() {
@@ -272,17 +265,28 @@ $script
 </script>
 END;
 
+        $inTagWithComment = <<<END
+<script type="text/javascript">
+<!--
+$script
+-->
+</script>
+END;
+
         $page = new Octopus_Html_Page();
-        $page->addJavascript($inTag);
+        $page->addLiteralJavascript($inTag);
         $this->assertHtmlEquals($inTag, $page->renderJavascript(true));
 
         $page = new Octopus_Html_Page();
-        $page->addJavascript($script);
+        $page->addLiteralJavascript($script);
         $this->assertHtmlEquals($inTag, $page->renderJavascript(true));
 
+        $page = new Octopus_Html_Page();
+        $page->addLiteralJavascript($inTagWithComment);
+        $this->assertHtmlEquals($inTag, $page->renderJavascript(true));
     }
 
-    function dontTestJavascriptPriority() {
+    function testJavascriptPriority() {
 
         $page = new Octopus_Html_Page();
         $page->addJavascript('low_priority.js');
@@ -290,12 +294,14 @@ END;
 
         $this->assertEquals(
             array(
-                array(
-                    'src' => 'high_priority.js',
+                'high_priority.js' => array(
+                    'url' => 'high_priority.js',
+                    'attributes' => array(),
                     'priority' => 100
                 ),
-                array(
-                    'src' => 'low_priority.js',
+                'low_priority.js' => array(
+                    'url' => 'low_priority.js',
+                    'attributes' => array(),
                     'priority' => 0
                 )
             ),
@@ -303,9 +309,11 @@ END;
         );
     }
 
-    function dontTestMeta() {
+    function testMeta() {
 
         $page = new Octopus_Html_Page();
+        $page->removeMeta('Content-type');
+
         $page->setMeta('keywords', 'viagra seo google yahoo');
         $this->assertEquals('viagra seo google yahoo', $page->getMeta('keywords'));
 
@@ -319,10 +327,9 @@ END
 
     }
 
-    function dontTestMetaDetectHttpEquiv() {
+    function testMetaDetectHttpEquiv() {
 
         $tests = array(
-            'Age' => 'http-equiv',
             'Cache-Control' => 'http-equiv',
             'Content-Language' => 'http-equiv',
             'Content-Location' => 'http-equiv',
@@ -341,12 +348,17 @@ END
             foreach($headers as $h) {
 
                 $page = new Octopus_Html_Page();
+                $page->removeMeta('Content-type');
+
                 $page->setMeta($h, 'foo');
 
                 $this->assertHtmlEquals(
                     <<<END
-    <meta $attr="$header" value="foo" />
+    <meta $attr="$h" content="foo" />
 END
+                    ,
+                    $page->renderMeta(true),
+                    $h
                 );
             }
 
@@ -354,14 +366,14 @@ END
 
     }
 
-    function dontTestMetaContentType() {
+    function testMetaContentType() {
 
         $page = new Octopus_Html_Page();
 
         $this->assertEquals('text/html', $page->getContentType());
         $this->assertEquals('UTF-8', $page->getCharset());
         $this->assertHtmlEquals(
-            '<meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />',
+            '<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />',
             $page->renderMeta(true)
         );
 
@@ -369,7 +381,7 @@ END
         $page->setContentType('text/plain');
         $this->assertEquals('text/plain', $page->getContentType());
         $this->assertHtmlEquals(
-            '<meta http-equiv="Content-Type" content="text/plain;charset=UTF-8" />',
+            '<meta http-equiv="Content-type" content="text/plain; charset=UTF-8" />',
             $page->renderMeta(true)
         );
 
@@ -377,41 +389,43 @@ END
         $this->assertEquals('magic', $page->getCharset());
 
         $this->assertHtmlEquals(
-            '<meta http-equiv="Content-Type" content="text/plain;charset=magic" />',
+            '<meta http-equiv="Content-type" content="text/plain; charset=magic" />',
             $page->renderMeta(true)
         );
     }
 
-    function dontTestMetaCaching() {
+    function testMetaCaching() {
 
         $page = new Octopus_Html_Page();
-        $this->assertNull($page->getExpiryDate());
-        $this->assertFalse($page->isExpired());
+        $page->removeMeta('Content-type');
+
+        $this->assertFalse($page->getExpiryDate(), 'expiry date is false by default');
+        $this->assertFalse($page->isExpired(), 'page is not expired by default');
 
         $date = add_days(time(), 3);
 
         $page->setExpiryDate(date('Y-m-d', $date));
         $this->assertFalse($page->isExpired());
-
-        $date = strtotime($date);
-        $this->assertEquals($date, $page->getExpiryDate());
+        $this->assertEquals($date, $page->getExpiryDate(), 'getExpiryDate');
 
         $date = date('r', $date);
 
         $this->assertHtmlEquals(
             <<<END
-<meta http-equiv="expires" content="$date" />
+<meta http-equiv="Expires" content="$date" />
 END
             ,
             $page->renderMeta(true)
         );
 
+        $beginningOfTime = date('r', 0);
+
         $page->setExpired(true);
-        $this->assertTrue($page->isExpired());
+        $this->assertTrue($page->isExpired(), 'page is expired after calling setExpired(true)');
         $this->assertHtmlEquals(
             <<<END
-<meta http-equiv="Cache-Control" content="no-cache" />
-<meta http-equiv="Expires" content="0" />
+<meta http-equiv="Expires" content="$beginningOfTime" />
+<meta http-equiv="Cache-control" content="no-cache" />
 <meta http-equiv="Pragma" content="no-cache" />
 END
             ,
@@ -425,7 +439,7 @@ END
         $date = date('r', $date);
         $this->assertHtmlEquals(
             <<<END
-<meta http-equiv="expires" content="$date" />
+<meta http-equiv="Expires" content="$date" />
 END
             ,
             $page->renderMeta(true)
@@ -433,7 +447,38 @@ END
 
     }
 
-    function dontTestMetaConvenienceMethods() {
+    function testCanonicalUrl() {
+
+        $page = new Octopus_Html_Page(array(
+                'HTTPS' => 'on',
+                'HTTP_HOST' => 'foo.bar',
+                'URL_BASE' => '/subdir/'
+        ));
+
+        $this->assertEquals('', $page->renderLinks(true));
+
+        $tests = array(
+            'foo' => 'foo',
+            '/foo' => '/subdir/foo',
+            'http://whatever.com' => 'http://whatever.com'
+        );
+        foreach($tests as $input => $expected) {
+
+            $page->setCanonicalUrl($input);
+            $this->assertHtmlEquals(
+                <<<END
+<link href="$expected" rel="canonical" />
+END
+                ,
+                $page->renderLinks(true),
+                $input
+            );
+
+        }
+
+    }
+
+    function testMetaConvenienceMethods() {
 
         $fields = array(
             'description',
@@ -451,6 +496,7 @@ END
             $value = "Test $f";
 
             $page = new Octopus_Html_Page();
+            $page->removeMeta('Content-type');
 
 
             $page->$setter($value);
@@ -468,9 +514,10 @@ END
 
     }
 
-    function dontTestImageToolbar() {
+    function testImageToolbar() {
 
         $page = new Octopus_Html_Page();
+        $page->removeMeta('Content-type');
         $this->assertEquals('', $page->renderMeta(true));
 
         $page->setImageToolbarVisible(false);
@@ -487,13 +534,13 @@ END
 
     }
 
-    function dontTestFavicon() {
+    function testFavicon() {
 
         $tests = array(
             'whatever.ico' => array('href' => 'whatever.ico', 'type' => 'image/vnd.microsoft.icon'),
             '/whatever.png' => array('href' => '/subdir/whatever.png', 'type' => 'image/png'),
-            '/subdir/whatever.gif' => array('/subdir/whatever.gif', 'type' => 'image/gif'),
-            '/subdir/whatever.jpeg' => array('/subdir/whatever.gif', 'type' => 'image/jpeg')
+            '/subdir/whatever.gif' => array('href' => '/subdir/whatever.gif', 'type' => 'image/gif'),
+            '/subdir/whatever.jpeg' => array('href' => '/subdir/whatever.jpeg', 'type' => 'image/jpeg')
         );
 
         foreach($tests as $input => $expected) {
@@ -503,21 +550,22 @@ END
             ));
 
             $page->setFavicon($input);
-            $this->assertEquals($input, $page->getFavicon());
+            $this->assertEquals($expected['href'], $page->getFavicon(), $input);
 
             $this->assertHtmlEquals(
                 <<<END
 <link href="{$expected['href']}" rel="shortcut icon" type="{$expected['type']}" />
 END
                 ,
-                $page->renderLinks(true)
+                $page->renderLinks(true),
+                $input
             );
 
         }
 
     }
 
-    function dontTestInternetExplorerCss() {
+    function testInternetExplorerCss() {
 
         $tests = array(
             array(
@@ -538,11 +586,11 @@ END
         foreach($tests as $t) {
 
             $page = new Octopus_Html_Page();
-            $page->addCss('ie.css', $test['input']);
+            $page->addCss('ie.css', $t['input']);
 
             $this->assertHtmlEquals(
             <<<END
-<!--[if {$test['expected']}]>
+<!--[if {$t['expected']}]>
 <link href="ie.css" rel="stylesheet" type="text/css" media="all" />
 <![endif]-->
 END
@@ -552,7 +600,7 @@ END
         }
     }
 
-    function dontTestAddLink() {
+    function testAddLink() {
 
         $tests = array(
             'whatever' => 'whatever',
@@ -571,7 +619,7 @@ END
             $page->addLink('next', $input);
             $this->assertHtmlEquals(
                 <<<END
-<link rel="next" href="$expected" />
+<link href="$expected" rel="next" />
 END
                 ,
                 $page->renderLinks(true)
@@ -579,13 +627,16 @@ END
 
             $this->assertEquals(
                 array(
-                    'href' => $expected,
-                    'rel' => 'next'
+                    'url' => $expected,
+                    'rel' => 'next',
+                    'type' => null,
+                    'attributes' => array(),
+                    'priority' => 0
                 ),
                 $page->getLink('next')
             );
 
-            $page = new Octopus_Html_Page();
+            $page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
             $page->addLink('next', $input, 'text/plain');
             $this->assertHtmlEquals(
                 <<<END
@@ -597,34 +648,16 @@ END
 
             $this->assertEquals(
                 array(
-                    'href' => $expected,
+                    'url' => $expected,
                     'rel' => 'next',
-                    'type' => 'text/plain'
+                    'type' => 'text/plain',
+                    'attributes' => array(),
+                    'priority' => 0
                 ),
                 $page->getLink('next')
             );
 
-            $page = new Octopus_Html_Page();
-            $page->addLink(array('href' => $input, 'type' => 'text/plain', 'rel' => 'next'));
-            $this->assertHtmlEquals(
-                <<<END
-<link href="$expected" rel="next" type="text/plain" />
-END
-                ,
-                $page->renderLinks(true),
-                'addLink w/ array, href key'
-            );
 
-            $page = new Octopus_Html_Page();
-            $page->addLink(array('url' => $input, 'type' => 'text/plain', 'rel' => 'next'));
-            $this->assertHtmlEquals(
-                <<<END
-<link href="$expected" rel="next" type="text/plain" />
-END
-                ,
-                $page->renderLinks(true),
-                'addLink w/ array, url key'
-            );
         }
     }
 

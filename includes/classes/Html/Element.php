@@ -12,8 +12,10 @@ class Octopus_Html_Element {
 
     // Helper for displaying attributes in a standard order.
     protected static $attributeWeights = array(
+        'http-equiv' => -20,
+        'href' => -17,
+        'rel' => -16,
         'type' => -15,
-        'href' => -13,
         'id' => -12,
         'method' => -10,
         'action' => -9,
@@ -40,6 +42,10 @@ class Octopus_Html_Element {
         'novalidate' => true
     );
 
+    protected static $needsClose = array(
+        'script' => true
+    );
+
     protected $requireCloseTag = false;
 
     public function __construct($tag, $attrs = null, $content = null) {
@@ -58,6 +64,10 @@ class Octopus_Html_Element {
             $this->_content = array($content);
         } else {
             $this->_content = array();
+        }
+
+        if (!empty(self::$needsClose[$tag])) {
+            $this->requireCloseTag = true;
         }
 
     }
