@@ -147,7 +147,16 @@ abstract class Octopus_Model_Field {
     }
 
     protected function escape($value) {
-        return h($value);
+
+        $func = $this->getOption('escape', true);
+
+        if ($func === true) {
+            return h($value);
+        } else if ($func === false) {
+            return $value;
+        } else {
+            return call_user_func($func, $value);
+        }
     }
 
     protected function handleTrigger($type, $model, $default = null) {
