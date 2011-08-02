@@ -34,7 +34,8 @@ class StringTests extends PHPUnit_Framework_TestCase
             'Foo' => 'foos',
             'Foos' => 'foos',
             'categories' => 'categories',
-            'category' => 'categories'
+            'category' => 'categories',
+            'lightbox' => 'lightboxes'
         );
 
         foreach($tests as $input => $expected) {
@@ -256,6 +257,7 @@ class StringTests extends PHPUnit_Framework_TestCase
             'categories' => 'categories',
             'boy' => 'boys',
             'way' => 'ways',
+            'fox' => 'foxes'
 
          );
 

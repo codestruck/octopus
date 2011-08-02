@@ -285,11 +285,14 @@
      */
     function pluralize($x) {
 
-        if (substr($x, -1) == 's') {
+        if (preg_match('/s$/i', $x)) {
             return $x;
         }
 
         $x = preg_replace('/([^aeiou])y$/i', '$1ies', $x, 1, $count);
+        if ($count) return $x;
+
+        $x = preg_replace('/x$/i', 'xes', $x, 1, $count);
         if ($count) return $x;
 
         return $x . 's';
