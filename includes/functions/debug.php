@@ -270,6 +270,10 @@ END;
         width: 100%;
     }
 
+    table.octopusDebugBacktrace tr.octopusDebugBacktraceSourceSys td {
+        color: #888;
+    }
+
     table.octopusDebugBordered {
         border-collapse: collapse;
     }
@@ -602,7 +606,6 @@ END;
 
         foreach(self::saneBacktrace($bt) as $b) {
 
-            $class = ($i % 2 ? 'octopusDebugOdd' : 'octopusDebugEven');
 
             $func = '<td class="octopusDebugBacktraceFunction">' . $b['function'] . '()</td>';
 
@@ -618,6 +621,11 @@ END;
             $line = '<td class="octopusDebugBacktraceLine">Line ' .
                     (isset($b['line']) ? $b['line'] : '') .
                     '</td>';
+
+            $class = ($i % 2 ? 'octopusDebugOdd' : 'octopusDebugEven');
+            if (preg_match('~^octopus/~', $b['nice_file'])) {
+                $class .= ' octopusDebugBacktraceSourceSys';
+            }
 
             $html .= <<<END
             <tr class="$class">
@@ -951,7 +959,7 @@ END;
                 $type = is_object($arg) ? get_class($arg) : gettype($arg);
                 $type = preg_replace('/^Octopus_/', '', $type);
 
-                if ($arg instanceof Exception) {
+                if ($arg instanceof Exception && !$trace) {
                     $trace = $arg->getTrace();
                 }
 
