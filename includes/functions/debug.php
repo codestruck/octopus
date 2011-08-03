@@ -261,10 +261,11 @@ END;
     table.octopusDebugArrayDump {
     }
 
-    table.octopusDebugArrayDump td.octopusDebugArrayKey {
+    div.octopusDebugArrayDump table td.octopusDebugArrayKey {
         color: #555;
         padding-right: 10px;
     }
+
 
     table.octopusDebugBacktrace {
         width: 100%;
@@ -714,7 +715,11 @@ END;
 
         if ($fancy && Octopus_Debug::inWebContext()) {
 
-            if (is_object($x) && $x instanceof Dumpable) {
+            if ($x === null) {
+                return '<span class="octopusDebugNull">&lt;NULL&gt;</span>';
+            } else if ($x === true || $x === false) {
+                return '<span class="octopusDebugBoolean">' . ($x ? '&lt;TRUE&gt;' : '&lt;FALSE&gt;') . '</span>';
+            } else if (is_object($x) && $x instanceof Dumpable) {
                 $mode = Octopus_Debug::inWebContext() ? 'html' : 'text';
                 $result = $x->dump($mode);
                 return self::sanitizeDebugOutput($result);
