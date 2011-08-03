@@ -74,6 +74,9 @@
                 }
             }
 
+            ini_set('display_errors', 1);
+            error_reporting(E_ALL);
+
             Octopus::loadClass('Octopus_App');
             Octopus_App::start($options);
         }

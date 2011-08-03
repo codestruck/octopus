@@ -771,6 +771,7 @@ class Octopus_App {
             return;
         }
 
+
         $configFile = $o['SITE_DIR'] . 'config.php';
 
         $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : false;

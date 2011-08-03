@@ -3,7 +3,7 @@
 /**
  * Class that handles searching for Octopus_Model instances.
  */
-class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
+class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpable {
 
     public $escaped = false;
 
@@ -107,6 +107,102 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator {
 
         dump_r($sql);
         return $this;
+    }
+
+    public function dump($mode) {
+
+        switch($mode) {
+
+            case 'html':
+                return $this->dumpHtml();
+
+            case 'text':
+                return $this->dumpText();
+
+            default:
+                throw new Octopus_Exception("Unrecognized dump mode: $mode");
+        }
+    }
+
+    protected function dumpHtml() {
+
+        $class = $this->getModel();
+        $classPlural = pluralize(humanize($this->getModel()));
+        $count = count($this);
+
+        $html = <<<END
+<table class="octopusDebugResultSetData octopusDebugBordered" border="0" cellpadding="0" cellspacing="0">
+<thead>
+<tr>
+    <th colspan="1000">
+        <span class="octopusDebugResultSetClass">Result Set for $class - $count rows</span>
+    </th>
+</tr>
+END;
+
+
+        $dummy = new $class();
+        $fields = $dummy->getFields();
+
+        $html .= '<tr><th>' . $dummy->getPrimaryKey() . '</th>';
+
+        foreach($fields as $f) {
+            $html .= '<th>' . h($f->getFieldName()) . '</th>';
+        }
+
+        $html .= '</tr></thead><tbody>';
+
+        $index = 0;
+
+        foreach($this as $model) {
+
+            if ($index >= 20) {
+                $html .= <<<END
+<tr><td class="octopusDebugResultSetStop" colspan="1000">Stopping at $index</td></tr>
+END;
+                break;
+            }
+
+            $d = $model->toArray();
+
+            $class = $index % 2 ? 'octopusDebugOdd' : 'octopusDebugEven';
+            $html .= <<<END
+<tr class="$class">
+<td>{$model->id}</td>
+END;
+
+            foreach($fields as $f) {
+                $html .=
+                    '<td>' .
+                    h($d[$f->getFieldName()]).
+                    '</td>';
+
+            }
+
+            $html .= '</tr>';
+
+            $index++;
+        }
+
+        $html .= '</tbody></table>';
+
+
+        $html .=
+            '<h3>SQL</h3>' .
+            '<textarea class="octopusDebugResultSetSql">' .
+            h($this->dumpText()) .
+            '</textarea>';
+
+
+        return $html;
+    }
+
+    protected function dumpText() {
+
+        $params = array();
+        $sql = $this->getSql($params);
+        return normalize_sql($sql, $params);
+
     }
 
     /**

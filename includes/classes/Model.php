@@ -10,7 +10,7 @@ Octopus::loadClass('Octopus_Model_ResultSet');
 
 class Octopus_Model_Exception extends Octopus_Exception {}
 
-abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
+abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpable {
 
     /**
      * Name of column that stores the primary key. If not set in a subclass,
@@ -142,47 +142,6 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
 
         throw new Octopus_Model_Exception('Cannot call ' . $name . ' on Model ' . $this->getClassName());
 
-    }
-
-    /**
-     * Writes out some debugging information about this model using dump_r.
-     * @param $modelName If provided, only models with this name will be dumped.
-     * @return $this To continue the chain.
-     */
-    public function dump($modelName = '') {
-
-        if ($modelName && $modelName != get_class($this)) {
-            return $this;
-        }
-
-        $info = array(
-            $this->getPrimaryKey() => $this->id
-        );
-
-        foreach($this->getFields() as $name => $field) {
-
-            $value = $this->$name;
-
-            if ($value instanceof Octopus_Model_ResultSet) {
-
-                $summary = 'ResultSet (' . $value->getModel();
-
-                try {
-                    $count = $value->count();
-                    $summary .= ', ' . $count . ' ' . ($count == 1 ? 'item' : 'items');
-                } catch (Exception $ex) {
-                    $summary .= ', exception during count';
-                }
-
-                $value = $summary . ')';
-            }
-
-            $info[$name] = $value;
-        }
-
-        dump_r($info);
-
-        return $this;
     }
 
     public function exists() {
@@ -606,6 +565,72 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable {
 
     public function __toString() {
         return $this->getDisplayValue();
+    }
+
+    public function dump($mode) {
+
+        switch($mode) {
+
+            case 'html':
+                return $this->dumpHtml();
+
+            case 'text':
+                return $this->dumpText();
+
+            default:
+                throw new Octopus_Exception("Unrecognized dump mode: $mode");
+        }
+
+    }
+
+    protected function dumpHtml() {
+
+        $html = '<table class="sgModelDump" border="0" cellpadding="0" cellspacing="0">';
+
+        $str = h($this);
+        $class = h(get_class($this));
+
+        $html .= <<<END
+<thead>
+    <tr>
+        <th colspan="2">{$str} ($class)</th>
+    </tr>
+</thead>
+<tbody>
+END;
+
+        $index = 0;
+        foreach($this->toArray() as $key => $value) {
+            $class = ($index % 2 ? 'even' : 'odd');
+            $index++;
+
+            $key = h($key);
+            $value = Octopus_Debug::dumpToString($value, true);
+
+            $html .= <<<END
+<tr class="$class">
+    <td class="octopusDebugModelField">$key</td>
+    <td class="octopusDebugModelValue">$value</td>
+</tr>
+END;
+        }
+
+        $html .= '</tbody></table>';
+
+        return $html;
+    }
+
+    protected function dumpText() {
+
+        $result = get_class($this);
+        foreach($this->toArray() as $key => $value) {
+            $result .= <<<END
+
+\t$key:\t\t$value
+END;
+        }
+
+        return $result;
     }
 
     // ArrayAccess Implementation {{{
