@@ -52,10 +52,13 @@ class Octopus_Debug {
 
     public static $css;
     public static $js;
+
     private $_id;
     private $_content = array();
+    private $_variables = array();
     private $_options;
     private $_footer;
+
 
     private static $_renderedCss = false;
     private static $_renderedJs = false;
@@ -67,7 +70,10 @@ class Octopus_Debug {
     }
 
     public function __construct($id) {
+
         $this->_id = $id;
+
+        // Standard Javascript {{{
 
         self::$js = <<<END
 <script type="text/javascript">
@@ -143,7 +149,7 @@ function __octopus_openTab(id, buttonID) {
 
         if (e === tab) {
             e.style.display = '';
-        } else {
+        } else if (e.style) {
             e.style.display = 'none';
         }
 
@@ -189,6 +195,10 @@ function __octopus_toggleRaw(niceID, rawID, buttonID) {
 </script>
 END;
 
+        // }}}
+
+        // Standard CSS {{{
+
         self::$css = <<<END
 
 <style type="text/css">
@@ -208,17 +218,15 @@ END;
         font-size: 12px;
         font-family: 'Monaco', 'Andale Mono', 'Consolas', 'Courier New', monospace;
         margin-bottom: 10px;
-        max-width: 600px;
+        max-width: 1000px;
         overflow: hidden;
         padding: 0;
-        width: 50%;
     }
 
     div.octopusDebug div.octopusDebugTabs {
     }
 
     div.octopusDebug div.octopusDebugTabs div.octopusDebugTab {
-        max-height: 300px;
         overflow: auto;
         padding: 10px;
         position: relative;
@@ -271,6 +279,10 @@ END;
         width: 100%;
     }
 
+    table.octopusDebugBacktrace tr.octopusDebugFirst td {
+        font-weight: bold;
+    }
+
     table.octopusDebugBacktrace tr.octopusDebugBacktraceSourceSys td {
         color: #888;
     }
@@ -304,7 +316,9 @@ END;
     }
 
     a.octopusDebugToggleRaw {
-        color: #888;
+        background: #888;
+        color: #efefef;
+        padding: 3px;
         position: absolute;
         right: 10px;
         top: 10px;
@@ -320,20 +334,27 @@ END;
         font-size: 0.9em;
     }
 
-    pre.octopusDebugExceptionMessage {
+    div.octopusDebugExceptionMessage {
         color: #800;
-        font-size: 2em;
+        font-size: 1.2em;
         margin-bottom: 10px;
     }
 
-    .octopusDebugExceptionSource {
+    div.octopusDebugExceptionSource {
         font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    div.octopusDebugExceptionTrace {
+        border-top: 1px dotted #888;
+        padding-top: 10px;
     }
 
     div.octopusDebugFooter {
         color: #999;
         font-size: 9px;
-        padding: 4px;
+        overflow: hidden;
+        padding: 5px;
     }
 
     div.octopusDebugFooter ul.octopusDebugErrorReporting {    }
@@ -343,10 +364,48 @@ END;
         margin-left: 10px;
     }
 
+    div.octopusDebugLine {
+        border-bottom: 1px dotted #888;
+        padding: 4px 0;
+        margin: 4px 0;
+    }
+
+    div.octopusDebugLine.octopusDebugLast {
+        border-bottom: 0;
+        margin-bottom: 0;
+    }
+
+    span.octopusDebugNull,
+    span.octopusDebugBoolean {
+        color: #005;
+        font-weight: bold;
+    }
+
 -->
 </style>
 
 END;
+
+        // }}}
+
+    }
+
+    /**
+     * Adds a single variable to the debug output.
+     */
+    public function addVariable($value, $name = null, $raw = null) {
+
+        $type = is_object($value) ? get_class($value) : gettype($value);
+
+        if ($raw === null) {
+
+            if ($value && is_object($value) && ($value instanceof Dumpable || $value instanceof Exception)) {
+                $raw = trim(Octopus_Debug::dumpToString($value, true, false));
+            }
+
+        }
+
+        $this->_variables[] = compact('type', 'name', 'value', 'raw');
     }
 
     public function add($name, $content, $raw = '') {
@@ -399,89 +458,147 @@ END;
 
     private function getContentHtml() {
 
-        $count = count($this->_content);
+        $buttons = array();
+        $tabs = array();
 
-        if (!$count) {
-            return '';
+        $varsTab = array('content' => array());
+
+
+        foreach($this->_variables as $var) {
+
+            $hasName = !empty($var['name']);
+
+            if (empty($var['name'])) {
+                $var['name'] = $var['type'];
+            }
+
+            if (!empty($var['raw']) || $hasName) {
+                // for named things, or things with raw content, display them
+                // on their own tab.
+                $buttons[] = $var['name'];
+                $tabs[] = array('content' => self::dumpToString($var['value']), 'raw' => $var['raw']);
+            } else {
+                $varsTab['content'][] = self::dumpToString($var['value']);
+            }
+
         }
 
-        $buttons = '<ul class="octopusDebugTabButtons">';
-        $tabs = '<div class="octopusDebugTabs">';
+        if (!empty($varsTab['content'])) {
+            // prepend simple variable list to tabs
+            array_unshift($tabs, $varsTab);
+            array_unshift($buttons, 'Variable' . (count($varsTab['content']) === 1 ? '' : 's'));
+        }
 
-        $result = '';
+        foreach($this->_content as $name => $content) {
+            $buttons[] = $name;
+            $tabs[] = $content;
+        }
+
+        $buttonsHtml = '<ul class="octopusDebugTabButtons">';
+        $tabsHtml = '<div class="octopusDebugTabs">';
         $index = 0;
-        foreach($this->_content as $name => $values) {
+        $count = count($tabs);
 
-            $id = self::getNewId();
-            $safeName = htmlspecialchars($name);
+        while(!empty($tabs)) {
+
+            $button = htmlspecialchars(array_shift($buttons));
+            $tab = array_shift($tabs);
+
+            $buttonID = self::getNewId();
+            $tabID = self::getNewId();
 
             $buttonClass = 'octopusDebugTabButton';
             if ($index === 0) $buttonClass .= ' octopusDebugTabButtonSelected';
 
-            $buttonID = self::getNewId();
-
-            $buttons .= <<<END
-<li id="$buttonID" class="$buttonClass"><a href="#" onclick="__octopus_openTab('$id', '$buttonID'); return false;">$safeName</a></li>
+            $buttonsHtml .= <<<END
+<li id="$buttonID" class="$buttonClass"><a href="#" onclick="__octopus_openTab('$tabID', '$buttonID'); return false;">$button</a></li>
 END;
-            $tabs .= self::buildContentSection($id, $name, $values, $index, $count);
+
+            $tabsHtml .= self::buildTab($tab, $tabID, $index, $count);
 
             $index++;
         }
 
-        $buttons .= '</ul>';
-        $tabs .= '</div>';
-        $footer = '';
+        $buttonsHtml .= '</ul>';
+        $tabsHtml .= '</div>';
+
+        $footerHtml = '';
 
         if ($this->_footer) {
-            $footer = <<<END
+            $footerHtml = <<<END
 <div class="octopusDebugFooter">
 {$this->_footer}
 </div>
 END;
         }
 
-        return $buttons . $tabs . $footer;
-
+        return $buttonsHtml . $tabsHtml . $footerHtml;
     }
 
-    private static function buildContentSection($id, $name, $content, $index, $count) {
+    private static function buildTab($tab, $id, $index, $count) {
 
-        $sectionClass = 'octopusDebugTab';
-        if ($index === 0) $sectionClass .= ' octopusDebugFirst';
-        if ($index === $count - 1) $sectionClass .= ' octopusDebugLast';
+        $tabClass = 'octopusDebugTab';
+        if ($index === 0) $tabClass .= ' octopusDebugFirst';
+        if ($index === $count - 1) $tabClass .= ' octopusDebugLast';
 
         $styleAttr = '';
         if ($index !== 0) $styleAttr = ' style="display:none;"';
 
-        $niceID = self::getNewId();
-        $rawID = self::getNewId();
+        if (is_string($tab)) {
+            $tab = array('content' => $tab);
+        } else if (is_array($tab['content'])) {
 
-        $html = <<<END
-<div id="$id" class="$sectionClass"$styleAttr>
-END;
+            $lineIndex = 0;
+            $linesHtml = '';
+            foreach($tab['content'] as $line) {
 
-        $html .= <<<END
-<div id="$niceID" class="octopusDebugNiceOutput">
-{$content['content']}
+                $lineClass = 'octopusDebugLine';
+                if ($lineIndex === 0) $lineClass .= ' octopusDebugFirst';
+                if ($lineIndex === count($tab['content']) - 1) $lineClass .= ' octopusDebugLast';
+
+                $linesHtml .= <<<END
+<div class="$lineClass">
+$line
 </div>
 END;
 
-        if ($content['raw']) {
+                $lineIndex++;
+            }
+
+            $tab['content'] = $linesHtml;
+        }
+
+        $niceBlockID = self::getNewId();
+
+        $nice = <<<END
+<div id="$niceBlockID" class="octopusDebugNiceOutput">
+{$tab['content']}
+</div>
+END;
+
+        $raw = '';
+        if (!empty($tab['raw'])) {
 
             $rawButtonID = self::getNewId();
+            $rawBlockID = self::getNewId();
 
-            $html .= <<<END
-<pre id="$rawID" class="octopusDebugRawOutput" style="display: none;">
-{$content['raw']}
+            $raw = <<<END
+<pre id="$rawBlockID" class="octopusDebugRawOutput" style="display: none;">
+{$tab['raw']}
 </pre>
-<a id="$rawButtonID" class="octopusDebugToggleRaw" href="#raw" onclick="__octopus_toggleRaw('$niceID', '$rawID', '$rawButtonID'); return false;">Show Raw Data</a>
+<a id="$rawButtonID" class="octopusDebugToggleRaw" href="#raw" onclick="__octopus_toggleRaw('$niceBlockID', '$rawBlockID', '$rawButtonID'); return false;">Show Raw Data</a>
 END;
 
         }
 
-        $html .= '</div>';
 
-        return $html;
+
+        return <<<END
+<div id="$id" class="$tabClass"$styleAttr>
+    $nice
+    $raw
+</div>
+END;
     }
 
     public function renderText($return = false) {
@@ -627,6 +744,7 @@ END;
             if (preg_match('~^octopus/~', $b['nice_file'])) {
                 $class .= ' octopusDebugBacktraceSourceSys';
             }
+            if ($i === 0) $class .= ' octopusDebugFirst';
 
             $html .= <<<END
             <tr class="$class">
@@ -716,9 +834,9 @@ END;
         if ($fancy && Octopus_Debug::inWebContext()) {
 
             if ($x === null) {
-                return '<span class="octopusDebugNull">&lt;NULL&gt;</span>';
+                return '<span class="octopusDebugNull">NULL</span>';
             } else if ($x === true || $x === false) {
-                return '<span class="octopusDebugBoolean">' . ($x ? '&lt;TRUE&gt;' : '&lt;FALSE&gt;') . '</span>';
+                return '<span class="octopusDebugBoolean">' . ($x ? 'TRUE' : 'FALSE') . '</span>';
             } else if (is_object($x) && $x instanceof Dumpable) {
                 $mode = Octopus_Debug::inWebContext() ? 'html' : 'text';
                 $result = $x->dump($mode);
@@ -750,7 +868,7 @@ END;
 
         $html = '<div class="octopusDebugException">';
 
-        $html .= '<pre class="octopusDebugExceptionMessage">' . htmlspecialchars($ex->getMessage()) . '</pre>';
+        $html .= '<div class="octopusDebugExceptionMessage">' . htmlspecialchars($ex->getMessage()) . '</div>';
 
         $file = $ex->getFile();
         if (defined('ROOT_DIR') && ROOT_DIR && starts_with($file, ROOT_DIR)) {
@@ -760,9 +878,18 @@ END;
         $file = htmlspecialchars($file);
         $line = $ex->getLine();
 
+        /*
         $html .= <<<END
 <div class="octopusDebugExceptionSource">
     <span class="octopusDebugExceptionFile">$file</span>,&nbsp;<span class="octopusDebugExceptionLine">Line $line</span>
+</div>
+END;
+        */
+
+        $trace = self::getBacktraceHtml($ex->getTrace());
+        $html .= <<<END
+<div class="octopusDebugExceptionTrace">
+$trace
 </div>
 END;
 
@@ -854,7 +981,7 @@ END;
 
         }
 
-        $result .= '</table>';
+        $result .= '</table></div>';
 
         return $result;
     }
@@ -940,7 +1067,7 @@ END;
 
             $d = new Octopus_Debug('dump_r');
             $index = 1;
-            $trace = null;
+            $showTrace = null;
 
             $trueArgs = array();
             foreach($args as $arg) {
@@ -953,55 +1080,31 @@ END;
                     while($ex = $ex->getPrevious()) {
                         $trueArgs[] = $ex;
                     }
+                    if ($showTrace === null) $showTrace = false;
 
+                } else {
+                    $showTrace = true;
                 }
 
             }
             $args = $trueArgs;
 
             foreach($args as $arg) {
-
-                $type = is_object($arg) ? get_class($arg) : gettype($arg);
-                $type = preg_replace('/^Octopus_/', '', $type);
-
-                if ($arg instanceof Exception && !$trace) {
-                    $trace = $arg->getTrace();
-                }
-
-                $output = Octopus_Debug::dumpToString($arg, true);
-                $html = $output;
-
-                if (count($args) > 1) {
-                    $tab = "#$index-$type";
-                } else {
-                    $tab = $type;
-                }
-                $raw = '';
-
-                if ($arg && is_object($arg) && ($arg instanceof Dumpable || $arg instanceof Exception)) {
-                    $raw = Octopus_Debug::dumpToString($arg, true, false);
-                }
-
-                $d->add($tab, $html, $raw);
-
-                $index++;
+                $d->addVariable($arg);
             }
 
-
-            if (!$trace) $trace = debug_backtrace();
-            $d->add('Backtrace', Octopus_Debug::getBacktraceHtml($trace));
+            if ($showTrace !== false) {
+                $trace = debug_backtrace();
+                $d->add('Backtrace', Octopus_Debug::getBacktraceHtml($trace));
+            }
 
             foreach(array('_GET', '_POST', '_SERVER', '_SESSION') as $arname) {
 
                 if (isset($GLOBALS[$arname]) && !empty($GLOBALS[$arname])) {
-                    $html = '<pre class="octopusDebugArray">' .
-                            Octopus_Debug::dumpToString($GLOBALS[$arname], true) .
-                            '</pre>';
-                    $d->add('$' . $arname, $html);
+                    $d->addVariable($GLOBALS[$arname], "\$$arname");
                 }
 
             }
-
 
             $d->setFooter(Octopus_Debug::getErrorReportingHtml());
 
