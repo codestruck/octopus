@@ -209,6 +209,7 @@ END;
         font-family: 'Monaco', 'Andale Mono', 'Consolas', 'Courier New', monospace;
         margin-bottom: 10px;
         max-width: 600px;
+        overflow: hidden;
         padding: 0;
         width: 50%;
     }
@@ -241,12 +242,6 @@ END;
 
     div.octopusDebug ul.octopusDebugTabButtons li.octopusDebugTabButtonSelected a {
     background: #efefef;
-    }
-
-    .octopusDebugErrorReporting li {
-        float: right;
-        list-style: none;
-        margin-left: 20px;
     }
 
     div.octopusDebug table {
@@ -328,6 +323,19 @@ END;
 
     .octopusDebugExceptionSource {
         font-weight: bold;
+    }
+
+    div.octopusDebugFooter {
+        color: #999;
+        font-size: 9px;
+        padding: 4px;
+    }
+
+    div.octopusDebugFooter ul.octopusDebugErrorReporting {    }
+
+    div.octopusDebugFooter ul.octopusDebugErrorReporting li {
+        float: right;
+        margin-left: 10px;
     }
 
 -->
@@ -421,11 +429,13 @@ END;
 
         if ($this->_footer) {
             $footer = <<<END
-<
+<div class="octopusDebugFooter">
+{$this->_footer}
+</div>
 END;
         }
 
-        return $buttons . $tabs;
+        return $buttons . $tabs . $footer;
 
     }
 
