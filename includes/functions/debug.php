@@ -951,7 +951,7 @@ END;
 
         if (empty($ar)) {
             ob_start();
-            var_dump($x);
+            var_dump($ar);
             $content = trim(ob_get_clean());
             return htmlspecialchars($content);
         }
