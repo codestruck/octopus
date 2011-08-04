@@ -72,8 +72,11 @@ function smarty_function_html_image($params, $template)
 
             case 'link':
             case 'href':
-                $prefix = '<a href="' . $_val . '">';
-                $suffix = '</a>';
+			
+				if ($_val != '') {
+					$prefix = '<a href="' . $_val . '">';
+					$suffix = '</a>';
+				}
                 break;
 
             default:
