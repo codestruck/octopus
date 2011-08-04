@@ -254,6 +254,13 @@
 
 		function mail($from){
 
+            // MJE: strip "full name <email>" style from address
+            if (strpos($from, '<') !== false && strpos($from, '>') !== false) {
+                if (preg_match('/.* <([^>]+)>/', $from, $matches)) {
+                    $from = $matches[1];
+                }
+            }
+
 			if($this->is_connected()
 				AND $this->send_data('MAIL FROM:<'.$from.'>')
 				AND substr(trim($this->get_data()), 0, 2) === '250' ){
