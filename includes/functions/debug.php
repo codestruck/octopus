@@ -259,6 +259,10 @@ END;
     div.octopusDebug table tr th {
         padding: 2px;
     }
+
+    div.octopusDebug table tr td {
+        vertical-align: top;
+    }
     div.octopusDebug table tr.octopusDebugOdd td {
         background: #fff;
     }
@@ -1051,9 +1055,6 @@ END;
             return;
         }
 
-        $args = func_get_args();
-        if (empty($args)) return;
-
         if ((defined('LIVE') && LIVE) || (defined('STAGING') && STAGING)) {
             // TODO: Log?
             return;
@@ -1062,6 +1063,8 @@ END;
         if (function_exists('cancel_redirects')) {
             cancel_redirects();
         }
+
+        $args = func_get_args();
 
         if (Octopus_Debug::inWebContext()) {
 
@@ -1098,7 +1101,7 @@ END;
                 $d->add('Backtrace', Octopus_Debug::getBacktraceHtml($trace));
             }
 
-            foreach(array('_GET', '_POST', '_SERVER', '_SESSION') as $arname) {
+            foreach(array('_GET', '_POST', '_SERVER', '_SESSION', '_FILES') as $arname) {
 
                 if (isset($GLOBALS[$arname]) && !empty($GLOBALS[$arname])) {
                     $d->addVariable($GLOBALS[$arname], "\$$arname");
@@ -1109,6 +1112,10 @@ END;
             $d->setFooter(Octopus_Debug::getErrorReportingHtml());
 
         } else {
+
+            if (empty($args)) {
+                return;
+            }
 
             ini_set('html_errors', 0);
 
