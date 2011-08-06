@@ -332,10 +332,19 @@ END;
 
     span.octopusDebugString span.octopusDebugStringLength,
     span.octopusDebugDateFromNumber,
-    .octopusDebugArrayIndex,
     .octopusDebugNumberType {
         color: #888;
         font-size: 0.9em;
+    }
+
+    td.octopusDebugArrayIndex {
+        color: #888;
+        font-size: 0.9em;
+    }
+
+    tr.octopusDebugArrayKeyDiffers td.octopusDebugArrayIndex {
+        color: #AAA;
+        font-size: 0.8em;
     }
 
     div.octopusDebugExceptionMessage {
@@ -972,7 +981,12 @@ END;
             $key = htmlspecialchars($key);
             $value = self::dumpToString($value, true);
 
-            $index = ($i === $key ? '' : $i);
+            if ($i !== $key) {
+                $index = $i;
+                $rowClass .= ' octopusDebugArrayKeyDiffers';
+            } else {
+                $index = '';
+            }
 
             $result .= <<<END
 <tr class="$rowClass">
