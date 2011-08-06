@@ -78,22 +78,37 @@ class Octopus_DB_Helper {
 
     }
 
-    function execute() {
+    /**
+     * Alias for @see query().
+     */
+    public function execute() {
         return $this->query();
     }
 
-    function query() {
+    /**
+     * Executes the SQL contained in this command.
+     * @throws Octopus_DB_Exception
+     */
+    public function query() {
 
         $sql = $this->getSql();
 
         $sql = implode('', $this->comments) . $sql;
 
         $query = $this->db->query($sql, true, $this->passParams);
+
+        if (!$query) {
+            throw Octopus_DB_Exception::forSql($sql, $this->passParams);
+        } else if ($query instanceof Octopus_DB_Error) {
+            throw Octopus_DB_Exception::forSql($sql, $this->passParams, $query->error);
+        }
+
         $this->passParams = array();
         $this->query = $query;
-        return $query;
 
+        return $query;
     }
+
 
     /**
      * For DELETE, UPDATE, and INSERT queries, returns the # of rows
