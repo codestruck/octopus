@@ -265,50 +265,6 @@ class Octopus_App {
     }
 
     /**
-     * Installs an app instance, runs DB migrations, etc.
-     */
-    public function install() {
-
-        $modules = array(
-            'core' => $this->getOption('OCTOPUS_DIR')
-        );
-
-        $result = array(
-            'modules' => array(
-            )
-        );
-
-        Octopus::loadClass('Octopus_DB_Schema');
-
-        $db = Octopus_DB::singleton();
-        $schema = new Octopus_DB_Schema();
-
-        foreach($modules as $name => $root) {
-
-            // TODO compare versions etc
-
-            $root = rtrim($root, '/');
-
-            $migrationsFile = $root . '/migrations.php';
-
-            if (is_file($migrationsFile)) {
-
-                require_once($migrationsFile);
-
-                $func = 'migrate_' . $name;
-                if (function_exists($func)) {
-                    $func($db, $schema);
-                    $result['modules'][] = $name;
-                }
-
-            }
-
-        }
-
-        return $result;
-    }
-
-    /**
      * Logs an error.
      */
     public function error($message, $level = E_USER_WARNING) {
@@ -323,6 +279,42 @@ class Octopus_App {
         }
 
         return $this->_nav->find($path, $options);
+    }
+
+    /**
+     * Runs migrations up to / back to $version.
+     * @return Number The current DB version.
+     */
+    public function migrate($version = null) {
+
+        Octopus::loadClass('Octopus_DB_Migration_Runner');
+
+        $db = Octopus_DB::singleton();
+
+        $runner = new Octopus_DB_Migration_Runner($this->getMigrationDirs());
+        $version = $runner->migrate($version);
+
+        // TODO: Auto-migrate all models
+
+        return $version;
+    }
+
+    /**
+     * @return Bool Whether there are any migrations that need to be run.
+     */
+    public function haveMigrationsToRun() {
+
+        Octopus::loadClass('Octopus_DB_Migration_Runner');
+        $runner = new Octopus_DB_Migration_Runner($this->getMigrationDirs());
+
+        return $runner->isUpToDate();
+    }
+
+    private function getMigrationDirs() {
+        return array(
+            $this->getOption('OCTOPUS_DIR') . 'migrations/',
+            $this->getOption('SITE_DIR') . 'migrations/',
+        );
     }
 
     /**

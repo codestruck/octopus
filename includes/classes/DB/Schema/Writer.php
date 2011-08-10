@@ -4,13 +4,13 @@ Octopus::loadClass('Octopus_DB_Schema_Reader');
 
 class Octopus_DB_Schema_Writer {
 
-    function Octopus_DB_Schema_Writer($tableName) {
+    function Octopus_DB_Schema_Writer($tableName, $db = null) {
         $this->tableName = $tableName;
         $this->fields = array();
         $this->indexes = array();
         $this->hasIndexes = array();
 
-        $this->db =& Octopus_DB::singleton();
+        $this->db = $db ? $db : Octopus_DB::singleton();
     }
 
     function newBool($fieldName) {

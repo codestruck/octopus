@@ -14,7 +14,7 @@ class Octopus_DB_Exception extends Octopus_Exception {
         $fullMessage = "SQL query failed: \"$sql\".";
         if ($message) {
             $fullMessage .= "
-Reason: $message";
+$message";
         }
 
         return new Octopus_DB_Exception($fullMessage);

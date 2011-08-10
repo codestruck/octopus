@@ -1,5 +1,7 @@
 <?php
 
+Octopus::loadClass('Octopus_DB_Migration_Runner');
+
 class MigrateTestPerson extends Octopus_Model {
 
     protected $fields = array(
@@ -53,11 +55,162 @@ class MigrateTestCategory extends Octopus_Model {
 Octopus::loadClass('Octopus_DB_Schema');
 Octopus::loadClass('Octopus_DB_Schema_Model');
 Octopus::loadClass('Octopus_DB_Schema_Reader');
+Octopus::loadClass('Octopus_DB_Migration');
 
 /**
  * Tests model's migration abilities
  */
-class MigrationTest extends PHPUnit_Framework_TestCase {
+class MigrationTest extends Octopus_App_TestCase {
+
+    function setUp() {
+        parent::setUp();
+
+        $db = Octopus_DB::singleton();
+        $db->query('DROP TABLE IF EXISTS _octopus_migrations');
+    }
+
+    function createMigrationFile($index, $name) {
+
+        global $__migration_testcase;
+        $__migration_testcase = $this;
+
+        $className = $name;
+        if (!ends_with($className, 'Migration')) {
+            $className .= 'Migration';
+        }
+
+        $migrationDir = $this->getMigrationDir();
+        @mkdir($migrationDir);
+
+        $file = $migrationDir . $index . '_' . $name . '.php';
+        file_put_contents(
+            $file,
+            <<<END
+<?php
+
+class $className extends Octopus_DB_Migration {
+
+    public function up() {
+
+        global \$__test_migrations_run;
+        global \$__migration_testcase;
+
+        \$__test_migrations_run[] = __METHOD__;
+
+        // Verify that all DB classes are available
+        \$__migration_testcase->assertTrue(class_exists('Octopus_DB_Schema'), 'Octopus_DB_Schema exists');
+        \$__migration_testcase->assertTrue(class_exists('Octopus_DB_Schema_Reader'), 'Octopus_DB_Schema_Reader exists');
+        \$__migration_testcase->assertTrue(class_exists('Octopus_DB_Schema_Writer'), 'Octopus_DB_Schema_Writer exists');
+        \$__migration_testcase->assertTrue(class_exists('Octopus_DB_Select'), 'Octopus_DB_Select exists');
+        \$__migration_testcase->assertTrue(class_exists('Octopus_DB_Insert'), 'Octopus_DB_Insert exists');
+        \$__migration_testcase->assertTrue(class_exists('Octopus_DB_Update'), 'Octopus_DB_Update exists');
+        \$__migration_testcase->assertTrue(class_exists('Octopus_DB_Delete'), 'Octopus_DB_Delete exists');
+
+    }
+
+    public function down() {
+        global \$__test_migrations_run;
+        \$__test_migrations_run[] = __METHOD__;
+    }
+
+}
+
+?>
+END
+
+        );
+
+        return $file;
+
+    }
+
+    function getMigrationDir() {
+        return $this->siteDir . '/migrations/';
+    }
+
+    function testNoMigrationsAppliedInitially() {
+
+        $db = Octopus_DB::singleton();
+        $db->query('DROP TABLE IF EXISTS _octopus_migrations');
+
+        $runner = new Octopus_DB_Migration_Runner($this->getMigrationDir());
+        $this->assertEquals(array(), $runner->getAppliedMigrations());
+
+    }
+
+    function testApplyMigrationCreatesRecord() {
+
+        $file = $this->createMigrationFile('001', 'FirstMigration');
+
+        $runner = new Octopus_DB_Migration_Runner($this->getMigrationDir());
+        $runner->migrate();
+
+        $s = new Octopus_DB_Select();
+        $s->table('_octopus_migrations');
+
+        $this->assertEquals(
+            array(
+                array(
+                    'hash' => '28de66ebcd542332a2e23273ef229a3f487ff703',
+                    'set' => 'octopus/tests/.working/MigrationTest-sitedir/migrations',
+                    'name' => 'firstmigration',
+                    'number' => 1,
+                    'file' => $file
+                )
+            ),
+            $s->fetchAll()
+        );
+
+    }
+
+    function testUnapplyMigrationDeletesRecord() {
+
+        $file = $this->createMigrationFile('001', 'UnapplyDeletesRecord');
+
+        $runner = new Octopus_DB_Migration_Runner($this->getMigrationDir());
+
+        $runner->migrate();
+        $s = new Octopus_DB_Select();
+        $s->table('_octopus_migrations');
+        $this->assertEquals(1, count($s->fetchAll()), 'should be 1 record in migrations table');
+
+        $runner->migrate(0);
+
+        $s = new Octopus_DB_Select();
+        $s->table('_octopus_migrations');
+        $this->assertEquals(0, count($s->fetchAll()), 'should be no records in migrations table');
+
+    }
+
+    function testDoubleUnderscoreSortsFirst() {
+
+        $first = $this->createMigrationFile('001', 'FirstMigration');
+        $second = $this->createMigrationFile('__999999', 'ActuallyFirstMigration');
+
+        $runner = new Octopus_DB_Migration_Runner(dirname($first));
+        $migrations = $runner->getMigrations();
+
+        $this->assertEquals(2, count($migrations));
+        $this->assertTrue(($item = array_shift($migrations)) instanceof ActuallyFirstMigration, 'Wrong class: ' . get_class($item));
+        $this->assertTrue(($item = array_shift($migrations)) instanceof FirstMigration, 'Wrong class: ' . get_class($item));
+
+    }
+
+    function testMigrateBetweenTwoVersionsUp() {
+
+        $first = $this->createMigrationFile('001', 'FirstMigration');
+        $second = $this->createMigrationFile('002', 'SecondMigration');
+        $third = $this->createMigrationFile('003', 'ThirdMigration');
+
+        $runner = new Octopus_DB_Migration_Runner(dirname($first));
+
+        $migrations = $runner->getMigrations(3, 2);
+
+        $this->assertEquals(2, count($migrations), '# of migrations');
+        $this->assertTrue(array_shift($migrations) instanceof SecondMigration, 'type of 1st mig');
+        $this->assertTrue(array_shift($migrations) instanceof ThirdMigration, 'type of 2nd mig');
+
+    }
 
     function testAllFieldTypesCovered() {
 
@@ -82,7 +235,7 @@ class MigrationTest extends PHPUnit_Framework_TestCase {
 
     }
 
-    function testMigrate() {
+    function testModelMigrate() {
 
         $db = Octopus_DB::singleton();
         $db->query('DROP TABLE IF EXISTS migrate_test_persons');
