@@ -225,7 +225,7 @@ END;
      */
     public function limit($offset, $maxRecords = null) {
 
-        if ($offset === $this->_offset && $count === $this->_maxRecords) {
+        if ($offset === $this->_offset && $maxRecords === $this->_maxRecords) {
             return $this;
         }
 
