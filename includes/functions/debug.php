@@ -858,10 +858,17 @@ END;
 
         ob_start();
         var_dump($x);
-        $content = trim(ob_get_clean());
+        $result = self::sanitizeDebugOutput(trim(ob_get_clean()));
 
-        $result = $escapeHtml ? htmlspecialchars($content) : $content;
-        return '<pre>' . self::sanitizeDebugOutput($result) . '</pre>';
+        if ($escapeHtml) {
+            $result = htmlspecialchars($result);
+        }
+
+        if (Octopus_Debug::inWebContext()) {
+            $result = "<pre>$result</pre>";
+        }
+
+        return $result;
     }
 
     private static function dumpExceptionToHtml($ex) {
@@ -1047,17 +1054,17 @@ END;
      */
     function dump_r() {
 
+        if ((defined('LIVE') && LIVE) || (defined('STAGING') && STAGING)) {
+            // TODO: Log?
+            return;
+        }
+
         if (!empty($GLOBALS['__OCTOPUS_DISABLE_DUMP_R'])) {
             return;
         }
 
         $args = func_get_args();
         if (empty($args)) return;
-
-        if ((defined('LIVE') && LIVE) || (defined('STAGING') && STAGING)) {
-            // TODO: Log?
-            return;
-        }
 
         if (function_exists('cancel_redirects')) {
             cancel_redirects();
@@ -1114,7 +1121,7 @@ END;
 
             $d = new Octopus_Debug('dump_r');
             foreach($args as $arg) {
-                $d->add('var', Octopus_Debug::dumpToString($arg));
+                $d->add('var', Octopus_Debug::dumpToString($arg, false, false));
             }
 
         }
