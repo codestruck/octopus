@@ -95,7 +95,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
 
     public function __set($var, $value) {
 
-        if ($this->escaped && !empty($this->touchedFields[$var])) {
+        if ($this->escaped && !empty($this->touchedFields[$var]) && $this->dataLoaded) {
             throw new Octopus_Model_Exception('Cannot set field ' . $var . ' on Model ' . $this->getClassName() . ' when it is escaped.');
         }
 
