@@ -1,10 +1,10 @@
 <?php
 
-define('OCTOPUS_MIGRATIONS_TABLE', '_octopus_migrations');
+define('OCTOPUS_MIGRATIONS_TABLE', '_migrations');
 
 // For migrations that are prefixed with one or more '_', their version # is
 // added to this internally so that they are run first.
-define('OCTOPUS_MIGRATIONS_RUN_FIRST_OFFSET', -9999999);
+define('OCTOPUS_MIGRATIONS_RUN_FIRST_OFFSET', -1000000);
 
 Octopus::loadClass('Octopus_DB_Select');
 
@@ -34,30 +34,166 @@ class Octopus_DB_Migration_Runner {
     }
 
     /**
+     * @return Array of migration versions that have been applied.
+     */
+    public function getAppliedMigrations() {
+
+        if (!$this->checkMigrationsTable()) {
+            return array();
+        }
+
+        $s = new Octopus_DB_Select();
+        $s->table(OCTOPUS_MIGRATIONS_TABLE);
+        $versions = $s->fetchAll();
+
+        usort($versions, array($this, 'compareMigrationVersions'));
+
+        return $versions;
+
+    }
+
+    /**
+     * @return Mixed Either an Array describing the highest possible version
+     * or null if no versions are available.
+     */
+    public function getLatestVersion() {
+        $versions = $this->getAllVersions();
+        return $versions ? array_pop($versions) : null;
+    }
+
+    /**
+     * @return Array of available migration versions, sorted in the order they
+     * should be processed.
+     */
+    public function &getMigrationVersions($from = null, $to = null, &$up = null) {
+
+        $versions = $this->getAllVersions();
+
+        $this->figureOutVersionStuff($from, $to, $minVersion, $maxVersion, $up);
+
+        $result = array();
+
+        foreach($versions as $v) {
+
+            if ($up) {
+
+                // Moving up == include all versions <= $maxVersion
+                if ($this->compareMigrationVersions($v, $maxVersion) <= 0) {
+                    $result[] = $v;
+                }
+
+            } else {
+
+                // Moving down == include all versions >= $minVersion
+                if ($this->compareMigrationVersions($v, $minVersion) >= 0) {
+                    $result[] = $v;
+                }
+
+            }
+        }
+
+        if (!$up) $result = array_reverse($result);
+
+        return $result;
+    }
+
+    /**
      * @param $toVersion Mixed Version being migrated to. If not specified, the
      * latest version is used.
      * @param $fromVersion Mixed Version from which the migration is running.
      * if not specified, the last version applied is used.
+     * @param $up Boolean Gets set to true if the 'up' method should be used,
+     * false if the 'down' method should be used.
      * @return Array of migration instances to be run in the order they should
      * be run.
      */
-    public function getMigrations($fromVersion = null, $toVersion = null) {
+    public function getMigrations($fromVersion = null, $toVersion = null, &$up = null) {
 
-        $this->figureOutVersionStuff($fromVersion, $toVersion, $minVersion, $maxVersion);
-
-        $versions = $this->getMigrationVersions($minVersion, $maxVersion);
-
+        $versions = $this->getMigrationVersions($fromVersion, $toVersion, $up);
         $result = array();
 
         foreach($versions as $version) {
             $result[] = $this->createMigration($version);
         }
 
-        if ($this->compareMigrationVersions($fromVersion, $toVersion) < 0) {
-            return array_reverse($result);
+        return $result;
+    }
+
+    /**
+     * @return Array the latest applied version, or null if nothing has been
+     * applied yet.
+     */
+    public function getCurrentVersion() {
+
+        if (!$this->checkMigrationsTable()) {
+            // no table = no migrations!
+            return null;
         }
 
-        return $result;
+        $s = new Octopus_DB_Select();
+        $s->table(OCTOPUS_MIGRATIONS_TABLE);
+        $versions = $s->fetchAll();
+
+        if (empty($versions)) {
+            return null;
+        }
+
+        usort($versions, array($this, 'compareMigrationVersions'));
+
+        return array_pop($versions);
+    }
+
+    /**
+     * @return Boolean Whether or not there are any migrations that need to
+     * be applied.
+     */
+    public function haveUnappliedMigrations() {
+
+        $current = $this->getCurrentVersion();
+        $latest = $this->getLatestVersion();
+
+        return $this->compareMigrationVersions($current, $latest) < 0;
+    }
+
+    /**
+     * Runs migrations :-)
+     */
+    public function migrate($toVersion = null, $fromVersion = null) {
+
+        $this->createMigrationsTable();
+
+        $versions = $this->getMigrationVersions($fromVersion, $toVersion, $up);
+
+        return $this->runMigrations($versions, $up, true);
+    }
+
+    /**
+     * Checks that the migrations table exists, optionally creating it.
+     */
+    protected function checkMigrationsTable($create = false) {
+
+        $schema = new Octopus_DB_Schema($this->db);
+        if ($schema->checkTable(OCTOPUS_MIGRATIONS_TABLE)) {
+            return true;
+        }
+
+        if ($create) {
+            $this->createMigrationsTable();
+        }
+
+        return false;
+    }
+
+    protected function createMigrationsTable() {
+
+        $t = new Octopus_DB_Schema_Writer(OCTOPUS_MIGRATIONS_TABLE, $this->db);
+        $t->newTextSmall('hash', 40);
+        $t->newTextSmall('name', 100);
+        $t->newInt('number');
+        $t->newTextSmall('file', 250); // Only for future reference, not actually used
+        $t->newPrimaryKey('hash');
+        $t->create();
+
     }
 
     /**
@@ -86,108 +222,12 @@ class Octopus_DB_Migration_Runner {
         return $migration;
     }
 
-    private function getVersionByIndex($index) {
 
-        $versions = $this->getMigrationVersions();
-        return isset($versions[$index - 1]) ? $versions[$index - 1] : null;
-
-    }
-
-    private function getVersionByHash($hash) {
-
-        $versions = $this->getMigrationVersions();
-        foreach($versions as $v) {
-            if ($v['hash'] === $hash) {
-                return $v;
-            }
-        }
-
-        return null;
-    }
-
-    private function figureOutVersionStuff($fromVersion, $toVersion, &$minVersion, &$maxVersion) {
-
-        if ($fromVersion === null) {
-            $fromVersion = $this->getCurrentVersion();
-        } else if (is_numeric($fromVersion)) {
-            $index = $fromVersion;
-            $fromVersion = $this->getVersionByIndex($index);
-            if ($fromVersion === null) {
-                throw new Octopus_Exception("Invalid version index: $index");
-            }
-        } else if (is_string($fromVersion) && strlen($fromVersion) === 40) {
-            $hash = $fromVersion;
-            $fromVersion = $this->getVersionByHash($hash);
-            if ($fromVersion === null) {
-                throw new Octopus_Exception("Invalid version hash: $hash");
-            }
-        }
-
-        if ($toVersion === null) {
-            $toVersion = $this->getLatestVersion();
-        } else if (is_numeric($toVersion)) {
-            $index = $toVersion;
-            $toVersion = $this->getVersionByIndex($index);
-            if ($toVersion === null) {
-                throw new Octopus_Exception("Invalid version index: $index");
-            }
-        } else if (is_string($toVersion) && strlen($toVersion) === 40) {
-            $hash = $toVersion;
-            $toVersion = $this->getVersionByHash($hash);
-            if ($toVersion === null) {
-                throw new Octopus_Exception("Invalid version hash: $hash");
-            }
-        }
-
-        $comp = $this->compareMigrationVersions($fromVersion, $toVersion);
-
-        if ($comp <= 0) {
-            $minVersion = $fromVersion;
-            $maxVersion = $toVersion;
-        } else {
-            $minVersion = $toVersion;
-            $maxVersion = $fromVersion;
-        }
-    }
 
     /**
-     * @return Array the latest applied version, or null if nothing has been
-     * applied yet.
+     * @return Array of versions sorted in ascending order.
      */
-    public function getCurrentVersion() {
-
-        if (!$this->checkMigrationsTable()) {
-            // no table = no migrations!
-            return null;
-        }
-
-        $s = new Octopus_DB_Select();
-        $s->table(OCTOPUS_MIGRATIONS_TABLE);
-        $versions = $s->fetchAll();
-
-        if (empty($versions)) {
-            return null;
-        }
-
-        usort($versions, array($this, 'compareMigrationVersions'));
-
-        return array_pop($versions);
-    }
-
-    /**
-     * @return Mixed Either an Array describing the highest possible version
-     * or null if no versions are available.
-     */
-    public function getLatestVersion() {
-        $versions = $this->getMigrationVersions();
-        return $versions ? array_pop($versions) : null;
-    }
-
-    /**
-     * @return Array of available migration versions, sorted in ascending
-     * order.
-     */
-    protected function getMigrationVersions($minVersion = null, $maxVersion = null) {
+    private function &getAllVersions() {
 
         $versions = array();
 
@@ -202,84 +242,16 @@ class Octopus_DB_Migration_Runner {
 
         }
 
-        usort($versions, array($this, 'compareMigrationVersions'));
-
-        if ($minVersion === null && $maxVersion === null) {
-            return $versions;
-        } else if ($minVersion === null && $maxVersion === 0) {
-            $minVersion = 0;
-            $maxVersion = null;
-        }
-
-        $result = array();
-        foreach($versions as $version) {
-
-            if (($minVersion === null || ($this->compareMigrationVersions($minVersion, $version) <= 0)) &&
-                ($maxVersion === null || ($this->compareMigrationVersions($maxVersion, $version) >= 0))) {
-                $result[] = $version;
-            }
-
-        }
-
-        return $result;
-    }
-
-    /**
-     * Checks that the migrations table exists, optionally creating it.
-     */
-    protected function checkMigrationsTable($create = false) {
-
-        $schema = new Octopus_DB_Schema($this->db);
-        if ($schema->checkTable(OCTOPUS_MIGRATIONS_TABLE)) {
-            return true;
-        }
-
-        if ($create) {
-            $this->createMigrationsTable();
-        }
-
-        return false;
-    }
-
-    protected function createMigrationsTable() {
-
-        $t = new Octopus_DB_Schema_Writer(OCTOPUS_MIGRATIONS_TABLE, $this->db);
-        $t->newTextSmall('hash', 40);
-        $t->newTextSmall('set', 100);
-        $t->newTextSmall('name', 100);
-        $t->newInt('number');
-        $t->newTextSmall('file', 250); // Only for future reference, not actually used
-        $t->newPrimaryKey('hash');
-        $t->create();
-
-    }
-
-    /**
-     * @return Array of migration versions that have been applied.
-     */
-    public function getAppliedMigrations() {
-
-        if (!$this->checkMigrationsTable()) {
-            return array();
-        }
-
-        $s = new Octopus_DB_Select();
-        $s->table(OCTOPUS_MIGRATIONS_TABLE);
-        $versions = $s->fetchAll();
-
+        // Sort versions in ascending order
         usort($versions, array($this, 'compareMigrationVersions'));
 
         return $versions;
-
     }
 
     /**
      * @return Array version information.
      */
     protected function getMigrationVersion($file) {
-
-        $set = $this->getMigrationSet($file);
-        if (!$set) throw new Octopus_Exception('Invalid migration file: ' . $file);
 
         $name = basename($file, '.php');
 
@@ -292,16 +264,16 @@ class Octopus_DB_Migration_Runner {
 
             $number = $m[2];
             if ($m[1]) {
-                $number = OCTOPUS_MIGRATIONS_RUN_FIRST_OFFSET + $number;
+                $number = ((strlen($m[1]) * OCTOPUS_MIGRATIONS_RUN_FIRST_OFFSET) + $number);
             }
         }
 
         $name = preg_replace('/^_*\d+_*/', '', $name);
         $name = strtolower($name);
 
-        $hash = sha1($set . '|' . $name . '|' . $number);
+        $hash = sha1($name . '|' . $number);
 
-        return compact('hash', 'set', 'name', 'number', 'file');
+        return compact('hash', 'name', 'number', 'file');
     }
 
     /**
@@ -325,10 +297,6 @@ class Octopus_DB_Migration_Runner {
         }
 
         return $dir;
-    }
-
-    private static function __requireOnce($file) {
-        require_once($file);
     }
 
     /**
@@ -388,7 +356,7 @@ class Octopus_DB_Migration_Runner {
         $result = $x['number'] - $y['number'];
         if ($result !== 0) return $result;
 
-        return $this->compareMigrationSets($x['set'], $y['set']);
+        return strcasecmp($x['name'], $y['name']);
 
     }
 
@@ -400,37 +368,21 @@ class Octopus_DB_Migration_Runner {
         return $this->compareMigrationVersions($xVersion, $yVersion);
     }
 
-    private function compareMigrationSets($x, $y) {
-        return strcasecmp($x, $y);
-    }
-
-    public function migrate($toVersion = null, $fromVersion = null) {
-
-        $this->createMigrationsTable();
-
-        $versions = $this->getMigrationVersions($fromVersion, $toVersion);
-
-        if ($toVersion === 0) {
-            $up = false;
-        } else {
-            $up = ($this->compareMigrationVersions($fromVersion, $toVersion) >= 0);
-        }
-
-        return $this->runMigrations($versions, $up, true);
-    }
 
     private function runMigrations($versions, $up, $undoOnException) {
 
         $run = array();
+
+        $schema = new Octopus_DB_Schema($this->db);
 
         try {
 
             foreach($versions as $version) {
 
                 if ($up) {
-                    $this->applyVersion($version);
+                    $this->applyVersion($version, $schema);
                 } else {
-                    $this->unapplyVersion($version);
+                    $this->unapplyVersion($version, $schema);
                 }
 
                 $run[] = $version;
@@ -452,7 +404,7 @@ class Octopus_DB_Migration_Runner {
      * Runs the 'up' migration for the given version if it has not
      * already been run.
      */
-    protected function applyVersion($version) {
+    protected function applyVersion($version, $schema) {
 
         if ($this->versionHasBeenApplied($version)) {
             return;
@@ -461,7 +413,7 @@ class Octopus_DB_Migration_Runner {
         $migration = $this->createMigration($version);
 
         if (method_exists($migration, 'up')) {
-            $migration->up();
+            $migration->up($this->db, $schema);
         }
 
         $i = new Octopus_DB_Insert();
@@ -475,7 +427,7 @@ class Octopus_DB_Migration_Runner {
     /**
      * Removes a version if it has been applied.
      */
-    protected function unapplyVersion($version) {
+    protected function unapplyVersion($version, $schema) {
 
         if (!$this->versionHasBeenApplied($version)) {
             return;
@@ -484,7 +436,7 @@ class Octopus_DB_Migration_Runner {
         $migration = $this->createMigration($version);
 
         if (method_exists($migration, 'down')) {
-            $migration->down();
+            $migration->down($this->db, $schema);
         }
 
         $d = new Octopus_DB_Delete();
@@ -501,6 +453,97 @@ class Octopus_DB_Migration_Runner {
 
         return !!$s->getOne();
 
+    }
+
+    /**
+     * Given two migration versions, figures out min, max, and the direction
+     * being moved in.
+     */
+    private function figureOutVersionStuff($fromVersion, $toVersion, &$minVersion, &$maxVersion, &$up) {
+
+        if ($toVersion === 0 && $fromVersion !== 0) {
+            $maxVersion = $this->getCurrentVersion();
+            $minVersion = $this->getVersionByNumber(0);
+            $up = false;
+            return;
+        }
+
+        if ($fromVersion === null) {
+            $fromVersion = $this->getCurrentVersion();
+        } else if (is_numeric($fromVersion)) {
+            $number = $fromVersion;
+            $fromVersion = $this->getVersionByNumber($number);
+            if ($fromVersion === null) {
+                throw new Octopus_Exception("Invalid version number: $number");
+            }
+        } else if (is_string($fromVersion) && strlen($fromVersion) === 40) {
+            $hash = $fromVersion;
+            $fromVersion = $this->getVersionByHash($hash);
+            if ($fromVersion === null) {
+                throw new Octopus_Exception("Invalid version hash: $hash");
+            }
+        }
+
+        if ($toVersion === null) {
+            $toVersion = $this->getLatestVersion();
+        } else if (is_numeric($toVersion)) {
+            $number = $toVersion;
+            $toVersion = $this->getVersionByNumber($number);
+            if ($toVersion === null) {
+                throw new Octopus_Exception("Invalid version number: $number");
+            }
+        } else if (is_string($toVersion) && strlen($toVersion) === 40) {
+            $hash = $toVersion;
+            $toVersion = $this->getVersionByHash($hash);
+            if ($toVersion === null) {
+                throw new Octopus_Exception("Invalid version hash: $hash");
+            }
+        }
+
+        $comp = $this->compareMigrationVersions($fromVersion, $toVersion);
+
+        if ($comp <= 0) {
+            $minVersion = $fromVersion;
+            $maxVersion = $toVersion;
+            $up = true;
+        } else {
+            $minVersion = $toVersion;
+            $maxVersion = $fromVersion;
+            $up = false;
+        }
+    }
+
+    private function getVersionByNumber($number) {
+
+        $versions = $this->getAllVersions();
+
+        if ($number === 0) {
+            return array_shift($versions);
+        }
+
+        foreach($versions as $v) {
+            if (intval($v['number']) === intval($number)) {
+                return $v;
+            }
+        }
+
+        return null;
+    }
+
+    private function getVersionByHash($hash) {
+
+        $versions = $this->getAllVersions();
+        foreach($versions as $v) {
+            if ($v['hash'] === $hash) {
+                return $v;
+            }
+        }
+
+        return null;
+    }
+
+    private static function __requireOnce($file) {
+        require_once($file);
     }
 
 }

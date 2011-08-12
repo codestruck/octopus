@@ -5,9 +5,11 @@
  */
 abstract class Octopus_DB_Migration {
 
-    // public function up();
+    public function up($db, $schema) {
+    }
 
-    // public function down();
+    public function down($db, $schema) {
+    }
 
 }
 

@@ -66,10 +66,10 @@ class MigrationTest extends Octopus_App_TestCase {
         parent::setUp();
 
         $db = Octopus_DB::singleton();
-        $db->query('DROP TABLE IF EXISTS _octopus_migrations');
+        $db->query('DROP TABLE IF EXISTS _migrations');
     }
 
-    function createMigrationFile($index, $name) {
+    function createMigrationFile($index, $name, $failOn = null) {
 
         global $__migration_testcase;
         $__migration_testcase = $this;
@@ -82,6 +82,9 @@ class MigrationTest extends Octopus_App_TestCase {
         $migrationDir = $this->getMigrationDir();
         @mkdir($migrationDir);
 
+        $upExtra = (strpos($failOn, 'up') !== false) ? '$__migration_testcase->assertTrue(false, "up called when it should not be");' : '';
+        $downExtra = (strpos($failOn, 'down') !== false) ? '$__migration_testcase->assertTrue(false, "down called when it should not be");' : '';
+
         $file = $migrationDir . $index . '_' . $name . '.php';
         file_put_contents(
             $file,
@@ -90,7 +93,7 @@ class MigrationTest extends Octopus_App_TestCase {
 
 class $className extends Octopus_DB_Migration {
 
-    public function up() {
+    public function up(\$db, \$schema) {
 
         global \$__test_migrations_run;
         global \$__migration_testcase;
@@ -106,11 +109,18 @@ class $className extends Octopus_DB_Migration {
         \$__migration_testcase->assertTrue(class_exists('Octopus_DB_Update'), 'Octopus_DB_Update exists');
         \$__migration_testcase->assertTrue(class_exists('Octopus_DB_Delete'), 'Octopus_DB_Delete exists');
 
+        \$__migration_testcase->assertTrue(\$db instanceof Octopus_DB, 'first arg is DB');
+        \$__migration_testcase->assertTrue(\$schema instanceof Octopus_DB_Schema, 'second arg is schema');
+
+        $upExtra
+
     }
 
-    public function down() {
+    public function down(\$db, \$schema) {
         global \$__test_migrations_run;
         \$__test_migrations_run[] = __METHOD__;
+
+        $downExtra
     }
 
 }
@@ -131,7 +141,7 @@ END
     function testNoMigrationsAppliedInitially() {
 
         $db = Octopus_DB::singleton();
-        $db->query('DROP TABLE IF EXISTS _octopus_migrations');
+        $db->query('DROP TABLE IF EXISTS _migrations');
 
         $runner = new Octopus_DB_Migration_Runner($this->getMigrationDir());
         $this->assertEquals(array(), $runner->getAppliedMigrations());
@@ -140,20 +150,19 @@ END
 
     function testApplyMigrationCreatesRecord() {
 
-        $file = $this->createMigrationFile('001', 'FirstMigration');
+        $file = $this->createMigrationFile('001', 'FirstCreatesRecord');
 
         $runner = new Octopus_DB_Migration_Runner($this->getMigrationDir());
         $runner->migrate();
 
         $s = new Octopus_DB_Select();
-        $s->table('_octopus_migrations');
+        $s->table('_migrations');
 
         $this->assertEquals(
             array(
                 array(
-                    'hash' => '28de66ebcd542332a2e23273ef229a3f487ff703',
-                    'set' => 'octopus/tests/.working/MigrationTest-sitedir/migrations',
-                    'name' => 'firstmigration',
+                    'hash' => '2d5d5a937a7f476aecc728bfc050b9d15ee4183b',
+                    'name' => 'firstcreatesrecord',
                     'number' => 1,
                     'file' => $file
                 )
@@ -171,18 +180,52 @@ END
 
         $runner->migrate();
         $s = new Octopus_DB_Select();
-        $s->table('_octopus_migrations');
+        $s->table('_migrations');
         $this->assertEquals(1, count($s->fetchAll()), 'should be 1 record in migrations table');
 
         $runner->migrate(0);
 
         $s = new Octopus_DB_Select();
-        $s->table('_octopus_migrations');
+        $s->table('_migrations');
         $this->assertEquals(0, count($s->fetchAll()), 'should be no records in migrations table');
 
     }
 
-    function testDoubleUnderscoreSortsFirst() {
+    function testHaveUnappliedMigrations() {
+
+        $first = $this->createMigrationFile('001', 'FirstHaveUnapplied');
+
+        $runner = new Octopus_DB_Migration_Runner(dirname($first));
+        $this->assertTrue($runner->haveUnappliedMigrations(), 'should have unapplied migrations w/ none applied');
+        $runner->migrate();
+        $this->assertFalse($runner->haveUnappliedMigrations(), 'should not have unapplied migrations after migrate()');
+
+        $second = $this->createMigrationFile('002', 'SecondHaveUnapplied');
+        $this->assertTrue($runner->haveUnappliedMigrations(), 'should have unapplied migrations after creating a new one');
+        $runner->migrate();
+        $this->assertFalse($runner->haveUnappliedMigrations(), 'should not have unapplied migrations after migrate()');
+    }
+
+    function testUnderscoresIncreasePriority() {
+
+        $third = $this->createMigrationFile('111', 'BBB');
+        $second = $this->createMigrationFile('_222', 'AAA');
+        $first = $this->createMigrationFile('__333', 'CCC');
+
+        $runner = new Octopus_DB_Migration_Runner(dirname($first));
+        $versions = $runner->getMigrationVersions();
+
+        $expected = array('CCC', 'AAA', 'BBB');
+        $this->assertEquals(count($expected), count($versions), '# of versions');
+
+        while($expected) {
+            $v = array_shift($versions);
+            $this->assertEquals(strtolower(array_shift($expected)), strtolower($v['name']));
+        }
+
+    }
+
+    function testUnderscoreSortsFirst() {
 
         $first = $this->createMigrationFile('001', 'FirstMigration');
         $second = $this->createMigrationFile('__999999', 'ActuallyFirstMigration');
@@ -204,12 +247,70 @@ END
 
         $runner = new Octopus_DB_Migration_Runner(dirname($first));
 
+        $migrations = $runner->getMigrations(2, 3);
+
+        $this->assertEquals(3, count($migrations), '# of migrations');
+        $this->assertTrue(array_shift($migrations) instanceof FirstMigration, 'type of 1st mig');
+        $this->assertTrue(array_shift($migrations) instanceof SecondMigration, 'type of 2nd mig');
+        $this->assertTrue(array_shift($migrations) instanceof ThirdMigration, 'type of 3rd mig');
+
+    }
+
+    function testMigrateBetweenTwoVersionsDown() {
+
+        $first = $this->createMigrationFile('001', 'FirstDown');
+        $second = $this->createMigrationFile('002', 'SecondDown');
+        $third = $this->createMigrationFile('003', 'ThirdDown');
+
+        $runner = new Octopus_DB_Migration_Runner(dirname($first));
+
         $migrations = $runner->getMigrations(3, 2);
 
         $this->assertEquals(2, count($migrations), '# of migrations');
-        $this->assertTrue(array_shift($migrations) instanceof SecondMigration, 'type of 1st mig');
-        $this->assertTrue(array_shift($migrations) instanceof ThirdMigration, 'type of 2nd mig');
+        $this->assertTrue(array_shift($migrations) instanceof ThirdDownMigration, 'type of 3rd mig');
+        $this->assertTrue(array_shift($migrations) instanceof SecondDownMigration, 'type of 2nd mig');
 
+
+    }
+
+    function testApplyNewUnappliedMigrationsEarlierThanCurrentScope() {
+
+        $first = $this->createMigrationFile('001', 'FirstMigration');
+        $second = $this->createMigrationFile('002', 'SecondMigration');
+
+        $runner = new Octopus_DB_Migration_Runner(dirname($first));
+        $GLOBALS['__test_migrations_run'] = array();
+        $runner->migrate();
+
+        $this->assertMigrationsApplied($runner, 'FirstMigration', 'SecondMigration');
+
+        $third = $this->createMigrationFile('003', 'ThirdMigration');
+        $sneaky = $this->createMigrationFile('__001', 'SneakyMigration');
+
+        $GLOBALS['__test_migrations_run'] = array();
+        $runner->migrate();
+        $run = $GLOBALS['__test_migrations_run'];
+
+        $this->assertEquals(2, count($run), '# of migrations run');
+
+        $this->assertMigrationsApplied($runner, 'SneakyMigration', 'FirstMigration', 'SecondMigration', 'ThirdMigration');
+    }
+
+    function assertMigrationsApplied($runner /*, $class1, $class2 */) {
+
+        $applied = $runner->getAppliedMigrations();
+        $classes = func_get_args();
+        array_shift($classes);
+
+        $this->assertEquals(count($classes), count($applied), '# of migrations applied');
+
+        while(!empty($applied)) {
+
+            $version = array_shift($applied);
+            $class = array_shift($classes);
+
+            $this->assertTrue(strcasecmp($version['name'], $class) == 0, "{$version['name']} == $class");
+        }
     }
 
     function testAllFieldTypesCovered() {
