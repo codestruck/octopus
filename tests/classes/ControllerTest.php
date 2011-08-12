@@ -75,7 +75,7 @@ END
         $resp = trim($resp);
 
         $this->assertTrue(
-            !!preg_match('#HTTP/1.1 200 OK.*Suppressed redirect#im', trim($resp)),
+            !!preg_match('#HTTP/1.1 200 OK.*Suppressed.*redirect#im', trim($resp)),
             '<< ' . trim($resp) . ' >>'
         );
     }

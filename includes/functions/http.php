@@ -176,24 +176,8 @@
 
         if (defined('DEV') && DEV && class_exists('Octopus_Debug')) {
 
-            $location = h($location);
-
-            ob_start();
-            print_backtrace();
-            $stackTrace = h(ob_get_clean());
-
-            $d = new Octopus_Debug('suppressedRedirect');
-            $d->add('content', <<<END
-        <div class="sgSquashedRedirectNotice">
-            Suppressed redirect to:
-            <a href="$location"><strong>$location</strong></a>
-            <br />
-            <pre>
-            $stackTrace
-            </pre>
-        </div>
-END
-            );
+            $d = new Octopus_Debug();
+            $d->addSquashedRedirect($location);
 
             if ($resp) {
                 $resp->append($d->render(true));
