@@ -400,7 +400,7 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
         $text = $this->_label;
         foreach($this->_labelElements as $l) {
             $l->setAttribute('for', $this->id)
-              ->text($text ? $text : '');
+              ->html($text ? $text : '');
         }
 
     }

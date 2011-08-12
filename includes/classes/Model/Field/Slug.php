@@ -1,7 +1,12 @@
 <?php
 
-function to_unique_slug(Octopus_Model $model, Octopus_Model_Field $field) {
-    $str = $model->getDisplayValue();
+function to_unique_slug(Octopus_Model $model, Octopus_Model_Field $field, $forceField = null) {
+
+    if ($forceField) {
+        $str = $model->$forceField;
+    } else {
+        $str = $model->getDisplayValue();
+    }
 
     $slug = to_slug($str);
     $return = $slug;
