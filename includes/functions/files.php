@@ -184,4 +184,35 @@
 
         return $ret;
     }
+
+    function get_filename($file, $short = false) {
+
+        $parts = explode('/', $file);
+        $l = count($parts);
+        $filename = $parts[$l - 1];
+
+        if ($short) {
+            $dot = strrpos($filename, '.');
+            if ($dot !== false && $dot !== 0) {
+                $filename = substr($filename, 0, $dot);
+            }
+        }
+
+        return $filename;
+
+    }
+
+    function get_extension($file) {
+        $filename = get_filename($file);
+        $dot = strrpos($filename, '.');
+
+        if ($dot === false || $dot === 0) {
+            return '';
+        }
+
+        $ext = substr($filename, $dot);
+        return $ext;
+    }
+
+
 ?>

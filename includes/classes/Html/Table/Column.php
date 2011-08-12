@@ -304,6 +304,8 @@ class Octopus_Html_Table_Column {
             return $this->shouldBeSortableAgainstResultSet($dataSource);
         } else if (is_array($dataSource)) {
             return true;
+        } else if (is_string($dataSource)) {
+            return true;
         } else {
             return false;
         }

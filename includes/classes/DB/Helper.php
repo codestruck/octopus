@@ -13,8 +13,8 @@ class Octopus_DB_Helper {
         $this->tables = array();
         $this->where = array();
         $this->distinct = array();
-        $this->limitStart = array();
-        $this->limitLen = array();
+        $this->limitStart = null;
+        $this->limitLen = null;
         $this->comments = array();
         $this->table = null;
         $this->where = array();

@@ -1,10 +1,9 @@
 <?php
 
-Octopus::loadExternal('pager_wrapper');
-
 Octopus::loadClass('Octopus_Html_Element');
 Octopus::loadClass('Octopus_Html_Table_Column');
 Octopus::loadClass('Octopus_Html_Table_Filter');
+Octopus::loadClass('Octopus_Html_Table_Paginate');
 
 /**
  *
@@ -147,6 +146,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     private $_dataSource = null;
     private $_originalDataSource = null;
     private $_pagerData = null;
+    private $_currentPage = 1;
 
     private $_shouldInitFromEnvironment = true;
 
@@ -185,8 +185,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
             'lastPagePost' => '',
             'nextImg' => $o['nextPageLinkText'],
             'prevImg' => $o['prevPageLinkText'],
-            'curPageLinkClassName' => 'current'
-
+            'curPageLinkClassName' => 'current',
         );
     }
 
@@ -365,16 +364,15 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     public function getPage() {
-        $num = $this->getPagerData('page_numbers.current');
-        return $num;
+        return $this->_currentPage;
     }
 
     public function getPageCount() {
-        return $this->getPagerData('page_numbers.total');
+        return $this->getPagerData('pages');
     }
 
     public function setPage($page) {
-        $this->_pagerOptions['currentPage'] = $page;
+        $this->_currentPage = $page;
         $this->rememberState();
         $this->resetData();
         $this->_shouldInitFromEnvironment = false;
@@ -670,16 +668,10 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
             $ds = ($this->_dataSource ? $this->_dataSource : array());
 
-            if ($ds instanceof Octopus_Model_ResultSet) {
-                $this->_pagerData = $this->getPagerDataForResultSet($ds);
-            } else if (is_array($ds)) {
-                $this->_pagerData = $this->getPagerDataForArray($ds);
-            } else if (is_string($ds)) {
-                $this->_pagerData = $this->getPagerDataForSql($ds);
-            } else if ($ds) {
-                trigger_error("Unsupported data source for table: " . $ds);
-                return false;
-            }
+            $options = array_merge($this->_pagerOptions, array('currentPage' => $this->_currentPage));
+
+            $pager = new Octopus_Html_Table_Paginate($ds, $options, $this->_sortColumns);
+            $this->_pagerData = $pager->getData();
 
             $this->rememberState();
         }
@@ -696,52 +688,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         return $v;
     }
 
-    private function getPagerDataForArray(&$ar) {
-
-        // TODO: sort arrays
-
-        return Pager_Wrapper_Array($ar, $this->_pagerOptions, $this->_options['pager'] === false);
-    }
-
-    private function getPagerDataForSql($sql) {
-
-        $needOrderBy = true;
-
-        foreach($this->getColumns() as $col) {
-
-            if (!$col->isSorted()) {
-                continue;
-            }
-
-            $dir = $col->getSorting();
-
-            $sql .= ($needOrderBy ? ' ORDER BY ' : ', ');
-            $sql .= "`{$name}` $dir";
-            $needOrderBy = false;
-        }
-
-        Octopus::loadClass('Octopus_DB');
-
-        return Pager_Wrapper_DB(Octopus_DB::singleton(), $sql, $this->_pagerOptions, $this->_options['pager'] === false);
-    }
-
     private function debugging() {
         return !empty($this->_options['debug']);
-    }
-
-    private function getPagerDataForResultSet($resultSet) {
-
-        $order = array();
-
-        foreach($this->_sortColumns as $col) {
-            $resultSet = $col->sortResultSet($resultSet);
-        }
-
-        if ($this->debugging()) {
-            $resultSet->dumpSql();
-        }
-
-        return Pager_Wrapper_ResultSet($resultSet, $this->_pagerOptions, $this->_options['pager'] === false);
     }
 
     /**
@@ -949,18 +897,6 @@ END;
 
 
         $th->append($html . $close);
-    }
-
-    /**
-     * @return String A nicely-formatted URL for use in the pager.
-     */
-    protected function getUrlForPaging() {
-
-        $url = preg_replace('/(\?|&+)' . $this->_options['pageArg'] . '=\d*(&+|$)/i', '$1', $this->getRequestURI());
-        $url = rtrim($url, '&');
-        $url .= strpos($url, '?') === false ? '?' : '&';
-
-        return $url;
     }
 
     /**
@@ -1173,8 +1109,9 @@ END;
     protected function renderBody(&$array = null) {
 
         $rows = $this->getData();
+        $pagerData = $this->getPagerData();
 
-        if (count($rows) == 0) {
+        if ($pagerData['totalItems'] == 0) {
             $td = new Octopus_Html_Element('td', array('class' => 'emptyNotice'));
             $td->html($this->_options['emptyContent']);
             return '<tbody class="emptyNotice"><tr>' . $td . '</tr></tbody>';
@@ -1183,8 +1120,6 @@ END;
         $html = '<tbody>';
 
         $columnCount = count($this->_columns);
-
-
 
         $tr = new Octopus_Html_Element('tr');
         $td = new Octopus_Html_Element('td');
@@ -1324,27 +1259,7 @@ END;
 
         $p = $this->getPagerData();
 
-        $html = '<div class="pagerLinks">';
-
-
-        if ($p['page_numbers']['total'] > 1) {
-
-            // Pager fucks up our nice urls, so we substitute in good ones.
-
-            $replacement =
-                'href="' .
-                str_replace('$', '\\$', $this->getUrlForPaging()) .
-                $this->_options['pageArg'] . '=$3$4"';
-
-            $links = preg_replace(
-                '/href="(.*?)(\?|&amp;)' . $this->_options['pageArg'] . '=(\d+)(.*?)"/i',
-                $replacement,
-                $p['links']
-            );
-
-            $html .= $links;
-        }
-        $html .= '</div>';
+        $html = Octopus_Html_Table_Paginate::makeLinks($p, $this->_options);
 
         $html .= $this->renderLocationDiv();
 

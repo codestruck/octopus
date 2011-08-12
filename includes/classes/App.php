@@ -815,8 +815,6 @@ class Octopus_App {
 
         $o =& $this->_options;
 
-        error_reporting(E_ALL);
-
         $flags = array('DEV', 'LIVE', 'STAGING');
         foreach($flags as $f) {
 

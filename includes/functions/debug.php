@@ -94,6 +94,10 @@ class Octopus_Debug {
     div.octopusDebug table tr th {
         padding: 2px;
     }
+
+    div.octopusDebug table tr td {
+        vertical-align: top;
+    }
     div.octopusDebug table tr.octopusDebugOdd td {
         background: #fff;
     }
@@ -163,10 +167,19 @@ class Octopus_Debug {
 
     span.octopusDebugString span.octopusDebugStringLength,
     span.octopusDebugDateFromNumber,
-    .octopusDebugArrayIndex,
     .octopusDebugNumberType {
         color: #888;
         font-size: 0.9em;
+    }
+
+    td.octopusDebugArrayIndex {
+        color: #888;
+        font-size: 0.9em;
+    }
+
+    tr.octopusDebugArrayKeyDiffers td.octopusDebugArrayIndex {
+        color: #AAA;
+        font-size: 0.8em;
     }
 
     div.octopusDebugExceptionMessage {
@@ -899,7 +912,12 @@ END;
             $key = htmlspecialchars($key);
             $value = self::dumpToString($value, true);
 
-            $index = ($i === $key ? '' : $i);
+            if ($i !== $key) {
+                $index = $i;
+                $rowClass .= ' octopusDebugArrayKeyDiffers';
+            } else {
+                $index = '';
+            }
 
             $result .= <<<END
 <tr class="$rowClass">
@@ -1178,7 +1196,7 @@ if (!function_exists('dump_r')) {
                 $d->add('Backtrace', Octopus_Debug::getBacktraceHtml($trace));
             }
 
-            foreach(array('_GET', '_POST', '_SERVER', '_SESSION') as $arname) {
+            foreach(array('_GET', '_POST', '_SERVER', '_SESSION', '_FILES') as $arname) {
 
                 if (isset($GLOBALS[$arname]) && !empty($GLOBALS[$arname])) {
                     $d->addVariable($GLOBALS[$arname], "\$$arname");

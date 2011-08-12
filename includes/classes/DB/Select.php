@@ -356,10 +356,10 @@ class Octopus_DB_Select extends Octopus_DB_Helper {
             $sql .= ' ORDER BY ' . $orderBy;
         }
 
-        if ($this->limitStart) {
+        if ($this->limitStart !== null) {
             $sql .= ' LIMIT ' . $this->limitStart;
 
-            if ($this->limitLen) {
+            if ($this->limitLen !== null) {
                 $sql .= ', ' . $this->limitLen;
             }
         }
