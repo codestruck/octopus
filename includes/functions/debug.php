@@ -710,7 +710,7 @@ ENDHTML;
         $vLineChar = '|';
 
         $width = 80;
-        $maxLabelWidth = floor($width / 3.5) - (strlen($borderChar)  + strlen($vLineChar) + 2);
+        $maxLabelWidth = floor($width / 3) - (strlen($borderChar)  + strlen($vLineChar) + 2);
 
         $hBorder = str_repeat($borderChar, $width);
         $hLine = "$borderChar" . str_repeat($hLineChar, $width - ((strlen($borderChar) * 2))) . "$borderChar";
