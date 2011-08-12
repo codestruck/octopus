@@ -503,6 +503,23 @@ class Octopus_App {
         return $dispatch->getResponse($this->_currentRequest, !empty($options['buffer']));
     }
 
+    public function post($url, $data = array(), $options = array()) {
+
+        // TODO don't do this
+
+        foreach($_POST as $key => $value) {
+            unset($_POST[$key]);
+        }
+
+        foreach($data as $key => $value) {
+            $_POST[$key] = $value;
+        }
+
+        $_SERVER['REQUEST_METHOD'] = 'post';
+
+        return $this->getResponse($url, $options);
+    }
+
     /**
      * Generates an Octopus_Request for the given path/options.
      * @param $path String Path being requested.
