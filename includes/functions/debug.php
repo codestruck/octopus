@@ -32,9 +32,30 @@ class Octopus_Debug {
 
     // Fields {{{
 
-    // Standard Debug CSS {{{
-    public static $css = <<<END
+    public static $css;
+    public static $js;
 
+    private $_id;
+    private $_content = array();
+    private $_variables = array();
+    private $_options;
+    private $_footer;
+
+    private static $_renderedCss = false;
+    private static $_renderedJs = false;
+    private static $_idCounter = 0;
+
+
+    // }}}
+
+    // Constructor {{{
+
+    public function __construct($id = '__octopus_debug') {
+
+        $this->_id = $id;
+
+    // Standard Debug CSS {{{
+        self::$css = <<<END
 
 <style type="text/css">
 <!--
@@ -238,7 +259,7 @@ END;
 
     // Standard Debug Javascript {{{
 
-    public static $js = <<<END
+        self::$js = <<<END
 
 <script type="text/javascript">
 
@@ -360,26 +381,8 @@ function __octopus_toggleRaw(niceID, rawID, buttonID) {
 
 END;
 
-    private $_id;
-    private $_content = array();
-    private $_variables = array();
-    private $_options;
-    private $_footer;
-
-
-    private static $_renderedCss = false;
-    private static $_renderedJs = false;
-    private static $_idCounter = 0;
-
     // }}}
 
-    // }}}
-
-    // Constructor {{{
-
-    public function __construct($id = '__octopus_debug') {
-
-        $this->_id = $id;
     }
 
     // }}}
