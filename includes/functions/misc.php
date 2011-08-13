@@ -29,6 +29,10 @@
 
     }
 
+    function is_command_line() {
+        return php_sapi_name() == 'cli' && empty($_SERVER['REMOTE_ADDR']);
+    }
+
     /**
      * Helper for reading $_GET.
      * @return mixed The value of $_GET[$arg] if present, $default otherwise,
