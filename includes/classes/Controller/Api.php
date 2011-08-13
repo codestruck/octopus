@@ -24,7 +24,7 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
     }
 
     public function _default($action, $args) {
-        return $this->buildErrorResponse("Invalid action: $action");
+        return $this->error("Invalid action: $action");
     }
 
     public function _before($action, $args) {
@@ -45,14 +45,20 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
         return $data;
     }
 
-    protected function buildSuccessResponse($data) {
+    /**
+     * @return Array A standardized JSON response array.
+     */
+    protected function success($data) {
         return array(
             'success' => true,
             'data' => $data
         );
     }
 
-    protected function buildErrorResponse($errors) {
+    /**
+     * @return Array A standardized JSON response array.
+     */
+    protected function error($errors) {
 
         if (!is_array($errors)) {
             $errors = array($errors);
@@ -101,7 +107,7 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
         }
 
         if (count($errors)) {
-            return $this->buildErrorResponse($errors);
+            return $this->error($errors);
 
         }
 
