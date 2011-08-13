@@ -21,7 +21,7 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
             $dataField = 'item_id';
         }
 
-        $value = $model->$dataField;
+        $value = isset($model->$dataField) ? $model->$dataField : null;
 
         $result = new $class($value);
         $result->escaped = $model->escaped;
