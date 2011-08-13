@@ -1289,6 +1289,29 @@ if (!function_exists('dump_r')) {
 
     }
 
+    /**
+     * Helper for debugging stack overflows.
+     */
+    function print_backtrace_after($calls, $die = true) {
+
+        if (empty($GLOBALS['__OCTOPUS_PRINT_BACKTRACE_AFTER'])) {
+            $GLOBALS['__OCTOPUS_PRINT_BACKTRACE_AFTER'] = 0;
+        }
+
+        if ($GLOBALS['__OCTOPUS_PRINT_BACKTRACE_AFTER'] === $calls) {
+
+            print_backtrace();
+            if ($die) die();
+
+        }
+
+        $GLOBALS['__OCTOPUS_PRINT_BACKTRACE_AFTER']++;
+    }
+
+    function reset_print_backtrace_after() {
+        unset($GLOBALS['__OCTOPUS_PRINT_BACKTRACE_AFTER']);
+    }
+
 } // if (!function_exists('dump_r))
 
 ?>
