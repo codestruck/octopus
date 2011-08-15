@@ -176,10 +176,10 @@ class Octopus_Debug {
     }
 
     a.octopusDebugToggleRaw {
-        background: #888;
+        background: #aaa;
         color: #efefef;
+        float: right;
         padding: 3px;
-        position: absolute;
         right: 10px;
         top: 10px;
     }
