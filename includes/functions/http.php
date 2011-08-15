@@ -265,9 +265,9 @@
             $port = $secure ? 443 : 80;
         }
 
-        if ($secure && ($port === 443)) {
+        if ($secure && ($port == 443)) {
             $port = '';
-        } else if (!$secure && ($port === 80)) {
+        } else if (!$secure && ($port == 80)) {
             $port = '';
         } else {
             $port = ':' . $port;
