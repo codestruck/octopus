@@ -1178,7 +1178,7 @@ if (!function_exists('dump_r')) {
                 if ($arg instanceof Exception) {
 
                     $ex = $arg;
-                    while($ex = $ex->getPrevious()) {
+                    while(method_exists($ex, 'getPrevious') && $ex = $ex->getPrevious()) {
                         $trueArgs[] = $ex;
                     }
                     if ($showTrace === null) $showTrace = false;
