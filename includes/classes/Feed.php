@@ -7,10 +7,12 @@ abstract class Octopus_Feed {
     private $items = array();
     private $options;
 
-    public function __construct($options = array()) {
+    public function __construct($title = '', $options = array()) {
 
-        if (is_string($options)) {
-            $options = array('title' => $options);
+        if (is_array($title)) {
+            $options = array_merge($title, $options);
+        } else {
+            $options['title'] = $title;
         }
 
         $this->options = $options;

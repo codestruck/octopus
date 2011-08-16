@@ -12,7 +12,7 @@ class Octopus_Feed_Rss extends Octopus_Feed {
 
         $result = <<<END
 <?xml version="1.0"?>
-<rss version="2.0">
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
 <channel>
     $attributes
     $items
@@ -34,13 +34,14 @@ END;
         if (!$dt) return null;
 
         // Mon, 06 Sep 2010 00:01:00 +0000
-        return date('D, d M Y H:i:s O', $dt);
+        return date('r', $dt);
     }
 
     protected function renderItem(Octopus_Feed_Item $item) {
 
         $title = $item->getTitle();
         $description = $item->getDescription();
+        $content = $item->getFullContent();
         $link = $item->getLink();
         $guid = $item->getGuid();
         $pubDate = $this->formatDate($item->getDate());
@@ -53,12 +54,35 @@ END;
         $result = '<item>
 ';
 
-        foreach(array('title', 'description', 'link', 'guid', 'pubDate') as $attr) {
-            if ($$attr === null) {
-                continue;
+        foreach(array('title', 'description', 'content', 'link', 'guid', 'pubDate') as $attr) {
+
+            $value = $$attr;
+            
+            if ($value === null) {
+
+                if ($attr !== 'content') {
+                    continue;
+                }
+
+                $value = '';
             }
-            $value = h($$attr);
-            $result .= "<$attr>$value</$attr>";
+
+            if ($attr === 'description' || $attr === 'title' || $attr === 'content') {
+                $value = "<![CDATA[$value]]>";
+            } 
+
+            if ($attr === 'content') {
+                $attr = 'content:encoded';
+            }
+
+            $attrs = '';
+            if ($attr === 'guid') {
+                if (!preg_match('#^(https?)?://.+#i', $value)) {
+                    $attrs = ' isPermaLink="false"';
+                }
+            }
+
+            $result .= "<{$attr}{$attrs}>$value</$attr>";
         }
 
         if ($extra) {
