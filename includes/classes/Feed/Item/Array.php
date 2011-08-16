@@ -15,7 +15,11 @@ class Octopus_Feed_Item_Array implements Octopus_Feed_Item {
     }
 
     public function getDescription() {
-        return $this->get(array('description', 'content', 'body'));
+        return $this->get(array('description'));
+    }
+
+    public function getFullContent() {
+        return $this->get(array('content', 'body'));
     }
 
     public function getLink() {

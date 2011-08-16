@@ -4,6 +4,8 @@ interface Octopus_Feed_Item {
 
     function getTitle();
 
+    function getFullContent();
+
     function getDescription();
 
     function getLink();
