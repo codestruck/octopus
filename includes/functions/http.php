@@ -223,6 +223,36 @@
     }
 
     /**
+     * Given some HTML, makes sure all the href="..." and 
+     * src="..." attributes are full URLS.
+     */
+    function expand_relative_urls($html, $secure = null, $options = array()) {
+        
+        $worker = new __expand_relative_urls_worker($secure, $options);
+            
+        return preg_replace_callback(
+            '/(\s+)(href|src)(\s*=\s*)([\'"])(.*?)\4/i',
+            array($worker, 'replaceCallback'),
+            $html
+        );
+    }
+
+    class __expand_relative_urls_worker {
+        private $secure, $options;
+        public function __construct($secure, $options) {
+            $this->secure = $secure;
+            $this->options = $options;
+        }
+        public function replaceCallback($matches) {
+            $url = $matches[5];
+            if (!preg_match('#^(https?)://#i', $url)) {
+                $url = get_full_url($url, $this->secure, $this->options);
+            }
+            return "{$matches[1]}{$matches[2]}{$matches[3]}{$matches[4]}{$url}{$matches[4]}";            
+        }
+    }
+
+    /**
      * @return String A full external URL to the given path.
      * @param $path String Path in the app.
      * @param $secure Mixed Whether or not to use HTTPS. If null, the current

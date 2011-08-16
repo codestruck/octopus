@@ -6,6 +6,29 @@
 class HttpTests extends PHPUnit_Framework_TestCase
 {
 
+    function testExpandUrls() {
+        
+        $options = array('HTTP_HOST' => 'myhost');
+
+        $html = <<<END
+Lorem ipsum <a href="/path/to/something">link</a> and also
+here is an image: <img src="/path/to/image.jpg" /> and
+how about a full url: <a href="http://www.google.com/">google</a>.
+END;
+
+        $expected = <<<END
+Lorem ipsum <a href="http://myhost/path/to/something">link</a> and also
+here is an image: <img src="http://myhost/path/to/image.jpg" /> and
+how about a full url: <a href="http://www.google.com/">google</a>.
+END;
+
+        $this->assertEquals(
+            $expected,
+            expand_relative_urls($html, null, $options)
+        );
+
+    }
+
     function testMakeUrl() {
 
         $this->assertEquals(
