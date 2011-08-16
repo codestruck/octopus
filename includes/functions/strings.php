@@ -437,6 +437,31 @@
     }
 
     /**
+     * 
+     */
+    function truncate_words($str, $count, $marker = '') {
+       
+       $str = trim($str);
+       $result = '';
+
+       $words = explode(' ', $str);
+       if (count($words) < $count) {
+           return $str;
+       }
+
+       $i = 0;
+       foreach($words as $w) {
+           if ($i >= $count) {
+               return $result . $marker;
+           }
+           $result .= ($result ? ' ' : '') . $w;
+           $i++;
+       }
+        
+        return $result . $marker;
+    }
+
+    /**
      * Takes an input string and converts wildcard characters ('*', '?') to
      * the valid mysql LIKE equivalents.
      * @param $s String Input string.
