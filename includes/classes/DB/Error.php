@@ -68,16 +68,7 @@ class Octopus_DB_Error {
 
     function printError() {
 
-        $sql = $this->sql;
-        $sql = str_replace(array(',', 'SET'), array(',<br>', 'SET<br>'), $sql);
-
-        $msg = "<b>DB Error:</b> <code>$this->error</code><br><b>Query:</b> <code>$sql</code><br>" . print_r($this->params, true) . "<br>";
-
-        if (!isset($_SERVER['HTTP_USER_AGENT'])) {
-            $msg = strip_tags(str_replace('<br>', "\n", $msg));
-        }
-
-        trigger_error($msg, E_USER_WARNING);
+        throw Octopus_DB_Exception::forSql($this->sql, $this->params, $this->error);
 
     }
 }
