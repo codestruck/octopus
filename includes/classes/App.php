@@ -45,6 +45,12 @@ class Octopus_App {
         'path_querystring_arg' => '__path',
 
         /**
+         * Whether or not to make the new app instance the one returned by
+         * Octopus_App::singleton
+         */
+        'use_singleton' => true,
+
+        /**
          * Whether or not to create defines.
          */
         'use_defines' => true,
@@ -794,7 +800,7 @@ class Octopus_App {
         }
         $host = strtolower($host);
 
-        $hostConfigFile = SITE_DIR . "config.$host.php";
+        $hostConfigFile = $o['SITE_DIR'] . "config.$host.php";
 
         if (file_exists($configFile)) {
             $this->_haveSiteConfig = true;

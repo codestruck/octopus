@@ -5,15 +5,24 @@
  */
 abstract class Octopus_App_TestCase extends PHPUnit_Framework_TestCase {
 
-    protected $siteDir;
+    private $siteDir;
     protected $app;
 
+    public function __construct($name = NULL, array $data = array(), $dataName = '') {
+        parent::__construct($name, $data, $dataName);
+        $this->siteDir =  dirname(__FILE__) . '/.working/' . get_called_class() . '-sitedir/';
+    }
+
     function setUp() {
-        $this->siteDir =  dirname(__FILE__) . '/.working/' . get_called_class() . '-sitedir';
+        
         $this->initSiteDir();
 
         $this->clear($_GET);
         $this->clear($_POST);
+    }
+
+    public function getSiteDir() {
+        return $this->siteDir;
     }
 
     private function clear(&$ar) {
@@ -30,7 +39,7 @@ abstract class Octopus_App_TestCase extends PHPUnit_Framework_TestCase {
 
         $this->cleanUpSiteDir();
 
-        $s = $this->siteDir;
+        $s = $this->getSiteDir();
         mkdir($s, 0777, true);
         mkdir("$s/controllers");
         mkdir("$s/views");
@@ -41,7 +50,8 @@ abstract class Octopus_App_TestCase extends PHPUnit_Framework_TestCase {
     }
 
     function cleanUpSiteDir() {
-        `rm -rf {$this->siteDir}`;
+        $dir = $this->getSiteDir();
+        `rm -rf {$dir}`;
     }
 
     /**
@@ -139,7 +149,7 @@ abstract class Octopus_App_TestCase extends PHPUnit_Framework_TestCase {
         $defaults = array(
             'use_defines' => false,
             'use_globals' => false,
-            'SITE_DIR' => $this->siteDir
+            'SITE_DIR' => $this->getSiteDir()
         );
 
         if (empty($options)) {
