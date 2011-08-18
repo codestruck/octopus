@@ -79,7 +79,7 @@ abstract class Octopus_Model_Field {
             $value = $this->handleTrigger('onSave', $model, $value);
 
         } else if ($model->escaped) {
-            $value = $this->escape($value);
+            $value = $this->escape($model, $value);
         }
 
         return $value;
@@ -146,16 +146,33 @@ abstract class Octopus_Model_Field {
         return true;
     }
 
-    protected function escape($value) {
+    protected function escape($model, $value) {
 
         $func = $this->getOption('escape', true);
 
         if ($func === true) {
-            return h($value);
+            
+            $allow_tags = $this->getOption('allow_tags', false);
+            if ($allow_tags !== false) {
+                
+                Octopus::loadExternal('htmlpurifier');
+                
+                $config = HTMLPurifier_Config::createDefault();
+                $config->set('HTML.Allowed', $allow_tags);
+                $config->set('Cache.SerializerPath', OCTOPUS_PRIVATE_DIR . 'htmlpurifier');
+                                
+                $purifier = new HTMLPurifier($config);
+                return $purifier->purify($value);
+            } else {
+                return h($value);
+            }
+            
         } else if ($func === false) {
             return $value;
-        } else {
-            return call_user_func($func, $value);
+        } else if (method_exists($model, $func)) {
+            return $model->$func($model, $value);
+        } else if (function_exists($func)) {
+            return call_user_func($func, $model, $value);
         }
     }
 
@@ -355,4 +372,5 @@ abstract class Octopus_Model_Field {
     }
 
 }
+
 ?>
