@@ -148,7 +148,7 @@ class Octopus_Html_Table_Paginate {
                     $link = new Octopus_Html_Element('span');
                 } else {
                     $link = new Octopus_Html_Element('a');
-                    $link->href = self::getUrlForPaging($options) . $ptions['pageArg'] . '=' . $page;
+                    $link->href = self::getUrlForPaging($options) . $options['pageArg'] . '=' . $page;
                 }
 
                 $link->text($page);
