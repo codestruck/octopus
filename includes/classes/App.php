@@ -71,6 +71,9 @@ class Octopus_App {
          */
         'load_models' => true,
 
+        /**
+         * PHP session name.
+         */
         'session_name' => 'octopus',
 
         /**
@@ -104,6 +107,9 @@ class Octopus_App {
 
         $this->_options = empty($options) ? self::$defaults : array_merge(self::$defaults, $options);
 
+        if (!self::$_instance && !empty($this->_options['use_singleton'])) {
+            self::$_instance = $this;
+        }
 
         $this->_setUpPHP();
         $this->_figureOutDirectories();
@@ -117,6 +123,7 @@ class Octopus_App {
         $this->_ensurePrivateDir();
         $this->_initSettings();
         $this->watchForErrors();
+
     }
 
     private function _examineSiteDir() {
@@ -600,15 +607,13 @@ class Octopus_App {
         );
     }
 
-    public static function &singleton() {
+    public static function singleton() {
 
         if (self::$_instance) {
             return self::$_instance;
         }
 
-        $instance = self::start();
-
-        return $instance;
+        return self::start();
     }
 
     /**
@@ -622,13 +627,18 @@ class Octopus_App {
      * Spins up a new application instance.
      */
     public static function start($options = array()) {
-
         $app = new Octopus_App($options);
-        if (!self::$_instance) {
-            self::$_instance = $app;
-        }
-
         return $app;
+    }
+
+    /**
+     * Shuts down / cleans up after this app instance.
+     */
+    public function stop() {
+        
+        if (self::$_instance === $this) {
+            self::$_instance = null;
+        }
 
     }
 

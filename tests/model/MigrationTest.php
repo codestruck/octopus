@@ -135,7 +135,7 @@ END
     }
 
     function getMigrationDir() {
-        return $this->siteDir . '/migrations/';
+        return $this->getSiteDir() . '/migrations/';
     }
 
     function testNoMigrationsAppliedInitially() {

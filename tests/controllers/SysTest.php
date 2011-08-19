@@ -4,7 +4,7 @@ class SysControllerTests extends Octopus_App_TestCase {
 
     function testSysControllerNotAvailableOutsideDev() {
 
-        $s = $this->siteDir;
+        $s = $this->getSiteDir();
         @mkdir("$s/views/sys");
         touch("$s/views/sys/forbidden.php");
 
