@@ -3,3 +3,4 @@
 \#Untitled-*
 /tests/.working
 *.orig
+.DS_Store

@@ -7,8 +7,10 @@ class PipelineTests extends Octopus_App_TestCase {
 
     function testDefaultActionReceivesActionAndArgs() {
 
+        $siteDir = $this->getSiteDir();
+
         file_put_contents(
-            "{$this->siteDir}/controllers/DefaultAction.php",
+            "{$siteDir}/controllers/DefaultAction.php",
             <<<END
 <?php
 
@@ -41,8 +43,10 @@ END
 
     function testBeforeAndAfterActionsCalled() {
 
+        $siteDir = $this->getSiteDir();
+
         file_put_contents(
-            "{$this->siteDir}/controllers/BeforeAndAfter.php",
+            "{$siteDir}/controllers/BeforeAndAfter.php",
             <<<END
 <?php
 

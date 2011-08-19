@@ -6,11 +6,22 @@ class Octopus_Smarty extends Octopus_Base {
 
     public $smarty;
 
+    private $templateDir, $compileDir;
+
     protected function __construct($templateDir = null, $compileDir = null) {
+
+        $this->templateDir = $templateDir;
+        $this->compileDir = $compileDir;
+
+        $this->reset();
+    }
+
+    public function reset() {
+
 
         $app = (class_exists('Octopus_App') && Octopus_App::isStarted()) ? Octopus_App::singleton() : null;
 
-        if ($templateDir == null) {
+        if ($this->templateDir == null) {
 
             if (isset($app->template_dir)) {
                 $templateDir = $app->template_dir;
@@ -22,7 +33,7 @@ class Octopus_Smarty extends Octopus_Base {
 
         }
 
-        if ($compileDir == null) {
+        if ($this->compileDir == null) {
 
             if (defined('SMARTY_COMPILE_DIR')) {
                 $compileDir = SMARTY_COMPILE_DIR;
@@ -63,6 +74,7 @@ class Octopus_Smarty extends Octopus_Base {
             $this->smarty->debugging = true;
         }
 
+        
     }
 
     public static function &singleton() {

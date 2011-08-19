@@ -5,6 +5,7 @@ class AppTests extends Octopus_App_TestCase {
     function testGetTheme() {
 
         $app = $this->startApp();
+        $this->assertTrue(!!$app, 'app should be something');
         $settings = $app->getSettings();
 
         $settings->reset('site.theme');

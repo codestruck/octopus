@@ -5,15 +5,57 @@
  */
 abstract class Octopus_App_TestCase extends PHPUnit_Framework_TestCase {
 
-    protected $siteDir;
+    private $siteDir;
     protected $app;
 
+    public function __construct($name = NULL, array $data = array(), $dataName = '') {
+        parent::__construct($name, $data, $dataName);
+        $this->siteDir =  dirname(__FILE__) . '/.working/' . get_called_class() . '-sitedir/';
+    }
+
     function setUp() {
-        $this->siteDir =  dirname(__FILE__) . '/.working/' . get_called_class() . '-sitedir';
+        
         $this->initSiteDir();
 
         $this->clear($_GET);
         $this->clear($_POST);
+
+        $this->startApp();
+    }
+
+
+    public function getOctopusDir() {
+        if ($this->app) {
+            return $this->app->getOption('OCTOPUS_DIR');
+        } else {
+            return OCTOPUS_DIR;
+        }
+    }
+
+    public function getOctopusDirUrl() {
+        return $this->getDirUrl($this->getOctopusDir());
+    }
+
+    public function getSiteDir() {
+        return $this->siteDir;
+    }
+
+    public function getDirUrl($dir) {
+        $urlBase = $this->app ? $this->app->getOption('URL_BASE') : '/';
+        $rootDir = $this->app ? $this->app->getOption('ROOT_DIR') : ROOT_DIR;
+
+        $url = $dir;
+        if (starts_with($url, $rootDir)) {
+            $url = substr($url, strlen($rootDir));
+        }
+        $url = trim($url, '/');
+        if ($url) $url .= '/';
+
+        return $urlBase . $url;        
+    }
+
+    public function getSiteDirUrl() {
+        return $this->getDirUrl($this->getSiteDir());
     }
 
     private function clear(&$ar) {
@@ -23,14 +65,21 @@ abstract class Octopus_App_TestCase extends PHPUnit_Framework_TestCase {
     }
 
     function tearDown() {
+
         //$this->cleanUpSiteDir();
+
+        if ($this->app) {
+            $this->app->stop();
+            $this->app = null;
+        }
+        
     }
 
     function initSiteDir() {
 
         $this->cleanUpSiteDir();
 
-        $s = $this->siteDir;
+        $s = $this->getSiteDir();
         mkdir($s, 0777, true);
         mkdir("$s/controllers");
         mkdir("$s/views");
@@ -41,7 +90,8 @@ abstract class Octopus_App_TestCase extends PHPUnit_Framework_TestCase {
     }
 
     function cleanUpSiteDir() {
-        `rm -rf {$this->siteDir}`;
+        $dir = $this->getSiteDir();
+        `rm -rf {$dir}`;
     }
 
     /**
@@ -136,10 +186,15 @@ abstract class Octopus_App_TestCase extends PHPUnit_Framework_TestCase {
      */
     protected function startApp($options = array()) {
 
+        if ($this->app) {
+            $this->app->stop();
+            $this->app = null;
+        }
+
         $defaults = array(
             'use_defines' => false,
             'use_globals' => false,
-            'SITE_DIR' => $this->siteDir
+            'SITE_DIR' => $this->getSiteDir()
         );
 
         if (empty($options)) {
@@ -148,7 +203,16 @@ abstract class Octopus_App_TestCase extends PHPUnit_Framework_TestCase {
             $options = array_merge($defaults, $options);
         }
 
-        return $this->app = Octopus_App::start($options);
+        if (Octopus_App::isStarted()) {
+            $oldApp = Octopus_App::singleton();
+            $oldApp->stop();
+        }
+
+        $this->app = Octopus_App::start($options);
+        $this->assertTrue(!!$this->app, 'Octopus_App::start() did not return an app instance.');
+        $this->assertSame($this->app, Octopus_App::singleton(), "Test's app instance is available in global context");
+
+        return $this->app;
     }
 
 

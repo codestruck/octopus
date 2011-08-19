@@ -6,7 +6,7 @@ class EnvironmentTest extends Octopus_App_TestCase {
     function testSiteModelsAvailable() {
 
         file_put_contents(
-            $this->siteDir . '/models/FooTestSiteModelsAvailable.php',
+            $this->getSiteDir() . '/models/FooTestSiteModelsAvailable.php',
             <<<END
 <?php
 class FooTestSiteModelsAvailable extends Octopus_Model {}

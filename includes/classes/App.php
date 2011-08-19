@@ -45,6 +45,12 @@ class Octopus_App {
         'path_querystring_arg' => '__path',
 
         /**
+         * Whether or not to make the new app instance the one returned by
+         * Octopus_App::singleton
+         */
+        'use_singleton' => true,
+
+        /**
          * Whether or not to create defines.
          */
         'use_defines' => true,
@@ -65,6 +71,9 @@ class Octopus_App {
          */
         'load_models' => true,
 
+        /**
+         * PHP session name.
+         */
         'session_name' => 'octopus',
 
         /**
@@ -98,6 +107,9 @@ class Octopus_App {
 
         $this->_options = empty($options) ? self::$defaults : array_merge(self::$defaults, $options);
 
+        if (!self::$_instance && !empty($this->_options['use_singleton'])) {
+            self::$_instance = $this;
+        }
 
         $this->_setUpPHP();
         $this->_figureOutDirectories();
@@ -111,6 +123,7 @@ class Octopus_App {
         $this->_ensurePrivateDir();
         $this->_initSettings();
         $this->watchForErrors();
+
     }
 
     private function _examineSiteDir() {
@@ -594,15 +607,13 @@ class Octopus_App {
         );
     }
 
-    public static function &singleton() {
+    public static function singleton() {
 
         if (self::$_instance) {
             return self::$_instance;
         }
 
-        $instance = self::start();
-
-        return $instance;
+        return self::start();
     }
 
     /**
@@ -616,13 +627,18 @@ class Octopus_App {
      * Spins up a new application instance.
      */
     public static function start($options = array()) {
-
         $app = new Octopus_App($options);
-        if (!self::$_instance) {
-            self::$_instance = $app;
-        }
-
         return $app;
+    }
+
+    /**
+     * Shuts down / cleans up after this app instance.
+     */
+    public function stop() {
+        
+        if (self::$_instance === $this) {
+            self::$_instance = null;
+        }
 
     }
 
@@ -794,7 +810,7 @@ class Octopus_App {
         }
         $host = strtolower($host);
 
-        $hostConfigFile = SITE_DIR . "config.$host.php";
+        $hostConfigFile = $o['SITE_DIR'] . "config.$host.php";
 
         if (file_exists($configFile)) {
             $this->_haveSiteConfig = true;
