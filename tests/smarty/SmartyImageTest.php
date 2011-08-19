@@ -123,16 +123,19 @@ END;
 	function testImageInOctopusDir($file, $fileUrl) {
 
 		$name = basename($file);
-		$octopusFile = $this->getOctopusDir() . $name;
+		$dir = 'tests/.working/';
+
+		$octopusFile = $this->getOctopusDir() . $dir . $name;
 		@unlink($octopusFile);
 		copy($file, $octopusFile);
 
-		$octopusUrl = $this->getOctopusDirUrl();
+		$octopusUrl = $this->getOctopusDirUrl() . $dir;
 
 		$mtime = filemtime($octopusFile);
 
+
 		$test = <<<END
-{image src="/$name"}
+{image src="/{$dir}$name"}
 END;
 		$expected = <<<END
 <img src="{$octopusUrl}$name?$mtime" width="100" height="75" />
