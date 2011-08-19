@@ -54,7 +54,7 @@ class FormTest extends Octopus_Html_TestCase {
 
             array(
                 'args' => array('some_image.gif', 'foo', 'bar'),
-                'expected' => '<input type="image" class="image button" name="foo" value="bar" src="some_image.gif" />'
+                'expected' => '<input type="image" src="some_image.gif" class="image button" name="foo" value="bar" />'
             ),
         );
 

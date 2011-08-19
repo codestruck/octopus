@@ -20,6 +20,7 @@ class Octopus_Html_Element {
         'method' => -10,
         'action' => -9,
         'class' => -8,
+        'src' => -7.5,
         'style' => -7,
         'name' => -6,
         'value' => -5,
@@ -29,6 +30,10 @@ class Octopus_Html_Element {
         'autofocus' => 9,
         'required' => 10,
         'novalidate' => 11
+    );
+
+    private static $attributesAlwaysBefore = array(
+        'width' => 'height'
     );
 
     // Helper for determining which attributes should not be rendered with a
@@ -658,6 +663,12 @@ class Octopus_Html_Element {
     }
 
     private static function _compareAttributes($x, $y) {
+
+        if (isset(self::$attributesAlwaysBefore[$x]) && self::$attributesAlwaysBefore[$x] == $y) {
+            return -1;
+        } else if (isset(self::$attributesAlwaysBefore[$y]) && self::$attributesAlwaysBefore[$y] == $x) {
+            return 1;
+        }
 
         $xWeight = (isset(self::$attributeWeights[$x]) ? self::$attributeWeights[$x] : 0);
         $yWeight = (isset(self::$attributeWeights[$y]) ? self::$attributeWeights[$y] : 0);
