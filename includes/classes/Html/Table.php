@@ -121,6 +121,11 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         'firstPageLinkText' => '&laquo; First Page',
         'lastPageLinkText' => 'Last Page &raquo;',
 
+        /**
+         * Default sorting to use when the user has not clicked any column headers.
+         * format is the same as the args passed to sort()
+         */
+        'defaultSorting' => array(),
 
         /**
          * Whether or not to store sorting / filters in the session.
@@ -372,10 +377,13 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     public function setPage($page) {
+
         $this->_currentPage = $page;
+
         $this->rememberState();
         $this->resetData();
-        $this->_shouldInitFromEnvironment = false;
+        $this->dontInitFromEnvironment();
+        
         return $this;
     }
 
@@ -609,19 +617,65 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         return $this;
     }
 
+    public function getDefaultSorting() {
+        return $this->_options['defaultSorting'];
+    }
+
+    public function setDefaultSorting(/* variable */) {
+        
+        $args = func_get_args();
+        $this->resolveSortColumnArgs($args, $defaultSorting);
+        $this->_options['defaultSorting'] = $defaultSorting;
+
+        return $this;
+    }
+
     public function sort(/* lots of different ways */) {
 
+        $this->initFromEnvironment();
+
         $args = func_get_args();
+        $this->resolveSortColumnArgs($args, $newSortingArgs);
+
+        // $newSortingArgs is now an array in the form
+        // array( 'column id' => 'ASC' or 'DESC')        
+
         $this->_sortColumns = array();
 
-        foreach($args as $key => $col) {
+        foreach($newSortingArgs as $id => $dir) {
+            
+            $col = $this->getColumn($id);
 
+            if ($col) {
+                $col->sort($dir);
+                $this->_sortColumns[] = $col;
+            }
+        }
+
+        $this->rememberState();
+
+        if ($this->_options['resetPageOnSort']) {
+            $this->setPage(1);
+        }
+
+        return $this;
+    }
+
+    private function resolveSortColumnArgs($args, &$cols = null) {
+
+        if ($cols === null) {
+            $cols = array();
+        }
+
+        foreach($args as $key => $col) {
+            
             if (is_array($col)) {
-                call_user_func_array(array($this, 'sort'), $col);
+                $this->resolveSortColumnArgs($col, $cols);
                 continue;
             }
 
             if (is_numeric($key) && is_bool($col)) {
+                // e.g., $table->sort(false);
                 continue;
             }
 
@@ -637,24 +691,9 @@ class Octopus_Html_Table extends Octopus_Html_Element {
                 $col = substr($col,1);
             }
 
-            $col = $this->getColumn($col);
-
-            if (!$col) {
-                continue;
-            }
-
-            $col->sort($asc ? 'asc' : 'desc');
-
-            $this->_sortColumns[] = $col;
+            $cols[$col] = $asc ? OCTOPUS_SORT_ASC : OCTOPUS_SORT_DESC;
         }
-
-        $this->rememberState();
-
-        if ($this->_options['resetPageOnSort']) {
-            $this->setPage(1);
-        }
-
-        return $this;
+        
     }
 
     /**
@@ -663,6 +702,15 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     private function getPagerData($key = null) {
 
         $this->initFromEnvironment();
+
+        if ($this->_pagerData) {
+            
+            if ($this->_pagerData['currentPage'] !== $this->getPage()) {
+                $this->_pagerData = null;
+            }
+
+        }
+
 
         if (!$this->_pagerData) {
 
@@ -943,6 +991,10 @@ END;
         return true;
     }
 
+    private function dontInitFromEnvironment() {
+        $this->_shouldInitFromEnvironment = false;
+    }
+
     /**
      * Looks at external factors, like querystring args and session data,
      * and restores the table's state.
@@ -952,12 +1004,11 @@ END;
         if (!$this->_shouldInitFromEnvironment) {
             return;
         }
-        $this->_shouldInitFromEnvironment = false;
+        $this->dontInitFromEnvironment();
 
         $useSession = $this->_options['useSession'];
         $sortArg = $this->_options['sortArg'];
         $pageArg = $this->_options['pageArg'];
-
 
         $uri = $this->getRequestURI(false);
         $qs = $this->getQueryString();
@@ -979,7 +1030,6 @@ END;
             $this->redirect($uri);
             return;
         }
-
 
         $sort = null;
         $page = null;
@@ -1006,7 +1056,6 @@ END;
                 $page = $_SESSION[$sessionPageKey];
             }
         }
-
 
         // Ensure the current page's URL reflects the actual state
         if ($this->_options['redirectCallback']) {
@@ -1041,6 +1090,9 @@ END;
 
         if ($sort) {
             $this->sort(explode(',', $sort));
+        } else {
+            // Use default sorting
+            $this->sort($this->getDefaultSorting());
         }
 
         // This needs to be called last or it won't be applied
