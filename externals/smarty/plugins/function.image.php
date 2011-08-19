@@ -19,14 +19,34 @@ function smarty_function_image($params, $template)
     $linkAttrs = array();
     $missingAttrs = array();
 
-    $baseDir = null;
+    $baseDir = null; // This isn't really necessary, ROOT_DIR, SITE_DIR, and OCTOPUS_DIR, all get searched for images
 
     $resize = false;
     // $crop = false;
 
+    $failIfMissing = false;
+    $shimAttrs = null;
+
     foreach($params as $key => $value) {
 
-        if ($key === 'file') {
+        // Smarty does not allow - in attributes :-(
+        $key = str_replace('_', '-', $key);
+
+        // Old-style {html_image} shim
+        switch($key) {
+            case '-r':
+            case '-rwidth':
+            case '-rheight':
+                 if ($shimAttrs === null) $shimAttrs = array();
+                $shimAttrs[$key] = $value;
+                $key = null;
+        }
+
+        if (!$key) {
+            continue;
+        }
+
+        if ($key == 'file') {
             // file == src
             $imageAttrs['src'] = $value;
         } else if ($key === 'href') {
@@ -41,6 +61,8 @@ function smarty_function_image($params, $template)
             $key = substr($key, 8);
             if ($key === 'file') $key = 'src';
             $missingAttrs[$key] = $value;
+        } else if ($key == 'fail-if-missing') {
+            $failIfMissing = $value;
         } else {
             $imageAttrs[$key] = $value;
         }
@@ -51,29 +73,50 @@ function smarty_function_image($params, $template)
         throw new SmartyException("file or src attribute must be specified for {image}.", E_USER_NOTICE);
     }
 
-    if (!$baseDir) {
+    // Map old-style {html_image} resizing commands to the new way
+    if (!empty($shimAttrs)) {
+        if (!empty($shimAttrs['-r'])) {
+            // old-style resize
+            $resize = true;
+        } 
 
-        if (defined('ROOT_DIR')) {
-            $baseDir = ROOT_DIR;
-        } else if (isset($_SERVER['DOCUMENT_ROOT'])) {
-            $baseDir = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/';
-        } else {
-            $baseDir = '';
+        if ($resize) {
+
+            if (!empty($shimAttrs['-rwidth'])) {
+                $imageAttrs['width'] = $shimAttrs['-rwidth'];
+            }
+
+            if (!empty($shimAttrs['-rheight'])) {
+                $imageAttrs['height'] = $shimAttrs['-rheight'];
+            }        
         }
     }
 
+    $urlBase = null;
+    $dirs = _octopus_smarty_get_directories($baseDir, $urlBase);
 
     // Resolve where the image actually is
-    $file = _octopus_smarty_find_image($imageAttrs['src'], $baseDir, $template);
+    $file = _octopus_smarty_find_image($imageAttrs['src'], $dirs, $template);
 
     if (!$file) {
-        
+
+        if ($failIfMissing) {
+
+            $tries = array();
+            _octopus_smarty_find_image($imageAttrs['src'], $dirs, $template, $tries);
+
+            throw new SmartyException("Image file not found: '{$imageAttrs['src']}'. Tried: " . implode(', ', $tries));
+        }
+
         if (empty($missingAttrs)) {
             return '';
         }
 
-        $missingContent = _octopus_smarty_get_missing_image_content($imageAttrs, $linkAttrs, $missingAttrs, $file);
-
+        /* Ways placeholder stuff is handled:
+         *
+         * 1. If 'src' attribute present, use <img>
+         * 2. Otherwise, render a span
+         */
 
         if (!isset($missingAttrs['class'])) {
             $missingAttrs['class'] = 'missing';
@@ -81,21 +124,24 @@ function smarty_function_image($params, $template)
 
         if (isset($missingAttrs['src'])) {
             
-            // Render a placeholder image
-            $file = _octopus_smarty_find_image($missingAttrs['src'], $baseDir, $template);
+            $file = _octopus_smarty_find_image($missingAttrs['src'], $dirs, $template);
 
             if (!$file) {
-                throw new SmartyException("Could not find image to use when missing: '{$missingAttrs['src']}'.");
+                if ($failIfMissing) {
+                    throw new SmartyException("Could not find image to use when missing: '{$missingAttrs['src']}'.");
+                } else {
+                        return '';
+                }
             }
 
-            $resize = $crop = false;
             $imageAttrs = array_merge($imageAttrs, $missingAttrs);
 
         } else {
-
-            // Render a <span>
+            
+            // Just return an empty span
             $span = new Octopus_Html_Element('span', $missingAttrs);
             return $span->render(true);
+
         }
 
     }
@@ -124,15 +170,16 @@ function smarty_function_image($params, $template)
         } else {
             throw new SmartyException("Could not get size of image file: '{$imageAttrs['src']}.");
         } 
-
-        $file = _octopus_smarty_get_file_url($file, $baseDir);
     }
 
     if (isset($template->security_policy)) {
         if (!$template->security_policy->isTrustedResourceDir($file)) {
-            return _octopus_smarty_missing_image($linkAttrs, $imageAttrs, $missingAttrs);
+            // TODO: Exception? or Missing?
+            return '';
         }
     }
+
+    $imageAttrs['src'] = _octopus_smarty_get_file_url($file, $dirs, $urlBase);
 
     $img = new Octopus_Html_Element('img', $imageAttrs);
     
@@ -149,7 +196,7 @@ function smarty_function_image($params, $template)
  * Given an arbitrary image source, returns the physical path to the image file,
  * or false if it can't be found.
  */ 
-function _octopus_smarty_find_image($src, $baseDir, $template) {
+function _octopus_smarty_find_image($src, $dirs, $template, &$tries = null) {
     
     /* Cases Handled:
      *  
@@ -162,7 +209,7 @@ function _octopus_smarty_find_image($src, $baseDir, $template) {
      *    (e.g., /images/whatever.gif becomes /octopus/images/whatever.gif).
      * 4. src is relative to the template directory
      */
-
+    
     $src = trim($src);
     if (!$src) return false;
 
@@ -173,6 +220,7 @@ function _octopus_smarty_find_image($src, $baseDir, $template) {
         if (!$templateDir) return false;
 
         $file = rtrim($templateDir, '/') . '/' . $src;
+        if ($tries !== null) $tries[] = $file;
 
         return is_file($file) ? $file : false;
     }
@@ -180,34 +228,22 @@ function _octopus_smarty_find_image($src, $baseDir, $template) {
     if (is_file($src)) {
         return $src;   
     }
+    if ($tries !== null) $tries[] = $src;
 
-    if ($baseDir && !starts_with($src, $baseDir)) {
-        $file = rtrim($baseDir, '/') .  $src;
-        if (is_file($file)) {
-            return $file;
-        }
-    }
-
-    // Look in site dir
-    if (defined('SITE_DIR')) {
-        $file = rtrim(SITE_DIR, '/') . $src;
-        if (is_file($file)) {
-            return $file;
-        }
-    }
-
-    // Look in octopus dir
-    if (defined('OCTOPUS_DIR')) {
-        $file = rtrim(OCTOPUS_DIR, '/') . $src;
-        if (is_file($file)) {
-            return $file;
-        }
-    }
+    foreach($dirs as $dir) {
         
+        $file = $dir . $src;
+        if (is_file($file)) {
+            return $file;
+        }
+        if ($tries !== null) $tries[] = $file;
+
+    }
+
     return false;
 }
 
-function _octopus_smarty_get_file_url($file) {
+function _octopus_smarty_get_file_url($file, $dirs, $urlBase = null, $includeModTime = true) {
     
     /* Cases Handled:
      * 
@@ -216,44 +252,80 @@ function _octopus_smarty_get_file_url($file) {
      * 3. $file starts with ROOT_DIR
      */
 
-    $rootDir = defined('ROOT_DIR') ? ROOT_DIR : (isset($_SERVER['DOCUMENT_ROOT']) ? $_SERVER['DOCUMENT_ROOT'] : '');
     $originalFile = $file;
 
-    foreach(array('SITE_DIR', 'OCTOPUS_DIR', 'ROOT_DIR') as $dir) {
-        
-        if (!defined($dir)) {
-            continue;
-        }
-
-        $constant = $dir;
-        $dir = constant($dir);
-
-        dump_r($constant);
-        dump_r($dir);
-        exit();
+    foreach($dirs as $key => $dir) {
 
         if (!starts_with($file, $dir)) {
             continue;
         }
-
         $file = ltrim(substr($file, strlen($dir)), '/');
 
-        if (starts_with($dir, $rootDir)) {
-            $dir = rtrim(substr($dir, strlen($rootDir)), '/');
+        if (starts_with($dir, $dirs['ROOT_DIR'])) {
+            $dir = rtrim(substr($dir, strlen($dirs['ROOT_DIR'])), '/');
         }
 
-        if (defined('URL_BASE')) {
-            $urlBase = URL_BASE;
-        } else if (is_callable('find_url_base')) {
-            $urlBase = find_url_base();
-        } else {
-            $urlBase = '/';
+        if (!$urlBase) {
+        
+            if (defined('URL_BASE')) {
+                $urlBase = URL_BASE;
+            } else if (is_callable('find_url_base')) {
+                $urlBase = find_url_base();
+            } else {
+                $urlBase = '/';
+            }
+
         }
 
-        return $urlBase . ltrim($dir, '/') . '/' . $file;
+        $dir = ltrim($dir, '/');
+        if ($dir) $dir .= '/';
+
+        $url = $urlBase . $dir . $file;
+
+        if ($includeModTime) {
+            $url .= '?' . filemtime($originalFile);
+        }
+
+        return $url;
     }
 
     throw new SmartyException("File not accessible via HTTP: '$originalFile'");
+}
+
+function &_octopus_smarty_get_directories($baseDir = null, &$urlBase) {
+    
+    $dirs = array();
+
+    if ($baseDir) {
+        $dirs['ROOT_DIR'] = rtrim($baseDir, '/') . '/';
+    }
+
+    if (class_exists('Octopus_App') && Octopus_App::isStarted()) {
+        $app = Octopus_App::singleton();
+
+        $dirs['SITE_DIR'] = $app->getOption('SITE_DIR');
+        $dirs['OCTOPUS_DIR'] = $app->getOption('OCTOPUS_DIR');
+        if (!$baseDir) $dirs['ROOT_DIR'] = $app->getOption('ROOT_DIR');
+        $urlBase = $app->getOption('URL_BASE');
+
+    } else {
+
+        if (defined('SITE_DIR')) {
+            $dirs['SITE_DIR'] = SITE_DIR;
+        }
+
+        if (defined('OCTOPUS_DIR')) {
+            $dirs['OCTOPUS_DIR'] = OCTOPUS_DIR;
+        }
+
+        if (defined('ROOT_DIR')) {
+            $dirs['ROOT_DIR'] = ROOT_DIR;
+        } else if (isset($_SERVER['DOCUMENT_ROOT'])) {
+            $dirs['ROOT_DIR'] = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/';
+        }
+    }
+
+    return $dirs;
 }
 
 /**
@@ -291,9 +363,10 @@ function _octopus_smarty_resize_image($file, $width, $height, &$imageAttrs) {
 
     }
 
-    if ($width == $originalWidth && $height == $originalHeight) {
+    if (round($width) == round($originalWidth) && round($height) == round($originalHeight)) {
         return $file;
     }
+
 
     /* Cached file name uses:
      *
@@ -310,8 +383,22 @@ function _octopus_smarty_resize_image($file, $width, $height, &$imageAttrs) {
     $mtime = filemtime($file);
     $hash = md5($file . $mtime);
 
-    $cacheName = "$mtime_r_$hash_$widthx$height.{$info['extension']}";
-    $cacheDir = PRIVATE_DIR . 'smarty_image/';
+    $cacheDir = null;
+    if (isset($imageAttrs['cache_dir'])) {
+        $cacheDir = rtrim($imageAttrs['cache_dir'], '/') . '/';
+        unset($imageAttrs['cache_dir']);
+    } else if (class_exists('Octopus_App') && Octopus_App::isStarted()) {
+        $app = Octopus_App::singleton();
+        $cacheDir = $app->getOption('OCTOPUS_PRIVATE_DIR') . 'resize/';
+    } else if (defined('OCTOPUS_PRIVATE_DIR'))  {
+        $cacheDir = OCTOPUS_PRIVATE_DIR . 'resize/';
+    } else if (defined('PRIVATE_DIR')) {
+        $cacheDir = PRIVATE_DIR . 'resize/';
+    } else {
+        throw new SmartyException("No cache dir available for resizing.");
+    }
+
+    $cacheName = "{$mtime}_r_{$hash}_{$width}x{$height}";
     $cacheFile = $cacheDir . $cacheName;
 
     if (is_file($cacheFile)) {
@@ -319,16 +406,18 @@ function _octopus_smarty_resize_image($file, $width, $height, &$imageAttrs) {
     }
 
     // Not in cache, so do some resizing.
-    $i = new Octopus_Image(array(
+    $i = new Octopus_Image(array(array(
         'action' => 'r',
         'width' => $width,
         'height' => $height,
         'mod' => ''
-    ));
+    )));
+
+    $i->keep_type = true;
 
     $i->processImages($cacheDir, $cacheName, $file);
 
-    return $cacheFile;
+    return $cacheFile . '.' . $info['extension'];
 }
 
 ?>
