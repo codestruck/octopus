@@ -2,6 +2,7 @@
 
 <phpunit backupGlobals="false"
      colors="true"
+     syntaxCheck="false"
      bootstrap="tests/bootstrap.php">
   <php>
     <const name="PHPUNIT_TESTSUITE" value="true"/>
@@ -25,11 +26,12 @@
     <log type="junit" target="build/logs/junit.xml" logIncompleteSkipped="false"/>
 -->
   </logging>
-<!--
   <filter>
     <whitelist addUncoveredFilesFromWhitelist="true">
-      <directory suffix=".php">includes/classes/SG</directory>
+      <directory suffix=".php">includes/classes</directory>
     </whitelist>
+    <blacklist>
+        <directory>externals</directory>
+    </blacklist>
   </filter>
--->
 </phpunit>

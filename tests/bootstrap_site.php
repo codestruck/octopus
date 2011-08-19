@@ -1,7 +1,6 @@
 <?php
 
     error_reporting(E_ALL | E_STRICT);
-    define('DEV', true);
 
     require_once(dirname(__FILE__) . '/../includes/core.php');
     bootstrap();
