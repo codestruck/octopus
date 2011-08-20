@@ -456,6 +456,8 @@ END;
                 } else if (is_object($x) && $x instanceof Dumpable) {
                     $result = $x->dump('text');
                     if ($result === null) $result = '';
+                } else if ($x instanceof Exception) {
+                    $result = self::dumpExceptionToText($x);
                 }
 
             }
@@ -750,8 +752,13 @@ ENDHTML;
                 $result .= "$hLine\n";
             }
 
+            $label = str_replace("\t", "    ", $label);
+            $text = str_replace("\t", "    ", $text);
+
             $label = wordwrap($label, $labelWidth, "\n", true);
             $text = wordwrap($text, $textWidth, "\n", true);
+
+            $text = str_replace("{__octopus_debug_line__}", str_repeat('-', $textWidth), $text);
 
             $label = explode("\n", $label);
             $text = explode("\n", $text);
@@ -783,7 +790,11 @@ ENDHTML;
         if ($return) {
             return $result;
         } else {
-            echo "\n$result\n";
+            // Write to stderr
+            $fp = fopen('php://stderr', 'w');
+            fputs($fp, "\n$result\n");
+            fclose($fp);
+
         }
     } /* }}} */
 
@@ -796,6 +807,15 @@ ENDHTML;
 
         $result = array();
 
+        $rootDir = '';
+        if (class_exists('Octopus_App') && Octopus_App::isStarted()) {
+            $app = Octopus_App::singleton();
+            $rootDir = $app->getOption('ROOT_DIR');
+        } else if (defined('ROOT_DIR')) {
+            $rootDir = ROOT_DIR;
+        }
+        $rootDirLen = strlen($rootDir);
+
         foreach($bt as $b) {
 
             $item = array(
@@ -806,8 +826,8 @@ ENDHTML;
 
             );
 
-            if (defined('ROOT_DIR') && starts_with($item['file'], ROOT_DIR)) {
-                $item['nice_file'] = substr($b['file'], strlen(ROOT_DIR));
+            if ($rootDirLen && substr($item['file'], 0, $rootDirLen) == $rootDir) {
+                $item['nice_file'] = substr($b['file'], $rootDirLen);
             } else {
                 $item['nice_file'] = $item['file'];
             }
@@ -963,6 +983,37 @@ END;
         $html .= '</div>';
 
         return $html;
+    } /* }}} */
+
+    /* dumpExceptionToText($ex) {{{ */
+    private static function dumpExceptionToText($ex) {
+      
+        $class = get_class($ex);
+        $message = $ex->getMessage();
+        $trace = self::saneBacktrace($ex->getTrace());
+
+        $filterTraceLocations = '#^(/usr/local/pear/|/usr/bin/phpunit$)#';
+
+        $result = <<<END
+{$message}
+{__octopus_debug_line__}
+
+END;
+
+        foreach($trace as $i) {
+
+            if (preg_match($filterTraceLocations, $i['file'])) {
+                continue;
+            }
+
+            $result .= <<<END
+{$i['nice_file']}: {$i['line']}
+
+END;
+        }
+
+        return $result;
+        
     } /* }}} */
 
     /* dumpNumberToHtml($x) {{{ */
