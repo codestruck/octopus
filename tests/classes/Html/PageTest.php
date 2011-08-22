@@ -879,6 +879,35 @@ END
 
     }
 
+    function testRenderHead() {
+        
+        $page = new Octopus_Html_Page();
+
+        $page->addJavascript('/global.js');
+        $page->addCss('/styles.css');
+        $page->setJavascriptVar('foo', 'bar');
+        $page->setTitle('My Title');
+        $page->setFavicon('/icon.png');
+
+        $this->assertHtmlEquals(
+            <<<END
+<head>
+    <title>My Title</title>
+    <meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+    <link href="/styles.css" rel="stylesheet" type="text/css" media="all" />
+    <link href="/icon.png" rel="shortcut icon" type="image/png" />
+    <script type="text/javascript">
+        var foo = "bar";
+    </script>
+    <script type="text/javascript" src="/global.js"></script>
+</head>
+END
+            ,
+            $page->renderHead(true)
+        );
+
+    }
+
 }
 
 ?>

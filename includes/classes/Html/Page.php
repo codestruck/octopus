@@ -631,7 +631,7 @@ class Octopus_Html_Page {
     /**
      * Outputs the HTML for the javascript section.
      */
-    public function renderJavascript($section = null, $return = false, $useAliases = true) {
+    public function renderJavascript($section = null, $return = false, $useAliases = true, $includeVars = true) {
 
         if (is_bool($section)) {
             $return = $section;
@@ -644,7 +644,7 @@ class Octopus_Html_Page {
 
         $scripts = $this->getJavascriptFiles($section, $useAliases);
 
-        $html = '';
+        $html = $includeVars ? $this->renderJavascriptVars(true) : '';
 
         foreach($scripts as $info) {
 
@@ -677,15 +677,20 @@ class Octopus_Html_Page {
      * first).
      *
      */
-    public function addCss($url, $attributes = array()) {
+    public function addCss($url, $weight = null, $attributes = array()) {
 
-        $weight = 0;
-
-        if (is_numeric($attributes)) {
-            $weight = $attributes;
-            $attributes = array();
-        } else if (is_string($attributes)) {
+        if (is_string($attributes)) {
             $attributes = array('media' => $attributes);
+        }
+
+        if (is_string($weight)) {
+            $attributes['media'] = $weight;
+            $weight = null;
+        }
+
+        if (is_array($weight)) {
+            $attributes = array_merge($attributes, $weight);
+            $weight = null;
         }
 
         if (isset($attributes['weight'])) {
@@ -701,6 +706,10 @@ class Octopus_Html_Page {
         if (isset($attributes['ie'])) {
             $ie = $attributes['ie'];
             unset($attributes['ie']);
+        }
+
+        if (!$weight) {
+            $weight = 0;
         }
 
         $url = $this->u($url);
@@ -1024,6 +1033,62 @@ END;
         }
 
         echo $html;
+        return $this;
+    }
+
+    public function renderTitle($return = false) {
+        
+        $html = '<title>' . $this->getFullTitle() . '</title>';
+
+        if ($return) {
+            return $html;
+        }
+
+        echo $html;
+        return $this;
+    }
+
+    /**
+     * Renders the entire <head> of the page.
+     */
+    public function renderHead($return = false, $includeTag = true, $useAliases = true) {
+        
+        if ($return) {
+            
+            $html = ($includeTag ? '<head>' : '');
+
+            $html .= $this->renderTitle(true);
+
+            $html .= $this->renderMeta(true);
+
+            $html .= $this->renderCss(true, $useAliases);
+
+            $html .= $this->renderLinks(true);
+
+            $html .= $this->renderJavascript(true, $useAliases);
+
+            $html .= ($includeTag ? '</head>' : '');
+
+            return $html;
+        }
+
+        echo "\n<head>\n";
+
+        $this->renderTitle();
+        echo "\n";
+
+        $this->renderMeta();
+        echo "\n";
+
+        $this->renderCss(false, $useAliases);
+        echo "\n";
+
+        $this->renderLinks();
+        echo "\n";
+
+        $this->renderJavascript(false, $useAliases);
+
+        echo "\n</head>\n";
         return $this;
     }
 
