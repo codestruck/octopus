@@ -67,10 +67,10 @@ class PageTest extends Octopus_Html_TestCase {
             $page->getJavascriptVars()
         );
 
-        $page->setJavascriptVar('higher_priority', 'test', 100);
+        $page->setJavascriptVar('lower_weight', 'test', -100);
         $this->assertEquals(
             array(
-                'higher_priority' => 'test',
+                'lower_weight' => 'test',
                 'foo' => 'bar'
             ),
             $page->getJavascriptVars()
@@ -79,7 +79,7 @@ class PageTest extends Octopus_Html_TestCase {
         $this->assertHtmlEquals(
             <<<END
 <script type="text/javascript">
-    var higher_priority = "test";
+    var lower_weight = "test";
     var foo = "bar";
 </script>
 END
@@ -111,10 +111,10 @@ END
             $expected = $value;
 
             $page->addCss($toAdd);
-            $soFar[$expected] = array(
+            $soFar[] = array(
                 'url' => $expected,
                 'attributes' => array('media' => 'all'),
-                'priority' => 0
+                'weight' => 0
             );
 
             $html .= <<<END
@@ -123,7 +123,7 @@ END;
 
             $this->assertEquals(
                 $soFar,
-                $page->getCssFiles()
+                $this->unsetIndexes($page->getCssFiles())
             );
         }
 
@@ -138,7 +138,7 @@ END;
             array(
                 'url' => 'foo.css',
                 'attributes' => array('media' => 'screen'),
-                'priority' => 0
+                'weight' => 0
             ),
             $page->getCssFile('foo.css')
         );
@@ -149,23 +149,23 @@ END;
             array(
                 'url' => 'foo.css',
                 'attributes' => array('media' => 'screen'),
-                'priority' => 0
+                'weight' => 0
             ),
             $page->getCssFile('foo.css')
         );
 
     }
 
-    function testCssPriority() {
+    function testCssWeight() {
 
         $page = new Octopus_Html_Page();
-        $page->addCss('high_priority.css', 100);
-        $page->addCss('low_priority.css');
+        $page->addCss('high_weight.css');
+        $page->addCss('low_weight.css', -100);
 
         $this->assertHtmlEquals(
             <<<END
-<link href="low_priority.css" rel="stylesheet" type="text/css" media="all" />
-<link href="high_priority.css" rel="stylesheet" type="text/css" media="all" />
+<link href="low_weight.css" rel="stylesheet" type="text/css" media="all" />
+<link href="high_weight.css" rel="stylesheet" type="text/css" media="all" />
 END
             ,
             $page->renderCss(true)
@@ -232,13 +232,15 @@ END;
             $soFar[$expected] = array(
                 'url' => $expected,
                 'attributes' => array(),
-                'priority' => 0
+                'weight' => 0
             );
 
-            $this->assertEquals(
-                $soFar,
-                $page->getJavascriptFiles()
-            );
+            $actual = $page->getJavascriptFiles();
+            foreach($actual as $key => $value) {
+                unset($actual[$key]['index']);
+            }
+
+            $this->assertEquals($soFar, $actual);
 
             $html .= <<<END
 <script type="text/javascript" src="$expected"></script>
@@ -286,27 +288,34 @@ END;
         $this->assertHtmlEquals($inTag, $page->renderJavascript(true));
     }
 
-    function testJavascriptPriority() {
+    function testJavascriptWeight() {
 
         $page = new Octopus_Html_Page();
-        $page->addJavascript('low_priority.js');
-        $page->addJavascript('high_priority.js', 100);
+        $page->addJavascript('high_weight.js');
+        $page->addJavascript('low_weight.js', -100);
 
         $this->assertEquals(
             array(
-                'high_priority.js' => array(
-                    'url' => 'high_priority.js',
+                'low_weight.js' => array(
+                    'url' => 'low_weight.js',
                     'attributes' => array(),
-                    'priority' => 100
+                    'weight' => -100
                 ),
-                'low_priority.js' => array(
-                    'url' => 'low_priority.js',
+                'high_weight.js' => array(
+                    'url' => 'high_weight.js',
                     'attributes' => array(),
-                    'priority' => 0
-                )
+                    'weight' => 0
+                ),
             ),
-            $page->getJavascriptFiles()
+            $this->unsetIndexes($page->getJavascriptFiles())
         );
+    }
+
+    function unsetIndexes($ar) {
+        foreach($ar as $key => &$value) {
+            unset($ar[$key]['index']);
+        }
+        return $ar;
     }
 
     function testMeta() {
@@ -631,7 +640,7 @@ END
                     'rel' => 'next',
                     'type' => null,
                     'attributes' => array(),
-                    'priority' => 0
+                    'weight' => 0
                 ),
                 $page->getLink('next')
             );
@@ -652,13 +661,136 @@ END
                     'rel' => 'next',
                     'type' => 'text/plain',
                     'attributes' => array(),
-                    'priority' => 0
+                    'weight' => 0
                 ),
                 $page->getLink('next')
             );
 
 
         }
+    }
+
+    function testUseJavascriptAliases() {
+        
+        $page = new Octopus_Html_Page(array(
+            'URL_BASE' => '/subdir/'
+        ));
+
+        $page->addJavascriptAlias(
+            array(
+                'http://jquery.com/jquery.js',
+                '/script/global.js'
+            ),
+            '/jquery_and_global.js'
+        );
+
+        $page->addJavascript('/script/global.js');
+        $page->addJavascript('/script/this_page.js');
+        $page->addJavascript('http://jquery.com/jquery.js', -100);
+        
+
+        $this->assertHtmlEquals(
+            <<<END
+<script type="text/javascript" src="/subdir/jquery_and_global.js"></script>
+<script type="text/javascript" src="/subdir/script/this_page.js"></script>
+END
+            ,
+            $page->renderJavascript(true)
+        );
+
+    }
+
+    function testJavascriptAliasesUseBest() {
+        
+        $page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
+
+        $page->addJavascript('/a.js');
+        $page->addJavascript('/b.js');
+        $page->addJavascript('/c.js');
+        $page->addJavascript('/d.js');
+
+        $page->addJavascriptAlias(array('/a.js', '/c.js'), '/ac.js');
+        $page->addJavascriptAlias(array('/a.js', '/b.js', '/d.js'), '/abd.js');
+
+        $this->assertHtmlEquals(
+            <<<END
+<script type="text/javascript" src="/subdir/abd.js"></script>
+<script type="text/javascript" src="/subdir/c.js"></script>
+END
+            ,
+            $page->renderJavascript(true)
+        );
+
+    }
+
+    function testJavascriptAliasesUseLowestWeight() {
+        
+        $page = new Octopus_Html_Page();
+
+        $page->addJavascript('/a.js');
+        $page->addJavascript('/b.js');
+        $page->addJavascript('/c.js', -1000);
+
+        $page->addJavascriptAlias(array('/c.js', '/b.js'), '/cb.js');
+
+        $this->assertHtmlEquals(
+            <<<END
+<script type="text/javascript" src="/cb.js"></script>
+<script type="text/javascript" src="/a.js"></script>
+END
+            ,
+            $page->renderJavascript(true)
+        );
+
+    }
+
+    function testGetJavascriptFilesWithAliases() {
+        
+        $page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
+
+        $page->addJavascript('/a.js');
+        $page->addJavascript('/b.js');
+        $page->addJavascript('/c.js');
+        $page->addJavascriptAlias(array('/a.js', '/c.js'), '/ac.js');
+
+        $files = $page->getJavascriptFiles();
+        $this->assertEquals(2, count($files), '# of javascript files');
+
+        $f = array_shift($files);
+        $this->assertEquals('/subdir/ac.js', $f['url']);
+
+        $f = array_shift($files);
+        $this->assertEquals('/subdir/b.js', $f['url']);
+
+    }
+
+    function testUseCssAliases() {
+        
+        $page = new Octopus_Html_Page(array(
+            'URL_BASE' => '/subdir/'
+        ));
+
+        $page->addCssAlias(
+            array(
+                'http://server.com/base.css',
+                '/css/styles.css'
+            ),
+            '/base_and_styles.css'
+        );
+
+        $page->addCss('http://server.com/base.css');
+        $page->addCss('/css/styles.css');
+        $page->addCss('/something_else.css');
+
+        $this->assertHtmlEquals(
+            <<<END
+<link href="/subdir/base_and_styles.css" rel="stylesheet" type="text/css" />
+<link href="/subdir/something_else.css" rel="stylesheet" type="text/css" media="all" />
+END
+            ,
+            $page->renderCss(true)
+        );
+
     }
 
 }
