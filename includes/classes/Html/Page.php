@@ -46,6 +46,22 @@ class Octopus_Html_Page {
         $this->setMeta('Content-type', 'text/html; charset=UTF-8');
     }
 
+    public function __call($name, $args) {
+
+        // Map, e.g., addBottomJavascript('file.js') to addJavascript('file.js', 'bottom');
+        if (preg_match('/^add([a-zA-Z0-9_]+)Javascript$/', $name, $m)) {
+            $fullArgs = array();
+            $fullArgs[] = array_shift($args);
+            $fullArgs[] = underscore($m[1]);
+            while($args) {
+                $fullArgs[] = array_shift($args);
+            }
+            return call_user_func_array(array($this, 'addJavascript'), $fullArgs);
+        }
+
+        throw new Octopus_Exception("Cannot call $name on Octopus_Html_Page");
+    }
+
     private static function counter() {
         return self::$counter++;
     }
@@ -503,22 +519,9 @@ class Octopus_Html_Page {
     /**
      * Adds a single script file to this page.
      */
-    public function addJavascript($url, $attributes = array()) {
+    public function addJavascript($url, $section = null, $weight = null, $attributes = array()) {
 
-        if (is_numeric($attributes)) {
-            $weight = $attributes;
-            $attributes = array();
-        } else {
-            $weight = isset($attributes['weight']) ? $attributes['weight'] : 0;
-            unset($attributes['weight']);
-        }
-
-        $url = $this->u($url);
-        $index = self::counter();
-
-        $this->scripts[$url] = compact('url', 'attributes', 'weight', 'index');
-
-        return $this;
+        return $this->internalAddJavascript('url', $this->u($url), $section, $weight, $attributes);
     }
 
     /**
@@ -535,7 +538,7 @@ class Octopus_Html_Page {
         return $this;
     }
 
-    public function addLiteralJavascript($content, $attributes = array()) {
+    public function addLiteralJavascript($content, $section = null, $weight = null, $attributes = array()) {
 
         $content = str_replace('<!--', '', $content);
         $content = str_replace('-->', '', $content);
@@ -545,19 +548,52 @@ class Octopus_Html_Page {
             return $this;
         }
 
-        $weight = 0;
+        return $this->internalAddJavascript('literal', $content, $section, $weight, $attributes);
+    }
 
-        if (is_numeric($attributes)) {
-            $weight = $attributes;
-            $attributes = array();
-        } else if (isset($attributes['weight'])) {
-            $weight = $attributes['weight'];
+    private function internalAddJavascript($type, $content, $section, $weight, $attributes) {
+
+        if ($weight === null && is_numeric($section)) {
+            $weight = $section;
+            $section = null;
+        }
+
+        if (is_array($section)) {
+            $attributes = array_merge($section, $attributes);
+            $section = null;
+        }
+
+        if (is_array($weight)) {
+            $attributes = array_merge($weight, $attributes);
+            $weight = null;
+        }
+
+        if (isset($attributes['weight'])) {
+            $weight = isset($attributes['weight']) ? $attributes['weight'] : 0;
             unset($attributes['weight']);
+        }
+
+        if (isset($attributes['section'])) {
+            $section = $attributes['section'];
+            unset($attributes['section']);
+        }
+
+        if (!$section) {
+            $section = '';
+        }
+
+        if (!$weight) {
+            $weight = 0;
         }
 
         $index = self::counter();
 
-        $this->scripts[] = compact('content', 'options', 'weight', 'index');
+        if ($type == 'literal') {
+            $this->scripts[] = compact('content', 'attributes', 'section', 'weight', 'index');
+        } else {
+            $url = $content;
+            $this->scripts[$url] = compact('url', 'attributes', 'section', 'weight', 'index');
+        }
 
         return $this;
     }
@@ -565,11 +601,25 @@ class Octopus_Html_Page {
     /**
      * @return Array of all javascript files added to this page.
      */
-    public function &getJavascriptFiles($useAliases = true) {
+    public function &getJavascriptFiles($section = '', $useAliases = true) {
 
-        $scripts = $this->scripts;
+        if (is_bool($section)) {
+            $useAliases = $section;
+            $section = '';
+        }
 
-        uasort($scripts, array('Octopus_Html_Page', 'compareWeights'));
+        if ($section !== null) {
+            $scripts = array();
+            foreach($this->scripts as $s) {
+                if ($s['section'] == $section) {
+                    $scripts[] = $s;
+                }
+            }
+        } else {
+            $scripts = $this->scripts;
+        }
+
+        usort($scripts, array('Octopus_Html_Page', 'compareWeights'));
 
         if ($useAliases) {
             $scripts = $this->processAliases($scripts, $this->scriptAliases);
@@ -581,13 +631,18 @@ class Octopus_Html_Page {
     /**
      * Outputs the HTML for the javascript section.
      */
-    public function renderJavascript($return = false, $useAliases = true) {
+    public function renderJavascript($section = null, $return = false, $useAliases = true) {
+
+        if (is_bool($section)) {
+            $return = $section;
+            $section = '';
+        }
 
         if (empty($this->scripts)) {
             return $return ? '' : $this;
         }
 
-        $scripts = $this->getJavascriptFiles($useAliases);
+        $scripts = $this->getJavascriptFiles($section, $useAliases);
 
         $html = '';
 
@@ -599,7 +654,7 @@ class Octopus_Html_Page {
             if (isset($info['url'])) {
                 $el->src = $info['url'];
             } else {
-                $el->text($info['content']);
+                $el->text("\n{$info['content']}\n");
             }
 
             $html .= $el->render(true);
@@ -1056,6 +1111,11 @@ END;
                 // We can use this in place
                 $a['weight'] = $weight;
                 $a['index'] = $index;
+                $a['section'] = '';
+
+                // TODO: Actually compare attributes and section as well when checking if files can be 
+                // aliased
+
                 $result[] = $a;
 
                 foreach($a['urls'] as $url) {

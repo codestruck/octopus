@@ -2,7 +2,7 @@
 
 Octopus::loadClass('Octopus_Html_Page');
 
-class PageTest extends Octopus_Html_TestCase {
+class PageTest extends Octopus_App_TestCase {
 
     function testSetTitle() {
 
@@ -229,9 +229,10 @@ END;
             $expected = $value;
 
             $page->addJavascript($toAdd);
-            $soFar[$expected] = array(
+            $soFar[] = array(
                 'url' => $expected,
                 'attributes' => array(),
+                'section' => '',
                 'weight' => 0
             );
 
@@ -296,15 +297,18 @@ END;
 
         $this->assertEquals(
             array(
-                'low_weight.js' => array(
+                array(
                     'url' => 'low_weight.js',
                     'attributes' => array(),
-                    'weight' => -100
+                    'section' => '',
+                    'weight' => -100,
                 ),
-                'high_weight.js' => array(
+                array(
                     'url' => 'high_weight.js',
                     'attributes' => array(),
-                    'weight' => 0
+                    'section' => '',
+                    'weight' => 0,
+                    
                 ),
             ),
             $this->unsetIndexes($page->getJavascriptFiles())
@@ -789,6 +793,88 @@ END
 END
             ,
             $page->renderCss(true)
+        );
+
+    }
+
+    function testAddJavascriptToDifferentArea() {
+        
+        $page = new Octopus_Html_Page();
+        $page->addJavascript('/global.js', 'bottom', 100);
+
+        $this->assertEquals(array(), $page->getJavascriptFiles());
+        $this->assertEquals(
+            array(
+                array(
+                    'url' => '/global.js',
+                    'attributes' => array(),
+                    'section' => 'bottom',
+                    'weight' => 100
+                )
+            ),
+            $this->unsetIndexes($page->getJavascriptFiles('bottom'))
+        );
+
+        $this->assertEquals('', trim($page->renderJavascript(true)));
+
+        $this->assertHtmlEquals(
+            <<<END
+<script type="text/javascript" src="/global.js"></script>
+END
+            ,
+            $page->renderJavascript('bottom', true)
+        );
+
+    }
+
+    function testAddJavascriptMagicMethods() {
+        
+        $page = new Octopus_Html_Page();
+        $page->addBottomJavascript('/global.js', 100);
+
+        $this->assertEquals(array(), $page->getJavascriptFiles());
+        $this->assertEquals(
+            array(
+                array(
+                    'url' => '/global.js',
+                    'attributes' => array(),
+                    'section' => 'bottom',
+                    'weight' => 100
+                )
+            ),
+            $this->unsetIndexes($page->getJavascriptFiles('bottom'))
+        );
+
+        $this->assertEquals('', trim($page->renderJavascript(true)));
+
+        $this->assertHtmlEquals(
+            <<<END
+<script type="text/javascript" src="/global.js"></script>
+END
+            ,
+            $page->renderJavascript('bottom', true)
+        );
+
+    }
+
+    function testAddLiteralJavascriptToDifferentArea() {
+        
+        $page = new Octopus_Html_Page();
+        $page->addLiteralJavascript(
+            "alert('hello world!');",
+            'bottom'
+        );
+
+        $this->assertEquals('', $page->renderJavascript(true));
+
+        $this->assertEquals(
+            <<<END
+<script type="text/javascript">
+alert('hello world!');
+</script>
+END
+            ,
+            trim($page->renderJavascript('bottom', true))
         );
 
     }
