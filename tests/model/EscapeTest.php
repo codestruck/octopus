@@ -15,29 +15,6 @@ class ModelEscapeTest extends Octopus_DB_TestCase
         parent::__construct('model/relation-many-data.xml');
     }
 
-    function createTables(&$db)
-    {
-        Octopus_DB_Schema_Model::makeTable('product');
-        Octopus_DB_Schema_Model::makeTable('group');
-
-        Octopus_DB_Schema_Model::makeTable('hammer');
-        Octopus_DB_Schema_Model::makeTable('nail');
-        Octopus_DB_Schema_Model::makeTable('sledgehammer');
-    }
-
-    function dropTables(&$db)
-    {
-        $db =& Octopus_DB::singleton();
-
-        $db->query('DROP TABLE IF EXISTS groups');
-        $db->query('DROP TABLE IF EXISTS products');
-        $db->query('DROP TABLE IF EXISTS group_product_join');
-
-        $db->query('DROP TABLE IF EXISTS hammers');
-        $db->query('DROP TABLE IF EXISTS nails');
-        $db->query('DROP TABLE IF EXISTS sledgehammers');
-    }
-
     function testEscapeName() {
         $str = '<b>Name</b>';
 

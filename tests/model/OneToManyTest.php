@@ -15,23 +15,6 @@ class ModelOneToManyTest extends Octopus_DB_TestCase
         parent::__construct('model/relation-data.xml');
     }
 
-    function createTables(&$db)
-    {
-
-        Octopus_DB_Schema_Model::makeTable('hammer');
-        Octopus_DB_Schema_Model::makeTable('nail');
-        Octopus_DB_Schema_Model::makeTable('sledgehammer');
-
-    }
-
-    function dropTables(&$db)
-    {
-        $db =& Octopus_DB::singleton();
-        $db->query('DROP TABLE IF EXISTS hammers');
-        $db->query('DROP TABLE IF EXISTS nails');
-        $db->query('DROP TABLE IF EXISTS sledgehammers');
-    }
-
     function testAccessNail()
     {
         $hammer = new Hammer(1);

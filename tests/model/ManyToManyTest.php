@@ -15,20 +15,6 @@ class ModelManyToManyTest extends Octopus_DB_TestCase
         parent::__construct('model/relation-many-data.xml');
     }
 
-    function createTables(&$db)
-    {
-        Octopus_DB_Schema_Model::makeTable('product');
-        Octopus_DB_Schema_Model::makeTable('group');
-    }
-
-    function dropTables(&$db)
-    {
-        $db =& Octopus_DB::singleton();
-        $db->query('DROP TABLE IF EXISTS groups');
-        $db->query('DROP TABLE IF EXISTS products');
-        $db->query('DROP TABLE IF EXISTS group_product_join');
-    }
-
     function testGroupCount()
     {
         $product = new Product(1);

@@ -49,43 +49,6 @@ class ModelRelationFilterTest extends Octopus_DB_TestCase
         parent::__construct('model/relation-filter-data.xml');
     }
 
-    function createTables(&$db)
-    {
-        $sql = "CREATE TABLE comments (
-                `comment_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                `content` varchar ( 255 ) NOT NULL,
-                `item_type` varchar ( 255 ) NOT NULL,
-                `item_id` INT( 10 ) NOT NULL
-                )
-                ";
-
-        $db->query($sql);
-
-        $sql = "CREATE TABLE cars (
-                `car_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                `name` varchar ( 255 ) NOT NULL
-                )
-                ";
-
-        $db->query($sql);
-
-        $sql = "CREATE TABLE boats (
-                `boat_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                `name` varchar ( 255 ) NOT NULL
-                )
-                ";
-
-        $db->query($sql);
-    }
-
-    function dropTables(&$db)
-    {
-        $db =& Octopus_DB::singleton();
-        $db->query('DROP TABLE IF EXISTS comments');
-        $db->query('DROP TABLE IF EXISTS cars');
-        $db->query('DROP TABLE IF EXISTS boats');
-    }
-
     function testAccessComments() {
         $car = new Car(1);
         $this->assertEquals(2, count($car->comments));
