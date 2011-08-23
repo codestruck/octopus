@@ -290,6 +290,24 @@ END;
 		$this->assertSmartyEquals($expected, $test, '', true, true);
 	}
 
+	/**
+	 * @dataProvider getSiteDirImages
+	 */
+	function testHtmlImageCompatibleDefault($file, $fileUrl) {
+
+		$test = <<<END
+{image file="/some/fake/image.png" default="$file"}
+END;
+
+		$info = pathinfo($file);
+
+		$expected = <<<END
+<img src="$fileUrl?[MTIME]" class="missing" width="100" height="75" />
+END;
+
+		$this->assertSmartyEquals($expected, $test, '', true, true);
+	}
+
 	function getSiteDirImages() {
 
 		$result = array();

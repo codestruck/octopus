@@ -63,6 +63,8 @@ function smarty_function_image($params, $template)
             $missingAttrs[$key] = $value;
         } else if ($key == 'fail-if-missing') {
             $failIfMissing = $value;
+        } else if ($key == 'default') {
+            $missingAttrs['src'] = $value;
         } else {
             $imageAttrs[$key] = $value;
         }
