@@ -245,7 +245,7 @@ class Octopus_App {
             $dir = $o[$name];
             if (!is_dir($dir)) {
                 if (!@mkdir($dir, 0777, true)) {
-                    throw new OctopusException("Unable to create $name: '$dir'");
+                    throw new Octopus_Exception("Unable to create $name: '$dir'");
                 }
             }
 

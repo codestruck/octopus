@@ -8,7 +8,8 @@ class Octopus_Html_Page {
     private static $counter = 0;
 
     public static $defaults = array(
-        'titleSeparator' => ' | '
+        'titleSeparator' => ' | ',
+        'minifier' => array('src')
     );
 
     protected $options;
@@ -624,6 +625,8 @@ class Octopus_Html_Page {
         if ($useAliases) {
             $scripts = $this->processAliases($scripts, $this->scriptAliases);
         }
+
+        $scripts = $this->minify($scripts);
 
         return $scripts;
     }
@@ -1249,6 +1252,49 @@ END;
         }
 
         return true;
+    }
+
+    /**
+     * Given an array of items (script or css files), applies the minifier.
+     */
+    protected function &minify($items) {
+         
+         if (empty($this->options['minifier'])) {
+             return $items;
+         }   
+
+         $minifiers = $this->options['minifier'];
+         if (!is_array($minifiers)) $minifiers = array($minifiers);
+
+         $itemsByUrl = array();
+         foreach($items as $item) {
+             $itemsByUrl[$item['url']] = $item;
+         }
+
+         foreach($minifiers as $class) {
+             
+             $class = 'Octopus_Minify_Strategy_' . camel_case($class, true);
+             Octopus::loadClass($class);
+
+             $strat = new $class();
+             $minified = $strat->getMinifiedUrls(array_keys($itemsByUrl));
+
+             if (!$minified) {
+                 continue;
+             }
+
+             foreach($minified as $url => $oldUrls) {
+                 $oldUrl = array_shift($oldUrls);
+                 $item = $itemsByUrl[$oldUrl];
+                 $item['old_url'] = $item['url'];
+                 $item['url'] = $url;
+                 foreach($oldUrls as $old) {
+                     unset($itemsByUrl[$old]);
+                 }
+             }
+         }
+
+         return array_values($itemsByUrl);
     }
 
     private static function findByUrl(&$ar, $url, &$index = 0) {
