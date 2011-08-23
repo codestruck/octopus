@@ -333,7 +333,7 @@ END
         $form->add('foo');
         $this->assertFalse($form->wasSubmitted());
 
-        $_SERVER['REQUEST_METHOD'] == 'POST';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
         $_POST['foo'] = 'bar';
         $_POST['__octopus_form_wasSubmitted_submitted'] = 1;
 
