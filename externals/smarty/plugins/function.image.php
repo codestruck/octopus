@@ -78,7 +78,7 @@ function smarty_function_image($params, $template)
         if (!empty($shimAttrs['-r'])) {
             // old-style resize
             $resize = true;
-        } 
+        }
 
         if ($resize) {
 
@@ -88,7 +88,7 @@ function smarty_function_image($params, $template)
 
             if (!empty($shimAttrs['-rheight'])) {
                 $imageAttrs['height'] = $shimAttrs['-rheight'];
-            }        
+            }
         }
     }
 
@@ -123,7 +123,7 @@ function smarty_function_image($params, $template)
         }
 
         if (isset($missingAttrs['src'])) {
-            
+
             $file = _octopus_smarty_find_image($missingAttrs['src'], $dirs, $template);
 
             if (!$file) {
@@ -137,7 +137,7 @@ function smarty_function_image($params, $template)
             $imageAttrs = array_merge($imageAttrs, $missingAttrs);
 
         } else {
-            
+
             // Just return an empty span
             $span = new Octopus_Html_Element('span', $missingAttrs);
             return $span->render(true);
@@ -154,7 +154,7 @@ function smarty_function_image($params, $template)
         $imageAttrs['width'] = $width;
         $imageAttrs['height'] = $height;
 
-    } 
+    }
     /*
     TODO: implement cropping
     else if ($crop) {
@@ -169,7 +169,7 @@ function smarty_function_image($params, $template)
             if (!isset($imageAttrs['height'])) $imageAttrs['height'] = $size[1];
         } else {
             throw new SmartyException("Could not get size of image file: '{$imageAttrs['src']}.");
-        } 
+        }
     }
 
     if (isset($template->security_policy)) {
@@ -182,7 +182,7 @@ function smarty_function_image($params, $template)
     $imageAttrs['src'] = _octopus_smarty_get_file_url($file, $dirs, $urlBase);
 
     $img = new Octopus_Html_Element('img', $imageAttrs);
-    
+
     if (!empty($linkAttrs)) {
         $link = new Octopus_Html_Element('a', $linkAttrs);
         $link->append($img);
@@ -195,11 +195,11 @@ function smarty_function_image($params, $template)
 /**
  * Given an arbitrary image source, returns the physical path to the image file,
  * or false if it can't be found.
- */ 
+ */
 function _octopus_smarty_find_image($src, $dirs, $template, &$tries = null) {
-    
+
     /* Cases Handled:
-     *  
+     *
      * 1. src is physical path to image (/var/www/images/whatever.gif)
      * 2. src is absolute path to image in the app (e.g. /site/images/whatever.gif
      *    or  /site/octopus/images/whatever.gif).
@@ -209,7 +209,7 @@ function _octopus_smarty_find_image($src, $dirs, $template, &$tries = null) {
      *    (e.g., /images/whatever.gif becomes /octopus/images/whatever.gif).
      * 4. src is relative to the template directory
      */
-    
+
     $src = trim($src);
     if (!$src) return false;
 
@@ -226,12 +226,12 @@ function _octopus_smarty_find_image($src, $dirs, $template, &$tries = null) {
     }
 
     if (is_file($src)) {
-        return $src;   
+        return $src;
     }
     if ($tries !== null) $tries[] = $src;
 
     foreach($dirs as $dir) {
-        
+
         $file = $dir . $src;
         if (is_file($file)) {
             return $file;
@@ -244,9 +244,9 @@ function _octopus_smarty_find_image($src, $dirs, $template, &$tries = null) {
 }
 
 function _octopus_smarty_get_file_url($file, $dirs, $urlBase = null, $includeModTime = true) {
-    
+
     /* Cases Handled:
-     * 
+     *
      * 1. $file starts with SITE_DIR
      * 2. $file starts with OCTOPUS_DIR
      * 3. $file starts with ROOT_DIR
@@ -266,7 +266,7 @@ function _octopus_smarty_get_file_url($file, $dirs, $urlBase = null, $includeMod
         }
 
         if (!$urlBase) {
-        
+
             if (defined('URL_BASE')) {
                 $urlBase = URL_BASE;
             } else if (is_callable('find_url_base')) {
@@ -293,7 +293,7 @@ function _octopus_smarty_get_file_url($file, $dirs, $urlBase = null, $includeMod
 }
 
 function &_octopus_smarty_get_directories($baseDir = null, &$urlBase) {
-    
+
     $dirs = array();
 
     if ($baseDir) {
@@ -332,7 +332,7 @@ function &_octopus_smarty_get_directories($baseDir = null, &$urlBase) {
  * On-the-fly resizes an image and returns the physical path of the resized image file.
  */
 function _octopus_smarty_resize_image($file, $width, $height, &$imageAttrs) {
-    
+
     if ($width === null && $height === null) {
         return $file;
     }
@@ -342,7 +342,7 @@ function _octopus_smarty_resize_image($file, $width, $height, &$imageAttrs) {
 
     if (!$size) {
         throw new SmartyException("Could not get size of image file: '{$imageAttrs['src']}.");
-    } 
+    }
 
     list($originalWidth, $originalHeight) = $size;
 
@@ -354,7 +354,7 @@ function _octopus_smarty_resize_image($file, $width, $height, &$imageAttrs) {
             $width = round(($height / $originalHeight) * $originalWidth);
         }
     } else if ($height === null) {
-        
+
         if ($width == $originalWidth) {
             $height = $originalHeight;
         } else {
@@ -375,7 +375,7 @@ function _octopus_smarty_resize_image($file, $width, $height, &$imageAttrs) {
      * 3. md5 of original file name + mod time
      * 4. widthxheight
      *
-     * By putting the mod time first, it's really easy to purge old 
+     * By putting the mod time first, it's really easy to purge old
      * files from the cache.
      */
 

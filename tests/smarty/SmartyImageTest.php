@@ -2,13 +2,16 @@
 
 Octopus::loadExternal('smarty');
 
+/**
+ * @group smarty
+ */
 class SmartyImageTest extends Octopus_App_TestCase {
 
 	private $testImages;
 	private $extensions = array('.jpg', '.png', '.gif');
 
 	function setUp() {
-		
+
 		parent::setUp();
 
 		@mkdir($this->getSiteDir() . 'images');
@@ -25,7 +28,7 @@ class SmartyImageTest extends Octopus_App_TestCase {
 	}
 
 	function tearDown() {
-			
+
 		$app = $this->getApp();
 		if ($app) {
 			$privateDir = $app->getOption('OCTOPUS_PRIVATE_DIR');
@@ -38,14 +41,14 @@ class SmartyImageTest extends Octopus_App_TestCase {
 	}
 
 	function assertSmartyEquals($expected, $value, $message = '', $replaceMD5 = false, $replaceMtime = false) {
-		
+
 		$app = $this->getApp();
-		
+
 		$s = Octopus_Smarty::singleton();
 
 		$smartyDir = $this->getSiteDir() . 'smarty/';
 		@mkdir($smartyDir);
-		
+
 		$tplFile = $smartyDir . 'test.' . md5($expected) . '.tpl';
 		@unlink($tplFile);
 
@@ -53,7 +56,7 @@ class SmartyImageTest extends Octopus_App_TestCase {
 
         $s->smarty->template_dir = array($smartyDir);
         $tpl = $s->smarty->createTemplate($tplFile, array());
-        
+
         $rendered = $tpl->fetch();
 
         if ($replaceMD5) {
@@ -73,11 +76,11 @@ class SmartyImageTest extends Octopus_App_TestCase {
 	function testPhysicalFileAsSource($file, $fileUrl) {
 
 		foreach(array('src', 'file') as $attr) {
-			
+
 			$test = <<<END
 {image $attr="$file"}
 END;
-		
+
 			$mtime = filemtime($file);
 
 			$expected = <<<END
@@ -103,7 +106,7 @@ END;
 
 		$urlSiteDir = $this->getSiteDirUrl();
 		$name = basename($file);
-		
+
 		$test = <<<END
 {image src="/images/$name" fail_if_missing="true"}
 END;
@@ -160,7 +163,7 @@ END;
 <a href="/path/to/something" class="link"><img src="$fileUrl?$mtime" class="image" width="100" height="75" /></a>
 <a href="/path/to/something/else"><img src="$fileUrl?$mtime" width="100" height="75" />
 END;
-	
+
 	}
 
 	/**
@@ -178,14 +181,14 @@ END;
 <img src="$fileUrl?$mtime" class="missing" width="100" height="75" alt="Missing Image" />
 END;
 		$this->assertSmartyEquals($expected, $test);
-		
+
 	}
 
 	/**
 	 * @dataProvider getSiteDirImages
 	 */
 	function testMissingImageSpan($file, $fileUrl) {
-		
+
 		$test = <<<END
 {image src="/some/fake/image.png" missing_title="Missing Image"}
 END;
@@ -201,7 +204,7 @@ END;
 	 * @dataProvider getSiteDirImages
 	 */
 	function testRelativeToTemplate($file, $fileUrl) {
-		
+
 		$smartyImageDir = 'smarty/images/';
 		mkdir($this->getSiteDir() . 'smarty/');
 		mkdir($this->getSiteDir() . $smartyImageDir);
@@ -209,7 +212,7 @@ END;
 
 		$name = basename($file);
 
-		$smartyImageFile = $this->getSiteDir() . $smartyImageDir . $name; 
+		$smartyImageFile = $this->getSiteDir() . $smartyImageDir . $name;
 
 		$this->assertTrue(copy($file, $smartyImageFile), "copy failed ($file to $smartyImageFile)");
 
@@ -218,7 +221,7 @@ END;
 END;
 
 		$mtime = filemtime($smartyImageFile);
-		
+
 		$urlSiteDir = $this->getSiteDirUrl();
 		$expected = <<<END
 <img src="{$urlSiteDir}{$smartyImageDir}{$name}?{$mtime}" width="100" height="75" />
@@ -255,7 +258,7 @@ END;
 	 * @dataProvider getSiteDirImages
 	 */
 	function testWeirdAttributes($file, $fileUrl) {
-		
+
 		$test = <<<END
 {image src="$file" data_something="foo"}
 END;
@@ -288,7 +291,7 @@ END;
 	}
 
 	function getSiteDirImages() {
-			
+
 		$result = array();
 
 		foreach($this->extensions as $ext) {
