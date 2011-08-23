@@ -5,6 +5,7 @@ Octopus::loadClass('Http_Request');
 
 /**
  * @group http
+ * @group slow
  *
  */
 class HelperTest extends TransportBase {

@@ -19,6 +19,9 @@ class Octopus_Html_Page {
     protected $meta = array();
     protected $links = array();
 
+    protected $scriptAliases = array();
+    protected $cssAliases = array();
+
     protected $fullTitle = null;
     protected $title = null;
     protected $subtitles = array();
@@ -41,6 +44,22 @@ class Octopus_Html_Page {
         }
 
         $this->setMeta('Content-type', 'text/html; charset=UTF-8');
+    }
+
+    public function __call($name, $args) {
+
+        // Map, e.g., addBottomJavascript('file.js') to addJavascript('file.js', 'bottom');
+        if (preg_match('/^add([a-zA-Z0-9_]+)Javascript$/', $name, $m)) {
+            $fullArgs = array();
+            $fullArgs[] = array_shift($args);
+            $fullArgs[] = underscore($m[1]);
+            while($args) {
+                $fullArgs[] = array_shift($args);
+            }
+            return call_user_func_array(array($this, 'addJavascript'), $fullArgs);
+        }
+
+        throw new Octopus_Exception("Cannot call $name on Octopus_Html_Page");
     }
 
     private static function counter() {
@@ -389,13 +408,13 @@ class Octopus_Html_Page {
      */
     public function addLink($rel, $url, $type = null, $attributes = array()) {
 
-        $priority = 0;
+        $weight = 0;
 
         if (is_numeric($type)) {
-            $priority = $type;
+            $weight = $type;
             $type = null;
         } else if (is_numeric($attributes)) {
-            $priority = $attributes;
+            $weight = $attributes;
             $attributes = array();
         }
 
@@ -404,9 +423,9 @@ class Octopus_Html_Page {
             $type = null;
         }
 
-        if (isset($attributes['priority'])) {
-            $priority = $attributes['priority'];
-            unset($attributes['priority']);
+        if (isset($attributes['weight'])) {
+            $weight = $attributes['weight'];
+            unset($attributes['weight']);
         }
 
         if (isset($attributes['type'])) {
@@ -417,7 +436,7 @@ class Octopus_Html_Page {
         $url = $this->u($url);
         $index = self::counter();
 
-        $link = compact('rel', 'type', 'url', 'attributes', 'priority', 'index');
+        $link = compact('rel', 'type', 'url', 'attributes', 'weight', 'index');
 
         $this->links[] = $link;
 
@@ -474,7 +493,7 @@ class Octopus_Html_Page {
             return $return ? '' : $this;
         }
 
-        uasort($this->links, array('Octopus_Html_Page', 'comparePriorities'));
+        uasort($this->links, array('Octopus_Html_Page', 'compareWeights'));
 
         $html = '';
         foreach($this->links as $info) {
@@ -500,25 +519,26 @@ class Octopus_Html_Page {
     /**
      * Adds a single script file to this page.
      */
-    public function addJavascript($url, $attributes = array()) {
+    public function addJavascript($url, $section = null, $weight = null, $attributes = array()) {
 
-        if (is_numeric($attributes)) {
-            $priority = $attributes;
-            $attributes = array();
-        } else {
-            $priority = isset($attributes['priority']) ? $attributes['priority'] : 0;
-            unset($attributes['priority']);
-        }
+        return $this->internalAddJavascript('url', $this->u($url), $section, $weight, $attributes);
+    }
 
-        $url = $this->u($url);
+    /**
+     * When all files in $files are added to the page (in the order they appear in $files),
+     * replace the include with the file specified in $alias.
+     */
+    public function addJavascriptAlias($urls, $alias, $attributes = array()) {
+
         $index = self::counter();
+        $urls = array_map(array($this, 'u'), $urls);
+        $url = $this->u($alias);
 
-        $this->scripts[$url] = compact('url', 'attributes', 'priority', 'index');
-
+        $this->scriptAliases[] = compact('urls', 'url', 'attributes', 'index');
         return $this;
     }
 
-    public function addLiteralJavascript($content, $attributes = array()) {
+    public function addLiteralJavascript($content, $section = null, $weight = null, $attributes = array()) {
 
         $content = str_replace('<!--', '', $content);
         $content = str_replace('-->', '', $content);
@@ -528,19 +548,52 @@ class Octopus_Html_Page {
             return $this;
         }
 
-        $priority = 0;
+        return $this->internalAddJavascript('literal', $content, $section, $weight, $attributes);
+    }
 
-        if (is_numeric($attributes)) {
-            $priority = $attributes;
-            $attributes = array();
-        } else if (isset($attributes['priority'])) {
-            $priority = $attributes['priority'];
-            unset($attributes['priority']);
+    private function internalAddJavascript($type, $content, $section, $weight, $attributes) {
+
+        if ($weight === null && is_numeric($section)) {
+            $weight = $section;
+            $section = null;
+        }
+
+        if (is_array($section)) {
+            $attributes = array_merge($section, $attributes);
+            $section = null;
+        }
+
+        if (is_array($weight)) {
+            $attributes = array_merge($weight, $attributes);
+            $weight = null;
+        }
+
+        if (isset($attributes['weight'])) {
+            $weight = isset($attributes['weight']) ? $attributes['weight'] : 0;
+            unset($attributes['weight']);
+        }
+
+        if (isset($attributes['section'])) {
+            $section = $attributes['section'];
+            unset($attributes['section']);
+        }
+
+        if (!$section) {
+            $section = '';
+        }
+
+        if (!$weight) {
+            $weight = 0;
         }
 
         $index = self::counter();
 
-        $this->scripts[] = compact('content', 'options', 'priority', 'index');
+        if ($type == 'literal') {
+            $this->scripts[] = compact('content', 'attributes', 'section', 'weight', 'index');
+        } else {
+            $url = $content;
+            $this->scripts[$url] = compact('url', 'attributes', 'section', 'weight', 'index');
+        }
 
         return $this;
     }
@@ -548,31 +601,52 @@ class Octopus_Html_Page {
     /**
      * @return Array of all javascript files added to this page.
      */
-    public function &getJavascriptFiles() {
+    public function &getJavascriptFiles($section = '', $useAliases = true) {
 
-        $result = array();
-        foreach($this->scripts as $info) {
-            unset($info['index']);
-            $result[$info['url']] = $info;
+        if (is_bool($section)) {
+            $useAliases = $section;
+            $section = '';
         }
 
-        return $result;
+        if ($section !== null) {
+            $scripts = array();
+            foreach($this->scripts as $s) {
+                if ($s['section'] == $section) {
+                    $scripts[] = $s;
+                }
+            }
+        } else {
+            $scripts = $this->scripts;
+        }
+
+        usort($scripts, array('Octopus_Html_Page', 'compareWeights'));
+
+        if ($useAliases) {
+            $scripts = $this->processAliases($scripts, $this->scriptAliases);
+        }
+
+        return $scripts;
     }
 
     /**
      * Outputs the HTML for the javascript section.
      */
-    public function renderJavascript($return = false) {
+    public function renderJavascript($section = null, $return = false, $useAliases = true, $includeVars = true) {
+
+        if (is_bool($section)) {
+            $return = $section;
+            $section = '';
+        }
 
         if (empty($this->scripts)) {
             return $return ? '' : $this;
         }
 
-        $html = '';
+        $scripts = $this->getJavascriptFiles($section, $useAliases);
 
-        uasort($this->scripts, array('Octopus_Html_Page', 'comparePriorities'));
+        $html = $includeVars ? $this->renderJavascriptVars(true) : '';
 
-        foreach($this->scripts as $info) {
+        foreach($scripts as $info) {
 
             $el = new Octopus_Html_Element('script');
             $el->type = 'text/javascript';
@@ -580,7 +654,7 @@ class Octopus_Html_Page {
             if (isset($info['url'])) {
                 $el->src = $info['url'];
             } else {
-                $el->text($info['content']);
+                $el->text("\n{$info['content']}\n");
             }
 
             $html .= $el->render(true);
@@ -599,24 +673,29 @@ class Octopus_Html_Page {
      * @param $url String The file to add. URL_BASE gets prepended
      * automatically.
      * @param $options Mixed Options for this file <b>or</b> the media
-     * type (e.g. 'screen') <b>or</b> a priority (higher priority = included
+     * type (e.g. 'screen') <b>or</b> a weight (higher weight = included
      * first).
      *
      */
-    public function addCss($url, $attributes = array()) {
+    public function addCss($url, $weight = null, $attributes = array()) {
 
-        $priority = 0;
-
-        if (is_numeric($attributes)) {
-            $priority = $attributes;
-            $attributes = array();
-        } else if (is_string($attributes)) {
+        if (is_string($attributes)) {
             $attributes = array('media' => $attributes);
         }
 
-        if (isset($attributes['priority'])) {
-            $priority = $attributes['priority'];
-            unset($attributes['priority']);
+        if (is_string($weight)) {
+            $attributes['media'] = $weight;
+            $weight = null;
+        }
+
+        if (is_array($weight)) {
+            $attributes = array_merge($attributes, $weight);
+            $weight = null;
+        }
+
+        if (isset($attributes['weight'])) {
+            $weight = $attributes['weight'];
+            unset($attributes['weight']);
         }
 
         if (!isset($attributes['media'])) {
@@ -629,15 +708,26 @@ class Octopus_Html_Page {
             unset($attributes['ie']);
         }
 
+        if (!$weight) {
+            $weight = 0;
+        }
+
         $url = $this->u($url);
         $index = self::counter();
 
-        $info = compact('url', 'attributes', 'priority', 'index');
+        $info = compact('url', 'attributes', 'weight', 'index');
         if ($ie) $info['ie'] = $ie;
 
         $this->css[$url] = $info;
 
         return $this;
+    }
+
+    public function addCssAlias($urls, $alias, $attributes = array()) {
+        $urls = array_map(array($this, 'u'), $urls);
+        $url = $this->u($alias);
+        $index = self::counter();
+        $this->cssAliases[] = compact('urls', 'url', 'attributes', 'index');
     }
 
     public function addLiteralCss($content, $attributes = array()) {
@@ -650,19 +740,19 @@ class Octopus_Html_Page {
             return $this;
         }
 
-        $priority = 0;
+        $weight = 0;
 
         if (is_numeric($attributes)) {
-            $priority = $attributes;
+            $weight = $attributes;
             $attributes = array();
-        } else if (isset($attributes['priority'])) {
-            $priority = $attributes['priority'];
-            unset($attributes['priority']);
+        } else if (isset($attributes['weight'])) {
+            $weight = $attributes['weight'];
+            unset($attributes['weight']);
         }
 
         $index = self::counter();
 
-        $this->css[] = compact('content', 'attributes', 'priority', 'index');
+        $this->css[] = compact('content', 'attributes', 'weight', 'index');
 
         return $this;
     }
@@ -678,16 +768,16 @@ class Octopus_Html_Page {
         return $this;
     }
 
-    public function getCssFiles() {
+    public function &getCssFiles($useAliases = true) {
 
-        $result = array();
+        $css = $this->css;
+        usort($css, array('Octopus_Html_Page', 'compareWeights'));
 
-        foreach($this->css as $url => $info) {
-            unset($info['index']);
-            $result[$url] = $info;
+        if ($useAliases) {
+            $css = $this->processAliases($css, $this->cssAliases);
         }
 
-        return $result;
+        return $css;
     }
 
     public function getCssFile($url) {
@@ -706,17 +796,16 @@ class Octopus_Html_Page {
     /**
      * Renders the section containing all CSS links.
      */
-    public function renderCss($return = false) {
+    public function renderCss($return = false, $useAliases = true) {
 
         if (empty($this->css)) {
             return $return ? '' : $this;
         }
 
         $html = '';
+        $css = $this->getCssFiles($useAliases);
 
-        uasort($this->css, array('Octopus_Html_Page', 'comparePrioritiesReverse'));
-
-        foreach($this->css as $url => $info) {
+        foreach($css as $info) {
 
             if (isset($info['content'])) {
                 $el = new Octopus_Html_Element('style');
@@ -892,11 +981,11 @@ END;
      * Sets a global javascript variable.
      * @param $name Name of the variable.
      * @param $value Value for the variable.
-     * @param $priority Order in which variable should be set. Higher
-     * priority = render sooner.
+     * @param $weight Order in which variable should be set. Higher
+     * weight = render sooner.
      */
-    public function setJavascriptVar($name, $value, $priority = 0) {
-        $this->vars[$name] = array('value' => $value, 'priority' => $priority);
+    public function setJavascriptVar($name, $value, $weight = 0) {
+        $this->vars[$name] = array('value' => $value, 'weight' => $weight);
         return $this;
     }
 
@@ -919,7 +1008,7 @@ END;
             return $return ? '' : $this;
         }
 
-        uasort($this->vars, array('Octopus_Html_Page', 'comparePriorities'));
+        uasort($this->vars, array('Octopus_Html_Page', 'compareWeights'));
 
         $html = <<<END
 <script type="text/javascript">
@@ -947,36 +1036,100 @@ END;
         return $this;
     }
 
-    private static function comparePriorities($x, $y) {
+    public function renderTitle($return = false) {
+        
+        $html = '<title>' . $this->getFullTitle() . '</title>';
 
-        $xPriority = isset($x['priority']) ? $x['priority'] : 0;
-        $yPriority = isset($y['priority']) ? $y['priority'] : 0;
-
-        $result = $yPriority - $xPriority;
-
-        if ($result !== 0) {
-            return $result;
+        if ($return) {
+            return $html;
         }
 
-        $xIndex = isset($x['index']) ? $x['index'] : 0;
-        $yIndex = isset($y['index']) ? $y['index'] : 0;
-
-        return $xIndex - $yIndex;
+        echo $html;
+        return $this;
     }
 
-    private static function comparePrioritiesReverse($x, $y) {
+    /**
+     * Renders the entire <head> of the page.
+     */
+    public function renderHead($return = false, $includeTag = true, $useAliases = true) {
+        
+        if ($return) {
+            
+            $html = ($includeTag ? '<head>' : '');
 
-        $xPriority = isset($x['priority']) ? $x['priority'] : 0;
-        $yPriority = isset($y['priority']) ? $y['priority'] : 0;
+            $html .= $this->renderTitle(true);
 
-        $result = $xPriority - $yPriority;
+            $html .= $this->renderMeta(true);
+
+            $html .= $this->renderCss(true, $useAliases);
+
+            $html .= $this->renderLinks(true);
+
+            $html .= $this->renderJavascript(true, $useAliases);
+
+            $html .= ($includeTag ? '</head>' : '');
+
+            return $html;
+        }
+
+        echo "\n<head>\n";
+
+        $this->renderTitle();
+        echo "\n";
+
+        $this->renderMeta();
+        echo "\n";
+
+        $this->renderCss(false, $useAliases);
+        echo "\n";
+
+        $this->renderLinks();
+        echo "\n";
+
+        $this->renderJavascript(false, $useAliases);
+
+        echo "\n</head>\n";
+        return $this;
+    }
+
+    /**
+     * @deprecated This is included for backwards compatibility with Octopus_Html_Header. You should use
+     * @see renderHead() instead.
+     */
+    public function getHeader() {
+        return
+            $this->renderMeta(true) .
+            $this->renderCss(true, $useAliases) .
+            $this->renderLinks(true) .
+            $this->renderJavascript(true, $useAliases);
+    }
+
+    private static function compareAliases($x, $y) {
+        
+        $result = count($y['urls']) - count($x['urls']);
+        if ($result !== 0) {
+            return $result;
+        }
+
+        return $x['index'] - $y['index'];
+
+    }
+
+    private static function compareWeights($x, $y) {
+
+        $xweight = isset($x['weight']) ? $x['weight'] : 0;
+        $yweight = isset($y['weight']) ? $y['weight'] : 0;
+
+        // Lighter thing sorts first
+        $result = $xweight - $yweight;
 
         if ($result !== 0) {
             return $result;
         }
 
-        $xIndex = isset($x['index']) ? $x['index'] : 0;
-        $yIndex = isset($y['index']) ? $y['index'] : 0;
+        // If weight is the same, the one that was added first sorts first
+        $xIndex = isset($x['index']) ? $x['index'] : self::counter();
+        $yIndex = isset($y['index']) ? $y['index'] : self::counter();
 
         return $xIndex - $yIndex;
     }
@@ -1009,6 +1162,104 @@ END;
         }
 
         return $result;
+    }
+
+    /**
+     * @return Array The result of injecting any aliases present in $aliases into
+     * $files.
+     */
+    protected function processAliases($items, $aliases) {
+        
+        if (empty($aliases)) {
+            return $items;
+        }
+
+        // Sort aliases in the order they should be attempted
+        usort($aliases, array('Octopus_Html_Page', 'compareAliases'));
+
+        // NOTE: At this point, URL_BASE has already been prepended to everything that needs it
+
+        $result = array();
+
+        foreach($aliases as $a) {
+
+            if (self::checkIfAlias($items, $a['urls'], $weight, $index)) {
+
+                // We can use this in place
+                $a['weight'] = $weight;
+                $a['index'] = $index;
+                $a['section'] = '';
+
+                // TODO: Actually compare attributes and section as well when checking if files can be 
+                // aliased
+
+                $result[] = $a;
+
+                foreach($a['urls'] as $url) {
+                    $key = self::findByUrl($items, $url);
+                    if ($key !== false) unset($items[$key]);
+                }
+
+            } 
+
+            if (empty($items)) {
+                break;
+            }
+        }
+
+        foreach($items as $item) {
+            $result[] = $item;
+        }
+
+        usort($result, array('Octopus_Html_Page', 'compareWeights'));
+
+        return $result;
+    }
+
+    private static function checkIfAlias($items, $aliasCandidateUrls, &$weight, &$index) {
+        
+        if (empty($items)) {
+            return empty($aliasCandidateUrls);
+        }
+
+        $prev = null;
+        $weight = 0;
+        $index = null;
+
+        foreach($aliasCandidateUrls as $url) {
+
+            $key = self::findByUrl($items, $url, $itemIndex);
+
+            if ($key === false) {
+                return false;
+            }
+
+            // Urls must appear in the same order specified in the alias
+            if ($prev !== null && $itemIndex < $prev) {
+                return false;
+            }
+
+            $weight += $items[$key]['weight'];
+
+            if ($index === null || $items[$key]['index'] < $index) {
+                $index = $items[$key]['index'];
+            }
+
+            $prev = $itemIndex;
+        }
+
+        return true;
+    }
+
+    private static function findByUrl(&$ar, $url, &$index = 0) {
+        $index = 0;
+        foreach($ar as $key => $item) {
+            if (strcasecmp($item['url'], $url) === 0) {
+                return $key;
+            }
+            $index++;
+        }
+        return false;
     }
 
     public static function singleton() {

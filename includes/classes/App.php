@@ -120,7 +120,7 @@ class Octopus_App {
         $this->_examineSiteDir();
         $this->_loadSiteConfig();
         $this->_setEnvironmentFlags();
-        $this->_ensurePrivateDir();
+        $this->ensureDirectoriesExist();
         $this->_initSettings();
         $this->watchForErrors();
 
@@ -236,12 +236,19 @@ class Octopus_App {
 
     }
 
-    private function _ensurePrivateDir() {
+    private function ensureDirectoriesExist() {
 
-        if (!is_dir($this->_options['OCTOPUS_PRIVATE_DIR'])) {
-            if (!@mkdir($this->_options['OCTOPUS_PRIVATE_DIR'])) {
-                $this->error('Unable to create private directory: ' . $this->_options['OCTOPUS_PRIVATE_DIR']);
+        $o =& $this->_options;
+
+        foreach(array('OCTOPUS_PRIVATE_DIR', 'OCTOPUS_CACHE_DIR', 'OCTOPUS_UPLOAD_DIR') as $name) {
+            
+            $dir = $o[$name];
+            if (!is_dir($dir)) {
+                if (!@mkdir($dir, 0777, true)) {
+                    throw new OctopusException("Unable to create $name: '$dir'");
+                }
             }
+
         }
 
     }
@@ -650,7 +657,7 @@ class Octopus_App {
     private function _figureOutDirectories() {
 
         $o = &$this->_options;
-        $dirs = array('OCTOPUS_DIR', 'ROOT_DIR',  'SITE_DIR', 'OCTOPUS_INCLUDES_DIR', 'OCTOPUS_FUNCTIONS_DIR', 'OCTOPUS_CLASSES_DIR', 'OCTOPUS_PRIVATE_DIR', 'OCTOPUS_EXTERNALS_DIR');
+        $dirs = array('OCTOPUS_DIR', 'ROOT_DIR',  'SITE_DIR', 'OCTOPUS_INCLUDES_DIR', 'OCTOPUS_FUNCTIONS_DIR', 'OCTOPUS_CLASSES_DIR', 'OCTOPUS_PRIVATE_DIR', 'OCTOPUS_EXTERNALS_DIR', 'OCTOPUS_CACHE_DIR', 'OCTOPUS_UPLOAD_DIR');
 
         foreach($dirs as $dir) {
 
@@ -672,15 +679,15 @@ class Octopus_App {
                             break;
 
                         case 'SITE_DIR':
-                            $o[$dir] = $o['ROOT_DIR'] . 'site';
+                            $o[$dir] = $o['ROOT_DIR'] . 'site/';
                             break;
 
                         case 'OCTOPUS_PRIVATE_DIR':
-                            $o[$dir] = $o['ROOT_DIR'] . '_private';
+                            $o[$dir] = $o['ROOT_DIR'] . 'private/';
                             break;
 
                         case 'OCTOPUS_EXTERNALS_DIR':
-                            $o[$dir] = $o['OCTOPUS_DIR'] . 'externals';
+                            $o[$dir] = $o['OCTOPUS_DIR'] . 'externals/';
                             break;
 
                         case 'OCTOPUS_INCLUDES_DIR':
@@ -693,6 +700,14 @@ class Octopus_App {
 
                         case 'OCTOPUS_CLASSES_DIR':
                             $o[$dir] = $o['OCTOPUS_INCLUDES_DIR'] . 'classes/';
+                            break;
+
+                        case 'OCTOPUS_CACHE_DIR':
+                            $o[$dir] = $o['ROOT_DIR'] . 'cache/';
+                            break;
+
+                        case 'OCTOPUS_UPLOAD_DIR':
+                            $o[$dir] = $o['SITE_DIR'] . 'files/';
                             break;
 
                     }

@@ -45,30 +45,6 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
         parent::__construct('model/crud-data.xml');
     }
 
-    function createTables(&$db)
-    {
-        $sql = "CREATE TABLE minposts (
-                `minpost_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                `title` varchar ( 255 ) NOT NULL,
-                `slug` varchar ( 255 ) NOT NULL,
-                `body` text NOT NULL,
-                `active` TINYINT NOT NULL,
-                `display_order` INT( 10 ) NOT NULL,
-                `created` DATETIME NOT NULL,
-                `updated` DATETIME NOT NULL,
-                `cost` DECIMAL (6, 2) NOT NULL
-                )
-                ";
-
-        $db->query($sql);
-    }
-
-    function dropTables(&$db)
-    {
-        $db =& Octopus_DB::singleton();
-        $db->query('DROP TABLE IF EXISTS minposts');
-    }
-
     function testTableName()
     {
         $post = new Minpost();

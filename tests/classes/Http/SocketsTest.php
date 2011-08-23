@@ -5,6 +5,7 @@ Octopus::loadClass('Http_Request_Sockets');
 
 /**
  * @group http
+ * @group slow
  *
  */
 class SocketsTest extends TransportBase {
