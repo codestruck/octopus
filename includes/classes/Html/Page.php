@@ -1092,6 +1092,18 @@ END;
         return $this;
     }
 
+    /**
+     * @deprecated This is included for backwards compatibility with Octopus_Html_Header. You should use
+     * @see renderHead() instead.
+     */
+    public function getHeader() {
+        return
+            $this->renderMeta(true) .
+            $this->renderCss(true, $useAliases) .
+            $this->renderLinks(true) .
+            $this->renderJavascript(true, $useAliases);
+    }
+
     private static function compareAliases($x, $y) {
         
         $result = count($y['urls']) - count($x['urls']);
