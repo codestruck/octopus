@@ -1095,18 +1095,6 @@ END;
         return $this;
     }
 
-    /**
-     * @deprecated This is included for backwards compatibility with Octopus_Html_Header. You should use
-     * @see renderHead() instead.
-     */
-    public function getHeader() {
-        return
-            $this->renderMeta(true) .
-            $this->renderCss(true, $useAliases) .
-            $this->renderLinks(true) .
-            $this->renderJavascript(true, $useAliases);
-    }
-
     private static function compareAliases($x, $y) {
         
         $result = count($y['urls']) - count($x['urls']);
@@ -1267,8 +1255,13 @@ END;
          if (!is_array($minifiers)) $minifiers = array($minifiers);
 
          $itemsByUrl = array();
+         $noUrlItems = array();
          foreach($items as $item) {
-             $itemsByUrl[$item['url']] = $item;
+             if (empty($item['url'])) {
+                 $noUrlItems[] = $item;
+             } else {
+                $itemsByUrl[$item['url']] = $item;
+            }
          }
 
          foreach($minifiers as $class) {
@@ -1285,16 +1278,28 @@ END;
 
              foreach($minified as $url => $oldUrls) {
                  $oldUrl = array_shift($oldUrls);
-                 $item = $itemsByUrl[$oldUrl];
+                 
+                 $item =& $itemsByUrl[$oldUrl];
                  $item['old_url'] = $item['url'];
                  $item['url'] = $url;
+                 
                  foreach($oldUrls as $old) {
                      unset($itemsByUrl[$old]);
                  }
              }
          }
 
-         return array_values($itemsByUrl);
+         $result = array_values($itemsByUrl);
+
+         if ($noUrlItems) {
+            // re-incorporate literal js
+            foreach($noUrlItems as $item) {
+                $result[] = $item;
+            }
+            usort($result, array('Octopus_Html_Page', 'compareWeights'));
+         }
+
+         return $result;
     }
 
     private static function findByUrl(&$ar, $url, &$index = 0) {

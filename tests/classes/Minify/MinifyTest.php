@@ -15,6 +15,9 @@ class MinifyTest extends Octopus_App_TestCase {
 			$file = $dir . 'file.js';
 			$src = $dir . 'file_src.js';
 
+			$rootDir = $app->getOption('ROOT_DIR');
+			$urlDir = '/' . substr($dir, strlen($rootDir));
+
 			touch($file);
 			sleep(1);
 			touch($src);
@@ -23,9 +26,10 @@ class MinifyTest extends Octopus_App_TestCase {
 
 			$this->assertEquals(
 				array(
-					'/file_src.js?' . filemtime($src) => array('/file.js')
+					$urlDir . 'file_src.js?' . filemtime($src) => array('/file.js')
 				),
-				$strat->getMinifiedUrls(array('/file.js'))
+				$strat->getMinifiedUrls(array('/file.js')),
+				"dir: $dirName"
 			);
 
 			sleep(1);
@@ -33,7 +37,7 @@ class MinifyTest extends Octopus_App_TestCase {
 
 			$this->assertEquals(
 				array(
-					'/file.js?' . filemtime($file) => array('/file.js')
+					$urlDir . 'file.js?' . filemtime($file) => array('/file.js')
 				),
 				$strat->getMinifiedUrls(array('/file.js'))
 			);
@@ -43,7 +47,7 @@ class MinifyTest extends Octopus_App_TestCase {
 			// if only src exists, link to src
 			$this->assertEquals(
 				array(
-					'/file_src.js?' . filemtime($src) => array('/file.js')
+					$urlDir . 'file_src.js?' . filemtime($src) => array('/file.js')
 				),
 				$strat->getMinifiedUrls(array('/file.js'))
 			);

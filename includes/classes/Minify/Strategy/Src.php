@@ -27,7 +27,7 @@ class Octopus_Minify_Strategy_Src extends Octopus_Minify_Strategy {
 				$minifiedFile = $this->getMinifiedFile($file);
 
 				if ($minifiedFile) {
-					$minifiedUrl = '/' . substr($minifiedFile, strlen($dir)) . '?' . filemtime($minifiedFile);
+					$minifiedUrl = $this->getUrlForFile($minifiedFile);
 					$result[$minifiedUrl] = array($url);
 					break;
 				}
@@ -42,7 +42,7 @@ class Octopus_Minify_Strategy_Src extends Octopus_Minify_Strategy {
 		
 		$info = pathinfo($file);
 		$info['filename'] = preg_replace('/_src$/i', '', $info['filename']);
-		$info['extension'] = ($info['extension'] ? '.' : '') . $info['extension'];
+		$info['extension'] = empty($info['extension']) ? '' : '.' . $info['extension'];
 
 		$file = "{$info['dirname']}/{$info['filename']}{$info['extension']}";
 		$src =  "{$info['dirname']}/{$info['filename']}_src{$info['extension']}";

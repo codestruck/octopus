@@ -37,10 +37,10 @@ abstract class Octopus_Minify_Strategy {
 		return $dirs;
 	}
 
-	protected function getCacheFile($hash, $extension, $options = array()) {
+	protected function getCacheFile($uniqueHash, $deleteHash, $extension, $options = array()) {
 		
 		$cacheDir = $this->getCacheDir($options);
-		$file = $cacheDir . $hash . $extension;
+		$file = $cacheDir . $deleteHash . '-' . $uniqueHash . $extension;
 
 		return is_file($file) ? $file : false;
 	}

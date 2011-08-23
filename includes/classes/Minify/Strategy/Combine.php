@@ -48,7 +48,7 @@ class Octopus_Minify_Strategy_Combine extends Octopus_Minify_Strategy {
 		// see if there is a cache file available
 		$uniqueHash = md5($uniqueHash);
 
-		$cacheFile = $this->getCacheFile($uniqueHash, $extension, $options);
+		$cacheFile = $this->getCacheFile($uniqueHash, $deleteHash, $extension, $options);
 		
 		if (!$cacheFile) {
 
