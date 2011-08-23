@@ -59,7 +59,11 @@ class Octopus_Smarty extends Octopus_Base {
         $this->smarty->allow_php_tag = true;
 
         // custom plugin dir
-        $this->smarty->plugins_dir[] = OCTOPUS_DIR . 'externals/smarty/plugins/';
+        $this->smarty->plugins_dir = array(
+            OCTOPUS_DIR . 'externals/smarty/plugins/',
+            dirname(__FILE__) . '/Smarty-3.0.8/libs/plugins/',
+        );
+
 
         // allow all php functions and modifiers
         $security_policy = new Smarty_Security($this->smarty);
@@ -74,7 +78,7 @@ class Octopus_Smarty extends Octopus_Base {
             $this->smarty->debugging = true;
         }
 
-        
+
     }
 
     public static function &singleton() {
