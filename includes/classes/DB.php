@@ -12,6 +12,8 @@ if (class_exists('PDO') && !defined('NO_PDO')) {
 
 class Octopus_DB extends Octopus_Base {
 
+    public $queryCount = 0;
+
     protected function Octopus_DB() {
 
         if (class_exists('PDO') && !defined('NO_PDO')) {
@@ -78,6 +80,7 @@ class Octopus_DB extends Octopus_Base {
         }
 
         $query = $this->driver->query($sql, $params);
+        $this->queryCount++;
 
         if ($this->driver->success) {
             $result = new Octopus_DB_Result($this->driver, $query);

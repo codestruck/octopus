@@ -36,6 +36,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
     protected $data = array();
 
     private $_id = null;
+    private $_exists = null;
     private $dataLoaded = false;
 
     private $errors = array();
@@ -156,6 +157,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         }
 
         $s = new Octopus_DB_Select();
+        $s->comment('Octopus_Model::loadData');
         $s->table($this->getTableName());
         $s->where($this->getPrimaryKey() . ' = ?', $this->_id);
         $row = $s->fetchRow();
@@ -167,10 +169,17 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
     }
 
     private function recordStillExists() {
-        $s = new Octopus_DB_Select();
-        $s->table($this->getTableName(), array($this->getPrimaryKey()));
-        $s->where($this->getPrimaryKey() . ' = ?', $this->_id);
-        return !!$s->getOne();
+
+        if ($this->_exists === null) {
+
+            $s = new Octopus_DB_Select();
+            $s->comment('Octopus_Model::recordStillExists');
+            $s->table($this->getTableName(), array($this->getPrimaryKey()));
+            $s->where($this->getPrimaryKey() . ' = ?', $this->_id);
+            $this->_exists = !!$s->getOne();
+        }
+
+        return $this->_exists;
     }
 
     public function setInternalValue($field, $value) {
@@ -292,6 +301,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
             $d->execute();
 
             $this->_id = null;
+            $this->_exists = null;
 
             return true;
         }

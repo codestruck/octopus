@@ -58,6 +58,7 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
             $ip = $this->getUserAddress();
 
             $i = new Octopus_DB_Insert();
+            $i->comment('Octopus_Auth_Model::login');
             $i->table('user_auth');
             $i->set('user_id', $this->info[$this->primaryKey]);
             $i->set('auth_hash', $hash);
@@ -97,6 +98,7 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
     function cleanup() {
 
         $d = new Octopus_DB_Delete();
+        $d->comment('Octopus_Auth_Model::cleanup');
         $d->table('user_auth');
         $d->where('created < DATE_SUB(NOW(), INTERVAL ' . $this->rememberDays . ' DAY)');
         $d->where('realm = ?', $this->realm);
@@ -109,7 +111,7 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
         $checker = new PasswordHash($this->password_algo_strength, $this->portable_passwords);
 
         $s = new Octopus_DB_Select();
-        $s->comment('Octopus_Admin_User_Auth::checkLogin');
+        $s->comment('Octopus_Auth_Model::checkLogin');
         $s->table($this->getTableName());
         $s->where($this->usernameField . ' = ?', $username);
 
@@ -168,6 +170,7 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
         $hash = $checker->HashPassword($password);
 
         $s = new Octopus_DB_Select();
+        $s->comment('Octopus_Auth_Model::changePassword');
         $s->table($this->getTableName());
         $s->limit(1);
         $row = $s->fetchRow();
@@ -303,6 +306,7 @@ END;
         }
 
         $d = new Octopus_DB_Delete();
+        $d->comment('Octopus_Auth_Model::logout');
         $d->table('user_auth');
         $d->where('auth_hash = ?', $hash);
         $d->where('realm = ?', $this->realm);
@@ -401,7 +405,7 @@ END;
                 $hostname = gethostbyaddr($ip);
 
                 $u = new Octopus_DB_Update();
-                $u->comment('Octopus_Auth_Base::auth');
+                $u->comment('Octopus_Auth_Model::auth');
                 $u->table('user_auth');
                 $u->setNow('last_activity');
                 $u->set('auth_address', $ip);
@@ -421,6 +425,7 @@ END;
 
             } else {
                 $d = new Octopus_DB_Delete();
+                $d->comment('Octopus_Auth_Model::auth');
                 $d->table('user_auth');
                 $d->where('auth_hash = ?', $hash);
                 $d->where('realm = ?', $this->realm);
