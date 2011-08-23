@@ -2,6 +2,36 @@
 
     define('OCTOPUS_FLASH_SESSION_KEY', '__octopus_flash__');
 
+    /**
+     * @param $name String The name of a define or option.
+     * @param $default Mixed Default value if it is not set.
+     * @param $options Mixed Array of local options that should override global ones.
+     * @return Mixed If a constant is defined named $name, returns that. Otherwise checks w/
+     * the running app instance.
+     */
+    function get_option($name, $default = null, $options = null) {
+        
+        if (is_array($name)) {
+            $result = array();
+            foreach($name as $n) {
+                $result[$n] = get_option($n, $default, $options);
+            }
+            return $result;
+        }
+
+        if ($options && isset($options[$name])) {
+            return $options[$name];
+        } else if (class_exists('Octopus_App') && Octopus_App::isStarted()) {
+            $app = Octopus_App::singleton();
+            return $app->getOption($name, $default);
+        } else if (defined($name)) {
+            return constant($name);
+        } else {
+            return $default;
+        }
+
+    }
+
     function octopus_api_key($scope = '') {
 
         $sessionKey = 'OCTOPUS_API_KEY';
