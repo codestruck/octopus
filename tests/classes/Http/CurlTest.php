@@ -5,6 +5,7 @@ Octopus::loadClass('Http_Request_Curl');
 
 /**
  * @group http
+ * @group slow
  *
  */
 class CurlTest extends TransportBase {

@@ -62,27 +62,6 @@ class ModelTriggerTest extends Octopus_DB_TestCase
         parent::__construct('model/trigger-data.xml');
     }
 
-    function createTables(&$db)
-    {
-        $sql = "CREATE TABLE triggers (
-                `trigger_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                `title` varchar ( 255 ) NOT NULL,
-                `a` varchar ( 255 ) NOT NULL,
-                `b` varchar ( 255 ) NOT NULL,
-                `c` varchar ( 255 ) NOT NULL,
-                `d` varchar ( 255 ) NOT NULL,
-                `e` varchar ( 255 ) NOT NULL
-                )
-                ";
-
-        $db->query($sql);
-    }
-
-    function dropTables(&$db)
-    {
-        $db->query('DROP TABLE IF EXISTS triggers');
-    }
-
     function testOnSave_Create()
     {
         $item = new Trigger();

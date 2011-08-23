@@ -51,44 +51,6 @@ class HierarchyTest extends Octopus_DB_TestCase
         parent::__construct('model/hierarchy-data.xml');
     }
 
-    function createTables(&$db)
-    {
-        $sql = "CREATE TABLE users (
-                `user_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                `name` varchar ( 255 ) NOT NULL
-                )
-                ";
-
-        $db->query($sql);
-
-        $sql = "CREATE TABLE containers (
-                `container_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                `user_id` INT( 10 ) NOT NULL,
-                `name` varchar ( 255 ) NOT NULL
-                )
-                ";
-
-        $db->query($sql);
-
-        $sql = "CREATE TABLE things (
-                `thing_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                `container_id` INT( 10 ) NOT NULL,
-                `name` varchar ( 255 ) NOT NULL
-                )
-                ";
-
-        $db->query($sql);
-
-    }
-
-    function dropTables(&$db)
-    {
-        $db =& Octopus_DB::singleton();
-        $db->query('DROP TABLE IF EXISTS users');
-        $db->query('DROP TABLE IF EXISTS containers');
-        $db->query('DROP TABLE IF EXISTS things');
-    }
-
     function testDeepChainFind()
     {
         $containers = Container::find(array('user' => 1));
