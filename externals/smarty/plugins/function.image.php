@@ -256,15 +256,27 @@ function _octopus_smarty_get_file_url($file, $dirs, $urlBase = null, $includeMod
 
     $originalFile = $file;
 
-    foreach($dirs as $key => $dir) {
+    $soleCmsRootDirHack = null;
 
+    foreach($dirs as $key => $dir) {
+    
         if (!starts_with($file, $dir)) {
             continue;
         }
+
         $file = ltrim(substr($file, strlen($dir)), '/');
+
 
         if (starts_with($dir, $dirs['ROOT_DIR'])) {
             $dir = rtrim(substr($dir, strlen($dirs['ROOT_DIR'])), '/');
+        } else if (defined('SG_VERSION')) {
+            // HACK: In SoleCMS, ROOT_DIR can end in /core/, but SITE_DIR is /sites/ rather than /core/sites/
+            if (!$soleCmsRootDirHack) {
+                $soleCmsRootDirHack = preg_replace('#/core/$#', '', $dirs['ROOT_DIR']);
+            }
+            if (starts_with($dir, $soleCmsRootDirHack)) {
+                $dir = rtrim(substr($dir, strlen($soleCmsRootDirHack)), '/');
+            }            
         }
 
         if (!$urlBase) {
@@ -298,33 +310,13 @@ function &_octopus_smarty_get_directories($baseDir = null, &$urlBase) {
 
     $dirs = array();
 
-    if ($baseDir) {
-        $dirs['ROOT_DIR'] = rtrim($baseDir, '/') . '/';
+    foreach(array('SITE_DIR', 'OCTOPUS_DIR', 'ROOT_DIR') as $opt) {
+        $dir = get_option($opt);
+        if ($dir) $dirs[$opt] = $dir;
     }
 
-    if (class_exists('Octopus_App') && Octopus_App::isStarted()) {
-        $app = Octopus_App::singleton();
-
-        $dirs['SITE_DIR'] = $app->getOption('SITE_DIR');
-        $dirs['OCTOPUS_DIR'] = $app->getOption('OCTOPUS_DIR');
-        if (!$baseDir) $dirs['ROOT_DIR'] = $app->getOption('ROOT_DIR');
-        $urlBase = $app->getOption('URL_BASE');
-
-    } else {
-
-        if (defined('SITE_DIR')) {
-            $dirs['SITE_DIR'] = SITE_DIR;
-        }
-
-        if (defined('OCTOPUS_DIR')) {
-            $dirs['OCTOPUS_DIR'] = OCTOPUS_DIR;
-        }
-
-        if (defined('ROOT_DIR')) {
-            $dirs['ROOT_DIR'] = ROOT_DIR;
-        } else if (isset($_SERVER['DOCUMENT_ROOT'])) {
-            $dirs['ROOT_DIR'] = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/';
-        }
+    if ($baseDir) {
+        $dirs['ROOT_DIR'] = rtrim($baseDir, '/') . '/';
     }
 
     return $dirs;
@@ -369,7 +361,6 @@ function _octopus_smarty_resize_image($file, $width, $height, &$imageAttrs) {
         return $file;
     }
 
-
     /* Cached file name uses:
      *
      * 1. Mod time of original file
@@ -389,15 +380,12 @@ function _octopus_smarty_resize_image($file, $width, $height, &$imageAttrs) {
     if (isset($imageAttrs['cache_dir'])) {
         $cacheDir = rtrim($imageAttrs['cache_dir'], '/') . '/';
         unset($imageAttrs['cache_dir']);
-    } else if (class_exists('Octopus_App') && Octopus_App::isStarted()) {
-        $app = Octopus_App::singleton();
-        $cacheDir = $app->getOption('OCTOPUS_PRIVATE_DIR') . 'resize/';
-    } else if (defined('OCTOPUS_PRIVATE_DIR'))  {
-        $cacheDir = OCTOPUS_PRIVATE_DIR . 'resize/';
-    } else if (defined('PRIVATE_DIR')) {
-        $cacheDir = PRIVATE_DIR . 'resize/';
     } else {
-        throw new SmartyException("No cache dir available for resizing.");
+        $cacheDir = get_option('OCTOPUS_CACHE_DIR');
+        if (!$cacheDir) {
+            throw new SmartyException("No cache dir available for resizing.");
+        }
+        $cacheDir .= 'resize/';
     }
 
     $cacheName = "{$mtime}_r_{$hash}_{$width}x{$height}";

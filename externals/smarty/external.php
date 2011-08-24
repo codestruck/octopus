@@ -64,7 +64,6 @@ class Octopus_Smarty extends Octopus_Base {
             dirname(__FILE__) . '/Smarty-3.0.8/libs/plugins/',
         );
 
-
         // allow all php functions and modifiers
         $security_policy = new Smarty_Security($this->smarty);
         $security_policy->php_functions = array();
