@@ -19,6 +19,9 @@ class ThemeTest extends Octopus_App_TestCase {
         $this->assertEquals($this->getSiteDir() . 'themes/test/foo.bar', $file);
     }
 
+    /**
+     * @group slow
+     */
     function testGetThemeFileWithSrc() {
 
         $og = $this->getSiteDir() . 'themes/test/styles.css';

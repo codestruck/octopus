@@ -3,6 +3,9 @@
 Octopus::loadClass('Octopus_Minify_Strategy_Src');
 Octopus::loadClass('Octopus_Minify_Strategy_Combine');
 
+/**
+ * @group slow
+ */
 class MinifyTest extends Octopus_App_TestCase {
 	
 	function testSrcStrategy() {
