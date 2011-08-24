@@ -46,7 +46,7 @@ function run_creates() {
 
     ";
     $db->query($sql);
-    
+
     // MinCrudTest
     $sql = "CREATE TABLE minposts (
             `minpost_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -62,7 +62,7 @@ function run_creates() {
             ";
 
     $db->query($sql);
-    
+
     // HeirarchyTest
     $sql = "CREATE TABLE users (
             `user_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -89,7 +89,7 @@ function run_creates() {
             ";
 
     $db->query($sql);
-    
+
     // Escape and more
     Octopus_DB_Schema_Model::makeTable('product');
     Octopus_DB_Schema_Model::makeTable('group');
@@ -97,7 +97,9 @@ function run_creates() {
     Octopus_DB_Schema_Model::makeTable('hammer');
     Octopus_DB_Schema_Model::makeTable('nail');
     Octopus_DB_Schema_Model::makeTable('sledgehammer');
-    
+    Octopus_DB_Schema_Model::makeTable('lack');
+    Octopus_DB_Schema_Model::makeTable('notext');
+
     // NonStandard
     $sql = "CREATE TABLE IF NOT EXISTS nonstandard (
             `different_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -147,7 +149,7 @@ function run_creates() {
             ";
 
     $db->query($sql);
-    
+
     // RelationFilter
     $sql = "CREATE TABLE comments (
             `comment_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -174,7 +176,7 @@ function run_creates() {
             ";
 
     $db->query($sql);
-    
+
     // Trigger
     $sql = "CREATE TABLE triggers (
             `trigger_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -188,7 +190,7 @@ function run_creates() {
             ";
 
     $db->query($sql);
-    
+
 }
 
 function run_drops() {
@@ -197,13 +199,13 @@ function run_drops() {
     $db->query("DROP TABLE IF EXISTS find_posts");
     $db->query("DROP TABLE IF EXISTS find_authors");
     $db->query("DROP TABLE IF EXISTS find_categories");
-    
+
     $db->query('DROP TABLE IF EXISTS minposts');
-    
+
     $db->query('DROP TABLE IF EXISTS users');
     $db->query('DROP TABLE IF EXISTS containers');
     $db->query('DROP TABLE IF EXISTS things');
-    
+
     $db->query('DROP TABLE IF EXISTS groups');
     $db->query('DROP TABLE IF EXISTS products');
     $db->query('DROP TABLE IF EXISTS group_product_join');
@@ -211,17 +213,19 @@ function run_drops() {
     $db->query('DROP TABLE IF EXISTS hammers');
     $db->query('DROP TABLE IF EXISTS nails');
     $db->query('DROP TABLE IF EXISTS sledgehammers');
-    
+
     $db->query('DROP TABLE IF EXISTS nonstandard');
     $db->query('DROP TABLE IF EXISTS differentbs');
     $db->query('DROP TABLE IF EXISTS randomtable');
     $db->query('DROP TABLE IF EXISTS differentds');
     $db->query('DROP TABLE IF EXISTS categories');
-    
+    $db->query('DROP TABLE IF EXISTS lacks');
+    $db->query('DROP TABLE IF EXISTS notexts');
+
     $db->query('DROP TABLE IF EXISTS comments');
     $db->query('DROP TABLE IF EXISTS cars');
     $db->query('DROP TABLE IF EXISTS boats');
-    
+
     $db->query('DROP TABLE IF EXISTS triggers');
-        
+
 }

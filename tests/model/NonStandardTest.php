@@ -147,4 +147,35 @@ class ModelNonStandardTest extends PHPUnit_Framework_TestCase
 
     }
 
+    function testNoDisplayField() {
+
+        $lack = new Lack();
+        $lack->notitle = 'foo';
+
+        $this->assertEquals('foo', $lack->getDisplayValue());
+        $this->assertEquals('foo', (string)$lack);
+
+    }
+
+    function testNoDisplayFieldNoText() {
+
+        $item = new Notext();
+        $item->number = 42;
+        $item->save();
+
+        $this->assertEquals(1, $item->getDisplayValue());
+        $this->assertEquals(1, (string)$item);
+
+    }
+
+    function testNoDisplayFieldNoTextNotSaved() {
+
+        $item = new Notext();
+        $item->number = 42;
+
+        $this->assertEquals('', $item->getDisplayValue());
+        $this->assertEquals('', (string)$item);
+
+    }
+
 }

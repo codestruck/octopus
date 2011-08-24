@@ -78,3 +78,18 @@ class Sledgehammer extends Octopus_Model {
     );
 }
 
+class Lack extends Octopus_Model {
+    protected $fields = array(
+        'notitle' => array(),
+    );
+}
+
+class Notext extends Octopus_Model {
+    protected $fields = array(
+        'number' => array(
+            'type' => 'numeric',
+        ),
+    );
+}
+
+

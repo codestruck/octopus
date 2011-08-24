@@ -378,12 +378,30 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
                     return $fields[$f];
                 }
             }
+
+            // check text fields
+            foreach ($fields as $f) {
+                if ($f instanceof Octopus_Model_Field_String) {
+                    $this->displayField = $f->getFieldName();
+                    return $f;
+                }
+            }
+
         }
 
     }
 
     public function getDisplayValue() {
         $field = $this->getDisplayField();
+
+        if (!$field) {
+            if ($this->exists()) {
+                return $this->id;
+            } else {
+                return '';
+            }
+        }
+
         return $this->{$field->getFieldName()};
     }
 
