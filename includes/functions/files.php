@@ -214,5 +214,99 @@
         return $ext;
     }
 
+    /**
+     * Creates a directory, but only if it is underneath $baseDir.
+     * @param String $dir Directory to create
+     * @param String $baseDir Directory that $dir must be inside. If not specified, ROOT_DIR is used.
+     * @param Bool $throwExceptions If directory creation fails, whether or not to throw an exception
+     * or just return false.
+     * @return bool True if directory now exists, false otherwise.
+     */
+    function mkdir_safe($dir, $baseDir = null, $recursive = true, $mode = 0777, $throwExceptions = true) {
+        
+        if (!$baseDir) {
+            $baseDir = get_option('ROOT_DIR');
+            if (!$baseDir) {
+                if ($throwExceptions) {
+                    throw new Octopus_Exception("mkdir_safe: No basedir specified.");
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        $dir = realpath($dir);
+        $baseDir = realpath($baseDir);
+
+        $dir = rtrim($dir, '/');
+        $baseDir = rtrim($baseDir, '/');
+
+        if (strcmp($dir, $baseDir) === 0) {
+            return true;
+        }
+
+        if (!preg_match('#^' . preg_quote($baseDir) . '/#', $dir)) {
+            
+            if ($throwExceptions) {
+                throw new Octopus_Exception("Cannot create directory outside of basedir.");
+            } else {
+                return false;
+            }
+
+        }
+
+        if (is_dir($dir)) {
+            return true;
+        }
+
+        $failed = null;
+
+        if ($recursive) {
+
+            if (!is_dir($baseDir)) {
+                
+                if ($throwExceptions) {
+                    throw new Octopus_Exception("Basedir does not exist: $baseDir");
+                } else {
+                    return false;
+                }
+
+                $toCreate = explode('/', substr($dir, strlen($baseDir)));
+                $path = $baseDir;
+                foreach($toCreate as $d) {
+                    if (!$d) continue;
+                    $path .= "/$d";
+                    if (!is_dir($path)) {
+                        if (!@mkdir($path, $mode)) {
+                            $failed = $path;
+                            break;
+                        }
+                    }
+                }
+
+            }
+            
+        } else {
+            
+            if (@mkdir($dir, $mode)) {
+                return false;
+            } else {
+                $failed = $dir;
+            }
+
+        }
+
+        if ($failed) {
+            
+            if ($throwExceptions) {
+                throw new Octopus_Exception("Directory creation failed: $failed");
+            } else {
+                return false;
+            }
+
+        }
+
+        return true;
+    }
 
 ?>
