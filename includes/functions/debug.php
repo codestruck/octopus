@@ -609,10 +609,15 @@ END;
 
         $display_errors = ini_get('display_errors') ? 'on' : 'off';
 
+        list($usec, $sec) = explode(" ", microtime());
+        $current = ((float)$usec + (float)$sec);
+        $diff = round($current - $_SERVER['REQUEST_TIME_MILLISECOND'], 3);
+
         return <<<END
         <ul class="octopusDebugErrorReporting">
         <li>error_reporting: $flags</li>
         <li>display_errors: $display_errors</li>
+        <li>$diff sec</li>
         </ul>
 END;
 
@@ -987,7 +992,7 @@ END;
 
     /* dumpExceptionToText($ex) {{{ */
     private static function dumpExceptionToText($ex) {
-      
+
         $class = get_class($ex);
         $message = $ex->getMessage();
         $trace = self::saneBacktrace($ex->getTrace());
@@ -1013,7 +1018,7 @@ END;
         }
 
         return $result;
-        
+
     } /* }}} */
 
     /* dumpNumberToHtml($x) {{{ */
