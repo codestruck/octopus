@@ -1,6 +1,12 @@
 <?php
 
     /*
+     * insert millisecend level startup time
+     */
+    list($usec, $sec) = explode(" ", microtime());
+    $_SERVER['REQUEST_TIME_MILLISECOND'] = ((float)$usec + (float)$sec);
+
+    /*
      * All core app functionality comes from here. Any page served up by the
      * app should include this file first.
      */
