@@ -73,10 +73,11 @@ class Octopus_Debug {
         color: #000;
         font-size: 12px;
         font-family: 'Monaco', 'Andale Mono', 'Consolas', 'Courier New', monospace;
-        margin-bottom: 10px;
+        margin: 10px auto 10px auto;
         max-width: 1000px;
         overflow: hidden;
         padding: 0;
+        text-align: left;
     }
 
     div.octopusDebug div.octopusDebugTabs {
@@ -377,6 +378,36 @@ function __octopus_toggleRaw(niceID, rawID, buttonID) {
 
 }
 
+function __octopus_debug_onload() {
+    
+    if (document.getElementsByClassName) {
+        
+        var els = document.getElementsByClassName("octopusDebug");
+        var last = null;
+        for(var el in els) {
+            el = els[el];
+
+            // Don't pull dump_r out of collapsible output at the bottom
+            if (el.parentNode && /form-item/.test(el.parentNode.className || '')) {
+                continue;
+            }
+
+            if (el.parentNode) el.parentNode.removeChild(el);
+            try {
+                document.body.insertBefore(el, last ? last.nextSibling :null);
+            } catch (ex) {}
+            last = el;
+        }
+
+    }
+
+}
+
+if (window.attachEvent) {
+    window.attachEvent('onload', __octopus_debug_onload);
+} else if (window.addEventListener) {
+    window.addEventListener('load', __octopus_debug_onload);
+}
 </script>
 
 END;
