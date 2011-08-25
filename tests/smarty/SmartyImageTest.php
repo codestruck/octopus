@@ -31,8 +31,8 @@ class SmartyImageTest extends Octopus_App_TestCase {
 
 		$app = $this->getApp();
 		if ($app) {
-			$privateDir = $app->getOption('OCTOPUS_PRIVATE_DIR');
-			`rm -rf "$privateDir/resize"`;
+			$cacheDir = $app->getOption('OCTOPUS_CACHE_DIR');
+			`rm -rf "{$cacheDir}resize"`;
 		}
 
 		parent::tearDown();
@@ -246,7 +246,7 @@ END;
 		$expected = <<<END
 <img src="$fileUrl?[MTIME]" width="10" height="5" />
 <img src="$fileUrl?[MTIME]" width="100" height="75" />
-<img src="/_private/resize/[MTIME]_r_[MD5]_10x5.{$info['extension']}?[MTIME]" width="10" height="5" />
+<img src="/cache/resize/[MTIME]_r_[MD5]_10x5.{$info['extension']}?[MTIME]" width="10" height="5" />
 END;
 
 		$this->assertSmartyEquals($expected, $test, '', true, true);
@@ -284,7 +284,7 @@ END;
 
 		$expected = <<<END
 <img src="$fileUrl?[MTIME]" width="100" height="75" />
-<img src="/_private/resize/[MTIME]_r_[MD5]_10x5.{$info['extension']}?[MTIME]" width="10" height="5" />
+<img src="/cache/resize/[MTIME]_r_[MD5]_10x5.{$info['extension']}?[MTIME]" width="10" height="5" />
 END;
 
 		$this->assertSmartyEquals($expected, $test, '', true, true);
