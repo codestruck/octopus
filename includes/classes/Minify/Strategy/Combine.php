@@ -7,42 +7,34 @@ Octopus::loadClass('Octopus_Minify_Strategy');
  */
 class Octopus_Minify_Strategy_Combine extends Octopus_Minify_Strategy {
 	
-	public function getMinifiedUrls($urls, $options = array()) {
+	public function minify($files, $options = array()) {
 		
 		$result = array();
-		$files = array();
-		$handledUrls = array();
-		$dirs = $this->getDirectoriesToSearch($options);
+		$handledFiles = array();
 		
 		$deleteHash = '';
 		$uniqueHash = '';
 
 		$extension = '';
 
-		foreach($urls as $url) {
+		foreach($files as $file) {
 
-			if (!$this->looksLikeLocalFile($url)) {
+			if (!$this->looksLikeLocalFile($file)) {
 				continue;
 			}
 
-			$file = $this->getFileForUrl($url, $dirs);
-
-			if ($file) {
-
-				if (!$extension) {
-					$info = pathinfo($file);
-					$extension = ($info['extension'] ? '.' : '') . $info['extension'];
-				}
-
-				$files[] = $file;
-				$handledUrls[] = $url;
-				$deleteHash .= '|' . $file;
-				$uniqueHash .= '|' . $file . '?' . filemtime($file);
+			if (!$extension) {
+				$info = pathinfo($file);
+				$extension = ($info['extension'] ? '.' : '') . $info['extension'];
 			}
+
+			$handledFiles[] = $file;
+			$deleteHash .= '|' . $file;
+			$uniqueHash .= '|' . $file . '?' . filemtime($file);
 		}
 
-		if (empty($files)) {
-			return $files;
+		if (empty($handledFiles)) {
+			return $handledFiles;
 		}
 
 		// see if there is a cache file available
@@ -53,7 +45,7 @@ class Octopus_Minify_Strategy_Combine extends Octopus_Minify_Strategy {
 		if (!$cacheFile) {
 
 			$content = '';
-			foreach($files as $f) {
+			foreach($handledFiles as $f) {
 				$content .= ($content ? "\n\n" : '') . file_get_contents($f);
 			}
 
@@ -63,7 +55,7 @@ class Octopus_Minify_Strategy_Combine extends Octopus_Minify_Strategy {
 		}
 
 		return array(
-			$this->getUrlForFile($cacheFile, false, $options) => $handledUrls
+			$cacheFile => $handledFiles
 		);
 	}
 

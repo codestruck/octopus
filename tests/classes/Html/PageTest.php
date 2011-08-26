@@ -9,13 +9,13 @@ class PageTest extends Octopus_App_TestCase {
         $page = new Octopus_Html_Page();
 
         $this->assertEquals('', $page->getTitle());
-        $page->setTitle('Test Page');
-        $this->assertEquals('Test Page', $page->getTitle());
-        $this->assertEquals('Test Page', $page->getFullTitle());
+        $page->setTitle('dontTest Page');
+        $this->assertEquals('dontTest Page', $page->getTitle());
+        $this->assertEquals('dontTest Page', $page->getFullTitle());
 
-        $page->setFullTitle('Test Full Title');
-        $this->assertEquals('Test Page', $page->getTitle());
-        $this->assertEquals('Test Full Title', $page->getFullTitle());
+        $page->setFullTitle('dontTest Full Title');
+        $this->assertEquals('dontTest Page', $page->getTitle());
+        $this->assertEquals('dontTest Full Title', $page->getFullTitle());
     }
 
     function testBreadcrumbs() {
@@ -24,10 +24,10 @@ class PageTest extends Octopus_App_TestCase {
             'URL_BASE' => '/subdir/'
         ));
 
-        $page->setTitle('Test Page');
+        $page->setTitle('dontTest Page');
         $page->addBreadcrumb('/foo', 'Foo');
 
-        $this->assertEquals('Test Page | Foo', $page->getFullTitle());
+        $this->assertEquals('dontTest Page | Foo', $page->getFullTitle());
         $this->assertEquals(
             array(
                 '/subdir/foo' => 'Foo',
@@ -36,7 +36,7 @@ class PageTest extends Octopus_App_TestCase {
         );
 
         $page->addBreadcrumb('/foo/bar', 'Bar');
-        $this->assertEquals('Test Page | Bar | Foo', $page->getFullTitle());
+        $this->assertEquals('dontTest Page | Bar | Foo', $page->getFullTitle());
         $this->assertEquals(
             array(
                 '/subdir/foo' => 'Foo',
@@ -47,7 +47,7 @@ class PageTest extends Octopus_App_TestCase {
 
         $page->setTitleSeparator(' *** ');
         $this->assertEquals(' *** ', $page->getTitleSeparator());
-        $this->assertEquals('Test Page *** Bar *** Foo', $page->getFullTitle());
+        $this->assertEquals('dontTest Page *** Bar *** Foo', $page->getFullTitle());
 
         $page->setFullTitle('New Title');
         $this->assertEquals('New Title', $page->getFullTitle());
@@ -67,10 +67,10 @@ class PageTest extends Octopus_App_TestCase {
             $page->getJavascriptVars()
         );
 
-        $page->setJavascriptVar('lower_weight', 'test', -100);
+        $page->setJavascriptVar('lower_weight', 'dontTest', -100);
         $this->assertEquals(
             array(
-                'lower_weight' => 'test',
+                'lower_weight' => 'dontTest',
                 'foo' => 'bar'
             ),
             $page->getJavascriptVars()
@@ -79,7 +79,7 @@ class PageTest extends Octopus_App_TestCase {
         $this->assertHtmlEquals(
             <<<END
 <script type="text/javascript">
-    var lower_weight = "test";
+    var lower_weight = "dontTest";
     var foo = "bar";
 </script>
 END
@@ -96,7 +96,7 @@ END
         ));
 
         $files = array(
-            'http://foo.bar/test.css',
+            'http://foo.bar/dontTest.css',
             'relative/css/file.css',
             '/absolute/css/file.css' => '/subdir/absolute/css/file.css',
             '/subdir/url_base/already/added.css'
@@ -212,9 +212,15 @@ END;
     function testJavascript() {
 
         $tests = array(
-            'http://external.com/file.js',
-            'relative/file.js',
-            '/absolute/path/file.js' => '/subdir/absolute/path/file.js',
+            'http://external.com/file.js' => array(
+                'src' => 'http://external.com/file.js'
+            ),
+            'relative/file.js' => array(
+                'src' => 'relative/file.js'
+            ),
+            '/absolute/path/file.js' => array(
+                'src' => '/subdir/absolute/path/file.js',
+            )
         );
 
         $page = new Octopus_Html_Page(array(
@@ -223,14 +229,25 @@ END;
         $soFar = array();
         $html = '';
 
+        $app = $this->getApp();
+        $siteDir = $app->getOption('SITE_DIR');
+
         foreach($tests as $key => $value) {
 
             $toAdd = is_numeric($key) ? $value : $key;
-            $expected = $value;
+
+            if (preg_match('#^http://#i', $toAdd)) {
+                $url = $toAdd;
+                $file = false;
+            } else {
+                $url = false;
+                $file = $toAdd;
+            }
 
             $page->addJavascript($toAdd);
             $soFar[] = array(
-                'url' => $expected,
+                'url' => $url,
+                'file' => $file,
                 'attributes' => array(),
                 'section' => '',
                 'weight' => 0
@@ -244,7 +261,7 @@ END;
             $this->assertEquals($soFar, $actual);
 
             $html .= <<<END
-<script type="text/javascript" src="$expected"></script>
+<script type="text/javascript" src="$value"></script>
 END;
 
         }
@@ -506,7 +523,7 @@ END
 
             $setter = 'set' . camel_case($f, true);
             $getter = 'get' . camel_case($f, true);
-            $value = "Test $f";
+            $value = "dontTest $f";
 
             $page = new Octopus_Html_Page();
             $page->removeMeta('Content-type');
@@ -904,6 +921,36 @@ END
 END
             ,
             $page->renderHead(true)
+        );
+    }
+
+    /**
+     * @group 
+     */
+    function testJavascriptSrcMinifyByDefault() {
+        
+        $app = $this->getApp();
+
+        $file = $app->getOption('SITE_DIR') . 'file.js';
+        $src = $app->getOption('SITE_DIR') . 'file_src.js';
+
+        touch($file);
+        sleep(1);
+        touch($src);
+
+        $page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
+        $page->addJavascript('/file.js');
+
+        $this->assertEquals(
+            array( 
+                array(
+                    'url' => '/subdir/site/file_src.js?mtime',
+                    'attributes' => array(),
+                    'section' => '',
+                    'weight' => 0
+                )
+            ),
+            $this->unsetIndexes($page->getJavascriptFiles())
         );
 
     }

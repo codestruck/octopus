@@ -10,28 +10,20 @@ Octopus::loadClass('Octopus_Minify_Strategy');
 class Octopus_Minify_Strategy_Src extends Octopus_Minify_Strategy {
 
 
-	public function getMinifiedUrls($urls, $options = array()) {
+	public function minify($files, $options = array()) {
 		
 		$result = array();
-		$dirs = $this->getDirectoriesToSearch($options);
 
-		foreach($urls as $url) {
+		foreach($files as $file) {
 
-			if (!$this->looksLikeLocalFile($url)) {
+			if (!$this->looksLikeLocalFile($file)) {
 				continue;
 			}
 
-			foreach($dirs as $dir) {
-				
-				$file = $dir . ltrim($url, '/');
-				$minifiedFile = $this->getMinifiedFile($file);
+			$minifiedFile = $this->getMinifiedFile($file);
 
-				if ($minifiedFile) {
-					$minifiedUrl = $this->getUrlForFile($minifiedFile);
-					$result[$minifiedUrl] = array($url);
-					break;
-				}
-
+			if ($minifiedFile) {
+				$result[$minifiedFile] = array($file);
 			}
 		}
 
@@ -65,8 +57,6 @@ class Octopus_Minify_Strategy_Src extends Octopus_Minify_Strategy {
 			return false;
 		}
 	}
-
-	
 
 }
 

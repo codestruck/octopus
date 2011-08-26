@@ -6,12 +6,19 @@
 abstract class Octopus_Minify_Strategy {
 
 	/**
-	 * @param $urls Mixed Either an array of URLs, or a single URL string.
+	 * @param $files Mixed 
+	 *		Either:
+	 *			An array of *absolute physical file paths* (e.g., /var/www/whatever.js) or
+	 *          full http urls (http://jquery.com/jquery.js)
+	 *
+	 *		Or:
+	 *			A string that is either of the above.
+	 *
 	 * @param $options Array Environment options etc.
-	 * @return An array where keys are the new urls, and the values are arrays of
-	 * urls the key minifies.
+	 * @return An array where keys are the new paths, and the values are arrays of
+	 * files the key minifies.
 	 */
-	abstract public function getMinifiedUrls($urls, $options = array());
+	abstract public function minify($files, $options = array());
 
 	protected function getCacheDir($options = array()) {
 		
@@ -24,19 +31,6 @@ abstract class Octopus_Minify_Strategy {
 		return rtrim($dir, '/') . '/';
 	}
 
-	protected function &getDirectoriesToSearch($options = array()) {
-
-		$dirs = get_option(array('SITE_DIR', 'OCTOPUS_DIR', 'ROOT_DIR'), null, $options);
-
-		foreach($dirs as $key => $dir) {
-			if (!$dir) {
-				unset($dirs[$key]);
-			}
-		}
-
-		return $dirs;
-	}
-
 	protected function getCacheFile($uniqueHash, $deleteHash, $extension, $options = array()) {
 		
 		$cacheDir = $this->getCacheDir($options);
@@ -45,48 +39,11 @@ abstract class Octopus_Minify_Strategy {
 		return is_file($file) ? $file : false;
 	}
 
-	protected function getFileForUrl($url, $dirs) {
-		
-		foreach($dirs as $dir) {
-			$file = $dir . ltrim($url, '/');
-			if (is_file($file)) {
-				return $file;
-			}
-		}
-
-		return false;
-	}
-
-	protected function getUrlForFile($file, $includeModTime = true, $options = array()) {
-		
-		if (is_array($includeModTime)) {
-			$options = array_merge($includeModTime, $options);
-			$includeModTime = true;
-		}
-
-		$rootDir = get_option('ROOT_DIR', null, $options);
-
-		$urlFile = $file;
-		if (starts_with($urlFile, $rootDir)) {
-			$urlFile = substr($file, strlen($rootDir));
-		}
-
-		$urlBase = get_option('URL_BASE', null, $options);
-
-		$url = rtrim($urlBase, '/') . '/' . ltrim($urlFile, '/');
-		
-		if ($includeModTime) {
-			$url .= '?' . filemtime($file);
-		} 
-
-		return $url;
-	}
-
 	/**
-	 * @return Whether $url looks like a local file.
+	 * @return Whether $file looks like a local file.
 	 */
-	protected function looksLikeLocalFile($url) {
-		return !preg_match('#^[a-z0-9_-]*://#i', $url);
+	protected function looksLikeLocalFile($file) {
+		return !preg_match('#^[a-z0-9_-]*://#i', $file);
 	}
 
 	/**
@@ -123,6 +80,5 @@ abstract class Octopus_Minify_Strategy {
 		return $cacheFile;
 	}
 }
-
 
 ?>
