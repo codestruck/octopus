@@ -97,6 +97,29 @@ END;
 	/**
 	 * @dataProvider getSiteDirImages
 	 */
+	function testImageWithUrlBaseJunkAttached($file) {
+		
+		$name = basename($file);
+		$urlSiteDir = $this->getSiteDirUrl();
+		$mtime = filemtime($file);
+
+		$app = $this->getApp();
+		$rootDir = $app->getOption('ROOT_DIR');
+
+		$test = <<<END
+{image src="/subdir{$urlSiteDir}images/$name" url_base="/subdir/"}
+END;
+		$expected = <<<END
+<img src="/subdir{$urlSiteDir}images/$name?$mtime" width="100" height="75" />
+END;
+
+		$this->assertSmartyEquals($expected, $test);
+
+	}
+
+	/**
+	 * @dataProvider getSiteDirImages
+	 */
 	function testImageInSiteDir($file, $fileUrl) {
 
 		if (!is_file($file)) {
