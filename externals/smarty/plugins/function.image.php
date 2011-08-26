@@ -98,7 +98,8 @@ function smarty_function_image($params, $template)
     $dirs = _octopus_smarty_get_directories($baseDir, $urlBase);
 
     // Resolve where the image actually is
-    $file = _octopus_smarty_find_image($imageAttrs['src'], $dirs, $template);
+    $tries = null;
+    $file = _octopus_smarty_find_image($imageAttrs['src'], $dirs, $template, $tries, $urlBase);
 
     if (!$file) {
 
@@ -198,7 +199,7 @@ function smarty_function_image($params, $template)
  * Given an arbitrary image source, returns the physical path to the image file,
  * or false if it can't be found.
  */
-function _octopus_smarty_find_image($src, $dirs, $template, &$tries = null) {
+function _octopus_smarty_find_image($src, $dirs, $template, &$tries = null, $urlBase= null) {
 
     /* Cases Handled:
      *
@@ -234,7 +235,7 @@ function _octopus_smarty_find_image($src, $dirs, $template, &$tries = null) {
 
     foreach($dirs as $dir) {
 
-        $file = $dir . $src;
+        $file = $dir . ltrim($src, '/');
         if (is_file($file)) {
             return $file;
         }
@@ -259,13 +260,12 @@ function _octopus_smarty_get_file_url($file, $dirs, $urlBase = null, $includeMod
     $soleCmsRootDirHack = null;
 
     foreach($dirs as $key => $dir) {
-    
+
         if (!starts_with($file, $dir)) {
             continue;
         }
 
         $file = ltrim(substr($file, strlen($dir)), '/');
-
 
         if (starts_with($dir, $dirs['ROOT_DIR'])) {
             $dir = rtrim(substr($dir, strlen($dirs['ROOT_DIR'])), '/');
@@ -308,6 +308,20 @@ function _octopus_smarty_get_file_url($file, $dirs, $urlBase = null, $includeMod
 
 function &_octopus_smarty_get_directories($baseDir = null, &$urlBase) {
 
+
+        if (!$urlBase) {
+
+            if (defined('URL_BASE')) {
+                $urlBase = URL_BASE;
+            } else if (is_callable('find_url_base')) {
+                $urlBase = find_url_base();
+            } else {
+                $urlBase = '/';
+            }
+
+        }
+
+
     $dirs = array();
 
     foreach(array('SITE_DIR', 'OCTOPUS_DIR', 'ROOT_DIR') as $opt) {
@@ -317,6 +331,18 @@ function &_octopus_smarty_get_directories($baseDir = null, &$urlBase) {
 
     if ($baseDir) {
         $dirs['ROOT_DIR'] = rtrim($baseDir, '/') . '/';
+    }
+
+    if (strlen($urlBase) > 1) {
+            
+        if (ends_with($dirs['ROOT_DIR'], $urlBase)) {
+            $dirs['ALT_ROOT_DIR'] = substr($dirs['ROOT_DIR'], 0, strlen($dirs['ROOT_DIR']) - strlen($urlBase));
+            $dirs['ALT_ROOT_DIR'] = rtrim($dirs['ALT_ROOT_DIR'], '/') . '/';
+        }
+
+
+
+
     }
 
     return $dirs;
