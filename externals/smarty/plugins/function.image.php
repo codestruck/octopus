@@ -251,7 +251,7 @@ function _octopus_smarty_find_image($src, $dirs, $urlBase, $template, &$tries = 
     }
     if ($tries !== null) $tries[] = $src;
 
-    if ($urlBase && $urlBase !== '/' && starts_with($src, $urlBase)) {
+    if ($urlBase && starts_with($src, $urlBase)) {
         $file = $dirs['ROOT_DIR'] . substr($src, strlen($urlBase));
         if (is_file($file)) {
             return $file;
@@ -274,7 +274,7 @@ function _octopus_smarty_find_image($src, $dirs, $urlBase, $template, &$tries = 
     return false;
 }
 
-function _octopus_smarty_get_file_url($file, $dirs, $urlBase = null, $includeModTime = true) {
+function _octopus_smarty_get_file_url($file, $dirs, $urlBase, $includeModTime = true) {
 
     /* Cases Handled:
      *
@@ -305,18 +305,6 @@ function _octopus_smarty_get_file_url($file, $dirs, $urlBase = null, $includeMod
             if (starts_with($dir, $soleCmsRootDirHack)) {
                 $dir = rtrim(substr($dir, strlen($soleCmsRootDirHack)), '/');
             }            
-        }
-
-        if (!$urlBase) {
-
-            if (defined('URL_BASE')) {
-                $urlBase = URL_BASE;
-            } else if (is_callable('find_url_base')) {
-                $urlBase = find_url_base();
-            } else {
-                $urlBase = '/';
-            }
-
         }
 
         $dir = ltrim($dir, '/');
