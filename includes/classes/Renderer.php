@@ -84,11 +84,11 @@ class Octopus_Renderer {
     /**
      * Renders a view and returns the content.
      */
-    protected function renderView(Octopus_Controller $controller, Octopus_Request $request, Octopus_Response $response, Array &$data) {
+    protected function renderView(Octopus_Controller $controller, Octopus_Request $request, Octopus_Response $response, Array $data, $renderViewNotFound = true) {
 
         // NOTE: findViewForRender will always return a valid view (by default,
         // it returns the view_not_found view).
-        $viewFile = $this->findViewForRender($controller, $request, $response, $data);
+        $viewFile = $this->findViewForRender($controller, $request, $response, $data, $renderViewNotFound);
 
         $this->augmentViewData($data);
 
@@ -342,7 +342,7 @@ class Octopus_Renderer {
         return array_keys($result);
     }
 
-    private function findViewForRender(Octopus_Controller $controller, Octopus_Request $request, Octopus_Response $response, Array &$data) {
+    private function findViewForRender(Octopus_Controller $controller, Octopus_Request $request, Octopus_Response $response, Array &$data, $useViewNotFound = true) {
 
         if ($response->isForbidden()) {
             $info = $this->findView($request, $controller, 'sys/forbidden');
@@ -352,7 +352,7 @@ class Octopus_Renderer {
 
         if ($info && !empty($info['file'])) {
 
-            if (!$info['found']) {
+            if (!$info['found'] && $useViewNotFound) {
 
                 // View wasn't found, so provide some extra data for the 'view not found' view.
                 $data = array(
