@@ -54,25 +54,47 @@ class Octopus_Renderer {
      */
     public function render(Octopus_Controller $controller, Array $data, Octopus_Request $request, Octopus_Response $response) {
 
+        $viewContent = $this->renderView($controller, $request, $response, $data);
+        $templateContent = $this->renderTemplate($controller, $request, $response, $viewContent, $data);
+        $response->append($templateContent);
+
+    }
+
+    /**
+     * Renders the full page template and returns the result.
+     */
+    protected function renderTemplate(Octopus_Controller $controller, Octopus_Request $request, Octopus_Response $response, $viewContent, Array &$data) {
+        
         $templateFile = $this->findTemplateForRender($controller, $request);
+
         if (!$templateFile) {
-        	throw new Octopus_Exception("No template found to render.");
+            return $viewContent;
         }
 
+        $data['view_content'] = $viewContent;
+
+        $templateRenderer = Octopus_Template_Renderer::createForFile($templateFile);
+        $templateContent = $templateRenderer->render($data);
+
+        unset($data['view_content']);
+
+        return $templateContent;
+    }
+
+    /**
+     * Renders a view and returns the content.
+     */
+    protected function renderView(Octopus_Controller $controller, Octopus_Request $request, Octopus_Response $response, Array &$data) {
+
         // NOTE: findViewForRender will always return a valid view (by default,
-	    // it returns the view_not_found view).
+        // it returns the view_not_found view).
         $viewFile = $this->findViewForRender($controller, $request, $response, $data);
 
         $this->augmentViewData($data);
 
         $viewRenderer = Octopus_Template_Renderer::createForFile($viewFile);
-        $data['view_content'] = $viewRenderer->render($data);
 
-        $templateRenderer = Octopus_Template_Renderer::createForFile($templateFile);
-        $templateContent = $templateRenderer->render($data);
-
-        $response->append($templateContent);
-
+        return $viewRenderer->render($data);
     }
 
     /**
