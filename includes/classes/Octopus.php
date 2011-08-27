@@ -17,18 +17,18 @@ class Octopus {
      * @param String $name The name to which to bind it. This should be 
      * the Octopus class name minus the initial 'Octopus_'.
      */
-    public static function bind($class, $name) {
+    public static function bind($name, $class) {
         if (isset(self::$_bindings[$name])) {
             array_unshift($class, self::$_bindings[$name]);
         } else {
-            self::$_bindings[$name] = array($name);
+            self::$_bindings[$name] = array($class);
         }
     }
 
     /**
      * Undoes a call to bind().
      */
-    public static function unbind($class, $name) {
+    public static function unbind($name, $class) {
         if (!isset(self::$_bindings[$name])) {
             return;
         }
