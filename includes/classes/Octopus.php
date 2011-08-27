@@ -4,11 +4,87 @@ Octopus::loadClass('Octopus_Exception');
 Octopus::loadClass('Base');
 
 /**
- * Class locator.
+ * Class locator and loader.
  */
 class Octopus {
 
+    private static $_bindings = array();
     private static $_externals = array();
+
+    /**
+     * Binds a new class to a name, to help support the IoC pattern.
+     * @param String $class The custom class to bind.
+     * @param String $name The name to which to bind it. This should be 
+     * the Octopus class name minus the initial 'Octopus_'.
+     */
+    public static function bind($class, $name) {
+        if (isset(self::$_bindings[$name])) {
+            array_unshift($class, self::$_bindings[$name]);
+        } else {
+            self::$_bindings[$name] = array($name);
+        }
+    }
+
+    /**
+     * Undoes a call to bind().
+     */
+    public static function unbind($class, $name) {
+        if (!isset(self::$_bindings[$name])) {
+            return;
+        }
+
+        $newBindings = array();
+        foreach(self::$_bindings[$name] as $boundClass) {
+            if ($class !== $boundClass) {
+                $newBindings[] = $boundClass;
+            }
+        }
+
+        self::$_bindings[$name] = $newBindings;
+    }
+
+    /**
+     * Creates a new instance of the class with the given name.
+     * @param String $role The name of the class to create. Should be
+     * the standard octopus class name minus the 'Octopus_', e.g.
+     * 'Controller', 'Html_Element'.
+     * @param Array $args Arguments to pass to the class's constructor.
+     * @return Object A class instance.
+     */
+    public static function create($name, Array $args = array()) {
+        
+        $class = self::getClass($name);
+        self::loadClass($class);
+
+        switch(count($args)) {
+            
+            // Don't use reflection for 99.999999% of cases
+            case 0: return new $class();
+            case 1: return new $class($args[0]);
+            case 2: return new $class($args[0], $args[1]);
+            case 3: return new $class($args[0], $args[1], $args[2]);
+            case 4: return new $class($args[0], $args[1], $args[2], $args[3]);
+            case 5: return new $class($args[0], $args[1], $args[2], $args[3], $args[4]);
+            // case 6: die("You need to refactor your shit, yo.");
+
+            default:
+                $r = new ReflectionClass($class);
+                return $r->newInstanceArgs($args);
+        }
+    }
+
+    /**
+     * Gets the class that is bound to the given name.
+     */
+    public static function getClass($name) {
+          
+        $class = 'Octopus_' . $name;
+
+        if (!empty(self::$_bindings[$name])) {
+            $class = self::$_bindings[$name][0];
+        } 
+        return $class;
+    }
 
     /**
      * Locates the given class and makes it available.
@@ -17,7 +93,7 @@ class Octopus {
      * isn't found.
      * @return bool True if class was found and loaded, false otherwise.
      */
-    public static function loadClass($classname, $errorWhenMissing = true) {
+    public static function loadClass($classname, $exceptionWhenMissing = true) {
 
         if (class_exists($classname)) {
             return true;
@@ -39,7 +115,7 @@ class Octopus {
         if (!$filepath) {
 
             if ($errorWhenMissing) {
-                trigger_error("Octopus::loadClass('$classname') - class not found", E_USER_WARNING);
+                throw new Octopus_Exception("Could not load class: $classname");
             }
 
             return false;

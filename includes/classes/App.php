@@ -47,11 +47,6 @@ class Octopus_App {
         'path_querystring_arg' => '__path',
 
         /**
-         * Custom renderer class to use, if any. Defaults to Octopus_Renderer.
-         */
-        'renderer' => null,
-
-        /**
          * Whether or not to make the new app instance the one returned by
          * Octopus_App::singleton
          */
@@ -313,14 +308,7 @@ class Octopus_App {
      * the final page.
      */
     public function createRenderer() {
-        
-        $class = 'Octopus_Renderer';
-        if (!empty($this->_options['renderer'])) {
-            $class = $this->_options['renderer'];
-        }
-
-        Octopus::loadClass($class);
-        return new $class($this);
+        return Octopus::create('Renderer', array($this));
     }
 
     /**
