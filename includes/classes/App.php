@@ -860,7 +860,7 @@ class Octopus_App {
         }
 
         if (!$this->_haveSiteConfig) {
-            require_once(OCTOPUS_DIR . 'default_settings.php');
+            require_once(OCTOPUS_DIR . 'default_config.php');
         }
 
         // Nav Structure
