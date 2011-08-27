@@ -87,7 +87,7 @@ class Octopus_Renderer {
     /**
      * Renders the full page template and returns the result.
      */
-    protected function renderTemplate(Octopus_Controller $controller, Octopus_Request $request, Octopus_Response $response, $viewContent, Array &$data) {
+    protected function renderTemplate(Octopus_Controller $controller, Octopus_Request $request, Octopus_Response $response, $viewContent, Array $data) {
         
         $templateFile = $this->findTemplateForRender($controller, $request);
 
@@ -95,6 +95,7 @@ class Octopus_Renderer {
             return $viewContent;
         }
 
+        $this->augmentViewData($data);
         $data['view_content'] = $viewContent;
 
         $templateRenderer = Octopus_Template_Renderer::createForFile($templateFile);
