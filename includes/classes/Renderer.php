@@ -54,10 +54,34 @@ class Octopus_Renderer {
      */
     public function render(Octopus_Controller $controller, Array $data, Octopus_Request $request, Octopus_Response $response) {
 
+        $this->loadTheme($request);
+
         $viewContent = $this->renderView($controller, $request, $response, $data);
         $templateContent = $this->renderTemplate($controller, $request, $response, $viewContent, $data);
         $response->append($templateContent);
 
+    }
+
+    protected function loadTheme(Octopus_Request $request) {
+        
+        $app = $this->app;
+        $theme = $app->getTheme($request);
+        if ($theme) {
+            
+            foreach(array('SITE_DIR', 'OCTOPUS_DIR') as $dir) {
+                $dir = $app->getOption($dir);
+                $file = $dir . 'themes/' . $theme . '/theme.php';
+                if (is_file($file)) {
+                    self::requireOnce($file);
+                }
+            }
+
+        }
+
+    }
+
+    private static function requireOnce($file) {
+        require_once($file);
     }
 
     /**
@@ -141,6 +165,15 @@ class Octopus_Renderer {
         $result['ROOT_DIR'] = $this->app->getOption('ROOT_DIR');
         $result['SITE_DIR'] = $this->app->getOption('SITE_DIR');
         $result['OCTOPUS_DIR'] = $this->app->getOption('OCTOPUS_DIR');
+
+        if (class_exists('Octopus_Html_Page')) {
+
+            $p = Octopus_Html_Page::singleton();
+
+            // Extra tags and metadata
+            $result['HEAD_CONTENT'] = $p->renderHead(true, false);
+            $result['HEAD'] = "<head>{$result['HEAD_CONTENT']}</head>";
+        }
 
         return $result;
     }
