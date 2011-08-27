@@ -1,7 +1,7 @@
 <?php
 
 Octopus::loadClass('Octopus_View_Finder');
-Octopus::loadClass('Octopus_Renderer');
+Octopus::loadClass('Octopus_Template_Renderer');
 
 /**
  * Class responsible for locating controllers and rendering views.
@@ -158,7 +158,7 @@ class Octopus_Dispatcher {
         $viewContent = $templateContent = '';
 
         if ($viewFile) {
-            $viewRenderer = Octopus_Renderer::createForFile($viewFile);
+            $viewRenderer = Octopus_Template_Renderer::createForFile($viewFile);
             $viewContent = $viewRenderer->render($data);
         } else {
             // TODO handle view not found
@@ -167,7 +167,7 @@ class Octopus_Dispatcher {
         }
 
         if ($templateFile) {
-            $templateRenderer = Octopus_Renderer::createForFile($templateFile);
+            $templateRenderer = Octopus_Template_Renderer::createForFile($templateFile);
             $data['view_content'] = $viewContent;
             $templateContent = $templateRenderer->render($data);
         } else {

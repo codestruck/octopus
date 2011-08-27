@@ -1,9 +1,10 @@
 <?php
 
 /**
- * Base class for a renderer.
+ * Base for a class that renders a template file. Also servces as a registry
+ * of file renderers.
  */
-class Octopus_Renderer {
+abstract class Octopus_Template_Renderer {
 
     private static $_registry = array();
     protected $_file;
@@ -12,10 +13,7 @@ class Octopus_Renderer {
         $this->_file = $file;
     }
 
-
-    public function render($data) {
-        return '';
-    }
+    abstract public function render(array $data);
 
     public static function createForFile($filename) {
 
@@ -34,7 +32,7 @@ class Octopus_Renderer {
     }
 }
 
-Octopus_Renderer::register('/\.php$/i', 'Octopus_Renderer_PHP');
-Octopus_Renderer::register('/\.tpl$/i', 'Octopus_Renderer_Smarty');
+Octopus_Template_Renderer::register('/\.php$/i', 'Octopus_Template_Renderer_PHP');
+Octopus_Template_Renderer::register('/\.tpl$/i', 'Octopus_Template_Renderer_Smarty');
 
 ?>
