@@ -22,6 +22,8 @@ class Octopus_App {
 
     public static $defaults = array(
 
+        'default_template' => 'html/page',
+
         /**
          * Alias to define for the '/' path. Set to false to not define one.
          */
@@ -43,6 +45,11 @@ class Octopus_App {
          * Querystring argument used my mod_rewrite for nice URLs.
          */
         'path_querystring_arg' => '__path',
+
+        /**
+         * Custom renderer class to use, if any. Defaults to Octopus_Renderer.
+         */
+        'renderer' => null,
 
         /**
          * Whether or not to make the new app instance the one returned by
@@ -299,6 +306,21 @@ class Octopus_App {
         }
 
         return $this->_nav->find($path, $options);
+    }
+
+    /**
+     * @return An Octopus_Renderer instance to use to find views and render
+     * the final page.
+     */
+    public function createRenderer() {
+        
+        $class = 'Octopus_Renderer';
+        if (!empty($this->_options['renderer'])) {
+            $class = $this->_options['renderer'];
+        }
+
+        Octopus::loadClass($class);
+        return new $class($this);
     }
 
     /**
