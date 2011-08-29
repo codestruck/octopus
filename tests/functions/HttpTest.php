@@ -7,7 +7,7 @@ class HttpTests extends PHPUnit_Framework_TestCase
 {
 
     function testExpandUrls() {
-        
+
         $options = array('HTTP_HOST' => 'myhost');
 
         $html = <<<END
@@ -153,6 +153,41 @@ END;
         $this->assertEquals(
             $url,
             u($url, null, array('URL_BASE' => $url_base))
+        );
+
+    }
+
+
+    function testMakeExternalUrl() {
+
+        $this->assertEquals(
+            'http://www.google.com',
+            make_external_url('http://www.google.com'),
+            'should keep full urls in tact'
+        );
+
+        $this->assertEquals(
+            'https://www.google.com',
+            make_external_url('https://www.google.com'),
+            'should keep secure urls in tact'
+        );
+
+        $this->assertEquals(
+            'https://www.google.com',
+            make_external_url('https://www.google.com', true),
+            'should keep secure urls in tact'
+        );
+
+        $this->assertEquals(
+            'https://www.google.com',
+            make_external_url('http://www.google.com', true),
+            'Promoting to secure url'
+        );
+
+        $this->assertEquals(
+            'http://www.google.com',
+            make_external_url('https://www.google.com', false),
+            'removing https'
         );
 
     }

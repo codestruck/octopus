@@ -143,6 +143,25 @@
     }
 
     /**
+     * Ensure external urls start with protocol (http://)
+     */
+    function make_external_url($url, $https = null) {
+
+        $start = 'http://';
+
+        if ($https) {
+            $start = 'https://';
+        } elseif ($https === null) {
+            // detect and allow either protocol
+            if (preg_match('/^(https?:\/\/)/', $url, $matches)) {
+                $start = $matches[1];
+            }
+        }
+
+        return start_in($start, preg_replace('/^https?:\/\//', '', $url));
+    }
+
+    /**
      * Does a 301 redirect.
      */
     function moved_permanently($newLocation) {
@@ -223,13 +242,13 @@
     }
 
     /**
-     * Given some HTML, makes sure all the href="..." and 
+     * Given some HTML, makes sure all the href="..." and
      * src="..." attributes are full URLS.
      */
     function expand_relative_urls($html, $secure = null, $options = array()) {
-        
+
         $worker = new __expand_relative_urls_worker($secure, $options);
-            
+
         return preg_replace_callback(
             '/(\s+)(href|src)(\s*=\s*)([\'"])(.*?)\4/i',
             array($worker, 'replaceCallback'),
@@ -248,7 +267,7 @@
             if (!preg_match('#^(https?)://#i', $url)) {
                 $url = get_full_url($url, $this->secure, $this->options);
             }
-            return "{$matches[1]}{$matches[2]}{$matches[3]}{$matches[4]}{$url}{$matches[4]}";            
+            return "{$matches[1]}{$matches[2]}{$matches[3]}{$matches[4]}{$url}{$matches[4]}";
         }
     }
 
