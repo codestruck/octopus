@@ -338,7 +338,28 @@ class StringTests extends PHPUnit_Framework_TestCase
 
     }
 
+    function testPluralCount() {
+
+        $one = array('a thing');
+        $two = array('one', 'two');
+        $five = array('a', 'b', 'c', 'd', 'e');
+
+        $this->assertEquals('1 comment', plural_count($one, 'comment'));
+        $this->assertEquals('2 comments', plural_count($two, 'comment'));
+        $this->assertEquals('5 comments', plural_count($five, 'comment'));
+
+        $this->assertEquals('1 comment', plural_count(1, 'comment'));
+        $this->assertEquals('2 comments', plural_count(2, 'comment'));
+        $this->assertEquals('5 comments', plural_count(5, 'comment'));
+
+        $this->assertEquals('1 comment', plural_count('1', 'comment'));
+        $this->assertEquals('2 comments', plural_count('2', 'comment'));
+        $this->assertEquals('5 comments', plural_count('5', 'comment'));
+
+        $this->assertEquals('0 comments', plural_count(array(), 'comment'));
+        $this->assertEquals('0 comments', plural_count(0, 'comment'));
+        $this->assertEquals('0 comments', plural_count('0', 'comment'));
+
+    }
 
 }
-
-?>
