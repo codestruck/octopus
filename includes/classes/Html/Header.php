@@ -181,7 +181,7 @@ class Octopus_Html_Header extends Octopus_Base {
     }
 
     function useManageTable() {
-        $this->addJavascript('scripts/ajaxToggles.js');
+        $this->addJavascript(URL_BASE . 'admin/scripts/ajaxToggles.js');
     }
 
     function useTabs() {

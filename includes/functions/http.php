@@ -149,6 +149,10 @@
 
         $start = 'http://';
 
+        if (!trim($url)) {
+            return '';
+        }
+
         if ($https) {
             $start = 'https://';
         } elseif ($https === null) {
