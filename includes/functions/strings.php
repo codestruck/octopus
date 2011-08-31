@@ -299,6 +299,23 @@
     }
 
     /**
+     * print count then correctly pluralized word
+     */
+    function plural_count($array_or_number, $word) {
+        if (is_numeric($array_or_number)) {
+            $count = $array_or_number;
+        } else {
+            $count = count($array_or_number);
+        }
+
+        if ($count != 1) {
+            return $count . ' ' . pluralize($word);
+        } else {
+            return $count . ' ' . $word;
+        }
+    }
+
+    /**
      * Converts a plural back into a singular noun.
      */
     function singularize($x) {
@@ -437,10 +454,10 @@
     }
 
     /**
-     * 
+     *
      */
     function truncate_words($str, $count, $marker = '') {
-       
+
        $str = trim($str);
        $result = '';
 
@@ -457,7 +474,7 @@
            $result .= ($result ? ' ' : '') . $w;
            $i++;
        }
-        
+
         return $result . $marker;
     }
 

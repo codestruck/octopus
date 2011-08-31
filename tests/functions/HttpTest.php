@@ -190,6 +190,13 @@ END;
             'removing https'
         );
 
+        $this->assertEquals(
+            '',
+            make_external_url(''),
+            'blank should be blank'
+        );
+
+
     }
 
 }
