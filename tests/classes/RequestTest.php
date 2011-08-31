@@ -54,7 +54,7 @@ class RequestTest extends Octopus_App_TestCase {
            '/find-controller/index' => array('file' => $controllerFile, 'potential_names' => array('Find_ControllerController', 'FindControllerController'), 'action' => 'index', 'original_action' => 'index', 'args' => array()),
            '/find-controller/view/57' => array('file' => $controllerFile, 'potential_names' => array('Find_ControllerController', 'FindControllerController'), 'action' => 'view', 'original_action' => 'view', 'args' => array(57)),
            */
-           '/find-controller/view//57/andedit' => array('file' => $controllerFile, 'potential_names' => array('Find_ControllerController', 'FindControllerController'), 'action' => 'view', 'original_action' => 'view', 'args' => array(57, 'andedit')),
+           '/find-controller/view//57/andedit' => array('file' => $controllerFile, 'potential_names' => array('Find_ControllerController', 'Find_Controller_Controller', 'FindControllerController'), 'action' => 'view', 'original_action' => 'view', 'args' => array(57, 'andedit')),
         );
 
         foreach($tests as $path => $expected) {
@@ -94,10 +94,10 @@ class RequestTest extends Octopus_App_TestCase {
         $controllerFile = $this->createControllerFile('api/1/Deep');
 
         $tests = array(
-           '/api/1/deep' => array('file' => $controllerFile, 'potential_names' => array('Api_1_DeepController', 'Api1DeepController', 'DeepController'), 'action' => 'index', 'original_action' => '', 'args' => array()),
-           '/api/1/deep/index' => array('file' => $controllerFile, 'potential_names' => array('Api_1_DeepController', 'Api1DeepController', 'DeepController'), 'action' => 'index', 'original_action' => 'index', 'args' => array()),
-           '/api/1/deep/view/57' => array('file' => $controllerFile, 'potential_names' => array('Api_1_DeepController', 'Api1DeepController', 'DeepController'), 'action' => 'view', 'original_action' => 'view', 'args' => array(57)),
-           '/api/1/deep/view/57/something' => array('file' => $controllerFile, 'potential_names' => array('Api_1_DeepController', 'Api1DeepController', 'DeepController'), 'action' => 'view', 'original_action' => 'view', 'args' => array(57, 'something')),
+           '/api/1/deep' => array('file' => $controllerFile, 'potential_names' => array('Api_1_DeepController', 'Api_1_Deep_Controller', 'Api1DeepController', 'DeepController'), 'action' => 'index', 'original_action' => '', 'args' => array()),
+           '/api/1/deep/index' => array('file' => $controllerFile, 'potential_names' => array('Api_1_DeepController', 'Api_1_Deep_Controller', 'Api1DeepController', 'DeepController'), 'action' => 'index', 'original_action' => 'index', 'args' => array()),
+           '/api/1/deep/view/57' => array('file' => $controllerFile, 'potential_names' => array('Api_1_DeepController', 'Api_1_Deep_Controller', 'Api1DeepController', 'DeepController'), 'action' => 'view', 'original_action' => 'view', 'args' => array(57)),
+           '/api/1/deep/view/57/something' => array('file' => $controllerFile, 'potential_names' => array('Api_1_DeepController', 'Api_1_Deep_Controller', 'Api1DeepController', 'DeepController'), 'action' => 'view', 'original_action' => 'view', 'args' => array(57, 'something')),
         );
 
         foreach($tests as $path => $expected) {
@@ -119,10 +119,10 @@ class RequestTest extends Octopus_App_TestCase {
         touch($controllerFile);
 
         $tests = array(
-           '/dash-dash' => array('file' => $controllerFile, 'potential_names' => array('Dash_DashController', 'DashDashController'), 'action' => 'index', 'original_action' => '', 'args' => array()),
-           '/dash-dash/index' => array('file' => $controllerFile, 'potential_names' => array('Dash_DashController', 'DashDashController'), 'action' => 'index', 'original_action' => 'index', 'args' => array()),
-           '/dash-dash/view/57' => array('file' => $controllerFile, 'potential_names' => array('Dash_DashController', 'DashDashController'), 'action' => 'view', 'original_action' => 'view', 'args' => array(57)),
-           '/dash-dash/view/andedit/57' => array('file' => $controllerFile, 'potential_names' => array('Dash_DashController', 'DashDashController'), 'action' => 'view', 'original_action' => 'view', 'args' => array('andedit', 57)),
+           '/dash-dash' => array('file' => $controllerFile, 'potential_names' => array('Dash_DashController', 'Dash_Dash_Controller', 'DashDashController'), 'action' => 'index', 'original_action' => '', 'args' => array()),
+           '/dash-dash/index' => array('file' => $controllerFile, 'potential_names' => array('Dash_DashController', 'Dash_Dash_Controller', 'DashDashController'), 'action' => 'index', 'original_action' => 'index', 'args' => array()),
+           '/dash-dash/view/57' => array('file' => $controllerFile, 'potential_names' => array('Dash_DashController', 'Dash_Dash_Controller', 'DashDashController'), 'action' => 'view', 'original_action' => 'view', 'args' => array(57)),
+           '/dash-dash/view/andedit/57' => array('file' => $controllerFile, 'potential_names' => array('Dash_DashController', 'Dash_Dash_Controller', 'DashDashController'), 'action' => 'view', 'original_action' => 'view', 'args' => array('andedit', 57)),
         );
 
         foreach($tests as $path => $expected) {

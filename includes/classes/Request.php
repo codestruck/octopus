@@ -311,8 +311,17 @@ class Octopus_Request {
                 $fullName = preg_replace('#[\s-_/]+#', ' ', $fullName);
                 $fullName = ucwords($fullName);
 
-                $potentialNames[str_replace(' ', '_', $fullName) . 'Controller'] = true;
-                $potentialNames[str_replace(' ', '', $fullName) . 'Controller'] = true;
+                $underscoredFullName = str_replace(' ', '_', $fullName);
+                $camelFullName = str_replace(' ', '', $fullName);
+
+                $potentialNames[$underscoredFullName . 'Controller'] = true;
+                $potentialNames[$underscoredFullName . '_Controller'] = true;
+                $potentialNames[$camelFullName . 'Controller'] = true;
+
+                // Last portion of controller can be used as the name, e.g.
+                // you could have a controller in /some/crazy/deep/path.php
+                // be called 'PathController', rather than 
+                // 'SomeCrazyDeepPathController'
                 $potentialNames[camel_case(array_pop($underscoreParts), true) . 'Controller'] = true;
 
                 $potentialNames = array_keys($potentialNames);
