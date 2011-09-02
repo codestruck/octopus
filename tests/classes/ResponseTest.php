@@ -49,6 +49,17 @@ END
 
     }
 
+    function testStop() {
+        
+        $r = new Octopus_Response(true);
+        $r->contentType('application/json');
+        $r->append(json_encode(true));
+        $r->stop();
+
+        $this->assertFalse($r->shouldContinueProcessing());
+
+    }
+
     function testPermanentRedirect() {
 
         $r = new Octopus_Response(true);
