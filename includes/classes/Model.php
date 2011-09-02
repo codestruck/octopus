@@ -660,10 +660,20 @@ END;
 
         $result = get_class($this);
         foreach($this->toArray() as $key => $value) {
-            $result .= <<<END
+            try {
+                if ($value instanceof Dumpable) {
+                  $value = $value->dump('text');  
+                } 
+                $result .= <<<END
 
 \t$key:\t\t$value
 END;
+            } catch(Exception $ex) {
+                $result .= <<<END
+
+\t$key:\t\t<Exception: {$ex->getMessage()}>
+END;
+            }
         }
 
         return $result;
