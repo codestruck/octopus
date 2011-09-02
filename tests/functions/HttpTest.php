@@ -157,6 +157,117 @@ END;
 
     }
 
+    function testGetFullUrl() {
+        
+        $tests = array(
+
+            'http://myserver.com/subdir/foo/bar' => array(
+                'input' => '/foo/bar',
+                'message' => 'Basic path',
+                '_SERVER' => array(
+                    'HTTP_HOST' => 'myserver.com',
+                ),
+                'URL_BASE' => '/subdir/'
+            ),
+
+            'https://myserver.com/subdir/foo/bar' => array(
+                'input' => '/foo/bar',
+                'message' => '$_SERVER[HTTPS] = on',
+                '_SERVER' => array(
+                    'HTTPS' => 'on', 
+                    'HTTP_HOST' => 'myserver.com'
+                ),
+                'URL_BASE' => '/subdir/'
+            ),
+
+            'https://myserver.com/subdir/foo/bar' => array(
+                'input' => '/subdir/foo/bar',
+                'message' => 'dont duplicate url_base',
+                '_SERVER' => array(
+                    'HTTP_HOST' => 'myserver.com',
+                    'HTTPS' => 'on'
+                ),
+                'URL_BASE' => '/subdir/'
+            ),
+
+            'https://myserver.com/subdir/foo/bar' => array(
+                'input' => 'http://myserver.com/subdir/foo/bar',
+                'message' => 'bump up to https',
+                '_SERVER' => array(
+                    'HTTP_HOST' => 'myserver.com',
+                    'HTTPS' => 'on'
+                ),
+                'URL_BASE' => '/subdir/'
+            ),
+
+            'http://www.google.com/?q=test' => array(
+                'input' => 'http://www.google.com/?q=test',
+                'message' => 'preserve offsite links',
+                '_SERVER' => array(
+                    'HTTP_HOST' => 'myserver.com',
+                    'HTTPS' => 'on'
+                ),
+                'URL_BASE' => '/subdir/'
+            ),
+
+            'http://myserver.com:1337/subdir/foo/bar' => array(
+                'input' => '/foo/bar',
+                'message' => 'handle running on nonstandard port (http)',
+                '_SERVER' => array(
+                    'HTTP_HOST' => 'myserver.com',
+                    'SERVER_PORT' => 1337,
+                ),
+                'URL_BASE' => '/subdir/'
+            ),
+
+            'https://myserver.com:1337/subdir/foo/bar' => array(
+                'input' => '/foo/bar',
+                'message' => 'handle running on nonstandard port (https)',
+                '_SERVER' => array(
+                    'HTTP_HOST' => 'myserver.com',
+                    'HTTPS' => 'on',
+                    'SERVER_PORT' => 1337,
+                ),
+                'URL_BASE' => '/subdir/'
+            ),
+        );
+
+        foreach($tests as $expected => $params) {
+          
+          $ogHost = (isset($_SERVER['HTTP_HOST'])) ? $_SERVER['HTTP_HOST'] : null;
+
+          foreach($_SERVER as $key => $value) {
+              // phpunit complains if REQUEST_TIME is unset
+              if ($key !== 'REQUEST_TIME') {
+                unset($_SERVER[$key]);
+            }
+          }
+
+          if (!empty($params['_SERVER'])) {
+              foreach($params['_SERVER'] as $key => $value) {
+                  $_SERVER[$key] = $value;
+              }
+          }
+
+          $this->assertEquals($expected, get_full_url($params['input'], $params), $params['message']);
+
+          if ($ogHost === null) {
+              unset($_SERVER['HTTP_HOST']);
+          } else {
+              $_SERVER['HTTP_HOST'] = $ogHost;
+          }
+        }   
+    
+    }
+
+    /**
+     * @expectedException Octopus_Exception
+     */
+    function testGetFullUrlWithRelativePathThrowsException() {
+
+        get_full_url('some/relative/path');
+        
+    }
 
     function testMakeExternalUrl() {
 
