@@ -81,7 +81,14 @@
      * Cancels any upcoming redirects.
      */
     function cancel_redirects($cancel = true) {
+        
         $GLOBALS['__OCTOPUS_CANCEL_REDIRECT__'] = $cancel;
+
+        if (defined('DEV') && DEV && class_exists('Octopus_Debug')) {
+            $GLOBALS['__OCTOPUS_CANCEL_REDIRECT_BACKTRACE'] = debug_backtrace();
+        }
+
+
         return $cancel;
     }
 
@@ -201,7 +208,11 @@
 
             $d = new Octopus_Debug();
             $d->addSquashedRedirect($location);
-
+            
+            if (!empty($GLOBALS['__OCTOPUS_CANCEL_REDIRECT_BACKTRACE'])) {
+                $d->add('Cancellation Source Backtrace', Octopus_Debug::getBacktraceHtml($GLOBALS['__OCTOPUS_CANCEL_REDIRECT_BACKTRACE']));
+            }
+            
             if ($resp) {
                 $resp->append($d->render(true));
             } else {
