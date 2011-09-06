@@ -458,6 +458,11 @@ END;
             $format = Octopus_Debug::inWebContext() ? 'html' : 'text';
         }
 
+        // Don't do any fancy pants escaping when xdebug is installed
+        if (function_exists('xdebug_var_dump')) {
+            $format = 'text';
+        }
+
         if ($fancy) {
 
             $result = null;
