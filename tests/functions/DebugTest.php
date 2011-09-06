@@ -114,14 +114,14 @@ $css
 $js
 <div id="__octopus_debug" class="octopusDebug">
     <ul class="octopusDebugTabButtons">
-        <li id="octopusDebug1" class="octopusDebugTabButton octopusDebugTabButtonSelected">
-            <a href="#" onclick="__octopus_openTab('octopusDebug2', 'octopusDebug1'); return false;">foo</a>
+        <li id="octopusDebug2" class="octopusDebugTabButton octopusDebugTabButtonSelected">
+            <a href="#" onclick="__octopus_openTab('octopusDebug3', 'octopusDebug2'); return false;">foo</a>
         </li>
     </ul>
     <div class="octopusDebugTabs">
-        <div id="octopusDebug2" class="octopusDebugTab octopusDebugFirst octopusDebugLast">
-            <div id="octopusDebug3" class="octopusDebugNiceOutput">
-                "bar" - 3 chars
+        <div id="octopusDebug3" class="octopusDebugTab octopusDebugFirst octopusDebugLast">
+            <div id="octopusDebug4" class="octopusDebugNiceOutput">
+                <span class="octopusDebugString"> &quot;bar&quot;<span class="octopusDebugStringLength">&nbsp;&mdash;&nbsp;3 chars</span></span>
             </div>
         </div>
     </div>
