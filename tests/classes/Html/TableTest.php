@@ -178,6 +178,22 @@ END
 
     }
 
+    function testFunctionErrorNotEscaped() {
+
+        $this->markTestIncomplete('Html Table error messages should not be escaped');
+
+        $table = new Octopus_Html_Table('id');
+        $table->setDataSource(HtmlTablePerson::all());
+        $table->addColumn('name', 'Name', 'not_exist');
+
+        $this->assertHtmlEquals(
+            <<<END
+<table id="id" border="0" cellpadding="0" cellspacing="0"><thead><tr><th class="name firstCell sortable"><a href="?sort=name">Name</a></th></tr></thead><tbody><tr class="odd"><td class="name firstCell"><span style="color:red;">Function not found: not_exist</span></td></tr><tr class="even"><td class="name firstCell"><span style="color:red;">Function not found: not_exist</span></td></tr><tr class="odd"><td class="name firstCell"><span style="color:red;">Function not found: not_exist</span></td></tr></tbody><tfoot><tr><td class="pager" colspan="1"><div class="pagerLinks"></div><div class="pagerLoc"> Showing 1 to 3 of 3 </div></td></tr></tfoot></table>
+END
+            , $table->render(true));
+
+    }
+
     function dontTestResultSetAsSelectFilterDataSource() {
 
         $db = $this->resetDatabase();
