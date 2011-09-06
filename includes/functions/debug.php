@@ -440,7 +440,7 @@ END;
         if ($raw === null) {
 
             if ($value && is_object($value) && ($value instanceof Dumpable || $value instanceof Exception)) {
-                $raw = trim(Octopus_Debug::dumpToString($value, true, false));
+                $raw = trim(Octopus_Debug::dumpToString($value, null, false));
             }
 
         }
@@ -448,17 +448,21 @@ END;
         $this->_variables[] = compact('type', 'name', 'value', 'raw');
     }
 
-    public static function dumpToString($x, $escapeHtml = false, $fancy = true) {
+    public static function dumpToString($x, $format = null, $fancy = true) {
 
         if (function_exists('xdebug_call_class')) {
             $escapeHtml = false;
+        }
+
+        if (!$format) {
+            $format = Octopus_Debug::inWebContext() ? 'html' : 'text';
         }
 
         if ($fancy) {
 
             $result = null;
 
-            if (Octopus_Debug::inWebContext()) {
+            if ($format === 'html') {
 
                 if ($x === null) {
                     $result = '<span class="octopusDebugNull">NULL</span>';
@@ -505,11 +509,8 @@ END;
         var_dump($x);
         $result = self::sanitizeDebugOutput(trim(ob_get_clean()));
 
-        if ($escapeHtml) {
-            $result = htmlspecialchars($result);
-        }
-
-        if (Octopus_Debug::inWebContext()) {
+        if ($format === 'html') {
+            $result = htmlspecialchars($result, ENT_QUOTES, 'UTF-8');
             $result = "<pre>$result</pre>";
         }
 
@@ -749,7 +750,7 @@ ENDHTML;
                 $var['name'] .= " ({$var['type']})";
             }
 
-            $content[$var['name']] = self::dumpToString($var['value'], false, true);
+            $content[$var['name']] = self::dumpToString($var['value'], 'text', true);
         }
         foreach($this->_content as $name => $c) {
             $content[$name] = $c['content'];
@@ -969,7 +970,7 @@ END;
             $rowClass = ($i % 2) ? 'octopusDebugOdd' : 'octopusDebugEven';
 
             $key = htmlspecialchars($key);
-            $value = self::dumpToString($value, true);
+            $value = self::dumpToString($value, 'html');
 
             if ($i !== $key) {
                 $index = $i;
@@ -1113,9 +1114,9 @@ END;
                 // for named things, or things with raw content, display them
                 // on their own tab.
                 $buttons[] = $var['name'];
-                $tabs[] = array('content' => self::dumpToString($var['value']), 'raw' => $var['raw']);
+                $tabs[] = array('content' => self::dumpToString($var['value'], 'html'), 'raw' => $var['raw']);
             } else {
-                $varsTab['content'][] = self::dumpToString($var['value']);
+                $varsTab['content'][] = self::dumpToString($var['value'], 'html');
             }
 
         }
