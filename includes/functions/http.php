@@ -278,10 +278,7 @@
             $this->options = $options;
         }
         public function replaceCallback($matches) {
-            $url = $matches[5];
-            if (!preg_match('#^(https?)://#i', $url)) {
-                $url = get_full_url($url, $this->secure, $this->options);
-            }
+            $url = get_full_url($matches[5], $this->secure, $this->options);
             return "{$matches[1]}{$matches[2]}{$matches[3]}{$matches[4]}{$url}{$matches[4]}";
         }
     }
@@ -337,8 +334,36 @@
             $port = ':' . $port;
         }
 
+        $path = trim($path);
+
+        // Handle being handed in a full url
+        if (preg_match('#\s*([a-z0-9_-]*)://([^/]*?)(:(\d+))?/(.*)#i', $path, $m)) {
+            
+            $inScheme = $m[1];
+            $inServer = $m[2];
+            $inPort = $m[4];
+            $inPath = $m[5];
+
+
+            if ($inServer && strcasecmp($inServer, $host) !== 0) {
+                // This points to a different machine.
+                return $path;
+            }
+
+            if ($inPort && intval($port) !== intval($inPort)) {
+                // This points to a different port
+                return $path;
+            }
+
+            $path = $inPath ? '/' . $inPath : '';
+        }
+
         $scheme = $secure ? 'https' : 'http';
         $path = u($path, null, $options);
+
+        if ($path && $path[0] !== '/') {
+            throw new Octopus_Exception("Can't turn a relative path into a full url: $path");
+        }
 
         return "{$scheme}://{$host}{$port}{$path}";
     }

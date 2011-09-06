@@ -11,8 +11,27 @@ abstract class Octopus_App_TestCase extends PHPUnit_Extensions_OutputTestCase {
     protected $app;
 
     public function __construct($name = NULL, array $data = array(), $dataName = '') {
+
         parent::__construct($name, $data, $dataName);
+
+        // For system tests, create a custom sitedir per-testcase
         $this->siteDir =  dirname(__FILE__) . '/.working/' . get_called_class() . '-sitedir/';
+
+        if (defined('SITE_DIR')) {
+            
+            // NOTE: __FILE__ is Octopus_App_TestCase.php, but by using 
+            // reflection we can get the actual file the running class is
+            // defined in.
+            $c = new ReflectionClass($this);
+            $file = $c->getFileName();
+
+            if (starts_with($file, SITE_DIR)) {
+                // We are running a site test, so use the defined site dir
+                $this->siteDir = SITE_DIR;
+            }
+
+        }
+
     }
 
     function setUp() {

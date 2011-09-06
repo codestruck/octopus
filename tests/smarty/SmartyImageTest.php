@@ -340,7 +340,10 @@ END;
 			$file = 'images/octopus' . $ext;
 			$args[] = $this->getSiteDir() . $file;
 			$args[] = $this->getSiteDirUrl() . $file;
-			$args[] = filemtime($this->getSiteDir() . $file);
+			
+			if (is_file($this->getSiteDir() . $file)) {
+				$args[] = filemtime($this->getSiteDir() . $file);
+			}
 
 			$result[] = $args;
 		}

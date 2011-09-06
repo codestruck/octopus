@@ -200,13 +200,21 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
     }
 
     protected function _setData($data) {
+        $fields = $this->getFields();
+        $pk = $this->getPrimaryKey();
 
         foreach ($data as $key => $value) {
 
-            $this->$key = $value;
+            // on relations when item_id comes out of the db row, we need to allow that
+            $short = preg_replace('/_id$/', '', $key);
 
-            $field = $this->getField($key);
-            if ($field) $this->touchedFields[$key] = true;
+            if (isset($fields[$key]) || $key == $pk || isset($fields[$short])) {
+                $this->$key = $value;
+            }
+
+            if (isset($fields[$key])) {
+                $this->touchedFields[$key] = true;
+            }
         }
 
         $this->dataLoaded = true;
@@ -636,10 +644,20 @@ END;
 
         $result = get_class($this);
         foreach($this->toArray() as $key => $value) {
-            $result .= <<<END
+            try {
+                if ($value instanceof Dumpable) {
+                  $value = $value->dump('text');  
+                } 
+                $result .= <<<END
 
 \t$key:\t\t$value
 END;
+            } catch(Exception $ex) {
+                $result .= <<<END
+
+\t$key:\t\t<Exception: {$ex->getMessage()}>
+END;
+            }
         }
 
         return $result;

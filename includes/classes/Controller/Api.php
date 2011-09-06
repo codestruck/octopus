@@ -27,24 +27,6 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
         return $this->error("Invalid action: $action");
     }
 
-    public function _before($action, $args) {
-
-        $this->setResponseContentType();
-
-        return true;
-    }
-
-    public function _after($action, $args, $data) {
-
-        $dumped_content = get_dumped_content();
-        $data = array_merge($data, $dumped_content);
-        output_dumped_content_header(array_pop($dumped_content), $this->response);
-
-        $this->response->append(json_encode($data));
-        $this->response->stop();
-        return $data;
-    }
-
     /**
      * @return Array A standardized JSON response array.
      */
@@ -75,7 +57,27 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
         if (!$args) $args = array();
         $args = array_merge($args, $_GET, $_POST);
 
-        return parent::__execute($action, $args);
+        $this->setResponseContentType();
+
+        $data = parent::__execute($action, $args);
+
+        $dumped_content = get_dumped_content();
+        
+        if (!empty($dumped_content)) {
+            if ($data === null) {
+                $data = $dumped_content;
+            } else if (is_array($data)) {
+                $data = array_merge($dumped_content, $data);
+            } else {
+                $data = array_merge($dumped_content, compact('data'));
+            }
+            output_dumped_content_header(array_pop($dumped_content), $this->response);
+        }
+
+        $this->response->append(json_encode($data));
+        $this->response->stop();
+
+        return $data;
     }
 
     protected function __executeAction($action, $actionMethod, $args) {
