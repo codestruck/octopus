@@ -477,7 +477,7 @@ END;
                 } else if ($x === true || $x === false) {
                     $result =  '<span class="octopusDebugBoolean">' . ($x ? 'TRUE' : 'FALSE') . '</span>';
                 } else if (is_object($x) && $x instanceof Dumpable) {
-                    $result = $x->dump('html');
+                    $result = $x->__dumpHtml();
                 } else if ($x instanceof Exception) {
                     $result = self::dumpExceptionToHtml($x);
                 } else if (is_array($x)) {
@@ -497,7 +497,7 @@ END;
                 } else if (is_string($x)) {
                     $result = self::dumpStringToText($x);
                 } else if (is_object($x) && $x instanceof Dumpable) {
-                    $result = $x->dump('text');
+                    $result = $x->__dumpText();
                     if ($result === null) $result = '';
                 } else if ($x instanceof Exception) {
                     $result = self::dumpExceptionToText($x);
