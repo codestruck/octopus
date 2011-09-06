@@ -109,22 +109,8 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpa
         return $this;
     }
 
-    public function dump($mode) {
 
-        switch($mode) {
-
-            case 'html':
-                return $this->dumpHtml();
-
-            case 'text':
-                return $this->dumpText();
-
-            default:
-                throw new Octopus_Exception("Unrecognized dump mode: $mode");
-        }
-    }
-
-    protected function dumpHtml() {
+    public function __dumpHtml() {
 
         $class = $this->getModel();
         $classPlural = pluralize(humanize($this->getModel()));
@@ -197,7 +183,7 @@ END;
         return $html;
     }
 
-    protected function dumpText() {
+    public function __dumpText() {
 
         $params = array();
         $sql = $this->getSql($params);

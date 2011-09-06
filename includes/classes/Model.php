@@ -595,23 +595,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         return $this->getDisplayValue();
     }
 
-    public function dump($mode) {
-
-        switch($mode) {
-
-            case 'html':
-                return $this->dumpHtml();
-
-            case 'text':
-                return $this->dumpText();
-
-            default:
-                throw new Octopus_Exception("Unrecognized dump mode: $mode");
-        }
-
-    }
-
-    protected function dumpHtml() {
+    public function __dumpHtml() {
 
         $html = '<table class="sgModelDump" border="0" cellpadding="0" cellspacing="0">';
 
@@ -648,7 +632,7 @@ END;
         return $html;
     }
 
-    protected function dumpText() {
+    public function __dumpText() {
 
         $result = get_class($this);
         foreach($this->toArray() as $key => $value) {

@@ -13,11 +13,14 @@ $_OCTOPUS_DUMPED_CONTENT = array();
 interface Dumpable {
 
     /**
-     * Returns debug info on this object.
-     * @param $mode String 'html' or 'text'
-     * @return String dumped content.
+     * @return String debugging info for this object, formatted as HTML.
      */
-    function dump($mode);
+    function __dumpHtml();
+
+    /**
+     * @return String debugging info for this object, formatted as plain text.
+     */
+    function __dumpText();
 
 }
 
