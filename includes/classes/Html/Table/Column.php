@@ -417,12 +417,10 @@ class Octopus_Html_Table_Column {
         if ($isString && $isObject && method_exists($value, $f)) {
             // TODO: should there be a way to supply arguments here?
             return $value->$f();
-        } else if ($isString) {
-
-            if (method_exists($this, $f)) {
-                return $this->$f($value, $row);
-            }
-
+        } else if ($isString && method_exists($this, $f)) {
+            return $this->$f($value, $row);
+        } else if ($row instanceof Octopus_Model && method_exists($row, $f)) {
+            return $row->$f($value, $row);
         }
 
         if (is_callable($f)) {
@@ -451,9 +449,6 @@ class Octopus_Html_Table_Column {
             }
 
         }
-
-
-
 
         return '<span style="color:red;">Function not found: ' . htmlspecialchars($f) . '</span>';
 
