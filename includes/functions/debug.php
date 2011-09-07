@@ -1378,13 +1378,18 @@ if (!function_exists('dump_r')) {
 
         $count = 0;
 
-        echo "\n";
+        // Write to stderr
+        $fp = fopen('php://stderr', 'w');
+        fputs($fp, "\n");
+
         foreach(Octopus_Debug::saneBacktrace($bt) as $item) {
             if ($limit && $count >= $limit) {
                 break;
             }
-            echo "{$item['function']} at {$item['file']}, line {$item['line']}\n";
+            fputs($fp, "{$item['function']} at {$item['file']}, line {$item['line']}\n");
         }
+
+        fclose($fp);
 
     }
 
