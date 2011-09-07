@@ -3,7 +3,7 @@
 /**
  * Basic interface for a data source to pass to, e.g. an Html_Table.
  */
-interface Octopus_DataSource {
+interface Octopus_DataSource extends Countable {
 	
 	/**
 	 * @return A new DataSource with the given filter applied.

@@ -1,30 +1,86 @@
 <?php
 
-class Octopus_Html_Table_Paginate {
+Octopus::loadClass('Octopus_DataSource');
+
+/**
+ * Class for helping with paged data.
+ */
+class Octopus_Paginate {
+
+    public static defaults = array(
+
+        /**
+         * QueryString arg used to specify the page.
+         */
+        'pageArg' => 'page',
+
+        /**
+         * # of items to show per page.
+         */
+        'perPage' => 10,
+
+    );
 
     private $dataSource;
     private $options;
-    private $columns;
+    private $page = 0;
 
-    public function __construct($dataSource, $options, $columns) {
-        $this->dataSource = $dataSource;
-        $this->options = $options;
-        $this->columns = $columns;
+    public function __construct($dataSource, $options = array()) {
 
-        if (!isset($this->options['currentPage'])) {
-            $this->options['currentPage'] = 1;
+        if (is_array($dataSource)) {
+            Octopus::loadClass('Octopus_DataSource_Array');
+            $dataSource = new Octopus_DataSource_Array($dataSource);
+        } else if (is_string($dataSource)) {
+            Octopus::loadClass('Octopus_DataSource_Sql')
+            $dataSource = new Octopus_DataSource_Sql($dataSource);
+        }
+
+        if (!($dataSource instanceof Octopus_DataSource)) {
+            throw new Octopus_Exception('Data sources must implement Octopus_DataSource');
+        }
+
+        $this->dataSource = $dataSource; 
+        $this->options = array_merge(self::$defaults, $options);       
+
+        foreach(array('page', 'currentPage') as $key) {
+            if (isset($this->options[$key])) {
+                $this->page = $this->options[$key];
+                unset($this->options[$key]);
+                break;
+            }
         }
     }
 
-    public function getData() {
+    /**
+     * @return Number The # of pages.
+     */
+    public function getPageCount() {
+        
+        $count = count($this->dataSource);
+        return ceil($count / $this->options['perPage']);
 
-        if ($this->dataSource instanceof Octopus_Model_ResultSet) {
-            return $this->getModelData();
-        } else if (is_array($this->dataSource)) {
-            return $this->getArrayData();
-        } else if (is_string($this->dataSource)) {
-            return $this->getSqlData();
+    }
+
+    /**
+     * @return Array Page numbers to be displayed.
+     */
+    public function getPageNumbers() {
+        return range(1, $this->getPageCount());
+    }
+
+    /**
+     * @param $page Number Page to get items for (one-based).
+     * @return Iterable Items to display on the given page.
+     */
+    public function getItemsForPage($page = null) {
+        
+        if ($page === null) {
+            $page = $this->page;
         }
+
+        $from = ($page - 1) * $this->options['perPage'] + 1;
+        $to = min(($page) * $this->options['perPage'], $total);
+
 
     }
 
@@ -35,8 +91,6 @@ class Octopus_Html_Table_Paginate {
         $total = $this->dataSource->count();
         $page = $this->options['currentPage'];
         $pages = ceil($total / $this->options['perPage']);
-        $from = ($page - 1) * $this->options['perPage'] + 1;
-        $to = min(($page) * $this->options['perPage'], $total);
         $page_numbers = ($pages > 1) ? range(1, $pages) : array(1);
 
         // sort
@@ -59,68 +113,32 @@ class Octopus_Html_Table_Paginate {
 
     }
 
-    public function getSqlData() {
-        $sql = $this->dataSource;
-        $db =& Octopus_DB::singleton();
+    /**
+     * @return String The URL to the given page.
+     */
+    public function getPageUrl($page, $currentUrl = null) {
 
-        $countSql = preg_replace('/select[ ]+\*[ ]+from/i', 'SELECT COUNT(*) FROM', $sql);
-        $total = $db->getOne($countSql);
+        if (!$currentUrl) $currentUrl = $_SERVER['REQUEST_URI'];
 
-        $page = $this->options['currentPage'];
-        $pages = ceil($total / $this->options['perPage']);
-        $from = ($page - 1) * $this->options['perPage'] + 1;
-        $to = min(($page) * $this->options['perPage'], $total);
-        $page_numbers = ($pages > 1) ? range(1, $pages) : array(1);
+        $qPos = strpos($currentUrl, '?');
 
-        // sort
-        $needOrderBy = true;
-        foreach ($this->columns as $col) {
-
-            if (!$col->isSorted($this->dataSource)) {
-                continue;
-            }
-
-            $dir = $col->getSorting();
-
-            $sql .= ($needOrderBy ? ' ORDER BY ' : ', ');
-            $sql .= "`{$col->id}` $dir";
-            $needOrderBy = false;
+        if ($qPos === false) {
+            return $url . "?$arg=" . rawurlencode($page);
         }
 
-        // then limit
-        $sql .= sprintf(' LIMIT %d, %d', $from - 1, $this->options['perPage']);
-        $query = $db->query($sql, true);
-        $data = array();
-        while ($data[] = $query->fetchRow()) {}
+        $qs = substr($currentUrl, $qPos + 1);
+        $args = array();
+        parse_str($qs, $args);
 
-        return array(
-            'currentPage' => $page,
-            'totalItems' => $total,
-            'from' => $from,
-            'to' => $to,
-            'totalPages' => $pages,
-            'page_numbers' => $page_numbers,
-            'data' => $data,
-        );
-    }
+        $args[$arg] = $page;
 
-    public function getArrayData() {
-        throw new Octopus_Exception('Array data source not implemented yet!');
+        return substr($currentUrl, $qPos) . '?' . http_build_query($args);
     }
 
     /**
-     * @return String A nicely-formatted URL for use in the pager.
+     * Constructs HTML for paging links.
      */
-    public static function getUrlForPaging($options) {
-
-        $url = preg_replace('/(\?|&+)' . $options['pageArg'] . '=\d*(&+|$)/i', '$1', $_SERVER['REQUEST_URI']);
-        $url = rtrim($url, '&');
-        $url .= strpos($url, '?') === false ? '?' : '&';
-
-        return $url;
-    }
-
-    public static function makeLinks($pagerData, $options) {
+    public function makeLinks() {
 
         $html = '<div class="pagerLinks">';
 

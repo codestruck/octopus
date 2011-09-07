@@ -16,6 +16,10 @@ class Octopus_DataSource_Array implements Octopus_DataSource {
 		$this->array = $array;
 	}
 
+	public function count() {
+		return count($this->array);
+	}
+
 	/**
 	 * @return A new DataSource with the given filter applied.
 	 */

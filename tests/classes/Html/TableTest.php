@@ -194,7 +194,7 @@ END
 
     }
 
-    function dontTestResultSetAsSelectFilterDataSource() {
+    function testResultSetAsSelectFilterDataSource() {
 
         $db = $this->resetDatabase();
         $db->query("
@@ -222,7 +222,7 @@ END
 
     }
 
-    function dontTestPostActions() {
+    function testPostActions() {
 
         $table = new Octopus_Html_Table('postActions');
         $table->addColumn('name');
@@ -255,7 +255,7 @@ END
 
     }
 
-    function dontTestPageWrittenToSession() {
+    function testPageWrittenToSession() {
 
         $table = new Octopus_Html_Table('selectFilter', array('redirectCallback' => false));
         $table->addColumn('name');
@@ -273,7 +273,7 @@ END
         $this->assertEquals(5, $_SESSION[$page]);
     }
 
-    function dontTestSortingWrittenToSession() {
+    function testSortingWrittenToSession() {
 
         $table = new Octopus_Html_Table('selectFilter', array('pager' => false, 'redirectCallback' => false));
         $table->addColumn('name');
@@ -287,7 +287,7 @@ END
         $this->assertEquals('!age', $_SESSION[$sort]);
     }
 
-    function dontTestFilterWrittenToSession() {
+    function testFilterWrittenToSession() {
 
         $table = new Octopus_Html_Table('selectFilter', array('pager' => false, 'redirectCallback' => false));
         $table->addColumn('name');
@@ -306,7 +306,7 @@ END
         );
     }
 
-    function dontTestInitFilterFromSession() {
+    function testInitFilterFromSession() {
 
         $db = $this->resetDatabase();
         $db->query("
@@ -338,7 +338,7 @@ END
 
     }
 
-    function dontTestInitFilterFromQueryString() {
+    function testInitFilterFromQueryString() {
 
         $db = $this->resetDatabase();
         $db->query("
@@ -419,7 +419,7 @@ END
 
     }
 
-    function dontTestEmptyTable() {
+    function testEmptyTable() {
 
         $table = new Octopus_Html_Table('empty', array('pager' => false));
         $table->addColumn('name');
@@ -446,7 +446,7 @@ END;
         $this->assertHtmlEquals($expected, $table);
     }
 
-    function dontTestSetFilters() {
+    function testSetFilters() {
 
         $table = new Octopus_Html_Table('setFilters', array('redirectCallback' => false));
         $table->addColumn('name');
@@ -467,7 +467,7 @@ END;
         $this->assertEquals(array(), $table->getFilterValues());
     }
 
-    function dontTestRenderFilters() {
+    function testRenderFilters() {
 
         $table = new Octopus_Html_Table('renderFilters', array('pager' => false, 'redirectCallback' => false));
         $table->addColumn('name');
@@ -509,7 +509,7 @@ END;
 
     }
 
-    function dontTestTextFilter() {
+    function testTextFilter() {
 
         $table = new Octopus_Html_Table('textFilter', array('redirectCallback' => false));
         $table->addColumn('name');
@@ -557,7 +557,7 @@ END;
 
     }
 
-    function dontTestSelectFilter() {
+    function testSelectFilter() {
 
         $db = $this->resetDatabase();
         $db->query("
@@ -587,7 +587,7 @@ END;
 
     }
 
-    function dontTestCompactAddColumnsFormat() {
+    function testCompactAddColumnsFormat() {
 
         $table = new Octopus_Html_Table('compactAddColumns');
         $table->addColumns(array(
@@ -657,7 +657,7 @@ END;
 
     }
 
-    function dontTestEscapeHtml() {
+    function testEscapeHtml() {
 
         $table = new Octopus_Html_Table('escape');
         $table->addColumn('name');
@@ -675,7 +675,7 @@ END;
 
     }
 
-    function dontTestMethodOnObject() {
+    function testMethodOnObject() {
 
         $table = new Octopus_Html_Table('methodOnObject');
         $table->addColumn('name');
@@ -702,7 +702,7 @@ END;
         return $value * 2;
     }
 
-    function dontTestFunctionWith3Args() {
+    function testFunctionWith3Args() {
 
         $table = new Octopus_Html_Table('threeArgs');
         $table->addColumn('name');
@@ -720,7 +720,7 @@ END;
         );
     }
 
-    function dontTest2ArgBuiltInFunctions() {
+    function test2ArgBuiltInFunctions() {
 
         $val = '  3  ';
 
@@ -754,7 +754,7 @@ END;
 
     }
 
-    function dontTestGlobalFunction() {
+    function testGlobalFunction() {
 
         $table = new Octopus_Html_Table('func', array('pager' => false));
         $table->addColumn('name');
@@ -775,7 +775,7 @@ END;
 
     }
 
-    function dontTestSimpleTable() {
+    function testSimpleTable() {
 
         $expected = <<<END
 <table id="simpleTable" border="0" cellpadding="0" cellspacing="0">
@@ -816,7 +816,7 @@ END;
 
     }
 
-    function dontTestComplexTable() {
+    function testComplexTable() {
 
         $expected = <<<END
 <table id="complexTable" border="0" cellpadding="0" cellspacing="0">
@@ -874,7 +874,7 @@ END;
 
     }
 
-    function dontTestColumnSorting() {
+    function testColumnSorting() {
 
         $col = new Octopus_Html_Table_Column('test', array('sortable' => true), null);
 
@@ -937,7 +937,7 @@ END;
         return $db;
     }
 
-    function dontTestResultSetSorting() {
+    function testResultSetSorting() {
 
         $db = $this->resetDatabase();
 
@@ -1046,7 +1046,7 @@ END;
         );
     }
 
-    function dontTestPaging() {
+    function testPaging() {
 
         $table = new Octopus_Html_Table('paging');
         $table->addColumn('name');
@@ -1175,7 +1175,7 @@ END;
 
     }
 
-    function xtestImageActionsAndToggles() {
+    function testImageActionsAndToggles() {
 
         $expected = <<<END
 <table id="complexTable" border="0" cellpadding="0" cellspacing="0">

@@ -603,6 +603,15 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
     private function internalSetDataSource($dataSource, $isOriginal) {
 
+        if (is_array($dataSource)) {
+            Octopus::loadClass('Octopus_DataSource_Array');
+            $dataSource = new Octopus_DataSource_Array($dataSource);
+        }
+
+        if (!$dataSource instanceof Octopus_DataSource) {
+            throw new Octopus_Exception("Table data sources must implement Octopus_DataSource");
+        }
+
         $this->_dataSource = $dataSource;
 
         if ($isOriginal) {
