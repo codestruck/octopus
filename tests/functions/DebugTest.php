@@ -130,8 +130,8 @@ $js
 <!-- END dump_r Output }}} -->
 END;
 
-        $expected = preg_replace('/id="octopusDebug\d+"', '', $expected);
-        $actual =   preg_replace('/id="octopusDebug\d+"', '', $d->renderHtml(true));
+        $expected = preg_replace('/id="octopusDebug\d+"/', '', $expected);
+        $actual =   preg_replace('/id="octopusDebug\d+"/', '', $d->renderHtml(true));
 
         $this->assertHtmlEquals(
             $expected,
