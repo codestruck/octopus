@@ -190,6 +190,15 @@ END;
 
     }
 
+    function testDataSourceImplementation() {
+
+        Octopus::loadClass('Octopus_DataSource');
+        
+        $posts = FindPost::find('author.name LIKE', '*Hinz');
+        $this->assertInstanceOf('Octopus_DataSource', $posts, 'ResultSet implements datasource');
+
+    }
+
     function testAddQuery() {
 
         $expectedSql =

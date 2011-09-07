@@ -1,9 +1,11 @@
 <?php
 
+Octopus::loadClass('Octopus_DataSource');
+
 /**
  * Class that handles searching for Octopus_Model instances.
  */
-class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpable {
+class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpable, Octopus_DataSource {
 
     public $escaped = false;
 
@@ -1028,6 +1030,23 @@ END;
     }
 
     // }}}
+
+    // Octopus_DataSource Implementation
+
+    public function sort($col, $asc = true) {
+        return $this->sort($col, $asc);
+    }
+
+    public function filter($field, $value) {
+        return $this->where($field, $value);
+    }
+
+    public function getItems($start = 0, $count = 0) {
+        return $this->limit($start, $count);
+    }
+
+
+    // End Octopus_DataSource Implementation
 
 }
 ?>
