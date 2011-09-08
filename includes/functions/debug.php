@@ -1098,7 +1098,32 @@ END;
     /* dumpStringToText($str) {{{ */
     private static function dumpStringToText($str) {
         $length = self::getNiceStringLength($str);
-        return '"' . $str . '" - ' . $length;
+        $result = '"' . $str . '" - ' . $length;
+
+        if ($str && $str[0] === '/' && file_exists($str)) {
+            
+            $isDir = is_dir($str);
+            $isLink = is_link($str);
+            
+            $type = 'file';
+            if ($isDir) $type = 'directory';
+            if ($isLink) $type .= ' (link)';
+
+            $result .= "\n\tExists and is a $type";
+
+            if ($isDir) {
+                $contents = @glob(rtrim($str, '/') . '/*');
+                if ($contents) {
+                    $result .= "\n\t" . count($contents) . ' file(s):';
+                    foreach($contents as $f) {
+                        $result .= "\n\t\t" . basename($f);
+                    }
+                }
+            }
+        }
+
+        return $result;
+
     } /* }}} */
 
     /* getContentHtml() {{{ */

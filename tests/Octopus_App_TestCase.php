@@ -7,63 +7,49 @@ require_once 'PHPUnit/Extensions/OutputTestCase.php';
  */
 abstract class Octopus_App_TestCase extends PHPUnit_Extensions_OutputTestCase {
 
-    private $siteDir;
-    protected $app;
-
-    public function __construct($name = NULL, array $data = array(), $dataName = '') {
-
-        parent::__construct($name, $data, $dataName);
-
-        // For system tests, create a custom sitedir per-testcase
-        $this->siteDir =  dirname(__FILE__) . '/.working/' . get_called_class() . '-sitedir/';
-
-        if (defined('SITE_DIR')) {
-            
-            // NOTE: __FILE__ is Octopus_App_TestCase.php, but by using 
-            // reflection we can get the actual file the running class is
-            // defined in.
-            $c = new ReflectionClass($this);
-            $file = $c->getFileName();
-
-            if (starts_with($file, SITE_DIR)) {
-                // We are running a site test, so use the defined site dir
-                $this->siteDir = SITE_DIR;
-            }
-
-        }
-
-    }
+    private $app;
+    private $testRootDir;
+    private static $sessionID = null;
 
     function setUp() {
-        
-        $this->initSiteDir();
-
+        $this->initEnvironment();
         $this->clear($_GET);
         $this->clear($_POST);
-
-        $this->startApp();
     }
 
+    function tearDown() {
+        if ($this->app) {
+            $this->app->stop();
+            $this->app = null;
+        }
+    }
 
     public function getOctopusDir() {
-        if ($this->app) {
-            return $this->app->getOption('OCTOPUS_DIR');
-        } else {
-            return OCTOPUS_DIR;
-        }
+        return $this->getRootDir() . 'octopus/';
     }
 
     public function getOctopusDirUrl() {
         return $this->getDirUrl($this->getOctopusDir());
     }
 
+    public function getRootDir() {
+        return $this->testRootDir;
+    }
+
     public function getSiteDir() {
-        return $this->siteDir;
+        return $this->getRootDir() . 'site/';
+    }
+
+    public function getSiteDirUrl() {
+        return $this->getDirUrl($this->getSiteDir());
     }
 
     public function getDirUrl($dir) {
-        $urlBase = $this->app ? $this->app->getOption('URL_BASE') : '/';
-        $rootDir = $this->app ? $this->app->getOption('ROOT_DIR') : ROOT_DIR;
+
+        $app = $this->getApp();
+
+        $urlBase = $app->getOption('URL_BASE');
+        $rootDir = $this->getRootDir();
 
         $url = $dir;
         if (starts_with($url, $rootDir)) {
@@ -75,9 +61,6 @@ abstract class Octopus_App_TestCase extends PHPUnit_Extensions_OutputTestCase {
         return $urlBase . $url;        
     }
 
-    public function getSiteDirUrl() {
-        return $this->getDirUrl($this->getSiteDir());
-    }
 
     private function clear(&$ar) {
         foreach($ar as $key => $value) {
@@ -85,34 +68,90 @@ abstract class Octopus_App_TestCase extends PHPUnit_Extensions_OutputTestCase {
         }
     }
 
-    function tearDown() {
 
-        //$this->cleanUpSiteDir();
+    /**
+     * Sets up a walled-off bit of the directory tree in which to run
+     * our tests.
+     */
+    protected function initEnvironment() {
 
-        if ($this->app) {
-            $this->app->stop();
-            $this->app = null;
+        if (Octopus_App::isStarted()) {
+            $app = Octopus_App::singleton();
+            $app->stop();
         }
-        
-    }
 
-    function initSiteDir() {
+        if (!self::$sessionID) {
+            self::$sessionID = time();
+        }
 
-        $this->cleanUpSiteDir();
+        $tries = 0;
+        $key = '';
+        $report = true;
 
-        $s = $this->getSiteDir();
-        mkdir($s, 0777, true);
-        mkdir("$s/controllers");
-        mkdir("$s/views");
-        mkdir("$s/models");
-        mkdir("$s/themes/default/templates/html", 0777, true);
-        file_put_contents("$s/themes/default/templates/html/page.php", '<?php echo $view_content; ?>');
+        while(1) {
+            
+            if ($tries >= 1) {
+                die("Could not set up environment. Tried $tries times.");
+            }
 
-    }
+            $tries++;
 
-    function cleanUpSiteDir() {
-        $dir = $this->getSiteDir();
-        `rm -rf {$dir}`;
+            $this->testRootDir = rtrim(sys_get_temp_dir(), '/') . '/octopus-tests' . $key . '/' . self::$sessionID . '/' . get_called_class() . '/';
+            $key = '/' . mt_rand(0, 1000000);
+
+            $failures = array();
+            if (is_dir($this->testRootDir)) {
+                if (!recursive_delete($this->testRootDir, true, $failures)) {
+                    if ($report) {
+                        dump_r("testRootDir already exists and could not be deleted: {$this->testRootDir}", $failures);
+                    }
+                    continue;
+                }
+                if (is_dir($this->testRootDir)) {
+                    if ($report) {
+                        dump_r("testRootDir existed, and recursive_delete returned true, but the directory is still there.", $failures);
+                    }
+                    continue;
+                }
+            }
+             
+            if (!@mkdir($this->testRootDir, 0777, true)) {
+                if ($report) dump_r("mkdir failed for testRootDir: {$this->testRootDir}");
+                continue;
+            }
+
+            $octopusLinkTarget = dirname(dirname(__FILE__));
+            $octopusLinkName = rtrim($this->getOctopusDir(), '/');
+
+            if (!@symlink($octopusLinkTarget, $octopusLinkName)) {
+                if ($report) dump_r("Failed to symlink in octopus directory: $octopusLinkTarget -> $octopusLinkName");
+                continue;
+            }
+
+            if (defined('SITE_DIR')) {
+
+                $siteDirLinkTarget = rtrim(SITE_DIR, '/');
+                $siteDirLinkName = rtrim($this->getSiteDir(), '/');
+
+                if (!@symlink(rtrim(SITE_DIR, '/'), rtrim($this->getSiteDir(), '/'))) {
+                    if ($report) dump_r("Failed to symlink in site dir: $siteDirLinkTarget -> $siteDirLinkName");
+                    continue;
+                }
+            
+            } else {
+                // Create a working site dir
+                $siteDir = $this->getSiteDir();
+                dump_r($siteDir, is_dir($siteDir));
+                mkdir($siteDir);
+                mkdir("$siteDir/controllers");
+                mkdir("$siteDir/views");
+                mkdir("$siteDir/models");
+                mkdir("$siteDir/themes/default/templates/html", 0777, true);
+                file_put_contents("$siteDir/themes/default/templates/html/page.php", '<?php echo $view_content; ?>');
+            }
+
+            break;
+        }
     }
 
     /**
@@ -131,7 +170,7 @@ abstract class Octopus_App_TestCase extends PHPUnit_Extensions_OutputTestCase {
         }
 
         $result = array();
-        $viewDir = $this->app->getSetting('SITE_DIR') . 'views/';
+        $viewDir = $this->getApp()->getSetting('SITE_DIR') . 'views/';
 
         foreach($path as $p) {
 
@@ -169,7 +208,7 @@ abstract class Octopus_App_TestCase extends PHPUnit_Extensions_OutputTestCase {
         }
 
         $result = array();
-        $controllerDir = $this->app->getSetting('SITE_DIR') . 'controllers/';
+        $controllerDir = $this->getApp()->getSetting('SITE_DIR') . 'controllers/';
 
         foreach($path as $p) {
 
@@ -215,14 +254,12 @@ abstract class Octopus_App_TestCase extends PHPUnit_Extensions_OutputTestCase {
         $defaults = array(
             'use_defines' => false,
             'use_globals' => false,
+            'ROOT_DIR' => $this->getRootDir(),
+            'OCTOPUS_DIR' => $this->getOctopusDir(),
             'SITE_DIR' => $this->getSiteDir()
         );
 
-        if (empty($options)) {
-            $options = $defaults;
-        } else {
-            $options = array_merge($defaults, $options);
-        }
+        $options = array_merge($defaults, $options);
 
         if (Octopus_App::isStarted()) {
             $oldApp = Octopus_App::singleton();
