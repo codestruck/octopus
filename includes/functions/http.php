@@ -105,10 +105,15 @@
     function find_url_base($rootDir = null, $documentRoot = null) {
 
         $rootDir = $rootDir ? $rootDir : ROOT_DIR;
-        $documentRoot = $documentRoot ? $documentRoot : $_SERVER['DOCUMENT_ROOT'];
-
+        
         if (!$documentRoot) {
-            return '/'; // probably testing or on command line
+            
+            if (isset($_SERVER['DOCUMENT_ROOT'])) {
+                $documentRoot = $_SERVER['DOCUMENT_ROOT'];
+            } else {
+                $documentRoot = $rootDir;
+            }
+
         }
 
         /*
@@ -128,11 +133,20 @@
          *
          */
 
-        if (strncasecmp($rootDir, $documentRoot, strlen($documentRoot)) == 0) {
+        if ($documentRoot) $documentRoot = rtrim($documentRoot, '/') . '/';
+        if ($rootDir) $rootDir = rtrim($rootDir, '/') . '/';
 
+        $documentRootLen = strlen($documentRoot);
+        $rootDirLen = strlen($rootDir);
 
-            $base = substr($rootDir, strlen($documentRoot));
-            if ($base === false) return '/';
+        if ($rootDirLen < $documentRootLen) {
+            return false;
+        }
+
+        if (strncasecmp($rootDir, $documentRoot, $documentRootLen) === 0) {
+
+            $base = substr($rootDir, $documentRootLen);
+            if (!$base) return '/';
 
             return start_in('/', end_in('/', $base));
 
