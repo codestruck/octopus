@@ -73,6 +73,13 @@ class Octopus_App {
         'use_site_config' => true,
 
         /**
+         * Whether or not to auto-include files in the site/functions directory.
+         * This option depends on use_site_config, if that is false, no 
+         * will be included.
+         */
+        'include_site_functions' => true,
+
+        /**
          * Whether or not to load all model classes by default.
          */
         'load_models' => true,
@@ -129,6 +136,7 @@ class Octopus_App {
         $this->ensureDirectoriesExist();
         $this->_initSettings();
         $this->watchForErrors();
+        $this->_includeSiteFunctions();
 
     }
 
@@ -810,6 +818,29 @@ class Octopus_App {
 
     }
 
+    private function _includeSiteFunctions() {
+        
+        $o =& $this->_options;
+        if (!($o['use_site_config'] && $o['include_site_functions'])) {
+            return;
+        }
+
+        $funcDir = $o['SITE_DIR'] . 'functions/';
+        if (is_dir($funcDir)) {
+            $files = glob($funcDir . '*.php');
+            if ($files) {
+                foreach($files as $f) {
+                    self::_require_once($f);
+                }
+            }
+        }
+
+    }
+
+    private static function _require_once($file) {
+        require_once($file);
+    }
+
     /**
      * Loads any config files from the sitedir.
      */
@@ -821,7 +852,6 @@ class Octopus_App {
         if (!$o['use_site_config']) {
             return;
         }
-
 
         $configFile = $o['SITE_DIR'] . 'config.php';
 
