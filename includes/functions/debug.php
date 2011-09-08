@@ -758,10 +758,10 @@ ENDHTML;
                 $var['name'] .= " ({$var['type']})";
             }
 
-            $content[$var['name']] = self::dumpToString($var['value'], 'text', true);
+            $content[] = array('label' => $var['name'], 'text' => self::dumpToString($var['value'], 'text', true));
         }
         foreach($this->_content as $name => $c) {
-            $content[$name] = $c['content'];
+            $content[] = array('label' => $name, 'text' => $c['content']);
         }
 
         if (empty($content)) {
@@ -779,8 +779,8 @@ ENDHTML;
         $hLine = "$borderChar" . str_repeat($hLineChar, $width - ((strlen($borderChar) * 2))) . "$borderChar";
 
         $labelWidth = 0;
-        foreach($content as $label => $text) {
-            $l = min(strlen($label), $maxLabelWidth);
+        foreach($content as $item) {
+            $l = min(strlen($item['label']), $maxLabelWidth);
             if ($l > $labelWidth) {
                 $labelWidth = $l;
             }
@@ -791,11 +791,14 @@ ENDHTML;
         $result = "$hBorder\n";
         $first = true;
 
-        foreach($content as $label => $text) {
+        foreach($content as $item) {
 
             if (!$first) {
                 $result .= "$hLine\n";
             }
+
+            $label = $item['label'];
+            $text = $item['text'];
 
             $label = str_replace("\t", "    ", $label);
             $text = str_replace("\t", "    ", $text);
