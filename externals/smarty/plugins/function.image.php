@@ -289,6 +289,8 @@ function _octopus_smarty_get_file_url($file, $dirs, $urlBase, $includeModTime = 
 
     foreach($dirs as $key => $dir) {
 
+
+
         if (!starts_with($file, $dir)) {
             continue;
         }

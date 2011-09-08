@@ -83,6 +83,9 @@ END;
             'Should return false when not running off document_root'
         );
 
+        unset($_SERVER['DOCUMENT_ROOT']);
+        $this->assertEquals('/', find_url_base('/my/root/dir/'), "should be / when doc root is unknown");
+
 
     }
 

@@ -157,12 +157,11 @@ abstract class Octopus_Model_Field {
                 
                 Octopus::loadExternal('htmlpurifier');
                 
-                $config = HTMLPurifier_Config::createDefault();
-                $config->set('HTML.Allowed', $allow_tags);
-                $config->set('Cache.SerializerPath', OCTOPUS_PRIVATE_DIR . 'htmlpurifier');
-                                
-                $purifier = new HTMLPurifier($config);
+                $purifier = get_html_purifier(array(
+                    'HTML.Allowed' => $allow_tags,
+                ));
                 return $purifier->purify($value);
+
             } else {
                 return h($value);
             }

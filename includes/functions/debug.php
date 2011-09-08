@@ -1103,7 +1103,7 @@ END;
         $length = self::getNiceStringLength($str);
         $result = '"' . $str . '" - ' . $length;
 
-        if ($str && $str[0] === '/' && file_exists($str)) {
+        if (strlen($str) > 1 && $str[0] === '/' && file_exists($str)) {
             
             $isDir = is_dir($str);
             $isLink = is_link($str);

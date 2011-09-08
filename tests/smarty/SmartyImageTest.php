@@ -149,19 +149,19 @@ END;
 	function testImageInOctopusDir($file, $fileUrl) {
 
 		$name = basename($file);
-		$dir = 'tests/.working/';
+		
+		$octopusDir = $this->getOctopusDir();
+		$octopusFile = $this->getOctopusDir() . $name;
 
-		$octopusFile = $this->getOctopusDir() . $dir . $name;
 		@unlink($octopusFile);
 		copy($file, $octopusFile);
 
-		$octopusUrl = $this->getOctopusDirUrl() . $dir;
-
+		$octopusUrl = $this->getOctopusDirUrl();
 		$mtime = filemtime($octopusFile);
 
 
 		$test = <<<END
-{image src="/{$dir}$name"}
+{image src="{$octopusDir}$name"}
 END;
 		$expected = <<<END
 <img src="{$octopusUrl}$name?$mtime" width="100" height="75" />
@@ -456,11 +456,13 @@ END;
 		$result = array();
 
 		foreach($this->extensions as $ext) {
+			
 			$args = array();
 			$file = 'images/octopus' . $ext;
+
 			$args[] = $this->getSiteDir() . $file;
 			$args[] = $this->getSiteDirUrl() . $file;
-			
+
 			if (is_file($this->getSiteDir() . $file)) {
 				$args[] = filemtime($this->getSiteDir() . $file);
 			}

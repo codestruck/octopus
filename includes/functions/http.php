@@ -108,7 +108,7 @@
         
         if (!$documentRoot) {
             
-            if (isset($_SERVER['DOCUMENT_ROOT'])) {
+            if (!empty($_SERVER['DOCUMENT_ROOT'])) {
                 $documentRoot = $_SERVER['DOCUMENT_ROOT'];
             } else {
                 $documentRoot = $rootDir;

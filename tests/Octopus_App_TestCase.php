@@ -28,6 +28,10 @@ abstract class Octopus_App_TestCase extends PHPUnit_Extensions_OutputTestCase {
         }
     }
 
+    public function getCacheDir() {
+        return $this->getRootDir() . 'cache/';
+    }
+
     public function getOctopusDir() {
         return $this->getRootDir() . 'octopus/';
     }
@@ -37,6 +41,9 @@ abstract class Octopus_App_TestCase extends PHPUnit_Extensions_OutputTestCase {
     }
 
     public function getRootDir() {
+        if (!$this->testRootDir) {
+            $this->initEnvironment();
+        }
         return $this->testRootDir;
     }
 
@@ -264,7 +271,8 @@ abstract class Octopus_App_TestCase extends PHPUnit_Extensions_OutputTestCase {
             'ROOT_DIR' => $this->getRootDir(),
             'OCTOPUS_DIR' => $this->getOctopusDir(),
             'SITE_DIR' => $this->getSiteDir(),
-            'OCTOPUS_PRIVATE_DIR' => $this->getPrivateDir()
+            'OCTOPUS_PRIVATE_DIR' => $this->getPrivateDir(),
+            'OCTOPUS_CACHE_DIR' => $this->getCacheDir()
         );
 
         $options = array_merge($defaults, $options);

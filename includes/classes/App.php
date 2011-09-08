@@ -23,6 +23,12 @@ class Octopus_App {
     public static $defaults = array(
 
         /**
+         * Whether or not to create directories used by octopus. If true
+         * and the dirs can't be created, an exception will be thrown.
+         */
+        'create_dirs' => true,
+
+        /**
          * Alias to define for the '/' path. Set to false to not define one.
          */
         'root_alias' => 'home',
@@ -239,6 +245,10 @@ class Octopus_App {
     private function ensureDirectoriesExist() {
 
         $o =& $this->_options;
+
+        if (!$o['create_dirs']) {
+            return;
+        }
 
         foreach(array('OCTOPUS_PRIVATE_DIR', 'OCTOPUS_CACHE_DIR', 'OCTOPUS_UPLOAD_DIR') as $name) {
             
@@ -760,11 +770,12 @@ class Octopus_App {
 
         if (empty($o['URL_BASE'])) {
 
-            if (defined('URL_BASE')) {
+            if ($o['use_defines'] && defined('URL_BASE')) {
                 $o['URL_BASE'] = URL_BASE;
             } else {
 
-                $o['URL_BASE'] = find_url_base();
+                $o['URL_BASE'] = find_url_base($o['ROOT_DIR']);
+
                 if ($o['URL_BASE'] === false) {
                     $this->error('Could not determine URL_BASE. Assuming "/".');
                     $o['URL_BASE'] = '/';
