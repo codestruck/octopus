@@ -174,7 +174,7 @@ class Octopus_DB_Schema_Writer {
         }
 
         if (empty($current['index']) && !empty($this->indexes[ $field ])) {
-            $sql .= ', ADD ' . $this->indexes[ $field ];
+                $sql .= ', ADD ' . $this->indexes[ $field ];
         }
 
         return $sql;
@@ -227,15 +227,18 @@ class Octopus_DB_Schema_Writer {
 
     function create() {
 
-        $modificationFile = SITE_DIR . 'upgrades/' . $this->tableName . '.php';
-        $fnc = 'modify_database_upgrade_' . $this->tableName;
+        if ($siteDir = get_option('SITE_DIR')) {
+        
+            $modificationFile = $siteDir . 'upgrades/' . $this->tableName . '.php';
+            $fnc = 'modify_database_upgrade_' . $this->tableName;
 
-        if (is_file($modificationFile)) {
-            require_once($modificationFile);
+            if (is_file($modificationFile)) {
+                require_once($modificationFile);
 
-            if (function_exists($fnc)) {
-                $obj = $fnc($this);
-                $this->fields = $obj->fields;
+                if (function_exists($fnc)) {
+                    $obj = $fnc($this);
+                    $this->fields = $obj->fields;
+                }
             }
         }
 

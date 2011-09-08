@@ -62,7 +62,13 @@ class Octopus_DB_Error {
 
         $msg = sprintf("%s DB ERROR: %s in query '%s'", date($this->dateString), $this->error, $this->sql);
 
-        $logger = new Octopus_Logger_File(LOG_DIR . 'db.txt');
+        $logDir = get_option('LOG_DIR');
+        if (!$logDir) {
+            $logDir = get_option('OCTOPUS_PRIVATE_DIR') . 'log/';
+            @mkdir($logDir, 0777, true);
+        }
+
+        $logger = new Octopus_Logger_File($logDir . 'db.txt');
         $logger->log($msg);
     }
 

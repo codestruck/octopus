@@ -15,6 +15,10 @@ abstract class Octopus_App_TestCase extends PHPUnit_Extensions_OutputTestCase {
         $this->initEnvironment();
         $this->clear($_GET);
         $this->clear($_POST);
+
+        // Get rid of any existing app instance by starting a fresh one.
+        // (This line is important.)
+        $this->startApp();
     }
 
     function tearDown() {
@@ -34,6 +38,10 @@ abstract class Octopus_App_TestCase extends PHPUnit_Extensions_OutputTestCase {
 
     public function getRootDir() {
         return $this->testRootDir;
+    }
+
+    public function getPrivateDir() {
+        return $this->getRootDir() . '_private/';
     }
 
     public function getSiteDir() {
@@ -141,7 +149,6 @@ abstract class Octopus_App_TestCase extends PHPUnit_Extensions_OutputTestCase {
             } else {
                 // Create a working site dir
                 $siteDir = $this->getSiteDir();
-                dump_r($siteDir, is_dir($siteDir));
                 mkdir($siteDir);
                 mkdir("$siteDir/controllers");
                 mkdir("$siteDir/views");
@@ -256,7 +263,8 @@ abstract class Octopus_App_TestCase extends PHPUnit_Extensions_OutputTestCase {
             'use_globals' => false,
             'ROOT_DIR' => $this->getRootDir(),
             'OCTOPUS_DIR' => $this->getOctopusDir(),
-            'SITE_DIR' => $this->getSiteDir()
+            'SITE_DIR' => $this->getSiteDir(),
+            'OCTOPUS_PRIVATE_DIR' => $this->getPrivateDir()
         );
 
         $options = array_merge($defaults, $options);
