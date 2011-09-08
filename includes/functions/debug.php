@@ -758,10 +758,10 @@ ENDHTML;
                 $var['name'] .= " ({$var['type']})";
             }
 
-            $content[$var['name']] = self::dumpToString($var['value'], 'text', true);
+            $content[] = array('label' => $var['name'], 'text' => self::dumpToString($var['value'], 'text', true));
         }
         foreach($this->_content as $name => $c) {
-            $content[$name] = $c['content'];
+            $content[] = array('label' => $name, 'text' => $c['content']);
         }
 
         if (empty($content)) {
@@ -779,8 +779,8 @@ ENDHTML;
         $hLine = "$borderChar" . str_repeat($hLineChar, $width - ((strlen($borderChar) * 2))) . "$borderChar";
 
         $labelWidth = 0;
-        foreach($content as $label => $text) {
-            $l = min(strlen($label), $maxLabelWidth);
+        foreach($content as $item) {
+            $l = min(strlen($item['label']), $maxLabelWidth);
             if ($l > $labelWidth) {
                 $labelWidth = $l;
             }
@@ -791,11 +791,14 @@ ENDHTML;
         $result = "$hBorder\n";
         $first = true;
 
-        foreach($content as $label => $text) {
+        foreach($content as $item) {
 
             if (!$first) {
                 $result .= "$hLine\n";
             }
+
+            $label = $item['label'];
+            $text = $item['text'];
 
             $label = str_replace("\t", "    ", $label);
             $text = str_replace("\t", "    ", $text);
@@ -1098,7 +1101,32 @@ END;
     /* dumpStringToText($str) {{{ */
     private static function dumpStringToText($str) {
         $length = self::getNiceStringLength($str);
-        return '"' . $str . '" - ' . $length;
+        $result = '"' . $str . '" - ' . $length;
+
+        if (strlen($str) > 1 && $str[0] === '/' && file_exists($str)) {
+            
+            $isDir = is_dir($str);
+            $isLink = is_link($str);
+            
+            $type = 'file';
+            if ($isDir) $type = 'directory';
+            if ($isLink) $type .= ' (link)';
+
+            $result .= "\n\tExists and is a $type";
+
+            if ($isDir) {
+                $contents = @glob(rtrim($str, '/') . '/*');
+                if ($contents) {
+                    $result .= "\n\t" . count($contents) . ' file(s):';
+                    foreach($contents as $f) {
+                        $result .= "\n\t\t" . basename($f);
+                    }
+                }
+            }
+        }
+
+        return $result;
+
     } /* }}} */
 
     /* getContentHtml() {{{ */
@@ -1378,13 +1406,18 @@ if (!function_exists('dump_r')) {
 
         $count = 0;
 
-        echo "\n";
+        // Write to stderr
+        $fp = fopen('php://stderr', 'w');
+        fputs($fp, "\n");
+
         foreach(Octopus_Debug::saneBacktrace($bt) as $item) {
             if ($limit && $count >= $limit) {
                 break;
             }
-            echo "{$item['function']} at {$item['file']}, line {$item['line']}\n";
+            fputs($fp, "{$item['function']} at {$item['file']}, line {$item['line']}\n");
         }
+
+        fclose($fp);
 
     }
 

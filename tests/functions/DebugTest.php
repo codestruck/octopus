@@ -130,9 +130,12 @@ $js
 <!-- END dump_r Output }}} -->
 END;
 
+        $expected = preg_replace('/([\'"])octopusDebug\d+\1/', '', $expected);
+        $actual =   preg_replace('/([\'"])octopusDebug\d+\1/', '', $d->renderHtml(true));
+
         $this->assertHtmlEquals(
             $expected,
-            $d->renderHtml(true)
+            $actual
         );
 
     }
