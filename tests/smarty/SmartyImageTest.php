@@ -35,6 +35,11 @@ class SmartyImageTest extends Octopus_App_TestCase {
 			`rm -rf "{$cacheDir}resize"`;
 		}
 
+		$octopusDir = $this->getOctopusDir();
+		@unlink($octopusDir . 'octopus.gif');
+		@unlink($octopusDir . 'octopus.jpg');
+		@unlink($octopusDir . 'octopus.png');
+
 		parent::tearDown();
 
 
