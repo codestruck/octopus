@@ -110,7 +110,7 @@ class Octopus_App {
     private $_controllers = null, $_flatControllers = null;
     private $_prevErrorHandler = null;
     private $_currentRequest = null;
-    private $_currentResposne = null;
+    private $_currentResponse = null;
 
     private $_haveSiteDir = false;
     private $_haveSiteViews = false;
