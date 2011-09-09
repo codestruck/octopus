@@ -720,7 +720,8 @@ END;
         } else if (self::inWebContext()) {
             $content = $this->renderHtml(true);
         }  else {
-            $content = $this->renderText(true);
+            $result = $this->renderText($return);
+            return $result;
         }
 
         if ($return) {
