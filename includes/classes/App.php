@@ -110,6 +110,7 @@ class Octopus_App {
     private $_controllers = null, $_flatControllers = null;
     private $_prevErrorHandler = null;
     private $_currentRequest = null;
+    private $_currentResposne = null;
 
     private $_haveSiteDir = false;
     private $_haveSiteViews = false;
@@ -424,6 +425,14 @@ class Octopus_App {
     }
 
     /**
+     * @return The Octopus_Response currently being assembled, or null
+     * if none is in progress.
+     */
+    public function getCurrentResponse() {
+        return $this->_currentResponse;
+    }
+
+    /**
      * Calls get_file using the options specified for this app instance.
      * @return Mixed The path to the file, if found, or false if it is not
      * found.
@@ -536,9 +545,12 @@ class Octopus_App {
             }
         }
 
-        $dispatch = new Octopus_Dispatcher($this);
+        $this->_currentResponse = $resp = $this->createResponse($req, !empty($options['buffer']));
 
-        return $dispatch->getResponse($this->_currentRequest, !empty($options['buffer']));
+        $dispatch = new Octopus_Dispatcher($this);
+        $dispatch->handleRequest($req, $resp);
+
+        return $resp;
     }
 
     public function post($url, $data = array(), $options = array()) {
@@ -574,6 +586,13 @@ class Octopus_App {
         $nav = $this->getNav();
 
         return new Octopus_Request($this, $originalPath, $nav->resolve($path), $options);
+    }
+
+    /**
+     * @return Octopus_Response
+     */
+    protected function createResponse($request, $buffer = false) {
+        return new Octopus_Response($buffer);
     }
 
     /**

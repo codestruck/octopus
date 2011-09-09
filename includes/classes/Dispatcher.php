@@ -25,14 +25,13 @@ class Octopus_Dispatcher {
      * Given an Octopus_Request, renders the page and generates an
      * Octopus_Response instance for it.
      * @param $request Object An Octopus_Request instance.
+     * @param $response The response being assembled.
      * @return Object An Octopus_Response instance.
      */
-    public function &getResponse($request, $buffer = false) {
+    public function handleRequest($request, $response) {
 
         $path = $request->getResolvedPath();
         $originalPath = $request->getPath();
-
-        $response = new Octopus_Response($buffer);
 
         if (!($request->getRequestedAction() || $request->getActionArgs())) {
 
@@ -43,7 +42,7 @@ class Octopus_Dispatcher {
                 $slashUrl = $this->_app->makeUrl('/' . trim($request->getPath(), '/') . '/', $_GET);
                 $response->redirect($slashUrl);
 
-                return $response;
+                return;
             }
         }
 
@@ -65,15 +64,13 @@ class Octopus_Dispatcher {
 
         // For e.g. 301 redirects we don't need to bother rendering
         if (!$response->shouldContinueProcessing()) {
-            return $response;
+            return;
         }
 
         // TODO: Does this belong here?
         $this->augmentViewData($data);
 
         $this->render($controller, $data, $request, $response);
-
-        return $response;
     }
 
     protected function augmentViewData(&$data) {
