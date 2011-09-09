@@ -28,12 +28,9 @@ class Octopus_Http_Request {
         $this->transport = $this->getTransport();
     }
 
-    public function request($url, $data = null, $args = array()) {
-        return $this->transport->request($url, $data, $args);
-    }
-
-    public function getHeaders() {
-        return $this->transport->getHeaders();
+    public function __call($name, $args) {
+        // passthru to public functions on transport class
+        return call_user_func_array(array($this->transport, $name), $args);
     }
 
     private function getTransport() {

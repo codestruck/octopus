@@ -47,6 +47,18 @@ class TransportBase extends PHPUnit_Framework_TestCase {
         $this->assertTrue(strpos($content, "key: 'foo' value: '12'") !== false);
         $this->assertTrue(strpos($content, "key: 'bar' value: 'straight up now'") !== false);
     }
+
+    function test404() {
+
+        $url = 'http://dev.solegraphics.com/404';
+
+        $request = new $this->class();
+        $content = $request->request($url, array(), array('method' => 'GET'));
+        $headers = $request->getHeaders();
+
+        $this->assertEquals('', $content);
+        $this->assertEquals(404, $request->getResponseNumber());
+    }
 }
 
 

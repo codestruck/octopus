@@ -6,6 +6,8 @@ class Octopus_Http_Request_Base {
     protected $raw_headers;
     protected $headers;
     protected $defaults;
+    protected $responseStatus;
+    protected $responseNumber;
 
     public function __construct() {
         $this->defaults = array(
@@ -20,6 +22,14 @@ class Octopus_Http_Request_Base {
 
     public function getHeaders() {
         return $this->headers;
+    }
+
+    public function getResponseStatus() {
+        return $this->responseStatus;
+    }
+
+    public function getResponseNumber() {
+        return $this->responseNumber;
     }
 
     protected function parseUrl($url) {
@@ -52,6 +62,10 @@ class Octopus_Http_Request_Base {
         $headers = array();
         $body = array();
         $header_mode = true;
+
+        $top = array_shift($parts);
+        $this->responseStatus = substr($top, strpos($top, ' ') + 1);
+        $this->responseNumber = substr($this->responseStatus, 0, strpos($this->responseStatus, ' '));
 
         foreach ($parts as $oline) {
             $line = trim($oline);
@@ -105,6 +119,11 @@ class Octopus_Http_Request_Base {
             if ($this->headers['Content-Encoding'] == 'deflate') {
                 $content = gzinflate($content);
             }
+        }
+
+        // the 400's and 500's are bad news
+        if ($this->responseNumber >= 400) {
+            $content = '';
         }
 
         return $content;
