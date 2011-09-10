@@ -22,6 +22,8 @@ class Octopus_App {
 
     public static $defaults = array(
 
+        'default_template' => 'html/page',
+
         /**
          * Whether or not to create directories used by octopus. If true
          * and the dirs can't be created, an exception will be thrown.
@@ -318,6 +320,14 @@ class Octopus_App {
         }
 
         return $this->_nav->find($path, $options);
+    }
+
+    /**
+     * @return An Octopus_Renderer instance to use to find views and render
+     * the final page.
+     */
+    public function createRenderer() {
+        return Octopus::create('Renderer', array($this));
     }
 
     /**
@@ -869,6 +879,7 @@ class Octopus_App {
         $this->_haveSiteConfig = false;
 
         if (!$o['use_site_config']) {
+            // This is used when running the unit tests
             return;
         }
 
@@ -878,11 +889,23 @@ class Octopus_App {
         if (!$host && isset($o['HTTP_HOST'])) $host = $o['HTTP_HOST'];
 
         if (!$host) {
-            // NOTE: Getting the hostname via `hostname` can have unintended
-            // consequences when multiple app installations are running on the
-            // same server.
+
+            /* 
+             * NOTE: Getting the hostname via `hostname` can have unintended
+             * consequences when multiple app installations are running on the
+             * same server. For example, if you have apps on serverx in two
+             * places:
+             *
+             *  /var/www/app
+             *  /var/www/app/dev
+             *
+             * If 'dev.serverx' is mapped to app/dev, but hostname returns 
+             * 'serverx', any config meant for dev.serverx will not be applied.
+             */
+
             die("No hostname is known.");
         }
+
         $host = strtolower($host);
 
         $hostConfigFile = $o['SITE_DIR'] . "config.$host.php";
