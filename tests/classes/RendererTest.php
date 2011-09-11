@@ -1,12 +1,12 @@
 <?php
 
-Octopus::loadClass('Octopus_View_Finder');
+Octopus::loadClass('Octopus_Renderer');
 
-class ViewFinderTest extends Octopus_App_TestCase {
+class RendererTest extends Octopus_App_TestCase {
 
     function testFindViewsInSubdir() {
 
-        $app = $this->startApp();
+        $app = $this->getApp();
 
         $this->createControllerFile('test/ViewsInSubdir');
         $viewFile = $this->createViewFile('test/views_in_subdir/index.php');
@@ -28,7 +28,7 @@ class ViewFinderTest extends Octopus_App_TestCase {
 
     function testFindUnderscoreControllerViewsInSubdir() {
 
-        $app = $this->startApp();
+        $app = $this->getApp();
 
         $this->createControllerFile('Test_UnderscoreViewsInSubdir');
         $viewFile = $this->createViewFile('test/underscore_views_in_subdir/index.php');
@@ -50,7 +50,7 @@ class ViewFinderTest extends Octopus_App_TestCase {
 
     function testFindViewsForDashedNames() {
 
-        $app = $this->startApp();
+        $app = $this->getApp();
 
         $this->createControllerFile('FindDashView');
         $this->createControllerFile('subdir/FindSubdirDashView');
@@ -74,7 +74,7 @@ class ViewFinderTest extends Octopus_App_TestCase {
 
     function testFindUnderscoreViews() {
 
-        $app = $this->startApp();
+        $app = $this->getApp();
 
         $this->createControllerFile('UnderscoreView');
         $this->createViewFile(array('underscore_view/my_action'));
@@ -95,7 +95,7 @@ class ViewFinderTest extends Octopus_App_TestCase {
 
     function testSimpleViewDiscovery() {
 
-        $app = $this->startApp();
+        $app = $this->getApp();
 
         $this->createControllerFile('Simple');
         $this->createViewFile(array('simple/index', 'simple/view'));
@@ -119,8 +119,8 @@ class ViewFinderTest extends Octopus_App_TestCase {
 
     function testFallbackViewDiscovery() {
 
-        $app = $this->startApp();
-        $finder = new Octopus_View_Finder();
+        $app = $this->getApp();
+        $renderer = $app->createRenderer();
 
         $controllerFile = $this->createControllerFile('admin/FallbackViewTest');
         $viewFile = $this->createViewFile('add');
@@ -160,8 +160,9 @@ class ViewFinderTest extends Octopus_App_TestCase {
 
         if ($actual instanceof Octopus_Request) {
             $path = $actual->getPath();
-            $finder = new Octopus_View_Finder();
-            $actual = $finder->findView($actual, null);
+            $app = $this->getApp();
+            $renderer = $app->createRenderer();
+            $actual = $renderer->findView($actual, null);
         }
 
         $this->assertTrue(is_array($actual), "\$actual was not an array. Failed on '$path'.");

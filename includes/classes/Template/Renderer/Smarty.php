@@ -1,10 +1,10 @@
 <?php
 
-Octopus::loadExternal('smarty');
+class Octopus_Template_Renderer_Smarty extends Octopus_Template_Renderer {
 
-class Octopus_Renderer_Smarty extends Octopus_Renderer {
+    public function render(Array $data) {
 
-    public function render($data) {
+        Octopus::loadExternal('smarty');
 
         $smarty = Octopus_Smarty::singleton()->smarty;
         $smartyData = $smarty->createData();
@@ -15,7 +15,6 @@ class Octopus_Renderer_Smarty extends Octopus_Renderer {
             }
         }
         $smartyData->assign('OCTOPUS_VIEW_DATA', $data);
-        $smartyData->assign('URL_BASE', get_option('URL_BASE'));;
 
         // Look for templates in the same directory the file is in.
         $smarty->template_dir = array(dirname($this->_file));

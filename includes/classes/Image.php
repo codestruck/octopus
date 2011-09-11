@@ -216,6 +216,7 @@ class Octopus_Image {
 
         } else {
 
+            if (empty($this->output)) $this->output = new StdClass();
             $this->output->temp = imagecreatetruecolor($this->dest->canvas_w, $this->dest->canvas_h);
 
             $function = $this->getCreateFunction($this->src->ext);
