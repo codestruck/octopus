@@ -202,6 +202,13 @@ function smarty_function_image($params, $template)
 
     $imageAttrs['src'] = _octopus_smarty_get_file_url($file, $dirs, $urlBase);
 
+    if (isset($params['ignoredims']) && $params['ignoredims']) {
+        unset($imageAttrs['width']);
+        unset($imageAttrs['height']);
+    }
+    
+    unset($imageAttrs['ignoredims']);
+
     $img = new Octopus_Html_Element('img', $imageAttrs);
 
     if (!empty($linkAttrs)) {

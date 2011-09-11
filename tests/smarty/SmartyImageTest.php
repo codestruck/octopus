@@ -419,7 +419,26 @@ END;
 
 		$this->assertSmartyEquals($expected, $test, '', true, true);
 	}
+	
+	/**
+	 * @dataProvider getSiteDirImages
+	 */
+	function testHtmlImageCompatibleIgnoreDims($file, $fileUrl) {
 
+		$test = <<<END
+{image file="$file" ignoredims=true}
+{image file="$file" ignoredims=false}
+END;
+
+		$expected = <<<END
+<img src="$fileUrl?[MTIME]" />
+<img src="$fileUrl?[MTIME]" width="100" height="75" />
+END;
+
+		$this->assertSmartyEquals($expected, $test, '', true, true);
+
+	}
+	
 	/**
 	 * @dataProvider getSiteDirImages
 	 */
