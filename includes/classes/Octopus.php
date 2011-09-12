@@ -14,7 +14,7 @@ class Octopus {
     /**
      * Binds a new class to a name, to help support the IoC pattern.
      * @param String $class The custom class to bind.
-     * @param String $name The name to which to bind it. This should be 
+     * @param String $name The name to which to bind it. This should be
      * the Octopus class name minus the initial 'Octopus_'.
      */
     public static function bind($name, $class) {
@@ -52,12 +52,12 @@ class Octopus {
      * @return Object A class instance.
      */
     public static function create($name, Array $args = array()) {
-        
+
         $class = self::getClass($name);
         self::loadClass($class);
 
         switch(count($args)) {
-            
+
             // Don't use reflection for 99.999999% of cases
             case 0: return new $class();
             case 1: return new $class($args[0]);
@@ -77,12 +77,12 @@ class Octopus {
      * Gets the class that is bound to the given name.
      */
     public static function getClass($name) {
-          
+
         $class = 'Octopus_' . $name;
 
         if (!empty(self::$_bindings[$name])) {
             $class = self::$_bindings[$name][0];
-        } 
+        }
         return $class;
     }
 
@@ -114,7 +114,7 @@ class Octopus {
 
         if (!$filepath) {
 
-            if ($errorWhenMissing) {
+            if ($exceptionWhenMissing) {
                 throw new Octopus_Exception("Could not load class: $classname");
             }
 
