@@ -2,6 +2,9 @@
 
 Octopus::loadClass('Octopus_Html_Element');
 
+/**
+ * @group Html
+ */
 class ElementTests extends Octopus_Html_TestCase {
 
     function testSingleTagRender() {
@@ -143,9 +146,11 @@ class ElementTests extends Octopus_Html_TestCase {
     function testSetInnerHtml() {
 
         $e = new Octopus_Html_Element('span');
-        $e->html('<b>bold!</b>');
+        $result = $e->html('<b>bold!</b>');
 
         $this->assertHtmlEquals('<span><b>bold!</b></span>', $e->render(true));
+
+        $this->assertEquals($e, $result);
 
     }
 

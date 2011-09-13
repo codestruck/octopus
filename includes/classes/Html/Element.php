@@ -368,6 +368,7 @@ class Octopus_Html_Element {
      */
     public function html($html) {
         $this->_content = array($html);
+        return $this;
     }
 
     public function setAttribute($key, $value) {
