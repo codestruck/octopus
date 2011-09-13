@@ -68,7 +68,7 @@
             $oldArgs[$key] = $value;
         }
 
-        $qs = http_build_query($oldArgs);
+        $qs = octopus_http_build_query($oldArgs);
 
         if ($qs) {
             $url .= '?' . $qs;
@@ -77,11 +77,31 @@
         return $url;
     }
 
+    // native version requires 5.4 to properly encode spaces for GET requests
+    function octopus_http_build_query($data, $seperator = '&', $method = 'GET') {
+
+        $str = '';
+        $encFunc = 'rawurlencode';
+        if (strtoupper($method) == 'POST') {
+            $encFunc = 'urlencode';
+        }
+
+        foreach ($data as $key => $value) {
+            if ($value !== null) {
+                $str .= $encFunc($key) . '=' . $encFunc($value) . $seperator;
+            }
+        }
+        $str = rtrim($str, $seperator);
+
+        return $str;
+
+    }
+
     /**
      * Cancels any upcoming redirects.
      */
     function cancel_redirects($cancel = true) {
-        
+
         $GLOBALS['__OCTOPUS_CANCEL_REDIRECT__'] = $cancel;
 
         if (defined('DEV') && DEV && class_exists('Octopus_Debug')) {
@@ -105,9 +125,9 @@
     function find_url_base($rootDir = null, $documentRoot = null) {
 
         $rootDir = $rootDir ? $rootDir : ROOT_DIR;
-        
+
         if (!$documentRoot) {
-            
+
             if (!empty($_SERVER['DOCUMENT_ROOT'])) {
                 $documentRoot = $_SERVER['DOCUMENT_ROOT'];
             } else {
@@ -222,11 +242,11 @@
 
             $d = new Octopus_Debug();
             $d->addSquashedRedirect($location);
-            
+
             if (!empty($GLOBALS['__OCTOPUS_CANCEL_REDIRECT_BACKTRACE'])) {
                 $d->add('Cancellation Source Backtrace', Octopus_Debug::getBacktraceHtml($GLOBALS['__OCTOPUS_CANCEL_REDIRECT_BACKTRACE']));
             }
-            
+
             if ($resp) {
                 $resp->append($d->render(true));
             } else {
@@ -352,7 +372,7 @@
 
         // Handle being handed in a full url
         if (preg_match('#\s*([a-z0-9_-]*)://([^/]*?)(:(\d+))?/(.*)#i', $path, $m)) {
-            
+
             $inScheme = $m[1];
             $inServer = $m[2];
             $inPort = $m[4];
