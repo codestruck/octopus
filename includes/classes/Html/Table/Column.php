@@ -438,7 +438,7 @@ class Octopus_Html_Table_Column {
 
             $useExtraArgs = true;
             if ($isString) {
-                $noExtraArgs = array('htmlspecialchars', 'htmlentities', 'trim', 'ltrim', 'rtrim', 'nl2br');
+                $noExtraArgs = array('htmlspecialchars', 'htmlentities', 'trim', 'ltrim', 'rtrim', 'nl2br', 'basename');
                 $useExtraArgs = !in_array($f, $noExtraArgs);
             }
 
@@ -450,7 +450,7 @@ class Octopus_Html_Table_Column {
 
         }
 
-        return '<span style="color:red;">Function not found: ' . htmlspecialchars($f) . '</span>';
+        return '<span style="color:red;">Function not found: ' . h($f) . '</span>';
 
     }
 
