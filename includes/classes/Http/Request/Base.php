@@ -1,23 +1,5 @@
 <?php
 
-// native version required 5.4 to properly encode spaces for GET requests
-function octopus_http_build_query($data, $seperator = '&', $method = 'GET') {
-
-    $str = '';
-    $encFunc = 'rawurlencode';
-    if (strtoupper($method) == 'POST') {
-        $encFunc = 'urlencode';
-    }
-
-    foreach ($data as $key => $value) {
-        $str .= $encFunc($key) . '=' . $encFunc($value) . $seperator;
-    }
-    $str = rtrim($str, $seperator);
-
-    return $str;
-
-}
-
 class Octopus_Http_Request_Base {
 
     protected $args;
