@@ -61,6 +61,12 @@ END;
             'should not do anything to #links'
         );
 
+        $this->assertEquals(
+            '/test/foo?color=has%20space',
+            u('/test/foo', array('color' => 'has space')),
+            'proper escaping of spaces"'
+        );
+
     }
 
     function testFindUrlBase() {
@@ -161,7 +167,7 @@ END;
     }
 
     function testGetFullUrl() {
-        
+
         $tests = array(
 
             'http://myserver.com/subdir/foo/bar' => array(
@@ -177,7 +183,7 @@ END;
                 'input' => '/foo/bar',
                 'message' => '$_SERVER[HTTPS] = on',
                 '_SERVER' => array(
-                    'HTTPS' => 'on', 
+                    'HTTPS' => 'on',
                     'HTTP_HOST' => 'myserver.com'
                 ),
                 'URL_BASE' => '/subdir/'
@@ -236,7 +242,7 @@ END;
         );
 
         foreach($tests as $expected => $params) {
-          
+
           $ogHost = (isset($_SERVER['HTTP_HOST'])) ? $_SERVER['HTTP_HOST'] : null;
 
           foreach($_SERVER as $key => $value) {
@@ -259,8 +265,8 @@ END;
           } else {
               $_SERVER['HTTP_HOST'] = $ogHost;
           }
-        }   
-    
+        }
+
     }
 
     /**
@@ -269,7 +275,7 @@ END;
     function testGetFullUrlWithRelativePathThrowsException() {
 
         get_full_url('some/relative/path');
-        
+
     }
 
     function testMakeExternalUrl() {
