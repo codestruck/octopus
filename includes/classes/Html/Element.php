@@ -652,7 +652,7 @@ class Octopus_Html_Element {
         } catch(Exception $ex) {
             // PHP by default just says "__toString should not throw an exception"
             dump_r($ex);
-
+            return '';
         }
     }
 
