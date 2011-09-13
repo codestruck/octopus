@@ -1,5 +1,23 @@
 <?php
 
+// native version required 5.4 to properly encode spaces for GET requests
+function octopus_http_build_query($data, $seperator = '&', $method = 'GET') {
+
+    $str = '';
+    $encFunc = 'rawurlencode';
+    if (strtoupper($method) == 'POST') {
+        $encFunc = 'urlencode';
+    }
+
+    foreach ($data as $key => $value) {
+        $str .= $encFunc($key) . '=' . $encFunc($value) . $seperator;
+    }
+    $str = rtrim($str, $seperator);
+
+    return $str;
+
+}
+
 class Octopus_Http_Request_Base {
 
     protected $args;
@@ -32,7 +50,7 @@ class Octopus_Http_Request_Base {
         return $this->responseNumber;
     }
 
-    protected function parseUrl($url) {
+    protected function parseUrl($url, $queryArgs) {
 
         $urlInfo = parse_url($url);
 
@@ -53,7 +71,22 @@ class Octopus_Http_Request_Base {
 
         $secure = ($urlInfo['scheme'] == 'https');
 
-        return array($host, $port, $path, $secure);
+        if (strtoupper($this->args['method']) == 'GET' && $queryArgs) {
+
+            if (is_array($queryArgs)) {
+                $queryArgs = octopus_http_build_query($queryArgs, '&');
+            }
+
+            if (strpos($path, '?') === false) {
+                $path .= '?' . $queryArgs;
+            } else {
+                $path = end_in('&', $path);
+                $path .= $queryArgs;
+            }
+
+        }
+
+        return array($host, $port, $path, $secure, $urlInfo['scheme']);
 
     }
 
@@ -108,7 +141,7 @@ class Octopus_Http_Request_Base {
                 return '';
             }
 
-            $content = $this->request($this->headers['Location'], $args);
+            $content = $this->request($this->headers['Location'], array(), $args);
 
         }
 
