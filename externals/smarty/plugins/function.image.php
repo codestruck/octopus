@@ -150,6 +150,11 @@ function smarty_function_image($params, $template)
             $missingAttrs['class'] = 'missing';
         }
 
+        // preserve existing classname
+        if (isset($imageAttrs['class'])) {
+            $missingAttrs['class'] = $imageAttrs['class'] . ' ' . $missingAttrs['class'];
+        }
+
         if (isset($missingAttrs['src'])) {
 
             $file = _octopus_smarty_find_image($missingAttrs['src'], $dirs, $urlBase, $template, $tries);
@@ -206,7 +211,7 @@ function smarty_function_image($params, $template)
         unset($imageAttrs['width']);
         unset($imageAttrs['height']);
     }
-    
+
     unset($imageAttrs['ignoredims']);
 
     $img = new Octopus_Html_Element('img', $imageAttrs);
@@ -264,13 +269,13 @@ function _octopus_smarty_find_image($src, $dirs, $urlBase, $template, &$tries = 
             return $file;
         }
         if ($tries !== null) $tries[] = $file;
-    }    
+    }
 
     $src = ltrim($src, '/');
     foreach($dirs as $dirname => $dir) {
 
         $file = $dir . $src;
-        
+
         if (is_file($file)) {
             return $file;
         }
@@ -313,7 +318,7 @@ function _octopus_smarty_get_file_url($file, $dirs, $urlBase, $includeModTime = 
             }
             if (starts_with($dir, $soleCmsRootDirHack)) {
                 $dir = rtrim(substr($dir, strlen($soleCmsRootDirHack)), '/');
-            }            
+            }
         }
 
         $dir = ltrim($dir, '/');
