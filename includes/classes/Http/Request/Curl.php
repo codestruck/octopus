@@ -8,9 +8,8 @@ class Octopus_Http_Request_Curl extends Octopus_Http_Request_Base {
 
         $this->args = array_merge($this->defaults, $args);
 
-        list($host, $port, $path) = $this->parseUrl($url);
-
-        $ip = gethostbyname($host);
+        list($host, $port, $path, $secure, $protocol) = $this->parseUrl($url, $data);
+        $url = $protocol . '://' . $host . $path;
 
         $handle = curl_init();
 
@@ -24,6 +23,11 @@ class Octopus_Http_Request_Curl extends Octopus_Http_Request_Base {
             curl_setopt($handle, CURLOPT_POST, true);
 
             if ($data) {
+
+                if (is_array($data)) {
+                    $data = octopus_http_build_query($data, '&', 'POST');
+                }
+
                 curl_setopt($handle, CURLOPT_POSTFIELDS, $data);
             }
 
