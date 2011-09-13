@@ -366,9 +366,10 @@ class Octopus_Html_Table_Column {
             $value = $obj[$id];
         }
 
-        $value = $this->applyFunction($value, $obj);
+        $escape = $this->options['escape'];
+        $value = $this->applyFunction($value, $obj, $escape);
 
-        if ($this->options['escape']) {
+        if ($escape) {
 
             if (is_object($value)) {
 
@@ -377,7 +378,7 @@ class Octopus_Html_Table_Column {
                 }
 
             } else {
-                $value = htmlspecialchars($value);
+                $value = h($value);
             }
 
         }
@@ -404,7 +405,7 @@ class Octopus_Html_Table_Column {
      * value.
      * @return Mixed The modified value.
      */
-    protected function applyFunction(&$value, &$row) {
+    protected function applyFunction(&$value, &$row, &$escape) {
 
         if (empty($this->options['function'])) {
             return $value;
@@ -450,6 +451,7 @@ class Octopus_Html_Table_Column {
 
         }
 
+        $escape = false;
         return '<span style="color:red;">Function not found: ' . h($f) . '</span>';
 
     }
