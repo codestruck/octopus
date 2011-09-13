@@ -144,6 +144,30 @@ END;
 
     }
 
+    function testFollowRelation() {
+        
+        $inactivePosts = FindPost::all()->where(array('active' => 0));
+        $this->assertEquals(1, $inactivePosts->count());
+
+        $inactivePostAuthors = $inactivePosts->followRelation('author');
+        $this->assertEquals(1, $inactivePostAuthors->count());
+
+    }
+
+    function testRemoveFollowRelation() {
+        
+        $inactivePosts = FindPost::all()->where(array('active' => 0));
+        $this->assertEquals(1, $inactivePosts->count());
+
+        $inactivePostAuthors = $inactivePosts->followRelation('author');
+        $this->assertEquals(1, $inactivePostAuthors->count());
+
+        $onlyActiveAuthors = FindAuthor::all()->remove($inactivePostAuthors);
+        $this->assertEquals(1, $onlyActiveAuthors->count());
+
+
+    }
+
     function testDelete() {
         $all = FindPost::all();
 
