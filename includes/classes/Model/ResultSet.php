@@ -83,6 +83,33 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpa
     }
 
     /**
+     * @return bool Whether this resultset contains each item referenced in the
+     * arguments.
+     */
+    public function contains(/* variable */) {
+        
+        $args = func_get_args();
+        foreach($args as $arg) {
+            
+            if (!is_numeric($arg)) {
+                $arg = $arg->id;
+            }
+
+            if (!$arg) {
+                return false;
+            }
+
+            if (!$this->where(array('id' => $arg))->count()) {
+                return false;
+            }
+
+        }
+
+        return true;
+
+    }
+
+    /**
      * Deletes all results
      */
     public function delete() {

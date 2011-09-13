@@ -113,6 +113,37 @@ END;
 
     }
 
+    function testContainsModel() {
+        
+        $inactivePost = new FindPost(5);
+
+        $all = FindPost::all();
+        $this->assertTrue($all->contains($inactivePost), 'positive contains');
+
+        $active = $all->whereActive();
+        $this->assertFalse($active->contains($inactivePost), 'negative contains');
+
+    }
+
+    function testContainsID() {
+        
+        $all = FindPost::all();
+        $this->assertTrue($all->contains(5), 'positive contains');
+
+        $active = $all->whereActive();
+        $this->assertFalse($active->contains(5), 'negative contains');        
+    }
+
+    function testContainsMulti() {
+
+        $all = FindPost::all();
+        $this->assertTrue($all->contains(1, 5), 'positive contains');
+
+        $active = $all->whereActive();
+        $this->assertFalse($active->contains(1, 5), 'negative contains');        
+
+    }
+
     function testDelete() {
         $all = FindPost::all();
 
