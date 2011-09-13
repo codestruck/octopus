@@ -53,9 +53,9 @@ class Octopus_Debug {
 
     // Constructor {{{
 
-    public function __construct($id = '__octopus_debug') {
+    public function __construct($id = null) {
 
-        $this->_id = $id;
+        $this->_id = $id ? $id : self::getNewId();
 
     // Standard Debug CSS {{{
         self::$css = <<<END
@@ -80,6 +80,7 @@ class Octopus_Debug {
         max-width: 1000px;
         overflow: hidden;
         padding: 0;
+        position: relative;
         text-align: left;
     }
 
@@ -192,7 +193,8 @@ class Octopus_Debug {
 
     span.octopusDebugString span.octopusDebugStringLength,
     span.octopusDebugDateFromNumber,
-    .octopusDebugNumberType {
+    .octopusDebugNumberType,
+    .octopusDebugOctalNumber, .octopusDebugHexNumber {
         color: #888;
         font-size: 0.9em;
     }
@@ -252,6 +254,16 @@ class Octopus_Debug {
     span.octopusDebugBoolean {
         color: #005;
         font-weight: bold;
+    }
+
+    a.octopusDebugCollectLink {
+        color: #fff;
+        position: absolute;
+        font-size: 20px;
+        font-weight: bold;
+        right: 5px;
+        top: -7px;
+
     }
 
 -->
@@ -381,35 +393,61 @@ function __octopus_toggleRaw(niceID, rawID, buttonID) {
 
 }
 
-function __octopus_debug_onload() {
+function __octopus_debug_collect_at_bottom() {
     
-    if (document.getElementsByClassName) {
+    if (!document.getElementsByClassName) {
+        return;
+    }
         
-        var els = document.getElementsByClassName("octopusDebug");
-        var last = null;
-        for(var el in els) {
-            el = els[el];
+    var els = document.getElementsByClassName("octopusDebug");
+    var ar = [];
+    
+    for(var i = 0; i < els.length; i++) {
+        ar[i] = els[i];
+    }
 
-            // Don't pull dump_r out of collapsible output at the bottom
-            if (el.parentNode && /form-item/.test(el.parentNode.className || '')) {
-                continue;
-            }
+    var lastInserted = null;
 
-            if (el.parentNode) el.parentNode.removeChild(el);
-            try {
-                document.body.insertBefore(el, last ? last.nextSibling :null);
-            } catch (ex) {}
-            last = el;
-        }
+    for(var i = 0; i < ar.length; i++) {
+        var el = ar[i];
+        document.body.insertBefore(el, lastInserted ? lastInserted.nextSibling : null);
+        lastInserted = el;
+    }
 
+    var links = document.getElementsByClassName('octopusDebugCollectLink');
+    while(links.length) {
+        links[0].parentNode.removeChild(links[0]);
     }
 
 }
 
+function __octopus_debug_onload() {
+    
+    if (document.getElementsByClassName) {
+        
+        var blocks = document.getElementsByClassName("octopusDebug");
+        for(var i = 0; i < blocks.length; i++) {
+        
+            var block = blocks[i]
+            if (block.__octopus_collectLink) {
+                continue;
+            }
+            var collectLink = document.createElement('a');
+            collectLink.className = 'octopusDebugCollectLink';
+            collectLink.href="#moveToBottom";
+            collectLink.title = 'Move debug output to the bottom';
+            collectLink.appendChild(document.createTextNode('\u2193'));
+            collectLink.onclick = function() { __octopus_debug_collect_at_bottom(); return false; };
+            block.appendChild(collectLink);
+            block.__octopus_collectLink = collectLink;
+        }
+    }
+
+}
 if (window.attachEvent) {
     window.attachEvent('onload', __octopus_debug_onload);
 } else if (window.addEventListener) {
-    window.addEventListener('load', __octopus_debug_onload);
+    window.addEventListener('load', __octopus_debug_onload, true);
 }
 </script>
 
@@ -649,15 +687,16 @@ END;
 
         $display_errors = ini_get('display_errors') ? 'on' : 'off';
 
-        list($usec, $sec) = explode(" ", microtime());
-        $current = ((float)$usec + (float)$sec);
-        $diff = round($current - $_SERVER['REQUEST_TIME_MILLISECOND'], 3);
+        $elapsed = round(microtime(true) - $_SERVER['REQUEST_TIME_MILLISECOND'], 3);
+
+        // NOTE: the OCTOPUS_TOTAL_RENDER_TIME is replaced by render_page, and
+        // only when we are running in DEV mode.
 
         return <<<END
         <ul class="octopusDebugErrorReporting">
         <li>error_reporting: $flags</li>
         <li>display_errors: $display_errors</li>
-        <li>$diff sec</li>
+        <li>$elapsed <!-- OF_OCTOPUS_TOTAL_RENDER_TIME --> sec</li>
         </ul>
 END;
 
@@ -674,13 +713,31 @@ END;
 
     public function render($return = false) {
 
+        $content = '';
+
         if (self::inJavascriptContext()) {
-            return $this->renderJson($return);
+            $content = $this->renderJson(true);
         } else if (self::inWebContext()) {
-            return $this->renderHtml($return);
+            $content = $this->renderHtml(true);
         }  else {
-            return $this->renderText($return);
+            $result = $this->renderText($return);
+            return $result;
         }
+
+        if ($return) {
+            return $content;
+        }
+
+        if (class_exists('Octopus_App') && Octopus_App::isStarted()) {
+            $app = Octopus_App::singleton();
+            $resp = $app->getCurrentResponse();
+            if ($resp) {
+                $resp->append($content);
+                return;
+            }
+        }
+
+        echo $content;
     }
 
     /* renderHtml($return = false) {{{ */
@@ -701,15 +758,17 @@ $text
 
 END;
 
-        if (!self::$_renderedCss || $return) {
+    
+        if (!self::$_renderedCss) {
             $result .= self::$css;
-            if (!$return) self::$_renderedCss = true;
         }
 
-        if (!self::$_renderedJs || $return) {
+        if (!self::$_renderedJs) {
             $result .= self::$js;
-            if (!$return) self::$_renderedJs = true;
         }
+
+
+
 
         $content = $this->getContentHtml();
 
@@ -724,6 +783,8 @@ ENDHTML;
             return $result;
         } else {
             echo $result;
+            self::$_renderedJs = true;
+            self::$_renderedCss = true;
         }
 
     } /* }}} */
@@ -758,10 +819,10 @@ ENDHTML;
                 $var['name'] .= " ({$var['type']})";
             }
 
-            $content[$var['name']] = self::dumpToString($var['value'], 'text', true);
+            $content[] = array('label' => $var['name'], 'text' => self::dumpToString($var['value'], 'text', true));
         }
         foreach($this->_content as $name => $c) {
-            $content[$name] = $c['content'];
+            $content[] = array('label' => $name, 'text' => $c['content']);
         }
 
         if (empty($content)) {
@@ -779,8 +840,8 @@ ENDHTML;
         $hLine = "$borderChar" . str_repeat($hLineChar, $width - ((strlen($borderChar) * 2))) . "$borderChar";
 
         $labelWidth = 0;
-        foreach($content as $label => $text) {
-            $l = min(strlen($label), $maxLabelWidth);
+        foreach($content as $item) {
+            $l = min(strlen($item['label']), $maxLabelWidth);
             if ($l > $labelWidth) {
                 $labelWidth = $l;
             }
@@ -791,11 +852,14 @@ ENDHTML;
         $result = "$hBorder\n";
         $first = true;
 
-        foreach($content as $label => $text) {
+        foreach($content as $item) {
 
             if (!$first) {
                 $result .= "$hLine\n";
             }
+
+            $label = $item['label'];
+            $text = $item['text'];
 
             $label = str_replace("\t", "    ", $label);
             $text = str_replace("\t", "    ", $text);
@@ -1079,6 +1143,19 @@ END;
             $result .= '<span class="octopusDebugDateFromNumber">&nbsp;&mdash;&nbsp;' . htmlspecialchars($date) . "</span>";
         }
 
+        if ($type === 'integer') {
+
+            $hex = sprintf('%X', $x);
+            $result .= '<span class="octopusDebugHexNumber">&nbsp;&mdash;&nbsp;hex #' . $hex . '</span>';
+            
+            $octal = sprintf('%o', $x);
+            $result .= '<span class="octopusDebugOctalNumber">&nbsp;&mdash;&nbsp;octal ' . $octal;
+            if ($x >= 0100111 && $x <= 0100777) {
+                $result .= ' <span class="octopusDebugNumberAsPermissions">(' . self::getNumberAsFilePermissions($x) . ')</span>';
+            }
+            $result .= '</span>';
+        }
+
         return $result;
     } /* }}} */
 
@@ -1098,7 +1175,32 @@ END;
     /* dumpStringToText($str) {{{ */
     private static function dumpStringToText($str) {
         $length = self::getNiceStringLength($str);
-        return '"' . $str . '" - ' . $length;
+        $result = '"' . $str . '" - ' . $length;
+
+        if (strlen($str) > 1 && $str[0] === '/' && file_exists($str)) {
+            
+            $isDir = is_dir($str);
+            $isLink = is_link($str);
+            
+            $type = 'file';
+            if ($isDir) $type = 'directory';
+            if ($isLink) $type .= ' (link)';
+
+            $result .= "\n\tExists and is a $type";
+
+            if ($isDir) {
+                $contents = @glob(rtrim($str, '/') . '/*');
+                if ($contents) {
+                    $result .= "\n\t" . count($contents) . ' file(s):';
+                    foreach($contents as $f) {
+                        $result .= "\n\t\t" . basename($f);
+                    }
+                }
+            }
+        }
+
+        return $result;
+
     } /* }}} */
 
     /* getContentHtml() {{{ */
@@ -1200,6 +1302,58 @@ END;
 
         return $niceLength;
     } /* }}} */
+
+    private static function getNumberAsFilePermissions($perms) {
+        
+        if (($perms & 0xC000) == 0xC000) {
+            // Socket
+            $info = 's';
+        } elseif (($perms & 0xA000) == 0xA000) {
+            // Symbolic Link
+            $info = 'l';
+        } elseif (($perms & 0x8000) == 0x8000) {
+            // Regular
+            $info = '-';
+        } elseif (($perms & 0x6000) == 0x6000) {
+            // Block special
+            $info = 'b';
+        } elseif (($perms & 0x4000) == 0x4000) {
+            // Directory
+            $info = 'd';
+        } elseif (($perms & 0x2000) == 0x2000) {
+            // Character special
+            $info = 'c';
+        } elseif (($perms & 0x1000) == 0x1000) {
+            // FIFO pipe
+            $info = 'p';
+        } else {
+            // Unknown
+            $info = 'u';
+        }
+
+        // Owner
+        $info .= (($perms & 0x0100) ? 'r' : '-');
+        $info .= (($perms & 0x0080) ? 'w' : '-');
+        $info .= (($perms & 0x0040) ?
+                    (($perms & 0x0800) ? 's' : 'x' ) :
+                    (($perms & 0x0800) ? 'S' : '-'));
+
+        // Group
+        $info .= (($perms & 0x0020) ? 'r' : '-');
+        $info .= (($perms & 0x0010) ? 'w' : '-');
+        $info .= (($perms & 0x0008) ?
+                    (($perms & 0x0400) ? 's' : 'x' ) :
+                    (($perms & 0x0400) ? 'S' : '-'));
+
+        // World
+        $info .= (($perms & 0x0004) ? 'r' : '-');
+        $info .= (($perms & 0x0002) ? 'w' : '-');
+        $info .= (($perms & 0x0001) ?
+                    (($perms & 0x0200) ? 't' : 'x' ) :
+                    (($perms & 0x0200) ? 'T' : '-'));        
+
+        return $info;
+    }
 
     /* sanitizeDebugOutput($output) {{{ */
     private static function sanitizeDebugOutput($output) {
@@ -1378,13 +1532,18 @@ if (!function_exists('dump_r')) {
 
         $count = 0;
 
-        echo "\n";
+        // Write to stderr
+        $fp = fopen('php://stderr', 'w');
+        fputs($fp, "\n");
+
         foreach(Octopus_Debug::saneBacktrace($bt) as $item) {
             if ($limit && $count >= $limit) {
                 break;
             }
-            echo "{$item['function']} at {$item['file']}, line {$item['line']}\n";
+            fputs($fp, "{$item['function']} at {$item['file']}, line {$item['line']}\n");
         }
+
+        fclose($fp);
 
     }
 

@@ -112,7 +112,7 @@ $text
 -->
 $css
 $js
-<div id="__octopus_debug" class="octopusDebug">
+<div id="octopusDebug1" class="octopusDebug">
     <ul class="octopusDebugTabButtons">
         <li id="octopusDebug2" class="octopusDebugTabButton octopusDebugTabButtonSelected">
             <a href="#" onclick="__octopus_openTab('octopusDebug3', 'octopusDebug2'); return false;">foo</a>

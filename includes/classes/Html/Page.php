@@ -34,14 +34,8 @@ class Octopus_Html_Page {
         $this->options = array_merge(self::$defaults, $options);
 
         if (!isset($this->options['URL_BASE'])) {
-
-            if (class_exists('Octopus_App') && Octopus_App::isStarted()) {
-                $app = Octopus_App::singleton();
-                $this->options['URL_BASE'] = $app->getOption('URL_BASE');
-            } else {
-                $this->options['URL_BASE'] = find_url_base();
-            }
-
+            $urlBase = get_option('URL_BASE');
+            $this->options['URL_BASE'] = $urlBase ? $urlBase : find_url_base();
         }
 
         $this->setMeta('Content-type', 'text/html; charset=UTF-8');

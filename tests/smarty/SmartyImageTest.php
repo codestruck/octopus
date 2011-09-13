@@ -35,6 +35,11 @@ class SmartyImageTest extends Octopus_App_TestCase {
 			`rm -rf "{$cacheDir}resize"`;
 		}
 
+		$octopusDir = $this->getOctopusDir();
+		@unlink($octopusDir . 'octopus.gif');
+		@unlink($octopusDir . 'octopus.jpg');
+		@unlink($octopusDir . 'octopus.png');
+
 		parent::tearDown();
 
 
@@ -149,19 +154,19 @@ END;
 	function testImageInOctopusDir($file, $fileUrl) {
 
 		$name = basename($file);
-		$dir = 'tests/.working/';
+		
+		$octopusDir = $this->getOctopusDir();
+		$octopusFile = $this->getOctopusDir() . $name;
 
-		$octopusFile = $this->getOctopusDir() . $dir . $name;
 		@unlink($octopusFile);
 		copy($file, $octopusFile);
 
-		$octopusUrl = $this->getOctopusDirUrl() . $dir;
-
+		$octopusUrl = $this->getOctopusDirUrl();
 		$mtime = filemtime($octopusFile);
 
 
 		$test = <<<END
-{image src="/{$dir}$name"}
+{image src="{$octopusDir}$name"}
 END;
 		$expected = <<<END
 <img src="{$octopusUrl}$name?$mtime" width="100" height="75" />
@@ -266,16 +271,100 @@ END;
 
 		$info = pathinfo($file);
 
+		// NOTE: Octopus_Image_Mode_Resize does not let you resize something w/ a different
+		// aspect ratio, so resizing a 100x75 image to 10x5 results in a 6x5 image.
+
 		$expected = <<<END
 <img src="$fileUrl?[MTIME]" width="10" height="5" />
 <img src="$fileUrl?[MTIME]" width="100" height="75" />
-<img src="/cache/resize/[MTIME]_r_[MD5]_10x5.{$info['extension']}?[MTIME]" width="10" height="5" />
+<img src="/cache/smarty_image/[MTIME]_[MD5]_r_10x5_.{$info['extension']}?[MTIME]" width="6" height="5" />
 END;
 
 		$this->assertSmartyEquals($expected, $test, '', true, true);
 	}
 
+	/**
+	 * @dataProvider getSiteDirImages
+	 */
+	function testCrop($file, $fileUrl) {
 
+		$test = <<<END
+{image src="$file" width="10" height="5"}
+{image src="$file" width="100" height="75" crop="true"}
+{image src="$file" width="10" height="5" crop="true"}
+END;
+
+		$info = pathinfo($file);
+
+		$expected = <<<END
+<img src="$fileUrl?[MTIME]" width="10" height="5" />
+<img src="$fileUrl?[MTIME]" width="100" height="75" />
+<img src="/cache/smarty_image/[MTIME]_[MD5]_c_10x5_.{$info['extension']}?[MTIME]" width="10" height="5" />
+END;
+
+		$this->assertSmartyEquals($expected, $test, '', true, true);
+	}
+
+	/**
+	 * @dataProvider getSiteDirImages
+	 */
+	function testActionsEqualsCrop($file, $fileUrl) {
+
+		$actions = array('c', 'crop');
+
+		foreach($actions as $action) {
+		
+			$test = <<<END
+{image src="$file" width="10" height="5"}
+{image src="$file" width="100" height="75" action="$action"}
+{image src="$file" width="10" height="5" action="$action"}
+END;
+
+			$info = pathinfo($file);
+
+			$actionFileName = $action[0];
+
+			$expected = <<<END
+<img src="$fileUrl?[MTIME]" width="10" height="5" />
+<img src="$fileUrl?[MTIME]" width="100" height="75" />
+<img src="/cache/smarty_image/[MTIME]_[MD5]_{$actionFileName}_10x5_.{$info['extension']}?[MTIME]" width="10" height="5" />
+END;
+
+			$this->assertSmartyEquals($expected, $test, '', true, true);			
+		}
+	}
+
+	/**
+	 * @dataProvider getSiteDirImages
+	 */
+	function testActionsEqualsResize($file, $fileUrl) {
+
+		$actions = array('r', 'resize');
+
+		foreach($actions as $action) {
+		
+			$test = <<<END
+{image src="$file" width="10" height="5"}
+{image src="$file" width="100" height="75" action="$action"}
+{image src="$file" width="10" height="5" action="$action"}
+END;
+
+			$info = pathinfo($file);
+
+		// NOTE: Octopus_Image_Mode_Resize does not let you resize something w/ a different
+		// aspect ratio, so resizing a 100x75 image to 10x5 results in a 6x5 image.
+
+			$actionFileName = $action[0];
+
+			$expected = <<<END
+<img src="$fileUrl?[MTIME]" width="10" height="5" />
+<img src="$fileUrl?[MTIME]" width="100" height="75" />
+<img src="/cache/smarty_image/[MTIME]_[MD5]_{$actionFileName}_10x5_.{$info['extension']}?[MTIME]" width="6" height="5" />
+END;
+
+			$this->assertSmartyEquals($expected, $test, '', true, true);			
+		}
+	}
 
 	/**
 	 * @dataProvider getSiteDirImages
@@ -307,7 +396,7 @@ END;
 
 		$expected = <<<END
 <img src="$fileUrl?[MTIME]" width="100" height="75" />
-<img src="/cache/resize/[MTIME]_r_[MD5]_10x5.{$info['extension']}?[MTIME]" width="10" height="5" />
+<img src="/cache/smarty_image/[MTIME]_[MD5]_r_10x5_.{$info['extension']}?[MTIME]" width="6" height="5" />
 END;
 
 		$this->assertSmartyEquals($expected, $test, '', true, true);
@@ -330,17 +419,74 @@ END;
 
 		$this->assertSmartyEquals($expected, $test, '', true, true);
 	}
+	
+	/**
+	 * @dataProvider getSiteDirImages
+	 */
+	function testHtmlImageCompatibleIgnoreDims($file, $fileUrl) {
+
+		$test = <<<END
+{image file="$file" ignoredims=true}
+{image file="$file" ignoredims=false}
+END;
+
+		$expected = <<<END
+<img src="$fileUrl?[MTIME]" />
+<img src="$fileUrl?[MTIME]" width="100" height="75" />
+END;
+
+		$this->assertSmartyEquals($expected, $test, '', true, true);
+
+	}
+	
+	/**
+	 * @dataProvider getSiteDirImages
+	 */
+	function testResizeConstrained($file, $fileUrl) {
+		
+		$constraints = array(
+			'width' => array(
+				'width' => 50,
+				'height' => 37
+			),
+			'height' => array(
+				'width' => 13,
+				'height' => 10,
+			)
+		);
+		$constraints['w'] = $constraints['width'];
+		$constraints['h'] = $constraints['height'];
+
+		$info = pathinfo($file);
+
+		foreach($constraints as $constrain => $dims) {
+
+			$constrainFileName = $constrain[0];
+
+			$test = <<<END
+{image file="$file" width="50" height="10" constrain="$constrain" resize="true"}
+END;
+			$expected = <<<END
+<img src="/cache/smarty_image/[MTIME]_[MD5]_r_50x10_{$constrainFileName}.{$info['extension']}?[MTIME]" width="{$dims['width']}" height="{$dims['height']}" />
+END;
+
+			$this->assertSmartyEquals($expected, $test, "constrain: $constrain", true, true);			
+		}
+
+	}
 
 	function getSiteDirImages() {
 
 		$result = array();
 
 		foreach($this->extensions as $ext) {
+			
 			$args = array();
 			$file = 'images/octopus' . $ext;
+
 			$args[] = $this->getSiteDir() . $file;
 			$args[] = $this->getSiteDirUrl() . $file;
-			
+
 			if (is_file($this->getSiteDir() . $file)) {
 				$args[] = filemtime($this->getSiteDir() . $file);
 			}

@@ -65,7 +65,7 @@ abstract class Octopus_Minify_Strategy {
 		}
 
 		$rootDir = get_option('ROOT_DIR', null, $options);
-
+		
 		$urlFile = $file;
 		if (starts_with($urlFile, $rootDir)) {
 			$urlFile = substr($file, strlen($rootDir));

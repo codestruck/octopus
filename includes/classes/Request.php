@@ -234,12 +234,28 @@ class Octopus_Request {
         }
 
         // No controller was found. Use the DefaultController
-        $result = array(
-            'file' => $this->app->getSetting('OCTOPUS_DIR') . 'controllers/Default.php',
-            'potential_names' => array('DefaultController'),
-            'action' => $pathParts ? array_shift($pathParts) : '',
-            'args' => $pathParts ? $pathParts : array(),
-        );
+        $result = $this->getDefaultController($pathParts);
+
+        return $result;
+    }
+
+    private function &getDefaultController(&$pathParts) {
+        
+        $app = $this->app;
+
+        $result =  array(
+                'potential_names' => array('DefaultController'),
+                'action' => $pathParts ? array_shift($pathParts) : '',
+                'args' => $pathParts ? $pathParts : array()
+            );
+
+        $siteControllersDir = $app->getSetting('SITE_DIR') . 'controllers/';
+     
+        if (is_file($siteControllersDir . 'Default.php')) {
+            $result['file'] = $siteControllersDir . 'Default.php';
+        } else {
+            $result['file'] = $app->getSetting('OCTOPUS_DIR') . 'controllers/Default.php';
+        }
 
         return $result;
     }

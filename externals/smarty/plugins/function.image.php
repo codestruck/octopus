@@ -22,8 +22,8 @@ function smarty_function_image($params, $template)
     $baseDir = null; // This isn't really necessary, ROOT_DIR, SITE_DIR, and OCTOPUS_DIR, all get searched for images
     $urlBase = null;
 
-    $resize = false;
-    // $crop = false;
+    $action = false;
+    $constrain = '';
 
     $failIfMissing = false;
     $shimAttrs = null;
@@ -71,9 +71,15 @@ function smarty_function_image($params, $template)
         } else if ($key === 'href') {
             $linkAttrs['href'] = $value;
         } else if ($key === 'resize') {
-            $resize = $value;
+            if ($value) $action = 'r';
+        } else if ($key === 'crop') {
+            if ($value) $action = 'c';
+        } else if ($key === 'action') {
+            $action = $value;
         } else if ($key === 'basedir') {
             $baseDir = $value;
+        } else if ($key === 'constrain') {
+            $constrain = $value;
         } else if (starts_with($key, 'link-')) {
             $linkAttrs[substr($key, 5)] = $value;
         } else if (starts_with($key, 'missing-')) {
@@ -96,12 +102,13 @@ function smarty_function_image($params, $template)
 
     // Map old-style {html_image} resizing commands to the new way
     if (!empty($shimAttrs)) {
+
         if (!empty($shimAttrs['_r'])) {
             // old-style resize
-            $resize = true;
+            $action = 'resize';
         }
 
-        if ($resize) {
+        if ($action) {
 
             if (!empty($shimAttrs['_rwidth'])) {
                 $imageAttrs['width'] = $shimAttrs['_rwidth'];
@@ -167,21 +174,14 @@ function smarty_function_image($params, $template)
 
     }
 
-    if ($resize) {
+    if ($action) {
 
         $width = isset($imageAttrs['width']) ? $imageAttrs['width'] : null;
         $height = isset($imageAttrs['height']) ? $imageAttrs['height'] : null;
-        $file = _octopus_smarty_resize_image($file, $width, $height, $imageAttrs);
-        $imageAttrs['width'] = $width;
-        $imageAttrs['height'] = $height;
 
-    }
-    /*
-    TODO: implement cropping
-    else if ($crop) {
-    }
-    */
-    else {
+        $file = _octopus_smarty_modify_image($file, $action, $width, $height, $constrain, $imageAttrs);
+
+    } else {
 
         $size = @getimagesize($file);
 
@@ -201,6 +201,13 @@ function smarty_function_image($params, $template)
     }
 
     $imageAttrs['src'] = _octopus_smarty_get_file_url($file, $dirs, $urlBase);
+
+    if (isset($params['ignoredims']) && $params['ignoredims']) {
+        unset($imageAttrs['width']);
+        unset($imageAttrs['height']);
+    }
+    
+    unset($imageAttrs['ignoredims']);
 
     $img = new Octopus_Html_Element('img', $imageAttrs);
 
@@ -289,6 +296,8 @@ function _octopus_smarty_get_file_url($file, $dirs, $urlBase, $includeModTime = 
 
     foreach($dirs as $key => $dir) {
 
+
+
         if (!starts_with($file, $dir)) {
             continue;
         }
@@ -346,9 +355,9 @@ function &_octopus_smarty_get_directories($baseDir, &$urlBase) {
 }
 
 /**
- * On-the-fly resizes an image and returns the physical path of the resized image file.
+ * On-the-fly resizes/crops an image and returns the physical path of the resized image file.
  */
-function _octopus_smarty_resize_image($file, $width, $height, &$imageAttrs) {
+function _octopus_smarty_modify_image($file, $action, $width, $height, $constrain, &$imageAttrs) {
 
     if ($width === null && $height === null) {
         return $file;
@@ -363,33 +372,54 @@ function _octopus_smarty_resize_image($file, $width, $height, &$imageAttrs) {
 
     list($originalWidth, $originalHeight) = $size;
 
-    if ($width === null) {
+    if (!$constrain) {
 
-        if ($height == $originalHeight) {
-            $width = $originalWidth;
-        } else {
-            $width = round(($height / $originalHeight) * $originalWidth);
+        if ($width === null) {
+
+            if ($height == $originalHeight) {
+                $width = $originalWidth;
+            } else {
+                $width = round(($height / $originalHeight) * $originalWidth);
+            }
+        } else if ($height === null) {
+
+            if ($width == $originalWidth) {
+                $height = $originalHeight;
+            } else {
+                $height = round(($width / $originalWidth) * $originalHeight);
+            }
+
         }
-    } else if ($height === null) {
 
-        if ($width == $originalWidth) {
-            $height = $originalHeight;
-        } else {
-            $height = round(($width / $originalWidth) * $originalHeight);
+        if (round($width) == round($originalWidth) && round($height) == round($originalHeight)) {
+            return $file;
         }
-
     }
 
-    if (round($width) == round($originalWidth) && round($height) == round($originalHeight)) {
-        return $file;
+    $action = preg_replace('/[^a-z]/', '', strtolower($action));
+    $constrain = preg_replace('/[^a-z<>]/', '', strtolower($constrain));
+
+    if ($action === 'resize') {
+        $action = 'r';
+    } else if ($action === 'crop') {
+        $action = 'c';
     }
+
+    if ($constrain === 'width') {
+        $constrain = 'w';
+    } else if ($constrain === 'height') {
+        $constrain = 'h';
+    }
+
+    $constrainFileName = str_replace('<', 'lt', str_replace('>', 'gt', $constrain));
 
     /* Cached file name uses:
      *
      * 1. Mod time of original file
-     * 2. 'r'
-     * 3. md5 of original file name + mod time
+     * 2. md5 of original file name + mod time
+     * 3. action
      * 4. widthxheight
+     * 5. constraint
      *
      * By putting the mod time first, it's really easy to purge old
      * files from the cache.
@@ -408,10 +438,10 @@ function _octopus_smarty_resize_image($file, $width, $height, &$imageAttrs) {
         if (!$cacheDir) {
             throw new SmartyException("No cache dir available for resizing.");
         }
-        $cacheDir .= 'resize/';
+        $cacheDir .= 'smarty_image/';
     }
 
-    $cacheName = "{$mtime}_r_{$hash}_{$width}x{$height}";
+    $cacheName = "{$mtime}_{$hash}_{$action}_{$width}x{$height}_{$constrainFileName}";
     $cacheFile = $cacheDir . $cacheName;
 
     if (is_file($cacheFile)) {
@@ -419,18 +449,25 @@ function _octopus_smarty_resize_image($file, $width, $height, &$imageAttrs) {
     }
 
     // Not in cache, so do some resizing.
-    $i = new Octopus_Image(array(array(
-        'action' => 'r',
-        'width' => $width,
-        'height' => $height,
-        'mod' => ''
-    )));
+    $layout = compact('action', 'width', 'height');
+    $layout['mod'] = '';
+    if ($constrain) $layout['constrain'] = $constrain;
+
+    $i = new Octopus_Image(array($layout));
 
     $i->keep_type = true;
-
     $i->processImages($cacheDir, $cacheName, $file);
 
-    return $cacheFile . '.' . $info['extension'];
+    $file = $cacheFile . '.' . $info['extension'];
+
+    // TODO: Octopus_Image should return image size info
+    $size = getimagesize($file);
+    if ($size) {
+        $imageAttrs['width'] = $size[0];
+        $imageAttrs['height'] = $size[1];
+    }
+
+    return $file;
 }
 
 ?>

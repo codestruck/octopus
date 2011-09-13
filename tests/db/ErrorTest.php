@@ -1,36 +1,24 @@
 <?php
 
-require_once 'PHPUnit/Extensions/OutputTestCase.php';
-
 Octopus::loadClass('Octopus_DB_Select');
 
 /**
  * @group DB
  */
-class Octopus_DB_Error_Test extends PHPUnit_Extensions_OutputTestCase
+class Octopus_DB_Error_Test extends Octopus_App_TestCase
 {
 
     function __construct()
     {
         $this->db =& Octopus_DB::singleton();
-        $this->logfile = LOG_DIR . 'db.txt';
     }
-
-    /*
-define('DB_NONE', 0);
-define('DB_LOG_ERRORS', 1);
-define('DB_PRINT_ERRORS', 2);
-define('DB_LOG_ALL', 4);
-
-db_error_reporting($level);
-    */
 
     function setUp()
     {
-        delTree(SITE_DIR . 'w');
-        mkdir(SITE_DIR . 'w', 0777);
-        mkdir(SITE_DIR . 'w/log', 0777);
-        touch($this->logfile);
+        parent::setUp();
+
+        $this->logFile = $this->getPrivateDir() . 'log/db.txt';
+        recursive_touch($this->logFile);
     }
 
     function testNoReporting()
@@ -41,7 +29,7 @@ db_error_reporting($level);
 
         $query = $this->db->query($sql);
 
-        $this->assertEquals(file_get_contents($this->logfile), '');
+        $this->assertEquals(file_get_contents($this->logFile), '');
     }
 
     function ztestPrintOnly()
@@ -52,7 +40,7 @@ db_error_reporting($level);
 
         $query = $this->db->query($sql);
 
-        $this->assertEquals(file_get_contents($this->logfile), '');
+        $this->assertEquals(file_get_contents($this->logFile), '');
     }
 
     function testLogOnly()
@@ -64,7 +52,7 @@ db_error_reporting($level);
         $query = $this->db->query($sql);
 
         $logMsg = "/.+ DB ERROR: .+ in query 'SELEC FROM test'/";
-        $this->assertRegExp($logMsg, file_get_contents($this->logfile));
+        $this->assertRegExp($logMsg, file_get_contents($this->logFile));
     }
 
     function testCompatFunctions()
