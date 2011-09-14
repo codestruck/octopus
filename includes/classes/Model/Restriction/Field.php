@@ -57,7 +57,8 @@ class Octopus_Model_Restriction_Field implements Octopus_Model_Restriction {
             return $f->restrict($subexpression, $operator, $value, $s, $params, $model);
         }
 
-        throw new Octopus_Exception("Field not found: " . $field);
+        $modelClass = get_class($model);
+        throw new Octopus_Exception("Field not found on model $modelClass: " . $field);
 	}
 
 	/**

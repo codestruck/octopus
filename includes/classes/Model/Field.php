@@ -268,17 +268,29 @@ abstract class Octopus_Model_Field {
 
         }
 
+        // TODO: if $value is a resultset, do a subquery
+
         // If no operator, and we get an array, then process it as an IN
         if (strcmp($operator, 'IN') == 0) {
 
             $value = is_array($value) ? $value : array($value);
-            $expr = '';
-            foreach($value as $item) {
-                $params[] = $item;
-                $expr .= ($expr == '' ? '' : ',') . '?';
-            }
+			$expr = '';
 
-            $expr = "`$table`.`$fieldName` IN ($expr)";
+			if (empty($value)) {
+				
+				// IN empty array = false
+				$expr = '0';
+
+			} else {
+	            
+	            foreach($value as $item) {
+	                $params[] = $item;
+	                $expr .= ($expr == '' ? '' : ',') . '?';
+	            }
+
+	            $expr = "`$table`.`$fieldName` IN ($expr)";
+	        }
+
         } else {
             $params[] = $value;
             $expr = "`$table`.`$fieldName` $operator ?";

@@ -85,6 +85,16 @@ class FindTest extends Octopus_DB_TestCase {
 
     }
 
+    function testInEmptyArray() {
+    	
+    	$posts = FindPost::all()->where('id in', array(4));
+    	$this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`find_post_id` IN('4')", $posts);
+
+		$posts = FindPost::all()->where('id in', array());
+		$this->assertSqlEquals("SELECT * FROM find_posts WHERE 0", $posts);
+
+    }
+
     function testParentheses() {
 
         $criteria = array(

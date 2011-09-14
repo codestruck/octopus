@@ -127,6 +127,14 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpa
     }
 
     /**
+     * Sends this ResultSet to dump_r without breaking the chain.
+     */
+    public function dump() {
+    	dump_r($this);
+    	return $this;
+    }
+
+    /**
      * Sends the SQL for the current query to dump_r().
      * @return $this to continue the chain.
      */
@@ -219,11 +227,9 @@ END;
     }
 
     public function __dumpText() {
-
         $params = array();
         $sql = $this->getSql($params);
         return normalize_sql($sql, $params);
-
     }
 
     /**
@@ -256,7 +262,7 @@ END;
         $dummySelect = new Octopus_DB_Select();
         $params = array();
         $whereClause = $this->getFullWhereClause($dummySelect, $params);
-        if ($whereClause) $whereClause = "WHERE $whereClause";
+        if (strlen($whereClause)) $whereClause = "WHERE $whereClause";
 
         return $relatedSet->whereSql(
             "`$relatedTable`.`$relatedPrimaryKey` IN (SELECT `$table`.`$fieldAsID` FROM `$table` $whereClause)",
@@ -449,7 +455,7 @@ END;
                 // e.g. array('NOT' => array('field1' => 'value1'))
                 $expression = trim(self::buildWhereClause($value, $s, $params));
 
-                if ($expression) {
+                if (strlen($expression)) {
                     $expression = "$key ($expression)";
                 }
 
@@ -471,8 +477,7 @@ END;
             }
 
             $expression = trim($expression);
-
-            if ($expression) {
+            if (strlen($expression)) {
                 $sql = self::joinSql($conjunction ? $conjunction : 'AND', $sql, $expression);
                 $conjunction = '';
             }
@@ -670,7 +675,7 @@ END;
         $params = array();
         $whereClause = trim($this->getFullWhereClause($s, $params));
 
-        if ($whereClause) {
+        if (strlen($whereClause)) {
             $s->where($whereClause, $params);
         }
 
@@ -689,13 +694,11 @@ END;
      * any restrictions placed by the parent.
      */
     private function getFullWhereClause($s, &$params) {
-
         return self::joinSql(
             $this->_conjunction ? $this->_conjunction : 'AND',
             $this->_parent ? $this->_parent->getFullWhereClause($s, $params) : '',
             $this->buildWhereClause($this->_criteria, $s, $params)
         );
-
     }
 
     /**
@@ -785,11 +788,14 @@ END;
         $left = trim($left);
         $right = trim($right);
 
-        if (!($left || $right)) {
+        $leftLen = strlen($left);
+        $rightLen = strlen($right);
+
+        if (!($leftLen || $rightLen)) {
             return '';
-        } else if ($left && !$right) {
+        } else if ($leftLen && !$rightLen) {
             return $left;
-        } else if ($right && !$left) {
+        } else if ($rightLen && !$leftLen) {
             return $right;
         }
 
