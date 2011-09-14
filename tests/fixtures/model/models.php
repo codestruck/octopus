@@ -92,4 +92,69 @@ class Notext extends Octopus_Model {
     );
 }
 
+class FindAuthor extends Octopus_Model {
+
+    protected $fields = array(
+        'name' => array('type' => 'string'),
+        'posts' => array(
+            'type' => 'hasMany',
+            'model' => 'FindPost'
+        ),
+        'active'
+    );
+
+}
+
+class FindCategory extends Octopus_Model {
+
+    protected $fields = array(
+        'name',
+    );
+
+}
+
+class FindPost extends Octopus_Model {
+
+    protected $fields = array(
+        'title' => array(
+            'type' => 'string'
+        ),
+        'slug' => array(
+            'type' => 'slug'
+        ),
+        'body' => array(
+            'type' => 'html'
+        ),
+        'author' => array(
+            'model' => 'FindAuthor',
+            'type' => 'hasOne'
+        ),
+        'category' => array(
+            'type' => 'manyToMany',
+            'model' => 'FindCategory'
+        ),
+        'active' => array(
+            'type' => 'boolean',
+        ),
+        'display_order' => array(
+            'type' => 'order',
+        ),
+        'created',
+        'updated',
+
+    );
+
+    public $search = array('title', 'author');
+
+    public static function &create($row) {
+
+        $obj = new FindPost();
+
+        return $obj;
+
+    }
+
+
+}
+
 

@@ -2,70 +2,6 @@
 
 require_once(dirname(dirname(__FILE__)) . '/Octopus_DB_TestCase.php');
 
-class FindAuthor extends Octopus_Model {
-
-    protected $fields = array(
-        'name' => array('type' => 'string'),
-        'posts' => array(
-            'type' => 'hasMany',
-            'model' => 'FindPost'
-        ),
-        'active'
-    );
-
-}
-
-class FindCategory extends Octopus_Model {
-
-    protected $fields = array(
-        'name',
-    );
-
-}
-
-class FindPost extends Octopus_Model {
-
-    protected $fields = array(
-        'title' => array(
-            'type' => 'string'
-        ),
-        'slug' => array(
-            'type' => 'slug'
-        ),
-        'body' => array(
-            'type' => 'html'
-        ),
-        'author' => array(
-            'model' => 'FindAuthor',
-            'type' => 'hasOne'
-        ),
-        'category' => array(
-            'type' => 'manyToMany',
-            'model' => 'FindCategory'
-        ),
-        'active' => array(
-            'type' => 'boolean',
-        ),
-        'display_order' => array(
-            'type' => 'order',
-        ),
-        'created',
-        'updated',
-
-    );
-
-
-    public static function &create($row) {
-
-        $obj = new FindPost();
-
-        return $obj;
-
-    }
-
-
-}
-
 /**
  * @group find
  * @group Model
@@ -114,7 +50,7 @@ END;
     }
 
     function testContainsModel() {
-        
+
         $inactivePost = new FindPost(5);
 
         $all = FindPost::all();
@@ -126,12 +62,12 @@ END;
     }
 
     function testContainsID() {
-        
+
         $all = FindPost::all();
         $this->assertTrue($all->contains(5), 'positive contains');
 
         $active = $all->whereActive();
-        $this->assertFalse($active->contains(5), 'negative contains');        
+        $this->assertFalse($active->contains(5), 'negative contains');
     }
 
     function testContainsMulti() {
@@ -140,7 +76,7 @@ END;
         $this->assertTrue($all->contains(1, 5), 'positive contains');
 
         $active = $all->whereActive();
-        $this->assertFalse($active->contains(1, 5), 'negative contains');        
+        $this->assertFalse($active->contains(1, 5), 'negative contains');
 
     }
 
