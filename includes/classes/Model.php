@@ -182,8 +182,8 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         return $this->_exists;
     }
 
-    public function setInternalValue($field, $value) {
-        $this->touchedFields[$field] = true;
+    public function setInternalValue($field, $value, $makesDirty = true) {
+        if ($makesDirty) $this->touchedFields[$field] = true;
         $this->data[$field] = $value;
     }
 
