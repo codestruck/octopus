@@ -103,7 +103,7 @@ END;
 	 * @dataProvider getSiteDirImages
 	 */
 	function testImageWithUrlBaseJunkAttached($file) {
-		
+
 		$name = basename($file);
 		$urlSiteDir = $this->getSiteDirUrl();
 		$mtime = filemtime($file);
@@ -154,7 +154,7 @@ END;
 	function testImageInOctopusDir($file, $fileUrl) {
 
 		$name = basename($file);
-		
+
 		$octopusDir = $this->getOctopusDir();
 		$octopusFile = $this->getOctopusDir() . $name;
 
@@ -207,6 +207,28 @@ END;
 
 		$expected = <<<END
 <img src="$fileUrl?$mtime" class="missing" width="100" height="75" alt="Missing Image" />
+END;
+		$this->assertSmartyEquals($expected, $test);
+
+	}
+
+	/**
+	 * @dataProvider getSiteDirImages
+	 */
+	function testMissingImageWithClass($file, $fileUrl) {
+
+		$test = <<<END
+{image src="/some/fake/image.png" missing_src="$file" missing_alt="Missing Image" class="jazzy"}
+{image src="/some/fake/image.png" default="$file" class="jazzy"}
+{image src="/some/fake/image.png" default="$file" class="jazzy jeff" missing_class="mizzing"}
+END;
+
+		$mtime = filemtime($file);
+
+		$expected = <<<END
+<img src="$fileUrl?$mtime" class="jazzy missing" width="100" height="75" alt="Missing Image" />
+<img src="$fileUrl?$mtime" class="jazzy missing" width="100" height="75" />
+<img src="$fileUrl?$mtime" class="jazzy jeff mizzing" width="100" height="75" />
 END;
 		$this->assertSmartyEquals($expected, $test);
 
@@ -313,7 +335,7 @@ END;
 		$actions = array('c', 'crop');
 
 		foreach($actions as $action) {
-		
+
 			$test = <<<END
 {image src="$file" width="10" height="5"}
 {image src="$file" width="100" height="75" action="$action"}
@@ -330,7 +352,7 @@ END;
 <img src="/cache/smarty_image/[MTIME]_[MD5]_{$actionFileName}_10x5_.{$info['extension']}?[MTIME]" width="10" height="5" />
 END;
 
-			$this->assertSmartyEquals($expected, $test, '', true, true);			
+			$this->assertSmartyEquals($expected, $test, '', true, true);
 		}
 	}
 
@@ -342,7 +364,7 @@ END;
 		$actions = array('r', 'resize');
 
 		foreach($actions as $action) {
-		
+
 			$test = <<<END
 {image src="$file" width="10" height="5"}
 {image src="$file" width="100" height="75" action="$action"}
@@ -362,7 +384,7 @@ END;
 <img src="/cache/smarty_image/[MTIME]_[MD5]_{$actionFileName}_10x5_.{$info['extension']}?[MTIME]" width="6" height="5" />
 END;
 
-			$this->assertSmartyEquals($expected, $test, '', true, true);			
+			$this->assertSmartyEquals($expected, $test, '', true, true);
 		}
 	}
 
@@ -419,7 +441,7 @@ END;
 
 		$this->assertSmartyEquals($expected, $test, '', true, true);
 	}
-	
+
 	/**
 	 * @dataProvider getSiteDirImages
 	 */
@@ -438,12 +460,12 @@ END;
 		$this->assertSmartyEquals($expected, $test, '', true, true);
 
 	}
-	
+
 	/**
 	 * @dataProvider getSiteDirImages
 	 */
 	function testResizeConstrained($file, $fileUrl) {
-		
+
 		$constraints = array(
 			'width' => array(
 				'width' => 50,
@@ -470,7 +492,7 @@ END;
 <img src="/cache/smarty_image/[MTIME]_[MD5]_r_50x10_{$constrainFileName}.{$info['extension']}?[MTIME]" width="{$dims['width']}" height="{$dims['height']}" />
 END;
 
-			$this->assertSmartyEquals($expected, $test, "constrain: $constrain", true, true);			
+			$this->assertSmartyEquals($expected, $test, "constrain: $constrain", true, true);
 		}
 
 	}
@@ -480,7 +502,7 @@ END;
 		$result = array();
 
 		foreach($this->extensions as $ext) {
-			
+
 			$args = array();
 			$file = 'images/octopus' . $ext;
 
