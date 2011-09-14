@@ -10,7 +10,7 @@
      * the running app instance.
      */
     function get_option($name, $default = null, $options = null) {
-        
+
         if (is_array($name)) {
             $result = array();
             foreach($name as $n) {
@@ -417,13 +417,13 @@
         }
 
         $titleHtml = $contentHtml = '';
-        if ($title) $titleHtml = '<h3 class="flashTitle">' . $title . '</h3>';
-        if ($content) $contentHtml = '<div class="flashContent">' . $content . '</div>';
+        if ($title) $titleHtml = '            <h3 class="flashTitle">' . $title . '</h3>';
+        if ($content) $contentHtml = '            <div class="flashContent">' . $content . '</div>';
 
         echo <<<END
         <div class="flash $class">
-            $titleHtml
-            $contentHtml
+$titleHtml
+$contentHtml
         </div>
 END;
 
