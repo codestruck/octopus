@@ -114,7 +114,16 @@
      * Global exception handler.
      */
     function octopus_handle_exception($ex) {
+
         dump_r($ex);
+
+    	if (class_exists('Octopus_App') && Octopus_App::isStarted()) {
+    		$app = Octopus_App::singleton();
+    		$response = $app->getCurrentResponse();
+    		if ($response) $response->flush();
+    	}
+
+
         die();
     }
 
