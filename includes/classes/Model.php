@@ -453,6 +453,8 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
             return self::$fieldHandles[$class];
         }
 
+        self::$fieldHandles[$class] = array();
+
         foreach ($this->fields as $name => $options) {
 
             if (is_numeric($name)) {
