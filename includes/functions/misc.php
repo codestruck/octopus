@@ -429,4 +429,26 @@ END;
 
     }
 
+    function make_csv($results, $fields) {
+
+        $rows = array();
+        $rows[] = $fields;
+
+        foreach ($results as $item) {
+            $row = array();
+
+            foreach ($fields as $f) {
+                $row[$f] = $item[$f];
+            }
+            $rows[] = $row;
+        }
+
+        $str = '';
+        foreach ($rows as $row) {
+            $str .= '"' . implode('","', $row) . "\"\n";
+        }
+
+        return $str;
+    }
+
 ?>
