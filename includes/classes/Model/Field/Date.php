@@ -1,26 +1,11 @@
 <?php
 
-class Octopus_Model_Field_Datetime extends Octopus_Model_Field {
+class Octopus_Model_Field_Date extends Octopus_Model_Field {
 
-    private static $format = 'Y-m-d H:i:s';
-
-    public function __construct($field, $modelClass, $options) {
-
-        parent::__construct($field, $modelClass, $options);
-
-        if ($field == 'created') {
-            $this->defaultOptions = array(
-                'onCreate' => '_setNow',
-            );
-        } else if ($field == 'updated') {
-            $this->defaultOptions = array(
-                'onSave' => '_setNow',
-            );
-        }
-    }
+    private static $format = 'Y-m-d';
 
     public function migrate($schema, $table) {
-        $table->newDateTime($this->getFieldName());
+        $table->newDate($this->getFieldName());
     }
 
     public function restrict($expression, $operator, $value, &$s, &$params, $model) {
@@ -53,4 +38,3 @@ class Octopus_Model_Field_Datetime extends Octopus_Model_Field {
         return date(self::$format, time());
     }
 }
-?>
