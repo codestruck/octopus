@@ -33,7 +33,7 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
      * Field(s) that can be used as the 'username' for login purposes. If
      * both are present on the model, both will be checked.
      */
-    protected $userNameField = array('email', 'username');
+    protected $usernameField = array('email', 'username');
 
     // By default, the model will check for a field called 'active' or a field
     // called 'hidden'.
@@ -130,35 +130,35 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
     }
 
     /**
-     * Checks the given userName/password combination.
+     * Checks the given username/password combination.
      * @return bool Whether the combo is valid.
      */
-    public function checkLogin($userName, $password) {
-    	return !!$this->getUserForLogin($userName, $password);
+    public function checkLogin($username, $password) {
+    	return !!$this->getUserForLogin($username, $password);
     }
 
     /**
      * Attempts to log in the given user.
      * If this function succeeds, the contents of $this will be replaced with
      * the data from the logged-in user.
-     * @param $userName String userName or email address
+     * @param $username String username or email address
      * @param $password String
      */
-    public function login($userName, $password, $remember = false) {
+    public function login($username, $password, $remember = false) {
 
-    	if (!trim($userName)) {
+    	if (!trim($username)) {
     		// Don't allow logins w/ blank user names
     		return false;
     	}
 
     	$this->cleanOutUserAuthTable();
 
-    	$user = $this->getUserForLogin($userName, $password);
+    	$user = $this->getUserForLogin($username, $password);
     	if (!$user) {
     		return false;
     	}
 
-    	// The userName/pass checks out!
+    	// The username/pass checks out!
 
     	// Swap the logged in user in for whatever the previous data was
     	$this->id = $user->id;
@@ -300,9 +300,9 @@ END;
 
     }
 
-    private function addUserNameFilter(&$criteria, $userName) {
+    private function addUserNameFilter(&$criteria, $username) {
 
-    	$candidates = $this->userNameField;
+    	$candidates = $this->usernameField;
     	if (!$candidates) {
     		throw new Octopus_Exception("User name field not configured for auth model " . get_class($this));
     	}
@@ -318,7 +318,7 @@ END;
 
     		if (!empty($items)) $items[] = 'OR';
 
-    		$items[] = array($f->getFieldName() => $userName);
+    		$items[] = array($f->getFieldName() => $username);
     	}
 
     	if (empty($items)) {
@@ -454,12 +454,12 @@ END;
      * @return The user model for the given user/pass combo, or false if
      * the combo is invalid.
      */
-    private function getUserForLogin($userName, $password) {
+    private function getUserForLogin($username, $password) {
 
     	$checker = new PasswordHash($this->password_algo_strength, $this->portable_passwords);
 
     	$criteria = array();
-    	$this->addUserNameFilter($criteria, $userName);
+    	$this->addUserNameFilter($criteria, $username);
     	$this->addActiveFilter($criteria);
 
     	$user = $this->_get($criteria);
@@ -488,7 +488,7 @@ END;
 
     	} else {
 
-            // take just as long when the userName doesn't exist
+            // take just as long when the username doesn't exist
             $fake_hash = '$P$BBxLPQY.19uT3gfbn66ik2Lv.lA5Rc.';
             $checker->CheckPassword('foobar', $fake_hash);
 
