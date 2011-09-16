@@ -474,6 +474,3 @@ function _octopus_smarty_modify_image($file, $action, $width, $height, $constrai
 
     return $file;
 }
-
-?>
-
