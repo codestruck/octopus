@@ -541,7 +541,8 @@ END;
 
             foreach($dummy->getFields() as $field) {
 
-                $isText = $field->getOption('type', 'text') == 'string';
+                $type = $field->getOption('type', 'text');
+                $isText = ($type == 'string' || $type == 'hasOne');
 
                 if ($field->getOption('searchable', $isText)) {
                     $searchFields[] = $field;
@@ -561,8 +562,12 @@ END;
         $criteria = array();
         foreach($searchFields as $field) {
 
-            if (count($criteria)) $criteria[] = 'OR';
-            $criteria[$field->getFieldName() . ' LIKE'] = $text;
+            $restrict = $field->restrictFreetext($dummy, $text);
+
+            if ($restrict) {
+                if (count($criteria)) $criteria[] = 'OR';
+                $criteria[] = $restrict;
+            }
 
         }
 

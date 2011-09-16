@@ -180,8 +180,6 @@ END
 
     function testFunctionErrorNotEscaped() {
 
-        $this->markTestIncomplete('Html Table error messages should not be escaped');
-
         $table = new Octopus_Html_Table('id');
         $table->setDataSource(HtmlTablePerson::all());
         $table->addColumn('name', 'Name', 'not_exist');

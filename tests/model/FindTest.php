@@ -22,7 +22,7 @@ class FindTest extends Octopus_DB_TestCase {
     }
 
     function testInEmptyArray() {
-    	
+
     	$posts = FindPost::all()->where('id in', array(4));
     	$this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`find_post_id` IN('4')", $posts);
 
@@ -91,7 +91,7 @@ END;
     }
 
     function testFollowRelation() {
-        
+
         $inactivePosts = FindPost::all()->where(array('active' => 0));
         $this->assertEquals(1, $inactivePosts->count());
 
@@ -101,7 +101,7 @@ END;
     }
 
     function testRemoveFollowRelation() {
-        
+
         $inactivePosts = FindPost::all()->where(array('active' => 0));
         $this->assertEquals(1, $inactivePosts->count());
 
