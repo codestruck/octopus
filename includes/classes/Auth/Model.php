@@ -28,7 +28,6 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
     protected $cookiePath = '/';
     protected $cookieSsl = false;
     protected $rememberDays = 14;
-    protected $rememberSeconds;
 
     /**
      * Field(s) that can be used as the 'username' for login purposes. If
@@ -47,11 +46,6 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
     // per-class and per-id
     private static $authHashes = array();
 
-    public function __construct($arg = null) {
-        $this->rememberSeconds = 60*60*24 * $this->rememberDays;
-        parent::__construct($arg);
-    }
-
     /**
      * Validates that the user is currently logged in and that their record
      * has not been deleted or deactivated.
@@ -67,7 +61,7 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
         $pass = false;
 
         if ($this->validateAuthRecord($auth)) {
-        	$pass = $this->recordStillExistsAndIsActive();
+        	$pass = $this->recordStillExistsAndIsActive($auth);
         }
 
         if (!$pass) {
@@ -83,6 +77,22 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
         }
 
         // User is auth'd
+
+        if (!$this->id) {
+
+        	// This is a new user record, being re-initialized from a cookie.
+        	// So, load the user's data.
+
+        	$user = $this->_get($auth['user_id']);
+
+	        if (!$user) {
+	        	throw new Octopus_Exception("User record disappeared!");
+	        }
+
+	        $this->id = $user->id;
+	        $this->setData($user);
+	    }
+
 
         $this->afterAuth();
 
@@ -166,7 +176,7 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
         $i->set('auth_hash', $hash);
         $i->setNow('created');
         $i->setNow('last_activity');
-        $i->set('realm', $this->realm ? $this->realm : get_class($this));
+        $i->set('realm', $this->getRealm());
         $i->execute();
 
         // Set a login cookie
@@ -186,7 +196,7 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
 	        $d->comment('Octopus_Auth_Model::logout');
 	        $d->table('user_auth');
 	        $d->where('auth_hash = ?', $hash);
-	        $d->where('realm = ?', $this->realm);
+	        $d->where('realm = ?', $this->getRealm());
 	        $d->execute();
 
 	    }
@@ -388,8 +398,7 @@ END;
 
 	    	}
 
-	        $expire = $remember ? time() + $this->rememberSeconds : 0;
-
+	        $expire = $remember ? time() + ($this->rememberDays * 24 * 60 * 60) : 0;
 	       	Octopus_Cookie::set($this->cookieName, $hash, $expire, $this->cookiePath, null, $this->cookieSsl);
 
 	    } else {
@@ -488,10 +497,10 @@ END;
 
     }
 
-    private function recordStillExistsAndIsActive() {
+    private function recordStillExistsAndIsActive($auth) {
 
     	$criteria = array(
-	    	$this->getPrimaryKey() => $this->id,
+	    	$this->getPrimaryKey() => $auth['user_id'],
 	    );
 	    $this->addActiveFilter($criteria);
 
@@ -546,10 +555,16 @@ END;
             $log->log('Auth Fail: Bad User Id: ' . $auth['user_id']);
         }
 
+        if ($this->id > 0 && intval($this->id) !== intval($auth['user_id'])) {
+        	return false;
+        }
+
+        $rememberSeconds = ($this->rememberDays * 24 * 60 * 60);
+
         $created = strtotime($auth['created']);
-        if ($created < time() - $this->rememberSeconds) {
+        if ($created < time() - $rememberSeconds) {
             $pass = false;
-            $log->log('Auth Fail: Hash older than remember timeout weeks (' . $this->rememberSeconds . ' seconds)');
+            $log->log('Auth Fail: Hash older than remember timeout weeks (' . $rememberSeconds . ' seconds)');
         }
 
         $ip = get_user_ip();
