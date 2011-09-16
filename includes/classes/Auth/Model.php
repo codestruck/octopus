@@ -346,18 +346,18 @@ END;
      */
     private function getAuthHash() {
 
-    	if ($this->cookieName) {
-
-    		$hash = Octopus_Cookie::get($this->cookieName);
-    		if ($hash) return $hash;
-
-    	}
-
     	$h =& self::$authHashes;
     	$realm = $this->getRealm();
 
     	if ($this->id && isset($h[$realm]) && isset($h[$realm][$this->id])) {
     		return $h[$realm][$this->id];
+    	}
+
+    	if ($this->cookieName) {
+
+    		$hash = Octopus_Cookie::get($this->cookieName);
+    		if ($hash) return $hash;
+
     	}
 
         if (empty($this->cookieName)) {
