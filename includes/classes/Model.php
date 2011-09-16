@@ -290,7 +290,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
             $this->$pk = $i->getId();
         }
 
-        $this->touchedFields = array();
+        $this->resetDirtyState();
 
         foreach($workingFields as $field) {
             $field->afterSave($this);
@@ -428,6 +428,14 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         } else {
             return to_table_name($this->getClassName());
         }
+    }
+
+    /**
+     * Resets the dirty tracking for this model (marks all fields as
+	 * unchanged).
+     */
+    protected function resetDirtyState() {
+    	$this->touchedFields = array();
     }
 
     /**
@@ -648,8 +656,8 @@ END;
         foreach($this->toArray() as $key => $value) {
             try {
                 if ($value instanceof Dumpable) {
-                  $value = $value->dump('text');  
-                } 
+                  $value = $value->dump('text');
+                }
                 $result .= <<<END
 
 \t$key:\t\t$value
