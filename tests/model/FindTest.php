@@ -21,6 +21,16 @@ class FindTest extends Octopus_DB_TestCase {
 
     }
 
+    function testInEmptyArray() {
+
+    	$posts = FindPost::all()->where('id in', array(4));
+    	$this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`find_post_id` IN('4')", $posts);
+
+		$posts = FindPost::all()->where('id in', array());
+		$this->assertSqlEquals("SELECT * FROM find_posts WHERE 0", $posts);
+
+    }
+
     function testParentheses() {
 
         $criteria = array(
@@ -77,6 +87,30 @@ END;
 
         $active = $all->whereActive();
         $this->assertFalse($active->contains(1, 5), 'negative contains');
+
+    }
+
+    function testFollowRelation() {
+
+        $inactivePosts = FindPost::all()->where(array('active' => 0));
+        $this->assertEquals(1, $inactivePosts->count());
+
+        $inactivePostAuthors = $inactivePosts->followRelation('author');
+        $this->assertEquals(1, $inactivePostAuthors->count());
+
+    }
+
+    function testRemoveFollowRelation() {
+
+        $inactivePosts = FindPost::all()->where(array('active' => 0));
+        $this->assertEquals(1, $inactivePosts->count());
+
+        $inactivePostAuthors = $inactivePosts->followRelation('author');
+        $this->assertEquals(1, $inactivePostAuthors->count());
+
+        $onlyActiveAuthors = FindAuthor::all()->remove($inactivePostAuthors);
+        $this->assertEquals(1, $onlyActiveAuthors->count());
+
 
     }
 
