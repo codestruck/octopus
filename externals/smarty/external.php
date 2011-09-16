@@ -75,6 +75,25 @@ class Octopus_Smarty extends Octopus_Base {
 
     }
 
+    /**
+     * @return String The results of rendering the given smarty template file.
+     */
+    public function render($templateFile, $data = array()) {
+
+    	$smarty = $this->smarty;
+        $smartyData = $smarty->createData();
+
+        foreach($data as $key => $value) {
+            $smartyData->assign($key, $value);
+        }
+
+        // Look for templates in the same directory the file is in.
+        $smarty->template_dir = array(dirname($templateFile));
+
+        $tpl = $smarty->createTemplate($templateFile, $smartyData);
+        return $tpl->fetch();
+    }
+
     public static function &singleton() {
         return Octopus_Base::base_singleton('Octopus_Smarty');
     }
