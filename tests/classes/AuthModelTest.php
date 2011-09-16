@@ -95,6 +95,57 @@ class AuthModelTest extends PHPUnit_Framework_TestCase
 
     }
 
+    function testAuthLoadsRecord() {
+
+    	$user = new AuthModelTestUser();
+    	$user->email = 'test';
+    	$user->password = sha1('test');
+    	$user->active = 1;
+    	$user->save();
+
+    	$userID = $user->id;
+
+    	$user = new AuthModelTestUser();
+    	$this->assertTrue($user->login('test', 'test'), 'login succeeds');
+    	$this->assertEquals($userID, $user->id, 'id set after login');
+
+    	$user = new AuthModelTestUser();
+    	$this->assertTrue($user->auth(), 'auth succeeds after login w/ new user');
+    	$this->assertEquals($userID, $user->id, 'id updated after auth');
+    	$this->assertEquals('test', $user->email, 'email updated after auth');
+
+    }
+
+    function testAuthFailsWithDifferentUser() {
+
+    	$userA = new AuthModelTestUser();
+    	$userA->email = 'a';
+    	$userA->password = sha1('a');
+    	$userA->active = true;
+    	$userA->save();
+
+		$userB = new AuthModelTestUser();
+    	$userB->email = 'b';
+    	$userB->password = sha1('b');
+    	$userB->active = true;
+    	$userB->save();
+
+    	$user = new AuthModelTestUser();
+    	$this->assertTrue($user->login('a', 'a'), 'login succeeds');
+
+    	$user = new AuthModelTestUser($userA->id);
+    	$this->assertTrue($user->auth(), 'auth succeeds w/ correct user');
+
+    	$user = new AuthModelTestUser();
+    	$this->assertTrue($user->auth(), 'auth succeeds w/ new user');
+
+    	$user = new AuthModelTestUser($userB->id);
+    	$this->assertFalse($user->auth(), 'auth fails with wrong existing user');
+
+    }
+
+
+
     function testLoginResetsState() {
 
     	$i = new Octopus_DB_Insert();
