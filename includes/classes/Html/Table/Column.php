@@ -420,7 +420,7 @@ class Octopus_Html_Table_Column {
             return $value->$f();
         } else if ($isString && method_exists($this, $f)) {
             return $this->$f($value, $row);
-        } else if ($row instanceof Octopus_Model && method_exists($row, $f)) {
+        } else if ($row instanceof Octopus_Model && is_string($f) && method_exists($row, $f)) {
             return $row->$f($value, $row);
         }
 
