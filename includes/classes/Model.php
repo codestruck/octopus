@@ -27,7 +27,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
     /**
      * Name of the field to use when displaying this model e.g. in a list.
      * If an array, the first one that actually exists on the model will be
-     * used. Once the correct field is selected, it is cached.
+     * used. Once the correct field name is selected, it is cached.
      */
     protected $displayField = array('name', 'title', 'text', 'summary', 'description');
 
@@ -121,27 +121,30 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
 
     public function __call($name, $arguments) {
 
-        if (preg_match('/^(add|remove(All)?)(.*?)$/', $name, $matches)) {
-            $action = $matches[1];
-            $type = $matches[3];
-            $fieldname = pluralize(camel_case($type));
-            $field = $this->getField($fieldname);
-            if ($field) {
-                return $field->handleRelation($action, $arguments, $this);
-            }
-        } else if (preg_match('/^(has)(.*)$/', $name, $matches)) {
-            $action = $matches[1];
-            $type = $matches[1];
-            $fieldname = pluralize(strtolower($matches[2]));
+    	// Handle e.g., addCategory, removeCategory, removeAllCategories,
+    	// hasCategory
 
-            $field = $this->getField($fieldname);
-            if ($field) {
-                return $field->checkHas(array_shift($arguments), $this);
-            }
+        if (!preg_match('/^(add|remove(All)?|has)([A-Z].*?)$/', $name, $matches)) {
+        	throw new Octopus_Model_Exception('Cannot call ' . $name . ' on Model ' . $this->getClassName());
         }
 
+        $action = $matches[1];
+        $type = $matches[3];
 
-        throw new Octopus_Model_Exception('Cannot call ' . $name . ' on Model ' . $this->getClassName());
+        $fieldName = underscore(pluralize($type));
+        $field = $this->getField($fieldName);
+        if (!$field) $field = $this->getField(camel_case($fieldName));
+
+        if (!$field) {
+        	$class = $this->getClassName();
+        	throw new Octopus_Model_Exception("Cannot call $name on model $class (field $fieldName does not exist).");
+        }
+
+        if ($action === 'has') {
+        	return $field->checkHas(array_shift($arguments), $this);
+        } else {
+        	return $field->handleRelation($action, $arguments, $this);
+        }
 
     }
 

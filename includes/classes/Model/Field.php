@@ -35,6 +35,13 @@ abstract class Octopus_Model_Field {
         $this->options = $options;
     }
 
+    /**
+     * @return String The model class this field is defined on.
+     */
+    public function getModelClass() {
+    	return $this->modelClass;
+    }
+
     public static function getField($name, $modelClass, $options) {
 
         if (is_string($options)) {

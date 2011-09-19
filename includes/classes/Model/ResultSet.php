@@ -639,6 +639,9 @@ END;
 
         if (!$this->_modelInstance) {
             $class = $this->getModel();
+            if (!class_exists($class)) {
+            	throw new Octopus_Model_Exception("Model class not found: $class");
+            }
             $this->_modelInstance = new $class();
         }
 
