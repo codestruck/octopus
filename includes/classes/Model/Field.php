@@ -151,12 +151,12 @@ abstract class Octopus_Model_Field {
         $func = $this->getOption('escape', true);
 
         if ($func === true) {
-            
+
             $allow_tags = $this->getOption('allow_tags', false);
             if ($allow_tags !== false) {
-                
+
                 Octopus::loadExternal('htmlpurifier');
-                
+
                 $purifier = get_html_purifier(array(
                     'HTML.Allowed' => $allow_tags,
                 ));
@@ -165,7 +165,7 @@ abstract class Octopus_Model_Field {
             } else {
                 return h($value);
             }
-            
+
         } else if ($func === false) {
             return $value;
         } else if (method_exists($model, $func)) {
@@ -277,12 +277,12 @@ abstract class Octopus_Model_Field {
 			$expr = '';
 
 			if (empty($value)) {
-				
+
 				// IN empty array = false
 				$expr = '0';
 
 			} else {
-	            
+
 	            foreach($value as $item) {
 	                $params[] = $item;
 	                $expr .= ($expr == '' ? '' : ',') . '?';
@@ -380,6 +380,10 @@ abstract class Octopus_Model_Field {
         if ($existing) return humanize($this->getFieldName()) . ' must be unique.';
 
         return true;
+    }
+
+    public function restrictFreetext($model, $text) {
+        return new Octopus_Model_Restriction_Field($model, $this->getFieldname() . ' LIKE', $text);
     }
 
 }

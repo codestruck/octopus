@@ -91,10 +91,10 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpa
      * arguments.
      */
     public function contains(/* variable */) {
-        
+
         $args = func_get_args();
         foreach($args as $arg) {
-            
+
             if (!is_numeric($arg)) {
                 $arg = $arg->id;
             }
@@ -142,13 +142,13 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpa
 
         $params = array();
         $sql = $this->getSql($params);
-        
+
         if ($normalize) {
             dump_r(normalize_sql($sql, $params));
         } else {
             dump_r($sql, $params);
         }
-        
+
         return $this;
     }
 
@@ -249,7 +249,7 @@ END;
      * the contents of that relation for all matched elements.
      */
     public function followRelation($relation) {
-        
+
         $field = $this->getModelField($relation);
         $table = $this->getModelTableName();
         $relatedModel = $field->getOption('model', $relation);
@@ -417,6 +417,27 @@ END;
         return $this->createChild(func_get_args(), null, 'AND');
     }
 
+    /**
+     * returns an optionally keyed array from the result set
+     * @return array
+     */
+    public function map($key, $value = null) {
+
+        $fields = array($key);
+        if ($value) {
+            $fields[] = $value;
+        }
+
+        $select = $this->buildSelect(false, $fields);
+
+        if ($value) {
+            return $select->getMap();
+        } else {
+            return $select->getOneArray();
+        }
+
+    }
+
     // End Public Methods }}}
 
     // Protected Methods {{{
@@ -464,7 +485,7 @@ END;
                 $expression = $this->buildWhereClause($value, $s, $params);
 
             } else if ($value instanceof Octopus_Model_Restriction) {
-                
+
                 $expression = $value->getSql($s, $params);
 
             } else if ($value === 'AND' || $value === 'OR') {
@@ -520,7 +541,8 @@ END;
 
             foreach($dummy->getFields() as $field) {
 
-                $isText = $field->getOption('type', 'text') == 'string';
+                $type = $field->getOption('type', 'text');
+                $isText = ($type == 'string' || $type == 'hasOne');
 
                 if ($field->getOption('searchable', $isText)) {
                     $searchFields[] = $field;
@@ -540,8 +562,12 @@ END;
         $criteria = array();
         foreach($searchFields as $field) {
 
-            if (count($criteria)) $criteria[] = 'OR';
-            $criteria[$field->getFieldName() . ' LIKE'] = $text;
+            $restrict = $field->restrictFreetext($dummy, $text);
+
+            if ($restrict) {
+                if (count($criteria)) $criteria[] = 'OR';
+                $criteria[] = $restrict;
+            }
 
         }
 
@@ -663,14 +689,14 @@ END;
     /**
      * @return Object A new Octopus_DB_Select instance.
      */
-    private function buildSelect($recreate = false) {
+    private function buildSelect($recreate = false, $fields = null) {
 
         if (!$recreate && $this->_select) {
             return $this->_select;
         }
 
         $s = new Octopus_DB_Select();
-        $s->table($this->getModelTableName());
+        $s->table($this->getModelTableName(), $fields);
 
         $params = array();
         $whereClause = trim($this->getFullWhereClause($s, $params));

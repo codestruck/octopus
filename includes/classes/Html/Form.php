@@ -17,6 +17,10 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     private $_submittedField = null;
     private $_hiddenSubmissionInput = null;
 
+    // Internally tracks submission state. If null, the postback
+    // is checked for the internal 'submitted' field
+    private $_wasSubmitted = null;
+
     private $errorList = null;
 
     private $sectionStack = array();
@@ -446,7 +450,21 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
         $this->setSecurityToken($token);
 
+        $this->_submitted = null;
+
         return $this;
+    }
+
+    /**
+     * Simulates a valid form submission. After you call this, wasSubmitted()
+     * will return true and $values will be used in validation.
+     */
+    public function submit(Array $values) {
+
+    	$this->setValues($values);
+    	$this->_submitted = true;
+
+    	return $this;
     }
 
     private function setValuesRecursive($el, &$values) {
@@ -857,6 +875,10 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      * @return Bool Whether the form has been submitted.
      */
     public function wasSubmitted() {
+
+    	if ($this->_submitted !== null) {
+    		return $this->_submitted;
+    	}
 
         $actualMethod = strtolower(isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'get');
         $thisMethod = strtolower($this->getAttribute('method', 'get'));

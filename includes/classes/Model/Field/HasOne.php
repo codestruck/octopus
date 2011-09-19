@@ -20,7 +20,7 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         $value = $model->getInternalValue($fieldName);
 
         if (!$value) {
-            
+
             // Since loadData() on model sets the _id field, check there as well
             $value = $model->getInternalValue($key);
             if (!$value) {
@@ -30,7 +30,7 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         }
 
         if (is_numeric($value)) {
-            
+
             // We have the ID, need to load up the corresponding object
             $obj = new $class($value);
             $value = array('id' => $value, 'object' => $obj);
@@ -64,8 +64,8 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
             $key = 'item_id';
         }
 
-        // Since, for example, on a field called 'category', the DB value 
-        // will be present on the model as 'category_id', we have to 
+        // Since, for example, on a field called 'category', the DB value
+        // will be present on the model as 'category_id', we have to
         // look both places.
         $value = $model->getInternalValue($fieldName);
         if (!$value) {
@@ -75,7 +75,7 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         $object = null;
 
         if ($value) {
-        
+
             if (is_array($value)) {
                 // setValue() sets $key to array('id' => x, 'object' => y);
                 $object = $value['object'];
@@ -120,7 +120,7 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
     }
 
     public function setValue($model, $value) {
-        
+
         $fieldName = $this->getFieldName();
         $key = to_id($fieldName);
         $class = $this->getItemClass();
@@ -248,7 +248,7 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
     }
 
     private function shouldCascadeSave() {
-        
+
         if ($this->getOption('skipsave')) {
             return false;
         }
@@ -261,7 +261,7 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
     }
 
     private function shouldCascade($operation, $default) {
-        
+
         $cascade = $this->getOption('cascade', $default ? $operation : false);
 
         if (!$cascade) {
@@ -269,7 +269,7 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         } else if ($cascade === $operation) {
             return true;
         }
-        
+
         if (is_string($cascade)) $cascade = explode(',', $cascade);
 
         return in_array($operation, $cascade);
@@ -280,5 +280,18 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         $class = $this->getOption('model', $this->getFieldName());
         return ucfirst($class);
     }
+
+    public function restrictFreetext($model, $text) {
+        $class = $this->getItemClass();
+        $obj = new $class();
+        $displayField = $obj->getDisplayField();
+        if (!$displayField) {
+            return null;
+        }
+
+        $textField = $displayField->getFieldName();
+        return new Octopus_Model_Restriction_Field($model, $this->getFieldname() . '.' . $textField . ' LIKE', $text);
+    }
+
 
 }
