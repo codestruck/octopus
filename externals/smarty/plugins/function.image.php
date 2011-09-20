@@ -68,7 +68,7 @@ function smarty_function_image($params, $template)
         if ($key == 'file') {
             // file == src
             $imageAttrs['src'] = $value;
-        } else if ($key === 'href') {
+        } else if ($key === 'href' && trim($value) != '') {
             $linkAttrs['href'] = $value;
         } else if ($key === 'resize') {
             if ($value) $action = 'r';
