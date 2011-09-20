@@ -45,17 +45,6 @@ class Octopus_Html_Form_Field_Checkbox extends Octopus_Html_Form_Field {
 
     }
 
-    public function readValue(&$posted, &$values) {
-        if (substr($this->name, -2) === '[]') {
-            $name = preg_replace('/\[\]$/', '', $this->name);
-            $postedValue = isset($posted[$name]) ? $posted[$name] : array();
-            $values[$name] = $postedValue;
-            $values[ pluralize($name) ] = $postedValue;
-        } else {
-            $values[$this->name] = !empty($posted[$this->name]);
-        }
-    }
-
     public function val(/* $val */) {
 
         switch(func_num_args()) {

@@ -385,14 +385,27 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
     }
 
     /**
+     * Given an array of posted values, intializes this field.
+     */
+    public function loadValue(&$values) {
+
+		$name = preg_replace('/\[\]$/', '', $this->name);
+		$value = isset($values[$name]) ? $values[$name] : null;
+
+		$this->val($value);
+
+        return $this;
+
+    }
+
+    /**
      * Reads this field's value into a final array of values.
-     * @param $posted Array The data posted, e.g. $_POST
      * @param $values Array Array being populated w/ form data.
      */
-    public function readValue(&$posted, &$values) {
-        if (isset($posted[$this->name])) {
-            $values[$this->name] = $posted[$this->name];
-        }
+    public function readValue(&$values) {
+    	$name = $this->name;
+        $values[$name] = $this->val();
+        return $this;
     }
 
     protected function updateLabels() {
