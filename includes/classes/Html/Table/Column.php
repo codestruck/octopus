@@ -451,6 +451,11 @@ class Octopus_Html_Table_Column {
 
         }
 
+        if (is_array($f)) {
+	        list($obj, $method) = $f;
+	        $f = get_class($obj) . '::' . $method;
+	    }
+
         $escape = false;
         return '<span style="color:red;">Function not found: ' . h($f) . '</span>';
 

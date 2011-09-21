@@ -391,6 +391,25 @@ END;
 	/**
 	 * @dataProvider getSiteDirImages
 	 */
+	function testBlankHrefDoesntRenderLink($file, $fileUrl) {
+
+		$test = <<<END
+{image src="$file" href=""}
+{image src="$file" href="  "}
+END;
+		$mtime = filemtime($file);
+		$expected = <<<END
+<img src="$fileUrl?$mtime" width="100" height="75" />
+<img src="$fileUrl?$mtime" width="100" height="75" />
+END;
+
+		$this->assertSmartyEquals($expected, $test);
+	}
+
+
+	/**
+	 * @dataProvider getSiteDirImages
+	 */
 	function testWeirdAttributes($file, $fileUrl) {
 
 		$test = <<<END
@@ -496,6 +515,8 @@ END;
 		}
 
 	}
+
+
 
 	function getSiteDirImages() {
 

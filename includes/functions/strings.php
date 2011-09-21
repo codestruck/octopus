@@ -6,7 +6,11 @@
     function camel_case($s, $initialCapital = false) {
 
         $s = trim($s);
-        $s = preg_replace('/([\p{Ll}\d])(\p{Lu})/', '$1_$2', $s);
+        if (!defined('PREG_BAD_UTF8_OFFSET_ERROR')) {
+           $s = preg_replace('/([a-z\d])([A-Z])/', '$1_$2', $s);
+        } else {
+            $s = preg_replace('/([\p{Ll}\d])(\p{Lu})/', '$1_$2', $s);
+        }
 
         $parts = preg_split('/[-_\s]+/', $s);
 
