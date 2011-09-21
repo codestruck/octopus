@@ -219,7 +219,7 @@ END;
         $html .=
             '<h3>SQL</h3>' .
             '<textarea class="octopusDebugResultSetSql">' .
-            h($this->dumpText()) .
+            h($this->__dumpText()) .
             '</textarea>';
 
 

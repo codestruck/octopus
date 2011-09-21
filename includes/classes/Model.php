@@ -646,8 +646,8 @@ END;
         foreach($this->toArray() as $key => $value) {
             try {
                 if ($value instanceof Dumpable) {
-                  $value = $value->dump('text');  
-                } 
+                  $value = $value->__dumpText();
+                }
                 $result .= <<<END
 
 \t$key:\t\t$value
