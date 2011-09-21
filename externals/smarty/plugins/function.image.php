@@ -216,7 +216,8 @@ function smarty_function_image($params, $template)
 
     $img = new Octopus_Html_Element('img', $imageAttrs);
 
-    if (!empty($linkAttrs)) {
+    // Don't render links if href is missing or blank
+    if (isset($linkAttrs['href']) && trim($linkAttrs['href'])) {
         $link = new Octopus_Html_Element('a', $linkAttrs);
         $link->append($img);
         return $link->render(true);
