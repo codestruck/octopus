@@ -497,6 +497,21 @@ END
  			$ar['open_tag']
 	  	);
 
+    }
+
+    function testSimulateSubmissionOnSecureForm() {
+
+    	$form = new Octopus_Html_Form('simulateSubmissionOnSecureForm');
+    	$form->secure(10);
+    	$form->add('name');
+
+    	$form->submit(array('name' => 'foo'));
+    	$this->assertTrue($form->wasSubmitted(), 'form is marked as submitted');
+    	$this->assertTrue($form->validate(), 'form validates');
+
+		$form = new Octopus_Html_Form('simulateSubmissionOnSecureForm');
+    	$form->secure(10);
+    	$form->add('name');
 
     }
 

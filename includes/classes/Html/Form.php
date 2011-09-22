@@ -123,6 +123,10 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      */
     protected function getSubmittedSignature() {
 
+    	if (is_array($this->_submittedValues) && isset($this->_submittedValues['__octform'])) {
+    		return $this->_submittedValues['__octform'];
+    	}
+
     	$values = $this->getSubmittedValues();
 
     	if (isset($values['__octform'])) {
@@ -458,6 +462,8 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      * will return true and $values will be used in validation.
      */
     public function submit(Array $values) {
+
+    	$values['__octform'] = $this->getSignature();
 
     	$this->setValues($values);
     	$this->_submittedValues = $values;
