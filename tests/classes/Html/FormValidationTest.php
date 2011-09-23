@@ -105,6 +105,29 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
 
     }
 
+    function testMustMatchOtherField() {
+
+    	$tests = array(
+    		array('', '', true),
+    		array('foo', '', false),
+    		array('foo', 'bar', false),
+    		array('foo', 'foo', true)
+	    );
+
+	    foreach($tests as $params) {
+
+	    	list($email, $confirm_email, $succeeds) = $params;
+
+	    	$form = new Octopus_Html_Form('mustMatchOtherField');
+	    	$form->add('email');
+	    	$form->add('confirm_email')->mustMatch('email');
+
+	    	$form->submit(compact('email', 'confirm_email'));
+	    	$this->assertEquals($succeeds, $form->validate(), "'$email', '$confirm_email' " . ($succeeds ? 'succeeds' : 'fails'));
+	    }
+
+    }
+
     function testRangeValidation() {
 
         $form = new Octopus_Html_Form('range');

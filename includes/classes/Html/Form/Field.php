@@ -219,19 +219,18 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
             $message = null;
         }
 
-        if ($emptyIsValid === null) {
-            $emptyIsValid = true;
-        }
-
         if (parse_regex($patternOrFieldName)) {
+
             Octopus::loadClass('Octopus_Html_Form_Field_Rule_Regex');
             $rule = new Octopus_Html_Form_Field_Rule_Regex($patternOrFieldName, $message);
+            $rule->emptyIsValid = ($emptyIsValid === null ? true : $emptyIsValid);
+
         } else {
             Octopus::loadClass('Octopus_Html_Form_Field_Rule_MatchField');
             $rule = new Octopus_Html_Form_Field_Rule_MatchField($patternOrFieldName, $message);
-        }
+            $rule->emptyIsValid = ($emptyIsValid === null ? false : $emptyIsValid);
 
-        $rule->emptyIsValid = $emptyIsValid;
+        }
 
         return $this->addRule($rule);
     }
