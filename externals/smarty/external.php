@@ -48,7 +48,7 @@ class Octopus_Smarty extends Octopus_Base {
         }
 
         $this->smarty = new Smarty();
-        $this->smarty->error_reporting = E_ALL & ~E_NOTICE;
+        $this->smarty->error_reporting = E_ERROR;
         $this->smarty->template_dir = $templateDir;
         $this->smarty->compile_dir = $compileDir;
         $this->smarty->allow_php_tag = true;
@@ -66,6 +66,7 @@ class Octopus_Smarty extends Octopus_Base {
         $this->smarty->enableSecurity($security_policy);
 
         if (DEV) {
+        	$this->smarty->error_reporting = E_ALL & ~E_NOTICE;
             $this->smarty->_file_perms = 0666;
             $this->smarty->_dir_perms = 0777;
             $this->smarty->compile_error = true;
