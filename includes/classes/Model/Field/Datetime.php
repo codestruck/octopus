@@ -2,7 +2,7 @@
 
 class Octopus_Model_Field_Datetime extends Octopus_Model_Field {
 
-    private $format = 'Y-m-d H:i:s';
+    private static $format = 'Y-m-d H:i:s';
 
     public function __construct($field, $modelClass, $options) {
 
@@ -46,11 +46,11 @@ class Octopus_Model_Field_Datetime extends Octopus_Model_Field {
             $value = strtotime($value);
         }
 
-        return date('Y-m-d H:i:s', $value);
+        return date(self::$format, $value);
     }
 
     function _setNow() {
-        return date($this->format, time());
+        return date(self::$format, time());
     }
 }
 ?>

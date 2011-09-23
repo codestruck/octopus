@@ -366,9 +366,10 @@ class Octopus_Html_Table_Column {
             $value = $obj[$id];
         }
 
-        $value = $this->applyFunction($value, $obj);
+        $escape = $this->options['escape'];
+        $value = $this->applyFunction($value, $obj, $escape);
 
-        if ($this->options['escape']) {
+        if ($escape) {
 
             if (is_object($value)) {
 
@@ -377,7 +378,7 @@ class Octopus_Html_Table_Column {
                 }
 
             } else {
-                $value = htmlspecialchars($value);
+                $value = h($value);
             }
 
         }
@@ -404,7 +405,7 @@ class Octopus_Html_Table_Column {
      * value.
      * @return Mixed The modified value.
      */
-    protected function applyFunction(&$value, &$row) {
+    protected function applyFunction(&$value, &$row, &$escape) {
 
         if (empty($this->options['function'])) {
             return $value;
@@ -417,12 +418,10 @@ class Octopus_Html_Table_Column {
         if ($isString && $isObject && method_exists($value, $f)) {
             // TODO: should there be a way to supply arguments here?
             return $value->$f();
-        } else if ($isString) {
-
-            if (method_exists($this, $f)) {
-                return $this->$f($value, $row);
-            }
-
+        } else if ($isString && method_exists($this, $f)) {
+            return $this->$f($value, $row);
+        } else if ($row instanceof Octopus_Model && is_string($f) && method_exists($row, $f)) {
+            return $row->$f($value, $row);
         }
 
         if (is_callable($f)) {
@@ -440,7 +439,7 @@ class Octopus_Html_Table_Column {
 
             $useExtraArgs = true;
             if ($isString) {
-                $noExtraArgs = array('htmlspecialchars', 'htmlentities', 'trim', 'ltrim', 'rtrim', 'nl2br');
+                $noExtraArgs = array('htmlspecialchars', 'htmlentities', 'trim', 'ltrim', 'rtrim', 'nl2br', 'basename');
                 $useExtraArgs = !in_array($f, $noExtraArgs);
             }
 
@@ -452,10 +451,8 @@ class Octopus_Html_Table_Column {
 
         }
 
-
-
-
-        return '<span style="color:red;">Function not found: ' . htmlspecialchars($f) . '</span>';
+        $escape = false;
+        return '<span style="color:red;">Function not found: ' . h($f) . '</span>';
 
     }
 

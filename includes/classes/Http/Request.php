@@ -9,12 +9,12 @@
 Octopus::loadClass('Http_Request_Sockets');
 Octopus::loadClass('Http_Request_Curl');
 
-function octopus_http_get($url, $args) {
+function octopus_http_get($url, $args = array()) {
     $http = new Octopus_Http_Request();
     return $http->request($url, null, $args);
 }
 
-function octopus_http_post($url, $data, $args) {
+function octopus_http_post($url, $data, $args = array()) {
     $args['method'] = 'POST';
     $http = new Octopus_Http_Request();
     return $http->request($url, $data, $args);
@@ -28,12 +28,9 @@ class Octopus_Http_Request {
         $this->transport = $this->getTransport();
     }
 
-    public function request($url, $data = null, $args = array()) {
-        return $this->transport->request($url, $data, $args);
-    }
-
-    public function getHeaders() {
-        return $this->transport->getHeaders();
+    public function __call($name, $args) {
+        // passthru to public functions on transport class
+        return call_user_func_array(array($this->transport, $name), $args);
     }
 
     private function getTransport() {

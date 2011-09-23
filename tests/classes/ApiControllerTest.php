@@ -54,5 +54,31 @@ class ApiControllerTest extends Octopus_App_TestCase {
 
     }
 
+    function testContentType() {
+            
+        $app = $this->StartApp();
+
+        $this->createControllerFile(
+            'api/1/TestContentType',
+            <<<END
+<?php
+
+class Api1TestContentTypeController extends Octopus_Controller_Api {
+    
+    public function test() {
+        return array('foo' => 'bar');
+    }
+
+}
+
+?>
+END
+        );
+
+        $resp = $app->getResponse('/api/1/test_content_type/test', true);
+        $this->assertEquals('application/json', $resp->contentType());
+
+    }
+
 
 }

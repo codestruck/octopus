@@ -21,33 +21,28 @@ class Octopus_Smarty extends Octopus_Base {
 
         $app = (class_exists('Octopus_App') && Octopus_App::isStarted()) ? Octopus_App::singleton() : null;
 
-        if ($this->templateDir == null) {
+        $templateDir = $this->templateDir;
+        if ($templateDir == null) {
 
             if (isset($app->template_dir)) {
                 $templateDir = $app->template_dir;
-            } else if (defined('SITE_DIR')) {
-                $templateDir = SITE_DIR . 'views/';
-            } else if ($app) {
-                $templateDir = $app->getOption('SITE_DIR') . 'views/';
+            } else {
+                $templateDir = get_option('SITE_DIR') . 'views';
             }
 
         }
 
-        if ($this->compileDir == null) {
+        $compileDir = $this->compileDir;
+        if (!$compileDir) {
 
-            if (defined('SMARTY_COMPILE_DIR')) {
-                $compileDir = SMARTY_COMPILE_DIR;
-            } else if (defined('OCTOPUS_PRIVATE_DIR')) {
-                $compileDir = OCTOPUS_PRIVATE_DIR . 'smarty';
-            } else if ($app) {
+            $compileDir = get_option('SMARTY_COMPILE_DIR');
 
-                $compileDir = $app->getOption('SMARTY_COMPILE_DIR');
-                if (!$compileDir) {
-                    $compileDir = $app->getOption('OCTOPUS_PRIVATE_DIR') . 'smarty';
-                }
+            if (!$compileDir) {
+                $compileDir = get_option('OCTOPUS_PRIVATE_DIR') . 'smarty';
+            }
 
-            } else {
-                $compileDir = '/tmp';
+            if (!$compileDir) {
+                $compileDir = sys_get_temp_dir();
             }
 
         }
@@ -78,6 +73,25 @@ class Octopus_Smarty extends Octopus_Base {
         }
 
 
+    }
+
+    /**
+     * @return String The results of rendering the given smarty template file.
+     */
+    public function render($templateFile, $data = array()) {
+
+    	$smarty = $this->smarty;
+        $smartyData = $smarty->createData();
+
+        foreach($data as $key => $value) {
+            $smartyData->assign($key, $value);
+        }
+
+        // Look for templates in the same directory the file is in.
+        $smarty->template_dir = array(dirname($templateFile));
+
+        $tpl = $smarty->createTemplate($templateFile, $smartyData);
+        return $tpl->fetch();
     }
 
     public static function &singleton() {

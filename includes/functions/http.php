@@ -68,7 +68,7 @@
             $oldArgs[$key] = $value;
         }
 
-        $qs = http_build_query($oldArgs);
+        $qs = octopus_http_build_query($oldArgs);
 
         if ($qs) {
             $url .= '?' . $qs;
@@ -77,11 +77,38 @@
         return $url;
     }
 
+    // native version requires 5.4 to properly encode spaces for GET requests
+    function octopus_http_build_query($data, $seperator = '&', $method = 'GET') {
+
+        $str = '';
+        $encFunc = 'rawurlencode';
+        if (strtoupper($method) == 'POST') {
+            $encFunc = 'urlencode';
+        }
+
+        foreach ($data as $key => $value) {
+            if ($value !== null) {
+                $str .= $encFunc($key) . '=' . $encFunc($value) . $seperator;
+            }
+        }
+        $str = rtrim($str, $seperator);
+
+        return $str;
+
+    }
+
     /**
      * Cancels any upcoming redirects.
      */
     function cancel_redirects($cancel = true) {
+
         $GLOBALS['__OCTOPUS_CANCEL_REDIRECT__'] = $cancel;
+
+        if (defined('DEV') && DEV && class_exists('Octopus_Debug')) {
+            $GLOBALS['__OCTOPUS_CANCEL_REDIRECT_BACKTRACE'] = debug_backtrace();
+        }
+
+
         return $cancel;
     }
 
@@ -98,10 +125,15 @@
     function find_url_base($rootDir = null, $documentRoot = null) {
 
         $rootDir = $rootDir ? $rootDir : ROOT_DIR;
-        $documentRoot = $documentRoot ? $documentRoot : $_SERVER['DOCUMENT_ROOT'];
 
         if (!$documentRoot) {
-            return '/'; // probably testing or on command line
+
+            if (!empty($_SERVER['DOCUMENT_ROOT'])) {
+                $documentRoot = $_SERVER['DOCUMENT_ROOT'];
+            } else {
+                $documentRoot = $rootDir;
+            }
+
         }
 
         /*
@@ -121,11 +153,20 @@
          *
          */
 
-        if (strncasecmp($rootDir, $documentRoot, strlen($documentRoot)) == 0) {
+        if ($documentRoot) $documentRoot = rtrim($documentRoot, '/') . '/';
+        if ($rootDir) $rootDir = rtrim($rootDir, '/') . '/';
 
+        $documentRootLen = strlen($documentRoot);
+        $rootDirLen = strlen($rootDir);
 
-            $base = substr($rootDir, strlen($documentRoot));
-            if ($base === false) return '/';
+        if ($rootDirLen < $documentRootLen) {
+            return false;
+        }
+
+        if (strncasecmp($rootDir, $documentRoot, $documentRootLen) === 0) {
+
+            $base = substr($rootDir, $documentRootLen);
+            if (!$base) return '/';
 
             return start_in('/', end_in('/', $base));
 
@@ -140,6 +181,29 @@
      */
     function make_url($url, $args = null, $options = null) {
         return u($url, $args, $options);
+    }
+
+    /**
+     * Ensure external urls start with protocol (http://)
+     */
+    function make_external_url($url, $https = null) {
+
+        $start = 'http://';
+
+        if (!trim($url)) {
+            return '';
+        }
+
+        if ($https) {
+            $start = 'https://';
+        } elseif ($https === null) {
+            // detect and allow either protocol
+            if (preg_match('/^(https?:\/\/)/', $url, $matches)) {
+                $start = $matches[1];
+            }
+        }
+
+        return start_in($start, preg_replace('/^https?:\/\//', '', $url));
     }
 
     /**
@@ -178,6 +242,10 @@
 
             $d = new Octopus_Debug();
             $d->addSquashedRedirect($location);
+
+            if (!empty($GLOBALS['__OCTOPUS_CANCEL_REDIRECT_BACKTRACE'])) {
+                $d->add('Cancellation Source Backtrace', Octopus_Debug::getBacktraceHtml($GLOBALS['__OCTOPUS_CANCEL_REDIRECT_BACKTRACE']));
+            }
 
             if ($resp) {
                 $resp->append($d->render(true));
@@ -223,13 +291,13 @@
     }
 
     /**
-     * Given some HTML, makes sure all the href="..." and 
+     * Given some HTML, makes sure all the href="..." and
      * src="..." attributes are full URLS.
      */
     function expand_relative_urls($html, $secure = null, $options = array()) {
-        
+
         $worker = new __expand_relative_urls_worker($secure, $options);
-            
+
         return preg_replace_callback(
             '/(\s+)(href|src)(\s*=\s*)([\'"])(.*?)\4/i',
             array($worker, 'replaceCallback'),
@@ -244,11 +312,8 @@
             $this->options = $options;
         }
         public function replaceCallback($matches) {
-            $url = $matches[5];
-            if (!preg_match('#^(https?)://#i', $url)) {
-                $url = get_full_url($url, $this->secure, $this->options);
-            }
-            return "{$matches[1]}{$matches[2]}{$matches[3]}{$matches[4]}{$url}{$matches[4]}";            
+            $url = get_full_url($matches[5], $this->secure, $this->options);
+            return "{$matches[1]}{$matches[2]}{$matches[3]}{$matches[4]}{$url}{$matches[4]}";
         }
     }
 
@@ -303,8 +368,36 @@
             $port = ':' . $port;
         }
 
+        $path = trim($path);
+
+        // Handle being handed in a full url
+        if (preg_match('#\s*([a-z0-9_-]*)://([^/]*?)(:(\d+))?/(.*)#i', $path, $m)) {
+
+            $inScheme = $m[1];
+            $inServer = $m[2];
+            $inPort = $m[4];
+            $inPath = $m[5];
+
+
+            if ($inServer && strcasecmp($inServer, $host) !== 0) {
+                // This points to a different machine.
+                return $path;
+            }
+
+            if ($inPort && intval($port) !== intval($inPort)) {
+                // This points to a different port
+                return $path;
+            }
+
+            $path = $inPath ? '/' . $inPath : '';
+        }
+
         $scheme = $secure ? 'https' : 'http';
         $path = u($path, null, $options);
+
+        if ($path && $path[0] !== '/') {
+            throw new Octopus_Exception("Can't turn a relative path into a full url: $path");
+        }
 
         return "{$scheme}://{$host}{$port}{$path}";
     }

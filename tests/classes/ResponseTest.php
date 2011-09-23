@@ -39,6 +39,27 @@ END
         $this->assertFalse($r->shouldContinueProcessing(), 'should stop processing');
     }
 
+    function testContentType() {
+        
+        $r = new Octopus_Response(true);
+        $this->assertEquals('text/html', $r->contentType(), 'default to text/html content type');
+
+        $r->contentType('application/json');
+        $this->assertEquals('application/json', $r->contentType());
+
+    }
+
+    function testStop() {
+        
+        $r = new Octopus_Response(true);
+        $r->contentType('application/json');
+        $r->append(json_encode(true));
+        $r->stop();
+
+        $this->assertFalse($r->shouldContinueProcessing());
+
+    }
+
     function testPermanentRedirect() {
 
         $r = new Octopus_Response(true);

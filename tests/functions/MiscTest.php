@@ -8,10 +8,10 @@
 
         function testInDevEnvironment() {
 
-            $this->assertTrue(is_dev_environment(false, false, false));
-            $this->assertFalse(is_dev_environment(true, false, false));
-            $this->assertFalse(is_dev_environment(false, true, false));
-            $this->assertFalse(is_dev_environment(true, true, false));
+            $this->assertTrue(is_dev_environment(false, false, false), 'true when not live or staging');
+            $this->assertFalse(is_dev_environment(true, false, false), 'false when live');
+            $this->assertFalse(is_dev_environment(false, true, false), 'false when staging');
+            $this->assertFalse(is_dev_environment(true, true, false), 'false when live and staging');
 
         }
 

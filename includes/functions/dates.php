@@ -100,4 +100,50 @@ if (!function_exists('fuzzy_date')) {
         return $date + ($days * 24 * 60 * 60);
     }
 
+    function get_time_span_parts($seconds) {
+        $counts = array(
+            'days' => 86400,
+            'hours' => 3600,
+            'minutes' => 60,
+        );
+        $parts = array();
+
+        foreach($counts as $name => $count) {
+            $parts[$name] = floor($seconds / $count);
+            $seconds -= ($parts[$name] * $count);
+        }
+        $parts['seconds'] = $seconds;
+
+        return $parts;
+    }
+
+    function format_time_span($seconds, $fuzzy = false) {
+
+        $parts = get_time_span_parts($seconds);
+        
+        // TODO: fuzzy
+
+        $result = '';
+        foreach($parts as $name => $count) {
+            
+            $resultLen = strlen($result);
+
+            if (!$resultLen && $name === 'seconds') {
+                $result = '00';
+                $resultLen = 2;
+            } else if (!($resultLen || $count)) {
+                continue;
+            }
+
+
+            if ($resultLen) $result .= ':';
+            $result .= sprintf('%02d', $count);
+
+        }
+
+        return $result;
+
+    }
+
+
 ?>

@@ -135,7 +135,8 @@ function run_creates() {
             `differentd_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
             `kazi` varchar ( 255 ) NOT NULL,
             `created` DATETIME NOT NULL,
-            `updated` DATETIME NOT NULL
+            `updated` DATETIME NOT NULL,
+            `extra` varchar ( 255 ) NOT NULL
             )
             ";
 

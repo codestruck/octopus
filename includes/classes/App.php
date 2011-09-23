@@ -22,6 +22,14 @@ class Octopus_App {
 
     public static $defaults = array(
 
+        'default_template' => 'html/page',
+
+        /**
+         * Whether or not to create directories used by octopus. If true
+         * and the dirs can't be created, an exception will be thrown.
+         */
+        'create_dirs' => true,
+
         /**
          * Alias to define for the '/' path. Set to false to not define one.
          */
@@ -67,6 +75,13 @@ class Octopus_App {
         'use_site_config' => true,
 
         /**
+         * Whether or not to auto-include files in the site/functions directory.
+         * This option depends on use_site_config, if that is false, no 
+         * will be included.
+         */
+        'include_site_functions' => true,
+
+        /**
          * Whether or not to load all model classes by default.
          */
         'load_models' => true,
@@ -97,6 +112,7 @@ class Octopus_App {
     private $_controllers = null, $_flatControllers = null;
     private $_prevErrorHandler = null;
     private $_currentRequest = null;
+    private $_currentResponse = null;
 
     private $_haveSiteDir = false;
     private $_haveSiteViews = false;
@@ -123,6 +139,7 @@ class Octopus_App {
         $this->ensureDirectoriesExist();
         $this->_initSettings();
         $this->watchForErrors();
+        $this->_includeSiteFunctions();
 
     }
 
@@ -240,6 +257,10 @@ class Octopus_App {
 
         $o =& $this->_options;
 
+        if (!$o['create_dirs']) {
+            return;
+        }
+
         foreach(array('OCTOPUS_PRIVATE_DIR', 'OCTOPUS_CACHE_DIR', 'OCTOPUS_UPLOAD_DIR') as $name) {
             
             $dir = $o[$name];
@@ -299,6 +320,14 @@ class Octopus_App {
         }
 
         return $this->_nav->find($path, $options);
+    }
+
+    /**
+     * @return An Octopus_Renderer instance to use to find views and render
+     * the final page.
+     */
+    public function createRenderer() {
+        return Octopus::create('Renderer', array($this));
     }
 
     /**
@@ -403,6 +432,14 @@ class Octopus_App {
      */
     public function getCurrentRequest() {
         return $this->_currentRequest;
+    }
+
+    /**
+     * @return The Octopus_Response currently being assembled, or null
+     * if none is in progress.
+     */
+    public function getCurrentResponse() {
+        return $this->_currentResponse;
     }
 
     /**
@@ -518,9 +555,12 @@ class Octopus_App {
             }
         }
 
-        $dispatch = new Octopus_Dispatcher($this);
+        $this->_currentResponse = $resp = $this->createResponse($req, !empty($options['buffer']));
 
-        return $dispatch->getResponse($this->_currentRequest, !empty($options['buffer']));
+        $dispatch = new Octopus_Dispatcher($this);
+        $dispatch->handleRequest($req, $resp);
+
+        return $resp;
     }
 
     public function post($url, $data = array(), $options = array()) {
@@ -556,6 +596,13 @@ class Octopus_App {
         $nav = $this->getNav();
 
         return new Octopus_Request($this, $originalPath, $nav->resolve($path), $options);
+    }
+
+    /**
+     * @return Octopus_Response
+     */
+    protected function createResponse($request, $buffer = false) {
+        return new Octopus_Response($buffer);
     }
 
     /**
@@ -760,11 +807,12 @@ class Octopus_App {
 
         if (empty($o['URL_BASE'])) {
 
-            if (defined('URL_BASE')) {
+            if ($o['use_defines'] && defined('URL_BASE')) {
                 $o['URL_BASE'] = URL_BASE;
             } else {
 
-                $o['URL_BASE'] = find_url_base();
+                $o['URL_BASE'] = find_url_base($o['ROOT_DIR']);
+
                 if ($o['URL_BASE'] === false) {
                     $this->error('Could not determine URL_BASE. Assuming "/".');
                     $o['URL_BASE'] = '/';
@@ -799,6 +847,29 @@ class Octopus_App {
 
     }
 
+    private function _includeSiteFunctions() {
+        
+        $o =& $this->_options;
+        if (!($o['use_site_config'] && $o['include_site_functions'])) {
+            return;
+        }
+
+        $funcDir = $o['SITE_DIR'] . 'functions/';
+        if (is_dir($funcDir)) {
+            $files = glob($funcDir . '*.php');
+            if ($files) {
+                foreach($files as $f) {
+                    self::_require_once($f);
+                }
+            }
+        }
+
+    }
+
+    private static function _require_once($file) {
+        require_once($file);
+    }
+
     /**
      * Loads any config files from the sitedir.
      */
@@ -808,9 +879,9 @@ class Octopus_App {
         $this->_haveSiteConfig = false;
 
         if (!$o['use_site_config']) {
+            // This is used when running the unit tests
             return;
         }
-
 
         $configFile = $o['SITE_DIR'] . 'config.php';
 
@@ -818,11 +889,23 @@ class Octopus_App {
         if (!$host && isset($o['HTTP_HOST'])) $host = $o['HTTP_HOST'];
 
         if (!$host) {
-            // NOTE: Getting the hostname via `hostname` can have unintended
-            // consequences when multiple app installations are running on the
-            // same server.
+
+            /* 
+             * NOTE: Getting the hostname via `hostname` can have unintended
+             * consequences when multiple app installations are running on the
+             * same server. For example, if you have apps on serverx in two
+             * places:
+             *
+             *  /var/www/app
+             *  /var/www/app/dev
+             *
+             * If 'dev.serverx' is mapped to app/dev, but hostname returns 
+             * 'serverx', any config meant for dev.serverx will not be applied.
+             */
+
             die("No hostname is known.");
         }
+
         $host = strtolower($host);
 
         $hostConfigFile = $o['SITE_DIR'] . "config.$host.php";

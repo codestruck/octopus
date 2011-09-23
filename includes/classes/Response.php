@@ -226,6 +226,25 @@ class Octopus_Response {
     }
 
     /**
+     * Does a str_replace across all buffered content.
+     * @throws Octopus_Exception if response is not buffered.
+     */
+    public function replaceContent($search, $replace) {
+        
+        if (!$this->_buffer) {
+            throw new Octopus_Exception("Octopus_Response::replaceContent can't be called on unbuffered responses");
+        }
+
+        $count = 0;
+        $content = implode("\n", $this->_content);
+        $content = str_replace($search, $replace, $content, $count);
+        $this->_content = array($content);
+
+
+        return $this;
+    }
+
+    /**
      * Clears the response.
      */
     private function reset() {

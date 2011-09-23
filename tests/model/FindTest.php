@@ -2,70 +2,6 @@
 
 require_once(dirname(dirname(__FILE__)) . '/Octopus_DB_TestCase.php');
 
-class FindAuthor extends Octopus_Model {
-
-    protected $fields = array(
-        'name' => array('type' => 'string'),
-        'posts' => array(
-            'type' => 'hasMany',
-            'model' => 'FindPost'
-        ),
-        'active'
-    );
-
-}
-
-class FindCategory extends Octopus_Model {
-
-    protected $fields = array(
-        'name',
-    );
-
-}
-
-class FindPost extends Octopus_Model {
-
-    protected $fields = array(
-        'title' => array(
-            'type' => 'string'
-        ),
-        'slug' => array(
-            'type' => 'slug'
-        ),
-        'body' => array(
-            'type' => 'html'
-        ),
-        'author' => array(
-            'model' => 'FindAuthor',
-            'type' => 'hasOne'
-        ),
-        'category' => array(
-            'type' => 'manyToMany',
-            'model' => 'FindCategory'
-        ),
-        'active' => array(
-            'type' => 'boolean',
-        ),
-        'display_order' => array(
-            'type' => 'order',
-        ),
-        'created',
-        'updated',
-
-    );
-
-
-    public static function &create($row) {
-
-        $obj = new FindPost();
-
-        return $obj;
-
-    }
-
-
-}
-
 /**
  * @group find
  * @group Model
@@ -82,6 +18,16 @@ class FindTest extends Octopus_DB_TestCase {
         $name = $author->getField('name');
 
         $this->assertEquals('=', $name->getDefaultSearchOperator());
+
+    }
+
+    function testInEmptyArray() {
+
+    	$posts = FindPost::all()->where('id in', array(4));
+    	$this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`find_post_id` IN('4')", $posts);
+
+		$posts = FindPost::all()->where('id in', array());
+		$this->assertSqlEquals("SELECT * FROM find_posts WHERE 0", $posts);
 
     }
 
@@ -110,6 +56,61 @@ END;
             "SELECT * FROM find_posts WHERE $expectedWhereClause",
             FindPost::all()->where($criteria)
         );
+
+    }
+
+    function testContainsModel() {
+
+        $inactivePost = new FindPost(5);
+
+        $all = FindPost::all();
+        $this->assertTrue($all->contains($inactivePost), 'positive contains');
+
+        $active = $all->whereActive();
+        $this->assertFalse($active->contains($inactivePost), 'negative contains');
+
+    }
+
+    function testContainsID() {
+
+        $all = FindPost::all();
+        $this->assertTrue($all->contains(5), 'positive contains');
+
+        $active = $all->whereActive();
+        $this->assertFalse($active->contains(5), 'negative contains');
+    }
+
+    function testContainsMulti() {
+
+        $all = FindPost::all();
+        $this->assertTrue($all->contains(1, 5), 'positive contains');
+
+        $active = $all->whereActive();
+        $this->assertFalse($active->contains(1, 5), 'negative contains');
+
+    }
+
+    function testFollowRelation() {
+
+        $inactivePosts = FindPost::all()->where(array('active' => 0));
+        $this->assertEquals(1, $inactivePosts->count());
+
+        $inactivePostAuthors = $inactivePosts->followRelation('author');
+        $this->assertEquals(1, $inactivePostAuthors->count());
+
+    }
+
+    function testRemoveFollowRelation() {
+
+        $inactivePosts = FindPost::all()->where(array('active' => 0));
+        $this->assertEquals(1, $inactivePosts->count());
+
+        $inactivePostAuthors = $inactivePosts->followRelation('author');
+        $this->assertEquals(1, $inactivePostAuthors->count());
+
+        $onlyActiveAuthors = FindAuthor::all()->remove($inactivePostAuthors);
+        $this->assertEquals(1, $onlyActiveAuthors->count());
+
 
     }
 
