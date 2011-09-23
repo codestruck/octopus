@@ -1,6 +1,7 @@
 <?php
 
-require_once(dirname(__FILE__) . '/Smarty-3.0.8/libs/Smarty.class.php');
+define('SMARTY_VERSION', '3.0.8');
+require_once(dirname(__FILE__) . '/Smarty-' . SMARTY_VERSION . '/libs/Smarty.class.php');
 
 class Octopus_Smarty extends Octopus_Base {
 
@@ -56,7 +57,7 @@ class Octopus_Smarty extends Octopus_Base {
         // custom plugin dir
         $this->smarty->plugins_dir = array(
             OCTOPUS_DIR . 'externals/smarty/plugins/',
-            dirname(__FILE__) . '/Smarty-3.0.8/libs/plugins/',
+            dirname(__FILE__) . '/Smarty-' . SMARTY_VERSION . '/libs/plugins/',
         );
 
         // allow all php functions and modifiers
