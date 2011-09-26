@@ -91,7 +91,6 @@ class Octopus_Html_Table_Column {
                 return $this->addToggle($id, $label, $url, $options);
             }
 
-
             $action = new Octopus_Html_Table_Action($id, $label, $url, $options);
         }
 
@@ -413,57 +412,7 @@ class Octopus_Html_Table_Column {
      */
     protected function applyFunction(&$value, &$row, &$escape) {
 
-        if (empty($this->options['function'])) {
-            return $value;
-        }
-
-        $f = $this->options['function'];
-        $isString = is_string($f);
-        $isObject = is_object($value);
-
-        if ($isString && $isObject && method_exists($value, $f)) {
-            // TODO: should there be a way to supply arguments here?
-            return $value->$f();
-        } else if ($isString && method_exists($this, $f)) {
-            return $this->$f($value, $row);
-        } else if ($row instanceof Octopus_Model && is_string($f) && method_exists($row, $f)) {
-            return $row->$f($value, $row);
-        }
-
-        if (is_callable($f)) {
-
-            /* HACK: not all built-in functions like receiving the row as
-             *       the 2nd argument.
-             *
-             * TODO: Have more calling options, something like:
-             *
-             *      array(
-             *          'function' => 'name of function',
-             *          'args' => array(OCTOPUS_ARG_VALUE, OCTOPUS_ARG_ROW, $customVariable, new Octopus_Function(...))
-             *      )
-             */
-
-            $useExtraArgs = true;
-            if ($isString) {
-                $noExtraArgs = array('htmlspecialchars', 'htmlentities', 'trim', 'ltrim', 'rtrim', 'nl2br', 'basename');
-                $useExtraArgs = !in_array($f, $noExtraArgs);
-            }
-
-            if ($useExtraArgs) {
-                return call_user_func($f, $value, $row, $this);
-            } else {
-                return call_user_func($f, $value);
-            }
-
-        }
-
-        if (is_array($f)) {
-	        list($obj, $method) = $f;
-	        $f = get_class($obj) . '::' . $method;
-	    }
-
-        $escape = false;
-        return '<span style="color:red;">Function not found: ' . h($f) . '</span>';
+    	return Octopus_Html_Table_Content::applyFunction($this->options['function'], $value, $row, $escape, $this);
 
     }
 

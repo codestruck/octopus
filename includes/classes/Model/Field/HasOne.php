@@ -278,7 +278,7 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
     private function getItemClass() {
         // use the 'model' option as the classname, otherwise the fieldname
         $class = $this->getOption('model', $this->getFieldName());
-        return ucfirst($class);
+        return camel_case($class, true);
     }
 
     public function restrictFreetext($model, $text) {
