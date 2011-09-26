@@ -30,6 +30,13 @@ class Octopus_Html_Table_Column {
         'function' => null,
 
         /**
+         * Text put in the header cell for this column. The 'title'
+         * key is also supported for this. If not set, the column id is
+         * humanized and used.
+         */
+        'label' => null,
+
+        /**
          * Whether this column is sortable. NULL means it should judge for
          * itself whether it should be sortable.
          */
@@ -38,8 +45,7 @@ class Octopus_Html_Table_Column {
         /**
          * Column name to use for sorting, if not this one.
          */
-        'sortUsing' => null
-
+        'sortUsing' => null,
 
     );
 
@@ -485,19 +491,23 @@ class Octopus_Html_Table_Column {
         }
 
         // Normalize some field props
-        if (empty($o['title'])) {
+        $title = null;
 
-            if (!empty($o['desc'])) {
-                $o['title'] = $o['desc'];
-            } else if (!empty($o['label'])) {
-                $o['title'] = $o['label'];
-            } else if (!empty($o['name'])) {
-                $o['title'] = $o['name'];
-            } else {
-                $o['title'] = humanize($id);
-            }
-
+        if (isset($o['label'])) {
+        	$title = $o['label'];
+        } else if (isset($o['title'])) {
+        	$title = $o['title'];
+        } else if (isset($o['desc'])) {
+        	$title = $o['desc'];
+        } else if (isset($o['name'])) {
+        	$title = $o['name'];
         }
+
+        if ($title === null) {
+        	$title = humanize($id);
+        }
+
+        $o['title'] = $title;
 
         if (empty($o['function']) && !empty($o['func'])) {
             $o['function'] = $o['func'];
