@@ -63,11 +63,11 @@ class Octopus_Renderer {
     }
 
     protected function loadTheme(Octopus_Request $request) {
-        
+
         $app = $this->app;
         $theme = $app->getTheme($request);
         if ($theme) {
-            
+
             foreach(array('SITE_DIR', 'OCTOPUS_DIR') as $dir) {
                 $dir = $app->getOption($dir);
                 $file = $dir . 'themes/' . $theme . '/theme.php';
@@ -88,14 +88,14 @@ class Octopus_Renderer {
      * Renders the full page template and returns the result.
      */
     protected function renderTemplate(Octopus_Controller $controller, Octopus_Request $request, Octopus_Response $response, $viewContent, Array $data) {
-        
+
         $templateFile = $this->findTemplateForRender($controller, $request);
 
         if (!$templateFile) {
             return $viewContent;
         }
 
-        $this->augmentViewData($data);
+        $this->augmentViewData($data, $request, $response);
         $data['view_content'] = $viewContent;
 
         $templateRenderer = Octopus_Template_Renderer::createForFile($templateFile);
@@ -115,7 +115,7 @@ class Octopus_Renderer {
         // it returns the view_not_found view).
         $viewFile = $this->findViewForRender($controller, $request, $response, $data, $renderViewNotFound);
 
-        $this->augmentViewData($data);
+        $this->augmentViewData($data, $request, $response);
 
         $viewRenderer = Octopus_Template_Renderer::createForFile($viewFile);
 
@@ -140,12 +140,15 @@ class Octopus_Renderer {
      *
      *	URL_BASE -	Prefix for the app's public root.
      *
+     *	URI -			The full requested URI
+     *	URI_AS_CLASS -	The URI escaped for use as a css class
+     *
      *	ROOT_DIR
      *	SITE_DIR
      *	OCTOPUS_DIR
      *
      */
-    protected function getExtraViewData() {
+    protected function getExtraViewData(Octopus_Request $request, Octopus_Response $response) {
 
     	$result = array();
 
@@ -166,6 +169,9 @@ class Octopus_Renderer {
         $result['ROOT_DIR'] = $this->app->getOption('ROOT_DIR');
         $result['SITE_DIR'] = $this->app->getOption('SITE_DIR');
         $result['OCTOPUS_DIR'] = $this->app->getOption('OCTOPUS_DIR');
+
+        $result['URI'] = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : $request->getPath();
+        $result['URI_AS_CLASS'] = to_css_class(str_replace('/', '', $request->getPath()));
 
         if (class_exists('Octopus_Html_Page')) {
 
@@ -195,13 +201,15 @@ class Octopus_Renderer {
         return $this->findViewFile($request, $controller, 'sys/view_not_found');
     }
 
-    private function augmentViewData(Array &$data) {
-    	$extra = $this->getExtraViewData();
+    private function augmentViewData(Array &$data, Octopus_Request $request, Octopus_Response $response) {
+
+    	$extra = $this->getExtraViewData($request, $response);
     	foreach($extra as $key => $value) {
     		if (!isset($data[$key])) {
     			$data[$key] = $value;
     		}
     	}
+
     }
 
     /**

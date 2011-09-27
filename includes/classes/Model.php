@@ -83,7 +83,8 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
             $field = $this->getField(preg_replace('/_id$/', '', $var));
 
             if ($field) {
-                return $field->accessValue($this)->id;
+                $item = $field->accessValue($this);
+                return ($item) ? $item->id : null;
             } else {
                 return null;
             }

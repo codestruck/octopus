@@ -76,7 +76,7 @@ class Octopus_App {
 
         /**
          * Whether or not to auto-include files in the site/functions directory.
-         * This option depends on use_site_config, if that is false, no 
+         * This option depends on use_site_config, if that is false, no
          * will be included.
          */
         'include_site_functions' => true,
@@ -182,6 +182,21 @@ class Octopus_App {
 
     protected function watchForErrors() {
         $this->_prevErrorHandler = set_error_handler(array($this, 'errorHandler'));
+        register_shutdown_function(array($this, 'shutdownHandler'));
+    }
+
+    /**
+     * Custom shutdown handler used to flush the response in the case of
+     * a fatal error. This ensures that
+     */
+    public function shutdownHandler() {
+
+    	$error = error_get_last();
+    	if ($error && !empty($error['type']) && ($error['type'] & E_ERROR)) {
+    		$resp = $this->getCurrentResponse();
+    		if ($resp) $resp->flush();
+    	}
+
     }
 
     /**
@@ -197,6 +212,11 @@ class Octopus_App {
                 cancel_redirects();
             }
 
+        }
+
+        if ($level & E_ERROR) {
+        	$resp = $this->getCurrentResponse();
+        	$resp->flush();
         }
 
         if ($this->_prevErrorHandler) {
@@ -262,7 +282,7 @@ class Octopus_App {
         }
 
         foreach(array('OCTOPUS_PRIVATE_DIR', 'OCTOPUS_CACHE_DIR', 'OCTOPUS_UPLOAD_DIR') as $name) {
-            
+
             $dir = $o[$name];
             if (!is_dir($dir)) {
                 if (!@mkdir($dir, 0777, true)) {
@@ -689,7 +709,7 @@ class Octopus_App {
      * Shuts down / cleans up after this app instance.
      */
     public function stop() {
-        
+
         if (self::$_instance === $this) {
             self::$_instance = null;
         }
@@ -848,7 +868,7 @@ class Octopus_App {
     }
 
     private function _includeSiteFunctions() {
-        
+
         $o =& $this->_options;
         if (!($o['use_site_config'] && $o['include_site_functions'])) {
             return;
@@ -890,7 +910,7 @@ class Octopus_App {
 
         if (!$host) {
 
-            /* 
+            /*
              * NOTE: Getting the hostname via `hostname` can have unintended
              * consequences when multiple app installations are running on the
              * same server. For example, if you have apps on serverx in two
@@ -899,7 +919,7 @@ class Octopus_App {
              *  /var/www/app
              *  /var/www/app/dev
              *
-             * If 'dev.serverx' is mapped to app/dev, but hostname returns 
+             * If 'dev.serverx' is mapped to app/dev, but hostname returns
              * 'serverx', any config meant for dev.serverx will not be applied.
              */
 
