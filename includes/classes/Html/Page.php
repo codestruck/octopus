@@ -687,7 +687,8 @@ class Octopus_Html_Page {
         $index = self::counter();
 
         if ($type == 'literal') {
-            $this->scripts[] = compact('content', 'attributes', 'section', 'weight', 'index');
+            $file = false;
+            $this->scripts[] = compact('file', 'content', 'attributes', 'section', 'weight', 'index');
         } else {
 
             $content = trim($content);
@@ -850,7 +851,7 @@ class Octopus_Html_Page {
                 // Literal JS
                 $el->text("\n{$info['content']}\n");
             } else if (!empty($info['file'])) {
-                $el->src = $this->getUrlForFile($info['file']);
+                $el->src = $info['file'];
             }
 
             $html .= $el->render(true);
