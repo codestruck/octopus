@@ -14,17 +14,17 @@ class Octopus_Html_Page {
          * TODO: allow using a function?
          */
         'titleSeparator' => ' | ',
-        
+
         /**
          * Minifiers to use.
          */
         'minify' => array(
-            'javascript' => array('src'),
-            'css' => array('src')
+            'javascript' => array('Octopus_Minify_Strategy_Src'),
+            'css' => array('Octopus_Minify_Strategy_Src')
         ),
 
         /**
-         * Custom function to use to find the phyisical file associated with
+         * Custom function to use to find the physical file associated with
          * a path.  Gets called with 3 args:
          *  - Path to find
          *  - Options array from the Html_Page instance
@@ -54,8 +54,9 @@ class Octopus_Html_Page {
     protected $meta = array();
     protected $links = array();
 
-    protected $scriptAliases = array();
-    protected $cssAliases = array();
+    private $scriptAliaser = null;
+    private $cssAliaser = null;
+    private $minifiers = array();
 
     protected $fullTitle = null;
     protected $title = null;
@@ -73,6 +74,22 @@ class Octopus_Html_Page {
             } else {
                 $this->options[$opt] = get_option($opt, '');
             }
+        }
+
+        foreach($this->options['minify'] as $kind => $minifiers) {
+
+        	if (!$minifiers) {
+        		continue;
+        	}
+
+        	if (!is_array($minifiers)) {
+        		$minifiers = array($minifiers);
+        	}
+
+        	foreach($minifiers as $m) {
+        		$this->addMinifier($kind, $m);
+        	}
+
         }
 
         $this->setMeta('Content-type', 'text/html; charset=UTF-8');
@@ -96,6 +113,40 @@ class Octopus_Html_Page {
 
     private static function counter() {
         return self::$counter++;
+    }
+
+    /**
+     * @param $type Mixed Either a minifier instance or a class name.
+     */
+    public function addJavascriptMinifier($type) {
+    	return $this->addMinifier('javascript', $type);
+    }
+
+    /**
+     * @param $type Mixed Either a minifier instance or a class name.
+     */
+    public function addCssMinfier($type) {
+    	return $this->addMinifier('css', $type);
+    }
+
+    private function addMinifier($fileType, $type) {
+
+    	$minifier = null;
+
+    	if (is_string($type)) {
+    		Octopus::loadClass($type);
+    		$minifier = new $type();
+    	} else {
+    		$minifier = $type;
+    	}
+
+    	if (!$minifier instanceof Octopus_Minify_Strategy) {
+    		throw new Octopus_Exception("Minifier must implement Octopus_Minify_Strategy");
+    	}
+
+    	$this->minifiers[$fileType][] = $minifier;
+
+    	return $this;
     }
 
     /**
@@ -551,22 +602,26 @@ class Octopus_Html_Page {
     /**
      * Adds a single script file to this page.
      */
-    public function addJavascript($url, $section = null, $weight = null, $attributes = array()) {
-
-        return $this->internalAddJavascript('url', $this->u($url), $section, $weight, $attributes);
+    public function addJavascript($file, $section = null, $weight = null, $attributes = array()) {
+        return $this->internalAddJavascript('file', $file, $section, $weight, $attributes);
     }
 
     /**
      * When all files in $files are added to the page (in the order they appear in $files),
      * replace the include with the file specified in $alias.
      */
-    public function addJavascriptAlias($urls, $alias, $attributes = array()) {
+    public function addJavascriptAlias($files, $alias) {
 
-        $index = self::counter();
-        $urls = array_map(array($this, 'u'), $urls);
-        $url = $this->u($alias);
+    	if (!$this->scriptAliaser) {
+    		Octopus::loadClass('Octopus_Minify_Strategy_Alias');
+    		$this->scriptAliaser = new Octopus_Minify_Strategy_Alias();
+    		$this->addJavascriptMinifier($this->scriptAliaser);
+    	}
 
-        $this->scriptAliases[] = compact('urls', 'url', 'attributes', 'index');
+    	$files = array_map(array($this, 'getPhysicalPathAllowMissing'), $files);
+
+    	$this->scriptAliaser->addAlias($files, $alias);
+
         return $this;
     }
 
@@ -585,7 +640,7 @@ class Octopus_Html_Page {
 
     private function internalAddJavascript($type, $content, $section, $weight, $attributes) {
 
-        /* 
+        /*
          * Resolve the various ways of calling addJavascript, e.g.:
          *  ->addJavascript($file)
          *  ->addJavascript($file, $weight)
@@ -627,7 +682,7 @@ class Octopus_Html_Page {
             $weight = 0;
         }
 
-        // index is used to help sort items with the same weight - items added 
+        // index is used to help sort items with the same weight - items added
         // first get sorted before those added later
         $index = self::counter();
 
@@ -636,73 +691,70 @@ class Octopus_Html_Page {
         } else {
 
             $content = trim($content);
-            $url = $file = false;
+            $file = false;
 
             if (preg_match('#^(https?)?://#i', $content)) {
-                $url = $content;
+                $file = $content;
             } else if ($content) {
-                $file = $this->getPhysicalPath($content);
+                $file = $this->getPhysicalPathAllowMissing($content);
             }
 
-            if (!($url || $file)) {
-                return $this;
+            if (!$file) {
+            	return $this;
             }
 
-            $this->scripts[$url ? $url : $file] = compact('url', 'file', 'attributes', 'section', 'weight', 'index');
+            $this->scripts[$file] = compact('file', 'attributes', 'section', 'weight', 'index');
         }
 
         return $this;
     }
 
     /**
-     * @return Mixed Full physical path to the given file, or false if it does 
+     * @return Mixed Full physical path to the given file, or false if it does
      * not exist.
      */
-    public function getPhysicalPath($file, $useFileFinder = true) {
+    public function getPhysicalPath($file, $useFileFinder = true, $ifMissing = false) {
 
         if ($useFileFinder && is_callable($this->options['fileFinder'])) {
             $found = call_user_func($this->options['fileFinder'], $file, $this->options, $this);
             return $this->checkFile($found);
         }
-        
+
         if (!$file) {
             return false;
         }
 
+        if (preg_match('#^(https?)?://#i', $file)) {
+        	return $file;
+        }
+
         if ($file[0] !== '/' || is_file($file)) {
             // Relative paths get sent through unaltered
-            return $this->checkFile($file);
+            return $file;
         }
 
         foreach(array('SITE_DIR', 'OCTOPUS_DIR', 'ROOT_DIR') as $dir) {
 
-            $dir = $this->options[$dir];            
+            $dir = $this->options[$dir];
 
-            $full = $dir . $file;
+            $full = $dir . ltrim($file, '/');
 
             if (is_file($full)) {
-                return $this->checkFile($full);
+            	return $full;
             }
         }
 
-        return false;
+        return $ifMissing;
     }
 
-    /**
-     * Ensures that $file exists under ROOT_DIR, returning $ifBad if it doesn't.
-     */
-    protected function checkFile($file, $ifBad = false) {
-        
-        $real = realpath($file);
-        if ($this->options['ROOT_DIR'] && !starts_with($real, $this->options['ROOT_DIR'])) {
-            return $ifBad;
-        }
-
-        return $file;
+    private function getPhysicalPathAllowMissing($file) {
+    	$result = $this->getPhysicalPath($file, true, false);
+    	if ($result !== false) return $result;
+    	return $this->options['ROOT_DIR'] . ltrim($file, '/');
     }
 
     public function getUrlForFile($file, $useUrlifier = true) {
-        
+
         if ($useUrlifier && is_callable($this->options['urlifier'])) {
             return call_user_func($this->options['urlifier'], $file, $this->options, $this);
         }
@@ -711,12 +763,19 @@ class Octopus_Html_Page {
             return $file;
         }
 
-        $root = $this->options['ROOT_DIR'];
-        if (starts_with($file, $root, false, $remainder)) {
-            return $this->options['URL_BASE'] . $remainder;
+        if ($file[0] !== '/') {
+        	// this is a relative path
+        	return $file;
         }
 
-        // HACK: When installed locally, SoleCMS defines ROOT_DIR as 
+        $root = $this->options['ROOT_DIR'];
+
+        if (starts_with($file, $root)) {
+        	$file = substr($file, strlen($root));
+        	$file = '/' . ltrim($file, '/');
+        }
+
+        // HACK: When installed locally, SoleCMS defines ROOT_DIR as
         // /whatever/core/ and SITE_DIR as /whatever/sites/site, not
         // /whatever/core/sites/site, so stripping ROOT_DIR off SITE_DIR
         // fails.
@@ -727,17 +786,17 @@ class Octopus_Html_Page {
             }
         }
 
-        // Can't get a URL. That's bad.
-        throw new Octopus_Exception("Can't figure out URL for file: $file");
+        // Fall back to just URL_BASE/file
+        return ($this->options['URL_BASE'] ? $this->options['URL_BASE'] : '/') . ltrim($file, '/');
     }
 
     /**
      * @return Array of all javascript files added to this page.
      */
-    public function &getJavascriptFiles($section = '', $useAliases = true) {
+    public function &getJavascriptFiles($section = '', $minify = true) {
 
         if (is_bool($section)) {
-            $useAliases = $section;
+            $minify = $section;
             $section = '';
         }
 
@@ -754,11 +813,13 @@ class Octopus_Html_Page {
 
         usort($scripts, array('Octopus_Html_Page', 'compareWeights'));
 
-        if ($useAliases) {
-            $scripts = $this->processAliases($scripts, $this->scriptAliases);
+        if ($minify) {
+        	$scripts = $this->minify('javascript', $scripts);
         }
 
-        $scripts = $this->minify('javascript', $scripts);
+        foreach($scripts as &$item) {
+        	$item['file'] = $this->getUrlForFile($item['file']);
+        }
 
         return $scripts;
     }
@@ -790,8 +851,6 @@ class Octopus_Html_Page {
                 $el->text("\n{$info['content']}\n");
             } else if (!empty($info['file'])) {
                 $el->src = $this->getUrlForFile($info['file']);
-            } else if (!empty($info['url'])) {
-                $el->src = $this->getUrlForFile($info['url']);
             }
 
             $html .= $el->render(true);
@@ -860,11 +919,17 @@ class Octopus_Html_Page {
         return $this;
     }
 
-    public function addCssAlias($urls, $alias, $attributes = array()) {
-        $urls = array_map(array($this, 'u'), $urls);
-        $url = $this->u($alias);
-        $index = self::counter();
-        $this->cssAliases[] = compact('urls', 'url', 'attributes', 'index');
+    public function addCssAlias($urls, $alias) {
+
+    	if (!$this->cssAliaser) {
+    		Octopus::loadClass('Octopus_Minify_Strategy_Alias');
+    		$this->cssAliaser = new Octopus_Minify_Strategy_Alias();
+    		$this->addCssMinfier($this->cssAliaser);
+    	}
+
+    	$this->cssAliaser->addAlias($urls, $alias);
+
+    	return $this;
     }
 
     public function addLiteralCss($content, $attributes = array()) {
@@ -905,14 +970,12 @@ class Octopus_Html_Page {
         return $this;
     }
 
-    public function &getCssFiles($useAliases = true) {
+    public function &getCssFiles($minify = true) {
 
         $css = $this->css;
         usort($css, array('Octopus_Html_Page', 'compareWeights'));
 
-        if ($useAliases) {
-            $css = $this->processAliases($css, $this->cssAliases);
-        }
+        $css = $this->minify('css', $css);
 
         return $css;
     }
@@ -1174,7 +1237,7 @@ END;
     }
 
     public function renderTitle($return = false) {
-        
+
         $html = '<title>' . $this->getFullTitle() . '</title>';
 
         if ($return) {
@@ -1189,9 +1252,9 @@ END;
      * Renders the entire <head> of the page.
      */
     public function renderHead($return = false, $includeTag = true, $useAliases = true) {
-        
+
         if ($return) {
-            
+
             $html = ($includeTag ? '<head>' : '');
 
             $html .= $this->renderTitle(true);
@@ -1230,7 +1293,7 @@ END;
     }
 
     private static function compareAliases($x, $y) {
-        
+
         $result = count($y['urls']) - count($x['urls']);
         if ($result !== 0) {
             return $result;
@@ -1290,151 +1353,61 @@ END;
     }
 
     /**
-     * @return Array The result of injecting any aliases present in $aliases into
-     * $files.
-     */
-    protected function processAliases($items, $aliases) {
-        
-        if (empty($aliases)) {
-            return $items;
-        }
-
-        // Sort aliases in the order they should be attempted
-        usort($aliases, array('Octopus_Html_Page', 'compareAliases'));
-
-        // NOTE: At this point, URL_BASE has already been prepended to everything that needs it
-
-        $result = array();
-
-        foreach($aliases as $a) {
-
-            if (self::checkIfAlias($items, $a['urls'], $weight, $index)) {
-
-                // We can use this in place
-                $a['weight'] = $weight;
-                $a['index'] = $index;
-                $a['section'] = '';
-
-                // TODO: Actually compare attributes and section as well when checking if files can be 
-                // aliased
-
-                $result[] = $a;
-
-                foreach($a['urls'] as $url) {
-                    $key = self::findByUrl($items, $url);
-                    if ($key !== false) unset($items[$key]);
-                }
-
-            } 
-
-            if (empty($items)) {
-                break;
-            }
-        }
-
-        foreach($items as $item) {
-            $result[] = $item;
-        }
-
-        usort($result, array('Octopus_Html_Page', 'compareWeights'));
-
-        return $result;
-    }
-
-    private static function checkIfAlias($items, $aliasCandidateUrls, &$weight, &$index) {
-        
-        if (empty($items)) {
-            return empty($aliasCandidateUrls);
-        }
-
-        $prev = null;
-        $weight = 0;
-        $index = null;
-
-        foreach($aliasCandidateUrls as $url) {
-
-            $key = self::findByUrl($items, $url, $itemIndex);
-
-            if ($key === false) {
-                return false;
-            }
-
-            // Urls must appear in the same order specified in the alias
-            if ($prev !== null && $itemIndex < $prev) {
-                return false;
-            }
-
-            $weight += $items[$key]['weight'];
-
-            if ($index === null || $items[$key]['index'] < $index) {
-                $index = $items[$key]['index'];
-            }
-
-            $prev = $itemIndex;
-        }
-
-        return true;
-    }
-
-    /**
-     * Given an array of items (script or css files), applies the minifier.
+     * Given an array of items (script or css files), applies all
+     * minification strategies that have been configured for the file type.
      */
     protected function &minify($type, $items) {
-         
-         if (empty($this->options['minify']) || empty($this->options['minify'][$type])) {
-             return $items;
-         }   
 
-         $minifiers = $this->options['minify'][$type];
-         if (!is_array($minifiers)) $minifiers = array($minifiers);
+    	if (empty($this->minifiers[$type])) {
+    		return $items;
+    	}
 
-         foreach($minifiers as $class) {
+        $minifiers = $this->minifiers[$type];
 
-            self::indexItemsByUrl($items, $itemsByUrl, $noUrlItems);
-            
-            $class = 'Octopus_Minify_Strategy_' . camel_case($class, true);
-            Octopus::loadClass($class);
+        foreach($minifiers as $m) {
 
-            $strat = new $class();
-            $minified = $strat->minify(array_keys($itemsByUrl));
+			self::indexItemsByUrl($items, $itemsByUrl, $noUrlItems);
 
-            if (!$minified) {
-                // Minifier did not do anything
-                continue;
-            }
+			$minified = $m->minify(array_keys($itemsByUrl));
 
-            // Re-integrate minified stuff into the original $items array
+			if (!$minified) {
+				// Minifier did not do anything
+				continue;
+			}
 
-            // First, normalize the $itemsByUrl array so that unused items
-            // are removed from it.
-            foreach($minified as $minifiedUrl => $oldUrls) {
-                 
-                $oldUrl = array_shift($oldUrls);
+			// Re-integrate minified stuff into the original $items array
 
-                $item =& $itemsByUrl[$oldUrl];
-                $item['old_url'] = $oldUrl;
-                
-                foreach($oldUrls as $old) {
-                    unset($itemsByUrl[$old]);
-                }
-             }
+			// First, normalize the $itemsByUrl array so that unused items
+			// are removed from it.
+			foreach($minified as $minifiedUrl => $oldUrls) {
 
-             // Recombine the $itemsByUrl and $noUrlItems arrays
-             $items = array_values($itemsByUrl);
+				$oldUrl = array_shift($oldUrls);
 
-             if ($noUrlItems) {
-                 foreach($noUrlItems as $item) {
-                     $items[] = $item;
-                 }
-                 usort($items, array('Octopus_Html_Page', 'compareWeights'));
-             }
-         }
+				$item =& $itemsByUrl[$oldUrl];
+				$item['file'] = $minifiedUrl;
+				$item['old_url'] = $oldUrl;
+
+				foreach($oldUrls as $old) {
+			    	unset($itemsByUrl[$old]);
+				}
+			}
+
+			// Recombine the $itemsByUrl and $noUrlItems arrays
+			$items = array_values($itemsByUrl);
+
+			if ($noUrlItems) {
+				foreach($noUrlItems as $item) {
+			    	$items[] = $item;
+			 	}
+			 	usort($items, array('Octopus_Html_Page', 'compareWeights'));
+			}
+		}
 
          return $items;
     }
 
     private static function indexItemsByUrl(&$items, &$itemsByUrl, &$noUrlItems) {
-        
+
         $itemsByUrl = array();
         $noUrlItems = array();
 
@@ -1448,19 +1421,8 @@ END;
                 $noUrlItems[] = $item;
             }
 
-        }        
-
-    }
-
-    private static function findByUrl(&$ar, $url, &$index = 0) {
-        $index = 0;
-        foreach($ar as $key => $item) {
-            if (strcasecmp($item['url'], $url) === 0) {
-                return $key;
-            }
-            $index++;
         }
-        return false;
+
     }
 
     public static function singleton() {

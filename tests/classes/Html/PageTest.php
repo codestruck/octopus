@@ -209,68 +209,85 @@ END;
 
     }
 
-    function testJavascript() {
+    function testExternalJavascript() {
 
-        $tests = array(
-            'http://external.com/file.js' => array(
-                'src' => 'http://external.com/file.js'
-            ),
-            'relative/file.js' => array(
-                'src' => 'relative/file.js'
-            ),
-            '/absolute/path/file.js' => array(
-                'src' => '/subdir/absolute/path/file.js',
-            )
-        );
+    	$page = new Octopus_Html_Page();
+    	$page->addJavascript('http://example.com/file.js');
+    	$this->assertHtmlEquals(
+	    	<<<END
+<script type="text/javascript" src="http://example.com/file.js"></script>
+END
+			,
+			$page->renderJavascript(true)
+		);
 
-        $page = new Octopus_Html_Page(array(
-            'URL_BASE' => '/subdir/'
-        ));
-        $soFar = array();
-        $html = '';
-
-        $app = $this->getApp();
-        $siteDir = $app->getOption('SITE_DIR');
-
-        foreach($tests as $key => $value) {
-
-            $toAdd = is_numeric($key) ? $value : $key;
-
-            if (preg_match('#^http://#i', $toAdd)) {
-                $url = $toAdd;
-                $file = false;
-            } else {
-                $url = false;
-                $file = $toAdd;
-            }
-
-            $page->addJavascript($toAdd);
-            $soFar[] = array(
-                'url' => $url,
-                'file' => $file,
-                'attributes' => array(),
-                'section' => '',
-                'weight' => 0
-            );
-
-            $actual = $page->getJavascriptFiles();
-            foreach($actual as $key => $value) {
-                unset($actual[$key]['index']);
-            }
-
-            $this->assertEquals($soFar, $actual);
-
-            $html .= <<<END
-<script type="text/javascript" src="$value"></script>
-END;
-
-        }
-
-        $this->assertHtmlEquals(
-            $html,
-            $page->renderJavascript(true)
-        );
     }
+
+    function testAbsoluteJavascriptInSiteDir() {
+
+    	$file = 'test.js';
+    	file_put_contents($this->getSiteDir() . $file, '/* test */');
+
+    	$page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
+    	$page->addJavascript('/test.js');
+    	$this->assertHtmlEquals(
+    		<<<END
+<script type="text/javascript" src="/subdir/site/test.js"></script>
+END
+			,
+			$page->renderJavascript(true)
+		);
+
+    }
+
+    function testPhysicalPathJavascript() {
+
+    	$file = $this->getRootDir() . 'test.js';
+    	file_put_contents($file, '/* test */');
+
+    	$page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
+    	$page->addJavascript($file);
+
+    	$this->assertHtmlEquals(
+	    	<<<END
+<script type="text/javascript" src="/subdir/test.js"></script>
+END
+			,
+			$page->renderJavascript(true)
+		);
+
+    }
+
+    function testRelativeJavascript() {
+
+    	$page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
+    	$page->addJavascript('js/relative.js');
+
+    	$this->assertHtmlEquals(
+	    	<<<END
+<script type="text/javascript" src="js/relative.js"></script>
+END
+			,
+			$page->renderJavascript(true)
+		);
+
+    }
+
+    function testMissingJavascript() {
+
+    	$page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
+    	$page->addJavascript('/missing.js');
+
+    	$this->assertHtmlEquals(
+			<<<END
+<script type="text/javascript" src="/subdir/missing.js"></script>
+END
+			,
+			$page->renderJavascript(true)
+		);
+
+    }
+
 
     function testLiteralJavascript() {
 
@@ -312,24 +329,14 @@ END;
         $page->addJavascript('high_weight.js');
         $page->addJavascript('low_weight.js', -100);
 
-        $this->assertEquals(
-            array(
-                array(
-                    'url' => 'low_weight.js',
-                    'attributes' => array(),
-                    'section' => '',
-                    'weight' => -100,
-                ),
-                array(
-                    'url' => 'high_weight.js',
-                    'attributes' => array(),
-                    'section' => '',
-                    'weight' => 0,
-                    
-                ),
-            ),
-            $this->unsetIndexes($page->getJavascriptFiles())
-        );
+        $this->assertHtmlEquals(
+        	<<<END
+<script type="text/javascript" src="low_weight.js"></script>
+<script type="text/javascript" src="high_weight.js"></script>
+END
+			,
+			$page->renderJavascript(true)
+		);
     }
 
     function unsetIndexes($ar) {
@@ -692,7 +699,7 @@ END
     }
 
     function testUseJavascriptAliases() {
-        
+
         $page = new Octopus_Html_Page(array(
             'URL_BASE' => '/subdir/'
         ));
@@ -708,7 +715,7 @@ END
         $page->addJavascript('/script/global.js');
         $page->addJavascript('/script/this_page.js');
         $page->addJavascript('http://jquery.com/jquery.js', -100);
-        
+
 
         $this->assertHtmlEquals(
             <<<END
@@ -722,7 +729,7 @@ END
     }
 
     function testJavascriptAliasesUseBest() {
-        
+
         $page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
 
         $page->addJavascript('/a.js');
@@ -745,7 +752,7 @@ END
     }
 
     function testJavascriptAliasesUseLowestWeight() {
-        
+
         $page = new Octopus_Html_Page();
 
         $page->addJavascript('/a.js');
@@ -766,7 +773,7 @@ END
     }
 
     function testGetJavascriptFilesWithAliases() {
-        
+
         $page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
 
         $page->addJavascript('/a.js');
@@ -778,15 +785,15 @@ END
         $this->assertEquals(2, count($files), '# of javascript files');
 
         $f = array_shift($files);
-        $this->assertEquals('/subdir/ac.js', $f['url']);
+        $this->assertEquals('/subdir/ac.js', $f['file']);
 
         $f = array_shift($files);
-        $this->assertEquals('/subdir/b.js', $f['url']);
+        $this->assertEquals('/subdir/b.js', $f['file']);
 
     }
 
     function testUseCssAliases() {
-        
+
         $page = new Octopus_Html_Page(array(
             'URL_BASE' => '/subdir/'
         ));
@@ -815,7 +822,7 @@ END
     }
 
     function testAddJavascriptToDifferentArea() {
-        
+
         $page = new Octopus_Html_Page();
         $page->addJavascript('/global.js', 'bottom', 100);
 
@@ -845,7 +852,7 @@ END
     }
 
     function testAddJavascriptMagicMethods() {
-        
+
         $page = new Octopus_Html_Page();
         $page->addBottomJavascript('/global.js', 100);
 
@@ -875,7 +882,7 @@ END
     }
 
     function testAddLiteralJavascriptToDifferentArea() {
-        
+
         $page = new Octopus_Html_Page();
         $page->addLiteralJavascript(
             "alert('hello world!');",
@@ -897,7 +904,7 @@ END
     }
 
     function testRenderHead() {
-        
+
         $page = new Octopus_Html_Page();
 
         $page->addJavascript('/global.js');
@@ -925,10 +932,10 @@ END
     }
 
     /**
-     * @group 
+     * @group
      */
     function testJavascriptSrcMinifyByDefault() {
-        
+
         $app = $this->getApp();
 
         $file = $app->getOption('SITE_DIR') . 'file.js';
@@ -942,7 +949,7 @@ END
         $page->addJavascript('/file.js');
 
         $this->assertEquals(
-            array( 
+            array(
                 array(
                     'url' => '/subdir/site/file_src.js?mtime',
                     'attributes' => array(),
