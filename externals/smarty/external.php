@@ -64,6 +64,7 @@ class Octopus_Smarty extends Octopus_Base {
         $security_policy = new Smarty_Security($this->smarty);
         $security_policy->php_functions = array();
         $security_policy->php_modifiers = array();
+        $security_policy->secure_dir = array(get_option('SITE_DIR') . 'views');
         $this->smarty->enableSecurity($security_policy);
 
         if (DEV) {
