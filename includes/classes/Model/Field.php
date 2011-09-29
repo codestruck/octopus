@@ -133,6 +133,14 @@ abstract class Octopus_Model_Field {
     public function afterMigrate($schema) {
     }
 
+    public function migrateIndexes($schema, $table) {
+        $index = $this->getOption('index', false);
+        if ($index === 'unique') {
+            $table->newIndex('UNIQUE', $this->getFieldName());
+        } else if ($index == 'index' || $index === true) {
+            $table->newIndex($this->getFieldName());
+        }
+    }
 
     public function validate($model) {
 

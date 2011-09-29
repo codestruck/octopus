@@ -29,6 +29,11 @@ class Octopus_DB_Schema_Model {
 
         foreach($model->getFields() as $field) {
             $field->migrate($schema, $table);
+            $field->migrateIndexes($schema, $table);
+        }
+
+        foreach ($model->getIndexes() as $index) {
+            $table->newIndex($index);
         }
 
         $table->create();
