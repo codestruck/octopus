@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Form_Field');
-
 class Octopus_Html_Form extends Octopus_Html_Element {
 
     private $_rules = array();
@@ -468,7 +466,7 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     	$this->setValues($values);
     	$this->_submittedValues = $values;
 
-    	return $this;
+        return $this;
     }
 
     private function setValuesRecursive($el, &$values) {
@@ -506,7 +504,6 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      * Adds a callback rule to this form.
      */
     public function mustPass($callback, $message = null) {
-        Octopus::loadClass('Octopus_Html_Form_Rule_Callback');
         return $this->addRule(new Octopus_Html_Form_Rule_Callback($callback, $message));
     }
 

@@ -1,8 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Logger_File');
-Octopus::loadExternal('htmlmimemail');
-
 define_unless('LOG_EMAILS', false);
 define_unless('SEND_EMAILS', true);
 

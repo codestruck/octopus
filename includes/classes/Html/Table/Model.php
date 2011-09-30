@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Html_Element');
-
 class Octopus_Html_Table_Model {
 
     private $modelType;

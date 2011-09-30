@@ -1,8 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_TestCase');
-Octopus::loadClass('Octopus_Html_Form');
-
 /**
  * @group Form
  */
@@ -457,23 +454,23 @@ END
 
     function testSimulateSubmission() {
 
-    	$form = new Octopus_Html_Form('simulateSubmission');
-    	$form->add('name');
+        $form = new Octopus_Html_Form('simulateSubmission');
+        $form->add('name');
 
-    	$form->submit(array('name' => 'foo'));
-    	$this->assertTrue($form->wasSubmitted(), 'form is marked as submitted after submit() call');
+        $form->submit(array('name' => 'foo'));
+        $this->assertTrue($form->wasSubmitted(), 'form is marked as submitted after submit() call');
     }
 
     function testSimulateSubmissionValidation() {
 
-    	$form = new Octopus_Html_Form('simulateSubmissionValidation');
-    	$form->add('name')->required();
+        $form = new Octopus_Html_Form('simulateSubmissionValidation');
+        $form->add('name')->required();
 
-    	$form->submit(array('name' => 'foo'));
-    	$this->assertTrue($form->validate(), 'form validates after submit() call');
+        $form->submit(array('name' => 'foo'));
+        $this->assertTrue($form->validate(), 'form validates after submit() call');
 
-    	$form->submit(array('name' => ''));
-    	$this->assertFalse($form->validate(), 'form fails validation after invalid data passed to submit()');
+        $form->submit(array('name' => ''));
+        $this->assertFalse($form->validate(), 'form fails validation after invalid data passed to submit()');
 
     }
 

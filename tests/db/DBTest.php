@@ -5,8 +5,6 @@
  */
 require_once 'PHPUnit/Framework/TestCase.php';
 
-Octopus::loadClass('Octopus_DB');
-
 /**
  * @group DB
  */
@@ -37,13 +35,13 @@ class Octopus_DB_Test extends PHPUnit_Framework_TestCase
     }
 
     function testInternalQueryCount() {
-        
+
         $db = Octopus_DB::singleton();
-        
+
         $current = $db->queryCount;
         $db->query('SELECT 1', true);
         $this->assertEquals($current + 1, $db->queryCount);
-        
+
     }
 
 }

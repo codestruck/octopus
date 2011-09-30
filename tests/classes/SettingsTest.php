@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Settings');
-
 class SettingsTest extends Octopus_DB_TestCase {
 
     public $testDir = '.settings-test';

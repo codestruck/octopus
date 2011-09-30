@@ -4,8 +4,7 @@
      * Add a single javascript file to the current Octopus_Html_Page instance.
      */
     function add_javascript($url, $section = null, $weight = null, $attributes = array()) {
-        
-        Octopus::loadClass('Octopus_Html_Page');
+
         $page = Octopus_Html_Page::singleton();
 
         return $page->addJavascript($url, $section, $weight, $attributes);
@@ -15,33 +14,28 @@
      * Add a single CSS file to the current Octopus_Html_Page instance.
      */
     function add_css($url, $weight = null, $attributes = array()) {
-        
-        Octopus::loadClass('Octopus_Html_Page');
+
         $page = Octopus_Html_Page::singleton();
-        
+
         return $page->addCss($url, $weight, $attributes);
     }
 
     function render_javascript($section = '', $useAliases = true) {
-        Octopus::loadClass('Octopus_Html_Page');
         $page = Octopus_Html_Page::singleton();
         return $page->renderJavascript($section);
     }
 
     function render_css($useAliases = true) {
-        Octopus::loadClass('Octopus_Html_Page');
         $page = Octopus_Html_Page::singleton();
         return $page->renderCss(false, $useAliases);
     }
 
     function render_meta() {
-        Octopus::loadClass('Octopus_Html_Page');
         $page = Octopus_Html_Page::singleton();
         return $page->renderMeta(false);
     }
 
     function set_javascript_var($name, $value) {
-        Octopus::loadClass('Octopus_Html_Page');
         $page = Octopus_Html_Page::singleton();
         $page->setJavascriptVar($name, $value);
     }
@@ -50,25 +44,21 @@
      * Renders the entire <head>.
      */
     function render_head($includeTag = true, $useAliases = true) {
-        Octopus::loadClass('Octopus_Html_Page');
         $page = Octopus_Html_Page::singleton();
         return $page->renderHead(false, $includeTag, $useAliases);
     }
 
     function get_title() {
-        Octopus::loadClass('Octopus_Html_Page');
         $page = Octopus_Html_Page::singleton();
         return $page->getFullTitle();
     }
 
     function set_title($title) {
-        Octopus::loadClass('Octopus_Html_Page');
         $page = Octopus_Html_Page::singleton();
         return $page->setTitle($title);
     }
 
     function set_full_title($fullTitle) {
-        Octopus::loadClass('Octopus_Html_Page');
         $page = Octopus_Html_Page::singleton();
         return $page->setFullTitle($fullTitle);
     }

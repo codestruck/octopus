@@ -1,7 +1,6 @@
 <?php
 
 require_once(dirname(__FILE__) . '/TransportBase.php');
-Octopus::loadClass('Http_Request');
 
 /**
  * @group http

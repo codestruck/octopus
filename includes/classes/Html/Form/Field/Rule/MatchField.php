@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Form_Field_Rule');
-
 class Octopus_Html_Form_Field_Rule_MatchField extends Octopus_Html_Form_Field_Rule {
 
   public function __construct($fieldName, $message) {

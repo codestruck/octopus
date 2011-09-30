@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Settings');
-
 function make_password($length) {
     $chars = "234567890abcdefghijkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
     $i = 0;

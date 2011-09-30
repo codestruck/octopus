@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Dispatcher');
-
 /**
  * Class encapsulating an HTTP request.
  */
@@ -240,7 +238,7 @@ class Octopus_Request {
     }
 
     private function &getDefaultController(&$pathParts) {
-        
+
         $app = $this->app;
 
         $result =  array(
@@ -250,7 +248,7 @@ class Octopus_Request {
             );
 
         $siteControllersDir = $app->getSetting('SITE_DIR') . 'controllers/';
-     
+
         if (is_file($siteControllersDir . 'Default.php')) {
             $result['file'] = $siteControllersDir . 'Default.php';
         } else {
@@ -336,7 +334,7 @@ class Octopus_Request {
 
                 // Last portion of controller can be used as the name, e.g.
                 // you could have a controller in /some/crazy/deep/path.php
-                // be called 'PathController', rather than 
+                // be called 'PathController', rather than
                 // 'SomeCrazyDeepPathController'
                 $potentialNames[camel_case(array_pop($underscoreParts), true) . 'Controller'] = true;
 
