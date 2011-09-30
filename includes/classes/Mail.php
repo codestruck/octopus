@@ -3,13 +3,11 @@
 define_unless('LOG_EMAILS', false);
 define_unless('SEND_EMAILS', true);
 
-//MH: PHP 4 doesn't know this.
-define_unless('DATE_RFC822', 'D, d M y H:i:s O');
-
-
 class Octopus_Mail {
 
-    function Octopus_Mail() {
+    public function __construct() {
+
+    	Octopus::loadExternal('htmlmimemail');
 
         $this->mailHandler = new htmlMimeMail();
 
