@@ -1,7 +1,7 @@
 <?php
 
 if (!spl_autoload_register(array('Octopus', 'autoLoadClass'))) {
-	die("Failed to register autoloader.");
+    die("Failed to register autoloader.");
 }
 
 /**
@@ -12,11 +12,47 @@ class Octopus {
     private static $bindings = array();
     private static $externals = array();
 
-    private static $classDirs = null;
-    private static $controllerDirs = null;
+    private static $classDirs = array();
+    private static $controllerDirs = array();
+
+    /**
+     * Adds a directory to be scanned for classes.
+     */
+    public static function addClassDir($dir, $prepend = false) {
+    	if ($prepend) {
+    		array_unshift(self::$classDirs, $dir);
+    	} else {
+    		array_push(self::$classDirs, $dir);
+    	}
+    }
+
+    public static function removeClassDir($dir) {
+    	$index = array_search($dir, self::$classDirs);
+    	if ($index !== false) {
+	    	unset(self::$classDirs[$index]);
+	    }
+    }
+
+    /**
+     * Adds a directory to be scanned for controllers.
+     */
+    public static function addControllerDir($dir, $prepend = false) {
+    	if ($prepend) {
+    		array_unshift(self::$controllerDirs, $dir);
+    	} else {
+    		array_push(self::$controllerDirs, $dir);
+    	}
+    }
+
+    public static function removeControllerDir($dir) {
+    	$index = array_search($dir, self::$controllerDirs);
+    	if ($index !== false) {
+	    	unset(self::$controllerDirs[$index]);
+	    }
+    }
 
     public static function autoLoadClass($class) {
-    	self::loadClass($class, false, false);
+        self::loadClass($class, false, false, false);
     }
 
     /**
@@ -101,45 +137,41 @@ class Octopus {
      * isn't found.
      * @return bool True if class was found and loaded, false otherwise.
      */
-    public static function loadClass($class, $exceptionWhenMissing = true, $checkExists = true) {
+    public static function loadClass($class, $exceptionWhenMissing = true, $checkExists = true, $debug = false) {
 
-    	if ($checkExists && class_exists($class)) {
-    		return true;
-    	}
+        if ($checkExists && class_exists($class)) {
+            return true;
+        }
 
-    	$class = preg_replace('/^Octopus_/', '', $class);
+        $class = preg_replace('/^Octopus_/', '', $class);
+        $file = str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
 
-    	if (!self::$classDirs) {
-
-    		self::$classDirs = array();
-
-    		if (defined('SITE_DIR')) {
-    			self::$classDirs[] = SITE_DIR . 'classes/';
-    		}
-
-    		self::$classDirs[] = dirname(__FILE__) . '/';
-    	}
-
-    	$file = str_replace('_', DIRECTORY_SEPARATOR, $class) . '.php';
+        $tried = $debug ? array() : null;
 
         foreach(self::$classDirs as $dir) {
-        	$f = $dir . $file;
-        	if (is_file($f)) {
-        		self::requireOnce($f);
-        		return true;
-        	}
+            $f = $dir . $file;
+            if ($debug) $tried[] = $f;
+            if (is_file($f)) {
+                self::requireOnce($f);
+                return true;
+            }
         }
 
         if (preg_match('/Controller$/', $class)) {
 
-        	if (self::loadController($class, $exceptionWhenMissing)) {
-        		return true;
-        	}
+            if (self::loadController($class, $exceptionWhenMissing, $checkExists, $debug)) {
+                return true;
+            }
 
         }
 
         if ($exceptionWhenMissing) {
             throw new Octopus_Exception("Could not load class: $class");
+        }
+
+        if ($debug) {
+        	$exists = array_map('is_file', $tried);
+        	dump_r($class, $tried, $exists);
         }
 
         return false;
@@ -151,36 +183,37 @@ class Octopus {
      * the end.
      * @return true if loaded, false otherwise.
      */
-    public static function loadController($class, $exceptionWhenMissing = true) {
+    public static function loadController($class, $exceptionWhenMissing = true, $checkExists = true, $debug = false) {
 
-    	$class = preg_replace('/_*Controller$/', '', $class);
+        $class = preg_replace('/_*Controller$/', '', $class);
 
-    	if (!self::$controllerDirs) {
+        if ($checkExists && class_exists($class)) {
+        	return true;
+        }
 
-    		self::$controllerDirs = array();
+        $tries = $debug ? array() : null;
 
-    		if (defined('SITE_DIR')) {
-    			self::$controllerDirs[] = SITE_DIR . 'controllers/';
-    		}
+        $file = $class . '.php';
+        foreach(self::$controllerDirs as $dir) {
 
-    		self::$controllerDirs[] = OCTOPUS_DIR . 'controllers/';
+            $f = $dir . $file;
+            if ($debug) $tries[] = $f;
+            if (is_file($f)) {
+                self::requireOnce($f);
+                return true;
+            }
 
-    	}
+        }
 
-    	$file = $class . '.php';
-    	foreach(self::$controllerDirs as $dir) {
-    		$f = $dir . $file;
-    		if (is_file($f)) {
-    			self::requireOnce($f);
-    			return true;
-    		}
-    	}
+        if ($exceptionWhenMissing) {
+            throw new Octopus_Exception("Could not load controller: $class");
+        }
 
-    	if ($exceptionWhenMissing) {
-    		throw new Octopus_Exception("Could not load controller: $class");
-    	}
+        if ($debug) {
+        	dump_r($class, $tries);
+        }
 
-    	return false;
+        return false;
     }
 
     /**
@@ -200,7 +233,7 @@ class Octopus {
         if (class_exists('Octopus_App') && Octopus_App::isStarted()) {
             $dir = Octopus_App::singleton()->getOption('OCTOPUS_EXTERNALS_DIR');
         } else if (defined('OCTOPUS_EXTERNALS_DIR')) {
-            $dir = OCTOPUSexternals_DIR;
+            $dir = OCTOPUS_EXTERNALS_DIR;
         }
 
         $EXTERNAL_DIR = "{$dir}{$name}/";
@@ -224,8 +257,10 @@ class Octopus {
     public static function loadModel() {}
 
     private static function requireOnce($file) {
-    	require_once($file);
+        require_once($file);
     }
 }
+
+Octopus::addClassDir(dirname(__FILE__) . '/');
 
 ?>
