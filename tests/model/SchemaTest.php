@@ -19,12 +19,14 @@ class Schemab extends Octopus_Model {
 }
 
 class Schemac extends Octopus_Model {
-    protected $indexes = array('display_order', 'title');
+    protected $indexes = array('display_order', 'title', array('one', 'two'));
     protected $fields = array(
         'title',
         'display_order' => array(
             'type' => 'numeric',
         ),
+        'one',
+        'two',
     );
 }
 
@@ -43,9 +45,11 @@ class Schemad extends Octopus_Model {
 
 /**
  * @group Model
+ * @group schema
  */
 class ModelSchemaTest extends PHPUnit_Framework_TestCase
 {
+
     function testDefaultText() {
         Octopus_DB_Schema_Model::makeTable('Schemab');
 
@@ -94,13 +98,25 @@ class ModelSchemaTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals('MUL', $fields['title']['index']);
         $this->assertEquals('MUL', $fields['display_order']['index']);
+        $this->assertEquals('MUL', $fields['one']['index']);
+
+        $indexes = $r->getIndexes();
+        $this->assertEquals(5, count($indexes));
+
     }
 
     function testIndexAttributes() {
+
+        $r = new Octopus_DB_Schema_Reader('schemads');
+        $fields = $r->getFields();
+        $indexes = $r->getIndexes();
+
         Octopus_DB_Schema_Model::makeTable('Schemad');
 
         $r = new Octopus_DB_Schema_Reader('schemads');
         $fields = $r->getFields();
+
+        $indexes = $r->getIndexes();
 
         $this->assertEquals('UNIQUE', $fields['title']['index']);
         $this->assertEquals('MUL', $fields['display_order']['index']);

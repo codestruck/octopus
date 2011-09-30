@@ -269,7 +269,8 @@ CHANGE `test_name` `test_name` text NOT NULL\n";
         $sql = $w->toSql();
 
         $test = "ALTER TABLE `test`
-CHANGE `test_id` `test_id` int(10) NOT NULL AUTO_INCREMENT, ADD PRIMARY KEY (`test_id`)\n";
+CHANGE `test_id` `test_id` int(10) NOT NULL AUTO_INCREMENT,
+ADD PRIMARY KEY (`test_id`)\n";
 
         $this->assertEquals($test, $sql);
 
@@ -301,7 +302,8 @@ PRIMARY KEY (`test_id`)
         $sql = $w->toSql();
 
         $test = "ALTER TABLE `test`
-CHANGE `test_id` `test_id` int(10) NOT NULL, DROP PRIMARY KEY\n";
+CHANGE `test_id` `test_id` int(10) NOT NULL,
+DROP PRIMARY KEY\n";
 
         $this->assertEquals($test, $sql);
         $w->create();
@@ -362,7 +364,7 @@ PRIMARY KEY (`test_id`)
         $sql = $w->toSql();
 
         $test = "ALTER TABLE `test`
-DROP COLUMN `test_id`, DROP PRIMARY KEY\n";
+DROP COLUMN `test_id`\n";
 
         $this->assertEquals($test, $sql);
 
@@ -422,6 +424,7 @@ END;
 
         $expected = <<<END
 ALTER TABLE `translation_values`
+ADD UNIQUE (`keyword_id`,`lang`),
 DROP COLUMN `value`
 
 END;
@@ -495,40 +498,4 @@ END;
 
     }
 
-    function ztestDropUniqueMultiKey()
-    {
-
-        $this->db->query('DROP TABLE IF EXISTS translation_values');
-
-        $d = new Octopus_DB_Schema();
-        $t = $d->newTable('translation_values');
-        $t->newKey('keyword_id');
-        $t->newTextSmall('value');
-        $t->newIndex('UNIQUE', null, array('keyword_id', 'lang'));
-        $t->newTextSmall('lang');
-        $t->create();
-
-        $d = new Octopus_DB_Schema();
-        $t = $d->newTable('translation_values');
-        $t->newKey('keyword_id');
-//        $t->newIndex('UNIQUE', null, array('keyword_id', 'lang'));
-        $t->newTextSmall('lang');
-        $sql = $t->toSql();
-        $t->create();
-
-        $reader = new Octopus_DB_Schema_Reader('translation_values');
-
-        $expected = <<<END
-ALTER TABLE `translation_values`
-CHANGE `keyword_id` keyword_id int(10) NOT NULL, DROP PRIMARY KEY,
-DROP COLUMN `value`,
-CHANGE `lang` lang varchar(250) NOT NULL, DROP PRIMARY KEY
-
-END;
-        $this->assertEquals($expected, $sql);
-
-    }
-
 }
-
-?>
