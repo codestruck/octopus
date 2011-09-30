@@ -701,6 +701,12 @@ class Octopus_App {
             self::$_instance = null;
         }
 
+       	$o =& $this->_options;
+
+        Octopus::removeControllerDir($o['OCTOPUS_DIR'] . 'controllers/');
+        Octopus::removeClassDir($o['SITE_DIR'] . 'classes/');
+        Octopus::removeControllerDir($o['SITE_DIR'] . 'controllers/');
+
     }
 
 
@@ -781,6 +787,10 @@ class Octopus_App {
             }
         }
 
+        Octopus::addControllerDir($o['SITE_DIR'] . 'controllers/');
+        Octopus::addControllerDir($o['OCTOPUS_DIR'] . 'controllers/');
+        Octopus::addClassDir($o['SITE_DIR'] . 'classes/', true);
+        // NOTE: OCTOPUS_DIR/includes/classes is added automatically by including includes/classes/Octopus.php
     }
 
     private function _figureOutSecurity() {
