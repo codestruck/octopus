@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_DB_Schema_Reader');
-
 /**
  * @group schema
  * @group DB

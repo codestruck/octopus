@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Form_Field');
-
 class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
 
     private $_valueFields = array('value', 'id', '/.*_id$/i');

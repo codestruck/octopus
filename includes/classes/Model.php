@@ -1,13 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_DB_Insert');
-Octopus::loadClass('Octopus_DB_Update');
-Octopus::loadClass('Octopus_DB_Select');
-Octopus::loadClass('Octopus_DB_Delete');
-
-Octopus::loadClass('Octopus_Model_Field');
-Octopus::loadClass('Octopus_Model_ResultSet');
-
 class Octopus_Model_Exception extends Octopus_Exception {}
 
 abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpable {

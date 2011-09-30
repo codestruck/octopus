@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Form_Field');
-
 class Octopus_Html_Form_Field_Static extends Octopus_Html_Form_Field {
 
     public function __construct($type, $name, $label, $attributes = null) {

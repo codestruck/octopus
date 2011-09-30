@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Logger_File');
-
 if (!defined('DB_LOG_ERRORS')) {
     define('DB_NONE', 0);
     define('DB_LOG_ERRORS', 1);

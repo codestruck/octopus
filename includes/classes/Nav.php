@@ -1,8 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Nav_Item');
-Octopus::loadClass('Octopus_Nav_Item_Directory');
-
 /**
  * Class that manages navigation structure and routing, and page options for
  * the app.

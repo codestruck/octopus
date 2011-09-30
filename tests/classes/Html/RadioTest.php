@@ -1,10 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_TestCase');
-Octopus::loadClass('Octopus_Html_Form');
-Octopus::loadClass('Octopus_Html_Form_Field_Select');
-
-
 /**
  * @group Html
  * @group Form

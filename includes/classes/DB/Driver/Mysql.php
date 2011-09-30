@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Logger_File');
-
 class Octopus_DB_Driver_Mysql {
 
     function Octopus_DB_Driver_Mysql() {

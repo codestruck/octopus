@@ -1,8 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_DB_Schema_Reader');
-Octopus::loadClass('Octopus_DB_Schema');
-
 class Octopus_DB_Replace {
 
     function replace($from, $to) {
