@@ -150,7 +150,8 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
 
         if (!$value instanceof $class) {
             $valueClass = get_class($value);
-            throw new Octopus_Model_Exception("Value of HasOne field {$modelClass}.{$fieldName} must be an instance of $class, but was an instance of $valueClass");
+            $thisClass = get_class($model);
+            throw new Octopus_Model_Exception("Value of HasOne field {$thisClass}.{$fieldName} must be an instance of $class, but was an instance of $valueClass");
         }
 
         $model->setInternalValue($fieldName, array('id' => $value->id, 'object' => $value));
@@ -277,8 +278,12 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
 
     private function getItemClass() {
         // use the 'model' option as the classname, otherwise the fieldname
-        $class = $this->getOption('model', $this->getFieldName());
-        return camel_case($class, true);
+        $class = $this->getOption('model', false);
+        if ($class === false) {
+            $class = camel_case($this->getFieldName(), true);
+        }
+
+        return $class;
     }
 
     public function restrictFreetext($model, $text) {
