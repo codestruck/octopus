@@ -35,7 +35,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
 
     protected $data = array();
 
-    private $_id = null;
+    protected $_id = null;
     private $_exists = null;
     private $dataLoaded = false;
 
