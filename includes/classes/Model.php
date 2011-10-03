@@ -485,6 +485,10 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         return null;
     }
 
+    public function getIndexes() {
+        return isset($this->indexes) ? $this->indexes : array();
+    }
+
     /**
      * @return Object An Octopus_Model_ResultSet containing all records.
      */
