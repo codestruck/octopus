@@ -402,4 +402,22 @@
         return "{$scheme}://{$host}{$port}{$path}";
     }
 
+    /**
+     * @return String The user's IP address.
+     */
+    function get_user_ip() {
+
+        $ip = '127.0.0.1';
+
+        if (isset($_SERVER['REMOTE_ADDR'])) {
+            $ip = $_SERVER['REMOTE_ADDR'];
+        }
+
+        if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        }
+
+        return $ip;
+    }
+
 ?>

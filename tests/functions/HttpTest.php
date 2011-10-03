@@ -319,6 +319,23 @@ END;
 
     }
 
+   function testGetUserIp() {
+
+        $_SERVER['HTTP_X_FORWARDED_FOR'] = '10.0.0.4';
+        $_SERVER['REMOTE_ADDR'] = '10.0.0.5';
+        $this->assertEquals('10.0.0.4', get_user_ip());
+
+        $_SERVER['REMOTE_ADDR'] = '10.0.0.5';
+        unset($_SERVER['HTTP_X_FORWARDED_FOR']);
+        $this->assertEquals('10.0.0.5', get_user_ip());
+
+        unset($_SERVER['HTTP_X_FORWARDED_FOR']);
+        unset($_SERVER['REMOTE_ADDR']);
+        $this->assertEquals('127.0.0.1', get_user_ip());
+
+    }
+
+
 }
 
 ?>
