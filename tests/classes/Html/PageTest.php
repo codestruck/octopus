@@ -830,7 +830,7 @@ END
         $this->assertEquals(
             array(
                 array(
-                    'url' => '/global.js',
+                    'file' => '/global.js',
                     'attributes' => array(),
                     'section' => 'bottom',
                     'weight' => 100
@@ -860,7 +860,7 @@ END
         $this->assertEquals(
             array(
                 array(
-                    'url' => '/global.js',
+                    'file' => '/global.js',
                     'attributes' => array(),
                     'section' => 'bottom',
                     'weight' => 100
@@ -931,37 +931,4 @@ END
         );
     }
 
-    /**
-     * @group
-     */
-    function testJavascriptSrcMinifyByDefault() {
-
-        $app = $this->getApp();
-
-        $file = $app->getOption('SITE_DIR') . 'file.js';
-        $src = $app->getOption('SITE_DIR') . 'file_src.js';
-
-        touch($file);
-        sleep(1);
-        touch($src);
-
-        $page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
-        $page->addJavascript('/file.js');
-
-        $this->assertEquals(
-            array(
-                array(
-                    'url' => '/subdir/site/file_src.js?mtime',
-                    'attributes' => array(),
-                    'section' => '',
-                    'weight' => 0
-                )
-            ),
-            $this->unsetIndexes($page->getJavascriptFiles())
-        );
-
-    }
-
 }
-
-?>
