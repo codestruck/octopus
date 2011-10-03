@@ -88,7 +88,19 @@ class Octopus_Request {
         $info = $this->internalGetControllerInfo();
         if (empty($info) || empty($info['potential_names'])) return false;
 
-        self::requireOnce($info['file']);
+        // Hand off loading to the autoloader, then fall back to
+        // more explicit require_once() style loading
+
+        foreach($info['potential_names'] as $class) {
+
+        	if (class_exists($class)) {
+        		return $this->controllerClass = $class;
+        		break;
+        	}
+
+        }
+
+    	self::requireOnce($info['file']);
 
         foreach($info['potential_names'] as $class) {
             if (class_exists($class)) {
