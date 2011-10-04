@@ -90,6 +90,17 @@ class Octopus_Smarty extends Octopus_Base {
             $smartyData->assign($key, $value);
         }
 
+        // For relative paths, go from /views
+        if ($templateFile[0] !== '/') {
+        	foreach(array('SITE_DIR', 'OCTOPUS_DIR') as $opt) {
+        		$file = get_option($opt) . 'views/' . $templateFile;
+        		if (is_file($file)) {
+        			$templateFile = $file;
+        			break;
+        		}
+        	}
+        }
+
         // Look for templates in the same directory the file is in.
         $smarty->template_dir = array(dirname($templateFile));
 
