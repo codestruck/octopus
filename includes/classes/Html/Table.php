@@ -383,7 +383,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         $this->rememberState();
         $this->resetData();
         $this->dontInitFromEnvironment();
-        
+
         return $this;
     }
 
@@ -594,6 +594,10 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     public function &getDataSource() {
+
+    	// Make sure filters are applied before returning data source
+    	$this->initFromEnvironment();
+
         return $this->_dataSource;
     }
 
@@ -631,7 +635,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     public function setDefaultSorting(/* variable */) {
-        
+
         $args = func_get_args();
         $this->resolveSortColumnArgs($args, $defaultSorting);
         $this->_options['defaultSorting'] = $defaultSorting;
@@ -647,12 +651,12 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         $this->resolveSortColumnArgs($args, $newSortingArgs);
 
         // $newSortingArgs is now an array in the form
-        // array( 'column id' => 'ASC' or 'DESC')        
+        // array( 'column id' => 'ASC' or 'DESC')
 
         $this->_sortColumns = array();
 
         foreach($newSortingArgs as $id => $dir) {
-            
+
             $col = $this->getColumn($id);
 
             if ($col) {
@@ -677,7 +681,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         }
 
         foreach($args as $key => $col) {
-            
+
             if (is_array($col)) {
                 $this->resolveSortColumnArgs($col, $cols);
                 continue;
@@ -702,7 +706,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
             $cols[$col] = $asc ? OCTOPUS_SORT_ASC : OCTOPUS_SORT_DESC;
         }
-        
+
     }
 
     /**
@@ -713,7 +717,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         $this->initFromEnvironment();
 
         if ($this->_pagerData) {
-            
+
             if ($this->_pagerData['currentPage'] !== $this->getPage()) {
                 $this->_pagerData = null;
             }

@@ -8,6 +8,8 @@ class SysControllerTests extends Octopus_App_TestCase {
         @mkdir("$s/views/sys");
         touch("$s/views/sys/forbidden.php");
 
+        file_put_contents("$s/themes/default/templates/html/page.php", '<?php echo $view_content; ?>');
+
         $states = array(
             'DEV' => true,
             'LIVE' => false,

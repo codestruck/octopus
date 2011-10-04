@@ -8,6 +8,7 @@ class MigrateTestPerson extends Octopus_Model {
         'name',
         'age' => array('type' => 'number'),
         'birth_date' => array( 'type' => 'datetime'),
+        'just_date' => array('type' => 'date'),
         'dogs' => array(
             'type' => 'hasMany',
             'model' => 'MigrateTestDog'
@@ -379,6 +380,13 @@ END
 
             'birth_date' => array(
                 'type' => 'datetime',
+                'size' => '',
+                'options' => 'NOT NULL',
+                'index' => ''
+            ),
+
+            'just_date' => array(
+                'type' => 'date',
                 'size' => '',
                 'options' => 'NOT NULL',
                 'index' => ''

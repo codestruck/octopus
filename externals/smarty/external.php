@@ -1,6 +1,7 @@
 <?php
 
-require_once(dirname(__FILE__) . '/Smarty-3.0.8/libs/Smarty.class.php');
+define('SMARTY_VERSION', '3.0.8');
+require_once(dirname(__FILE__) . '/Smarty-' . SMARTY_VERSION . '/libs/Smarty.class.php');
 
 class Octopus_Smarty extends Octopus_Base {
 
@@ -21,39 +22,34 @@ class Octopus_Smarty extends Octopus_Base {
 
         $app = (class_exists('Octopus_App') && Octopus_App::isStarted()) ? Octopus_App::singleton() : null;
 
-        if ($this->templateDir == null) {
+        $templateDir = $this->templateDir;
+        if ($templateDir == null) {
 
             if (isset($app->template_dir)) {
                 $templateDir = $app->template_dir;
-            } else if (defined('SITE_DIR')) {
-                $templateDir = SITE_DIR . 'views/';
-            } else if ($app) {
-                $templateDir = $app->getOption('SITE_DIR') . 'views/';
+            } else {
+                $templateDir = get_option('SITE_DIR') . 'views';
             }
 
         }
 
-        if ($this->compileDir == null) {
+        $compileDir = $this->compileDir;
+        if (!$compileDir) {
 
-            if (defined('SMARTY_COMPILE_DIR')) {
-                $compileDir = SMARTY_COMPILE_DIR;
-            } else if (defined('OCTOPUS_PRIVATE_DIR')) {
-                $compileDir = OCTOPUS_PRIVATE_DIR . 'smarty';
-            } else if ($app) {
+            $compileDir = get_option('SMARTY_COMPILE_DIR');
 
-                $compileDir = $app->getOption('SMARTY_COMPILE_DIR');
-                if (!$compileDir) {
-                    $compileDir = $app->getOption('OCTOPUS_PRIVATE_DIR') . 'smarty';
-                }
+            if (!$compileDir) {
+                $compileDir = get_option('OCTOPUS_PRIVATE_DIR') . 'smarty';
+            }
 
-            } else {
-                $compileDir = '/tmp';
+            if (!$compileDir) {
+                $compileDir = sys_get_temp_dir();
             }
 
         }
 
         $this->smarty = new Smarty();
-        $this->smarty->error_reporting = E_ALL & ~E_NOTICE;
+        $this->smarty->error_reporting = E_ERROR;
         $this->smarty->template_dir = $templateDir;
         $this->smarty->compile_dir = $compileDir;
         $this->smarty->allow_php_tag = true;
@@ -61,16 +57,18 @@ class Octopus_Smarty extends Octopus_Base {
         // custom plugin dir
         $this->smarty->plugins_dir = array(
             OCTOPUS_DIR . 'externals/smarty/plugins/',
-            dirname(__FILE__) . '/Smarty-3.0.8/libs/plugins/',
+            dirname(__FILE__) . '/Smarty-' . SMARTY_VERSION . '/libs/plugins/',
         );
 
         // allow all php functions and modifiers
         $security_policy = new Smarty_Security($this->smarty);
         $security_policy->php_functions = array();
         $security_policy->php_modifiers = array();
+        $security_policy->secure_dir = array(get_option('SITE_DIR') . 'views');
         $this->smarty->enableSecurity($security_policy);
 
         if (DEV) {
+        	$this->smarty->error_reporting = E_ALL & ~E_NOTICE;
             $this->smarty->_file_perms = 0666;
             $this->smarty->_dir_perms = 0777;
             $this->smarty->compile_error = true;
@@ -78,6 +76,25 @@ class Octopus_Smarty extends Octopus_Base {
         }
 
 
+    }
+
+    /**
+     * @return String The results of rendering the given smarty template file.
+     */
+    public function render($templateFile, $data = array()) {
+
+    	$smarty = $this->smarty;
+        $smartyData = $smarty->createData();
+
+        foreach($data as $key => $value) {
+            $smartyData->assign($key, $value);
+        }
+
+        // Look for templates in the same directory the file is in.
+        $smarty->template_dir = array(dirname($templateFile));
+
+        $tpl = $smarty->createTemplate($templateFile, $smartyData);
+        return $tpl->fetch();
     }
 
     public static function &singleton() {

@@ -61,6 +61,12 @@ END;
             'should not do anything to #links'
         );
 
+        $this->assertEquals(
+            '/test/foo?color=has%20space',
+            u('/test/foo', array('color' => 'has space')),
+            'proper escaping of spaces"'
+        );
+
     }
 
     function testFindUrlBase() {
@@ -82,6 +88,9 @@ END;
             find_url_base('/var/www/', '/some/weird/path/'),
             'Should return false when not running off document_root'
         );
+
+        unset($_SERVER['DOCUMENT_ROOT']);
+        $this->assertEquals('/', find_url_base('/my/root/dir/'), "should be / when doc root is unknown");
 
 
     }
@@ -158,7 +167,7 @@ END;
     }
 
     function testGetFullUrl() {
-        
+
         $tests = array(
 
             'http://myserver.com/subdir/foo/bar' => array(
@@ -174,7 +183,7 @@ END;
                 'input' => '/foo/bar',
                 'message' => '$_SERVER[HTTPS] = on',
                 '_SERVER' => array(
-                    'HTTPS' => 'on', 
+                    'HTTPS' => 'on',
                     'HTTP_HOST' => 'myserver.com'
                 ),
                 'URL_BASE' => '/subdir/'
@@ -233,7 +242,7 @@ END;
         );
 
         foreach($tests as $expected => $params) {
-          
+
           $ogHost = (isset($_SERVER['HTTP_HOST'])) ? $_SERVER['HTTP_HOST'] : null;
 
           foreach($_SERVER as $key => $value) {
@@ -256,8 +265,8 @@ END;
           } else {
               $_SERVER['HTTP_HOST'] = $ogHost;
           }
-        }   
-    
+        }
+
     }
 
     /**
@@ -266,7 +275,7 @@ END;
     function testGetFullUrlWithRelativePathThrowsException() {
 
         get_full_url('some/relative/path');
-        
+
     }
 
     function testMakeExternalUrl() {
@@ -309,6 +318,23 @@ END;
 
 
     }
+
+   function testGetUserIp() {
+
+        $_SERVER['HTTP_X_FORWARDED_FOR'] = '10.0.0.4';
+        $_SERVER['REMOTE_ADDR'] = '10.0.0.5';
+        $this->assertEquals('10.0.0.4', get_user_ip());
+
+        $_SERVER['REMOTE_ADDR'] = '10.0.0.5';
+        unset($_SERVER['HTTP_X_FORWARDED_FOR']);
+        $this->assertEquals('10.0.0.5', get_user_ip());
+
+        unset($_SERVER['HTTP_X_FORWARDED_FOR']);
+        unset($_SERVER['REMOTE_ADDR']);
+        $this->assertEquals('127.0.0.1', get_user_ip());
+
+    }
+
 
 }
 

@@ -12,4 +12,27 @@ then
 fi
 ln -s octopus/index.php
 
+if [ ! -d _private ]
+then
+	mkdir _private
+fi
+chmod 777 _private
+
+if [ ! -d cache ]
+then
+	mkdir cache
+fi
+chmod 777 cache
+
+if [ ! -d site ]
+then
+	mkdir site
+fi
+
+if [ ! -d site/files ]
+then
+	mkdir site/files
+fi
+chmod 777 site/files
+
 echo Octopus is now installed.

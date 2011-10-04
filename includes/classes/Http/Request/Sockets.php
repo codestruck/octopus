@@ -8,7 +8,7 @@ class Octopus_Http_Request_Sockets extends Octopus_Http_Request_Base {
 
         $this->args = array_merge($this->defaults, $args);
 
-        list($host, $port, $path, $secure) = $this->parseUrl($url);
+        list($host, $port, $path, $secure) = $this->parseUrl($url, $data);
 
         $ip = gethostbyname($host);
 
@@ -41,11 +41,12 @@ class Octopus_Http_Request_Sockets extends Octopus_Http_Request_Base {
         if ($data) {
             $request .= "Content-Type: application/x-www-form-urlencoded\r\n";
 
-            foreach ($data as $key => $value) {
-                $request_body .= rawurlencode($key) . '=' . urlencode($value) . '&';
+            if (is_array($data)) {
+                $request_body = octopus_http_build_query($data, '&', 'POST');
+            } else {
+                $request_body = $data;
             }
-            $request_body = rtrim($request_body, '&');
-            //$request_body .= "\r\n";
+
             $request .= "Content-Length: " . strlen($request_body) . "\r\n";
 
         }

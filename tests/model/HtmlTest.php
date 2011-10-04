@@ -51,13 +51,16 @@ class Html extends Octopus_Model {
 /**
  * @group Model
  */
-class ModelHtmlTest extends PHPUnit_Framework_TestCase {
+class ModelHtmlTest extends Octopus_App_TestCase {
     
     function __construct() {
         Octopus_DB_Schema_Model::makeTable('html');
     }
 
     function setUp() {
+
+        parent::setUp();
+
         $db =& Octopus_DB::singleton();
         $db->query('TRUNCATE htmls');
         

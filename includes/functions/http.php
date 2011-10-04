@@ -68,7 +68,7 @@
             $oldArgs[$key] = $value;
         }
 
-        $qs = http_build_query($oldArgs);
+        $qs = octopus_http_build_query($oldArgs);
 
         if ($qs) {
             $url .= '?' . $qs;
@@ -77,11 +77,31 @@
         return $url;
     }
 
+    // native version requires 5.4 to properly encode spaces for GET requests
+    function octopus_http_build_query($data, $seperator = '&', $method = 'GET') {
+
+        $str = '';
+        $encFunc = 'rawurlencode';
+        if (strtoupper($method) == 'POST') {
+            $encFunc = 'urlencode';
+        }
+
+        foreach ($data as $key => $value) {
+            if ($value !== null) {
+                $str .= $encFunc($key) . '=' . $encFunc($value) . $seperator;
+            }
+        }
+        $str = rtrim($str, $seperator);
+
+        return $str;
+
+    }
+
     /**
      * Cancels any upcoming redirects.
      */
     function cancel_redirects($cancel = true) {
-        
+
         $GLOBALS['__OCTOPUS_CANCEL_REDIRECT__'] = $cancel;
 
         if (defined('DEV') && DEV && class_exists('Octopus_Debug')) {
@@ -105,10 +125,15 @@
     function find_url_base($rootDir = null, $documentRoot = null) {
 
         $rootDir = $rootDir ? $rootDir : ROOT_DIR;
-        $documentRoot = $documentRoot ? $documentRoot : $_SERVER['DOCUMENT_ROOT'];
 
         if (!$documentRoot) {
-            return '/'; // probably testing or on command line
+
+            if (!empty($_SERVER['DOCUMENT_ROOT'])) {
+                $documentRoot = $_SERVER['DOCUMENT_ROOT'];
+            } else {
+                $documentRoot = $rootDir;
+            }
+
         }
 
         /*
@@ -128,11 +153,20 @@
          *
          */
 
-        if (strncasecmp($rootDir, $documentRoot, strlen($documentRoot)) == 0) {
+        if ($documentRoot) $documentRoot = rtrim($documentRoot, '/') . '/';
+        if ($rootDir) $rootDir = rtrim($rootDir, '/') . '/';
 
+        $documentRootLen = strlen($documentRoot);
+        $rootDirLen = strlen($rootDir);
 
-            $base = substr($rootDir, strlen($documentRoot));
-            if ($base === false) return '/';
+        if ($rootDirLen < $documentRootLen) {
+            return false;
+        }
+
+        if (strncasecmp($rootDir, $documentRoot, $documentRootLen) === 0) {
+
+            $base = substr($rootDir, $documentRootLen);
+            if (!$base) return '/';
 
             return start_in('/', end_in('/', $base));
 
@@ -208,11 +242,11 @@
 
             $d = new Octopus_Debug();
             $d->addSquashedRedirect($location);
-            
+
             if (!empty($GLOBALS['__OCTOPUS_CANCEL_REDIRECT_BACKTRACE'])) {
                 $d->add('Cancellation Source Backtrace', Octopus_Debug::getBacktraceHtml($GLOBALS['__OCTOPUS_CANCEL_REDIRECT_BACKTRACE']));
             }
-            
+
             if ($resp) {
                 $resp->append($d->render(true));
             } else {
@@ -338,7 +372,7 @@
 
         // Handle being handed in a full url
         if (preg_match('#\s*([a-z0-9_-]*)://([^/]*?)(:(\d+))?/(.*)#i', $path, $m)) {
-            
+
             $inScheme = $m[1];
             $inServer = $m[2];
             $inPort = $m[4];
@@ -366,6 +400,24 @@
         }
 
         return "{$scheme}://{$host}{$port}{$path}";
+    }
+
+    /**
+     * @return String The user's IP address.
+     */
+    function get_user_ip() {
+
+        $ip = '127.0.0.1';
+
+        if (isset($_SERVER['REMOTE_ADDR'])) {
+            $ip = $_SERVER['REMOTE_ADDR'];
+        }
+
+        if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        }
+
+        return $ip;
     }
 
 ?>

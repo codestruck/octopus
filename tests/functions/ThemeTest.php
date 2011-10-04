@@ -12,7 +12,7 @@ class ThemeTest extends Octopus_App_TestCase {
 
     function testGetThemeFile() {
 
-        touch($this->getSiteDir() . 'themes/test/foo.bar');
+        recursive_touch($this->getSiteDir() . 'themes/test/foo.bar');
 
         $file = get_theme_file('foo.bar', array('SITE_DIR' => $this->getSiteDir(), 'theme' => 'test'));
 
@@ -28,7 +28,7 @@ class ThemeTest extends Octopus_App_TestCase {
         $src = $this->getSiteDir() . 'themes/test/styles_src.css';
         $options = array('SITE_DIR' => $this->getSiteDir(), 'theme' => 'test', 'use_src' => true);
 
-        touch($og); sleep(1); touch($src);
+        recursive_touch($og); sleep(1); recursive_touch($src);
 
         $file = get_theme_file('styles.css', $options);
         $this->assertEquals($src, $file, 'failed with newer src');
@@ -54,7 +54,7 @@ class ThemeTest extends Octopus_App_TestCase {
 
     function testGetThemeFileUrl() {
 
-        touch($this->getSiteDir() . 'themes/test/url_test.css');
+        recursive_touch($this->getSiteDir() . 'themes/test/url_test.css');
 
         $this->assertEquals(
             '/url-base/site/themes/test/url_test.css',

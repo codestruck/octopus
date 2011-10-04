@@ -3,8 +3,7 @@
     /*
      * insert millisecend level startup time
      */
-    list($usec, $sec) = explode(" ", microtime());
-    $_SERVER['REQUEST_TIME_MILLISECOND'] = ((float)$usec + (float)$sec);
+    $_SERVER['REQUEST_TIME_MILLISECOND'] = microtime(true);
 
     /*
      * All core app functionality comes from here. Any page served up by the
@@ -94,7 +93,19 @@
     function render_page($path = null) {
 
         $app = Octopus_App::singleton();
-        $response = $app->getResponse($path);
+        
+        if ($app->DEV) {
+            // In dev mode, use buffered output and add extra debugging info
+            $response = $app->getResponse($path, true);
+            $renderTime = round(microtime(true) - $_SERVER['REQUEST_TIME_MILLISECOND'], 3);
+            $response->replaceContent('<!-- OF_OCTOPUS_TOTAL_RENDER_TIME -->', ' of ' . $renderTime);
+            $response->replaceContent('<!-- OCTOPUS_TOTAL_RENDER_TIME -->', $renderTime);
+
+        } else {
+            // Otherwise, just write out as we have data.
+            $response = $app->getResponse($path);
+        }
+
         $response->flush();
 
     }
@@ -103,7 +114,16 @@
      * Global exception handler.
      */
     function octopus_handle_exception($ex) {
+
         dump_r($ex);
+
+    	if (class_exists('Octopus_App') && Octopus_App::isStarted()) {
+    		$app = Octopus_App::singleton();
+    		$response = $app->getCurrentResponse();
+    		if ($response) $response->flush();
+    	}
+
+
         die();
     }
 

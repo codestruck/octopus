@@ -1,6 +1,9 @@
 <?php
 
 Octopus::loadClass('Octopus_DataSource');
+Octopus::loadClass('Octopus_Model_Restriction');
+Octopus::loadClass('Octopus_Model_Restriction_Field');
+Octopus::loadClass('Octopus_Model_Restriction_Sql');
 
 /**
  * Class that handles searching for Octopus_Model instances.
@@ -60,7 +63,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpa
             $this->_modelClass = $this->_parent->_modelClass;
         }
 
-        $this->_criteria = $criteria ? self::normalizeCriteria($criteria) : array();
+        $this->_criteria = $criteria ? $this->normalizeCriteria($criteria) : array();
         $this->_orderBy = $orderBy ? $orderBy : array();
         $this->_conjunction = $conjunction;
 
@@ -85,6 +88,33 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpa
     }
 
     /**
+     * @return bool Whether this resultset contains each item referenced in the
+     * arguments.
+     */
+    public function contains(/* variable */) {
+
+        $args = func_get_args();
+        foreach($args as $arg) {
+
+            if (!is_numeric($arg)) {
+                $arg = $arg->id;
+            }
+
+            if (!$arg) {
+                return false;
+            }
+
+            if (!$this->where(array('id' => $arg))->count()) {
+                return false;
+            }
+
+        }
+
+        return true;
+
+    }
+
+    /**
      * Deletes all results
      */
     public function delete() {
@@ -98,6 +128,14 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpa
     }
 
     /**
+     * Sends this ResultSet to dump_r without breaking the chain.
+     */
+    public function dump() {
+    	dump_r($this);
+    	return $this;
+    }
+
+    /**
      * Sends the SQL for the current query to dump_r().
      * @return $this to continue the chain.
      */
@@ -105,9 +143,13 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpa
 
         $params = array();
         $sql = $this->getSql($params);
-        if ($normalize) $sql = normalize_sql($sql, $params);
 
-        dump_r($sql);
+        if ($normalize) {
+            dump_r(normalize_sql($sql, $params));
+        } else {
+            dump_r($sql, $params);
+        }
+
         return $this;
     }
 
@@ -178,7 +220,7 @@ END;
         $html .=
             '<h3>SQL</h3>' .
             '<textarea class="octopusDebugResultSetSql">' .
-            h($this->dumpText()) .
+            h($this->__dumpText()) .
             '</textarea>';
 
 
@@ -186,11 +228,9 @@ END;
     }
 
     public function __dumpText() {
-
         $params = array();
         $sql = $this->getSql($params);
         return normalize_sql($sql, $params);
-
     }
 
     /**
@@ -203,6 +243,44 @@ END;
         if (!$row) return false;
 
         return $this->createModelInstance($row);
+    }
+
+    /**
+     * For a hasOne relation on the model, returns a resultset that contains
+     * the contents of that relation for all matched elements.
+     */
+    public function followRelation($relation) {
+
+        $field = $this->getModelField($relation);
+        $table = $this->getModelTableName();
+        $relatedModel = $field->getOption('model', $relation);
+        $fieldAsID = to_id($field->getFieldName());
+
+        $relatedSet = new Octopus_Model_ResultSet($relatedModel);
+        $relatedTable = $relatedSet->getModelTableName();
+        $relatedPrimaryKey = $relatedSet->getModelPrimaryKey();
+
+        $dummySelect = new Octopus_DB_Select();
+        $params = array();
+        $whereClause = $this->getFullWhereClause($dummySelect, $params);
+        if (strlen($whereClause)) $whereClause = "WHERE $whereClause";
+
+        return $relatedSet->whereSql(
+            "`$relatedTable`.`$relatedPrimaryKey` IN (SELECT `$table`.`$fieldAsID` FROM `$table` $whereClause)",
+            $params
+        );
+
+    }
+
+    /**
+     * Enables filtering the result set using literal SQL. If you are using
+     * this directly, maybe you shouldn't?
+     * @param $sql String The SQL to inject into the WHERE clause
+     * @param $params Array Any paramters referenced by $sql
+     */
+    private function whereSql($sql, $params = array()) {
+        $result = $this->where(array($sql => $params));
+        return $result;
     }
 
     /**
@@ -336,10 +414,29 @@ END;
      * additional filters applied.
      */
     public function where(/* Variable */) {
-
         $args = func_get_args();
-
         return $this->createChild(func_get_args(), null, 'AND');
+    }
+
+    /**
+     * returns an optionally keyed array from the result set
+     * @return array
+     */
+    public function map($key, $value = null) {
+
+        $fields = array($key);
+        if ($value) {
+            $fields[] = $value;
+        }
+
+        $select = $this->buildSelect(false, $fields);
+
+        if ($value) {
+            return $select->getMap();
+        } else {
+            return $select->getOneArray();
+        }
+
     }
 
     // End Public Methods }}}
@@ -380,39 +477,29 @@ END;
                 // e.g. array('NOT' => array('field1' => 'value1'))
                 $expression = trim(self::buildWhereClause($value, $s, $params));
 
-                if ($expression) {
+                if (strlen($expression)) {
                     $expression = "$key ($expression)";
                 }
 
-            } else if (is_numeric($key)) {
+            } else if (is_array($value)) {
 
-                if ($value == 'AND' || $value == 'OR') {
+                $expression = $this->buildWhereClause($value, $s, $params);
+
+            } else if ($value instanceof Octopus_Model_Restriction) {
+
+                $expression = $value->getSql($s, $params);
+
+            } else if ($value === 'AND' || $value === 'OR') {
 
                     // e.g. array('field1' => 'value1', 'AND', 'field2' => 'value2')
                     $conjunction = $value;
 
-                } else if (is_string($value)) {
-
-                    // Literal SQL
-                    $value = trim($value);
-                    if ($value) $expression = "($value)";
-
-                } else if (is_array($value)) {
-
-                    // e.g. array(array('field1' => 'value1), array('field2' => 'value2'))
-                    $expression = $this->buildWhereClause($value, $s, $params);
-
-                }
-
             } else {
-
-                // e.g. array('key' => 'value')
-                $expression = $this->restrictField($key, $value, $s, $params);
+                throw new Octopus_Model_Exception("Unhandled key/value in criteria: $key, $value");
             }
 
             $expression = trim($expression);
-
-            if ($expression) {
+            if (strlen($expression)) {
                 $sql = self::joinSql($conjunction ? $conjunction : 'AND', $sql, $expression);
                 $conjunction = '';
             }
@@ -455,7 +542,8 @@ END;
 
             foreach($dummy->getFields() as $field) {
 
-                $isText = $field->getOption('type', 'text') == 'string';
+                $type = $field->getOption('type', 'text');
+                $isText = ($type == 'string' || $type == 'hasOne');
 
                 if ($field->getOption('searchable', $isText)) {
                     $searchFields[] = $field;
@@ -475,8 +563,12 @@ END;
         $criteria = array();
         foreach($searchFields as $field) {
 
-            if (count($criteria)) $criteria[] = 'OR';
-            $criteria[$field->getFieldName() . ' LIKE'] = $text;
+            $restrict = $field->restrictFreetext($dummy, $text);
+
+            if ($restrict) {
+                if (count($criteria)) $criteria[] = 'OR';
+                $criteria[] = $restrict;
+            }
 
         }
 
@@ -564,93 +656,6 @@ END;
         return $instance->getTableName();
     }
 
-    /**
-     * Takes a key from a criteria array and parses it out into field name,
-     * operator, and function.
-     * @return Array field, subexpression, operator, and function
-     */
-    protected function parseCriteriaKey($key) {
-
-        /* Formats a key can take:
-         * 'field'
-         * 'field [not] operator'
-         * (TODO) 'function(field) [not] operator
-         */
-
-
-        $key = str_replace('`', '', $key);
-        $key = preg_replace('/\s+/', ' ', $key);
-        $key = trim($key);
-
-        $field = $subexpression = $operator = $function = null;
-
-        $spacePos = strpos($key, ' ');
-
-        if ($spacePos === false) {
-            $field = $key;
-        } else {
-            $field = substr($key, 0, $spacePos);
-            $operator = substr($key, $spacePos + 1);
-        }
-
-        // Special-case ID
-        if (strcasecmp($field, 'id') == 0) {
-            $field = $this->getModelPrimaryKey();
-        }
-
-        $dotPos = strpos($field, '.');
-        if ($dotPos !== false) {
-            $subexpression = substr($field, $dotPos + 1);
-            $field = substr($field, 0, $dotPos);
-        }
-
-        return compact('field', 'subexpression', 'operator', 'function');
-    }
-
-    /**
-     * Generates SQL for a single "field = value" type statement.
-     * @param $key string Raw key from a criteria array.
-     * @param $value mixed Value used to restrict.
-     * @param $s Octopus_DB_Select Query being built.
-     * @param $params Array Parameters to be passed to the query.
-     */
-    protected function restrictField($key, $value, $s, &$params) {
-
-        if ($value instanceof Octopus_Model_ResultSet) {
-
-            // TODO: Do this using a subquery rather than IN ()
-            $resultSet = $value;
-            $value = array();
-
-            foreach($resultSet as $item) {
-                $value[] = $item->id;
-            }
-
-        } else if ($value instanceof Octopus_Model) {
-            $value = $value->id;
-        }
-
-        // Parse out field name, etc.
-        $info = $this->parseCriteriaKey($key);
-        extract($info);
-
-        if ($field == $this->getModelPrimaryKey()) {
-
-            // IDs don't have associated fields, so we use the default
-            // restriction logic.
-            return Octopus_Model_Field::defaultRestrict($field, $operator, '=', $value, $s, $params, $this->getModelInstance());
-
-        }
-
-        $f = $this->getModelField($field);
-
-        if ($f) {
-            return $f->restrict($subexpression, $operator, $value, $s, $params, $this->getModelInstance());
-        }
-
-        throw new Octopus_Exception("Field not found: " . $field);
-    }
-
     // End Protected Methods }}}
 
     // Private Methods {{{
@@ -663,7 +668,7 @@ END;
 
         foreach($orderBy as $fieldName => $dir) {
 
-            $info = $this->parseCriteriaKey($fieldName);
+            $info = Octopus_Model_Restriction_Field::parseFieldExpression($fieldName, $this->getModelInstance());
             extract($info);
 
             if ($field === $this->getModelPrimaryKey()) {
@@ -685,19 +690,19 @@ END;
     /**
      * @return Object A new Octopus_DB_Select instance.
      */
-    private function buildSelect($recreate = false) {
+    private function buildSelect($recreate = false, $fields = null) {
 
         if (!$recreate && $this->_select) {
             return $this->_select;
         }
 
         $s = new Octopus_DB_Select();
-        $s->table($this->getModelTableName());
+        $s->table($this->getModelTableName(), $fields);
 
         $params = array();
         $whereClause = trim($this->getFullWhereClause($s, $params));
 
-        if ($whereClause) {
+        if (strlen($whereClause)) {
             $s->where($whereClause, $params);
         }
 
@@ -716,13 +721,11 @@ END;
      * any restrictions placed by the parent.
      */
     private function getFullWhereClause($s, &$params) {
-
         return self::joinSql(
             $this->_conjunction ? $this->_conjunction : 'AND',
             $this->_parent ? $this->_parent->getFullWhereClause($s, $params) : '',
             $this->buildWhereClause($this->_criteria, $s, $params)
         );
-
     }
 
     /**
@@ -812,11 +815,14 @@ END;
         $left = trim($left);
         $right = trim($right);
 
-        if (!($left || $right)) {
+        $leftLen = strlen($left);
+        $rightLen = strlen($right);
+
+        if (!($leftLen || $rightLen)) {
             return '';
-        } else if ($left && !$right) {
+        } else if ($leftLen && !$rightLen) {
             return $left;
-        } else if ($right && !$left) {
+        } else if ($rightLen && !$leftLen) {
             return $right;
         }
 
@@ -832,12 +838,6 @@ END;
         }
 
         return $left . $right;
-    }
-
-    private static function looksLikeFieldName($str) {
-
-        return preg_match('/^[a-z0-9_]\s*([<>=]|LIKE|NOT|IN|\s)*/i', $str);
-
     }
 
     /**
@@ -858,7 +858,7 @@ END;
      *
      * @param $criteria Array Criteria to normalize.
      */
-    private static function &normalizeCriteria($criteria) {
+    private function &normalizeCriteria($criteria) {
 
         $result = array();
         $lastFieldName = null;
@@ -867,14 +867,16 @@ END;
 
             if (is_numeric($key)) {
 
-                // $value is either a field name, value, conjunction, or another array of criteria
+                // $value is either a field name, value, conjunction, literal sql, or another array of criteria
 
                 if ($lastFieldName !== null) {
-                    $result[] = array($lastFieldName => $value);
+                    $result[] = new Octopus_Model_Restriction_Field($this->getModelInstance(), $lastFieldName, $value);
                     $lastFieldName = null;
                 } else if (is_array($value)) {
-                    $result[] = self::normalizeCriteria($value);
+                    $result[] = $this->normalizeCriteria($value);
                     $lastFieldName = null;
+                } else if ($value instanceof Octopus_Model_Restriction) {
+                    $result[] = $value;
                 } else {
 
                     $uvalue = strtoupper($value);
@@ -886,11 +888,11 @@ END;
                         $lastFieldName = null;
                     } else if ($lastFieldName === null) {
 
-                        if (self::looksLikeFieldName($value)) {
+                        if (Octopus_Model_Restriction_Field::looksLikeFieldExpression($value)) {
                             $lastFieldName = $value;
                         } else {
-                            // Literal SQL?
-                            $result[] = $value;
+                            // Probably literal SQL
+                            $result[] = new Octopus_Model_Restriction_Sql($value);
                         }
 
                     }
@@ -902,16 +904,20 @@ END;
             // $key is either a field name or a conjunction or NOT
             $ukey = strtoupper($key);
 
-            if ($ukey == 'NOT') {
-                $result[] = array('NOT' => self::normalizeCriteria($value));
-            } else if ($ukey == 'AND' || $ukey == 'OR') {
+            if ($ukey === 'NOT') {
+                $result[] = array('NOT' => $this->normalizeCriteria($value));
+            } else if ($ukey === 'AND' || $ukey === 'OR') {
                 $result[] = $ukey;
-                $result[] = self::normalizeCriteria($value);
+                $result[] = $this->normalizeCriteria($value);
             } else {
-
-                // $key is a field name
-                // $value is the corresponding value
-                $result[] = array($key => $value);
+                // Two scenarios:
+                //  1. $key is a field name and $value is a corresponding filter value
+                //  2. $key is literal SQL and $value is an array of parameters to go with it
+                if (Octopus_Model_Restriction_Field::looksLikeFieldExpression($key)) {
+                    $result[] = new Octopus_Model_Restriction_Field($this->getModelInstance(), $key, $value);
+                } else {
+                    $result[] = new Octopus_Model_Restriction_Sql($key, $value);
+                }
             }
         }
 

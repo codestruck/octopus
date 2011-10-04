@@ -35,7 +35,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
 
     protected $data = array();
 
-    private $_id = null;
+    protected $_id = null;
     private $_exists = null;
     private $dataLoaded = false;
 
@@ -83,7 +83,8 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
             $field = $this->getField(preg_replace('/_id$/', '', $var));
 
             if ($field) {
-                return $field->accessValue($this)->id;
+                $item = $field->accessValue($this);
+                return ($item) ? $item->id : null;
             } else {
                 return null;
             }
@@ -182,8 +183,8 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         return $this->_exists;
     }
 
-    public function setInternalValue($field, $value) {
-        $this->touchedFields[$field] = true;
+    public function setInternalValue($field, $value, $makesDirty = true) {
+        if ($makesDirty) $this->touchedFields[$field] = true;
         $this->data[$field] = $value;
     }
 
@@ -290,7 +291,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
             $this->$pk = $i->getId();
         }
 
-        $this->touchedFields = array();
+        $this->resetDirtyState();
 
         foreach($workingFields as $field) {
             $field->afterSave($this);
@@ -431,6 +432,14 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
     }
 
     /**
+     * Resets the dirty tracking for this model (marks all fields as
+	 * unchanged).
+     */
+    protected function resetDirtyState() {
+    	$this->touchedFields = array();
+    }
+
+    /**
      * @return String The actual name of the current class. Caches the
      * result.
      */
@@ -451,6 +460,8 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         if (isset(self::$fieldHandles[$class])) {
             return self::$fieldHandles[$class];
         }
+
+        self::$fieldHandles[$class] = array();
 
         foreach ($this->fields as $name => $options) {
 
@@ -646,8 +657,8 @@ END;
         foreach($this->toArray() as $key => $value) {
             try {
                 if ($value instanceof Dumpable) {
-                  $value = $value->dump('text');  
-                } 
+                  $value = $value->dump('text');
+                }
                 $result .= <<<END
 
 \t$key:\t\t$value

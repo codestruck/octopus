@@ -7,7 +7,7 @@ class Octopus_DB_Schema {
 
     private $db;
 
-    function Octopus_DB_Schema($db = null) {
+    public function __construct($db = null) {
         $this->db = $db ? $db : Octopus_DB::singleton();
     }
 
@@ -18,14 +18,9 @@ class Octopus_DB_Schema {
      * @return bool True if table exists
      */
     public function checkTable($table) {
-        $database = $this->db->driver->database;
-        $sql = "show tables";
-        $query = $this->db->query($sql, true);
 
-        $col = "Tables_in_$database";
-
-        while ($result = $query->fetchRow()) {
-            if ($result[$col] == $table) {
+        foreach($this->getTableNames() as $t) {
+            if (strcasecmp($table, $t) === 0) {
                 return true;
             }
         }
@@ -34,14 +29,34 @@ class Octopus_DB_Schema {
     }
 
     /**
+     * @return Array Table names in this database.
+     */
+    public function getTableNames() {
+
+        $database = $this->db->driver->database;
+        $sql = "show tables";
+        $query = $this->db->query($sql, true);
+
+        $col = "Tables_in_$database";
+
+        $result = array();
+
+        while ($row = $query->fetchRow()) {
+            $result[] = $row[$col];
+        }
+
+        return $result;
+    }
+
+    /**
      * @return Octopus_DB_Schema_Writer
      * @param $tableName string db table name to create or update
      */
-    function newTable($tableName) {
+    public function newTable($tableName) {
         return new Octopus_DB_Schema_Writer($tableName);
     }
 
-    function removeTable($tableName) {
+    public function removeTable($tableName) {
 
         if ($this->checkTable($tableName)) {
             $sql = "DROP TABLE `$tableName`";
@@ -50,7 +65,7 @@ class Octopus_DB_Schema {
 
     }
 
-    function renameTable($old, $new) {
+    public function renameTable($old, $new) {
         $sql = sprintf('RENAME TABLE `%s` TO `%s`', $old, $new);
         $this->db->query($sql, true);
     }

@@ -309,4 +309,71 @@
         return true;
     }
 
+    /**
+     * Deletes somethin'
+     * @param $force bool Whether to carry on if a delete fails.
+     * @return bool True on success, false otherwise.
+     */
+    function recursive_delete($f, $force = false, &$failures = null) {
+        
+        $f = rtrim($f, '/');
+
+        if (!file_exists($f)) {
+            return true;
+        }
+
+        $success = true;
+
+        if (is_link($f)) {
+
+            if (@unlink($f)) {
+                return true;
+            } else {
+                if ($failures !== null) $failures[] = $f;
+                return false;
+            }
+
+        } else if (is_dir($f)) {
+            
+            $handle = opendir($f);
+            if ($handle === false) {
+                return false;
+            }
+
+            while (($file = readdir($handle)) !== false) {
+                
+                if ($file === '.' || $file === '..') {
+                    continue;
+                }
+
+                $file = $f . '/' . $file;
+                
+                if (!recursive_delete($file, $force, $failures)) {
+                    $success = false;
+                    if (!$force) return $success;
+                }
+
+            }
+
+            closedir($handle);
+            
+            if (@rmdir($f)) {
+                return $success;
+            } else {
+                if ($failures) $failures[] = $f;
+                return false;
+            }
+
+        } else {
+            
+            if (@unlink($f)) {
+                return true;
+            } else {
+                if ($failures !== null) $failures[] = $f;
+                return false;
+            }
+        }
+    }
+
+
 ?>
