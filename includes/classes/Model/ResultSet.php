@@ -994,7 +994,8 @@ END;
      * @return Number The # of records in this ResultSet.
      */
     public function count() {
-        return $this->query()->numRows();
+    	$s = $this->buildSelect();
+    	return $s->numRows();
     }
 
     // }}}
