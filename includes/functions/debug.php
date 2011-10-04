@@ -1487,6 +1487,13 @@ if (!function_exists('dump_r')) {
 	        	if ($size && $size > (1 * 1024 * 1024) * 5) {
 	        		@unlink($logFile);
 	        	}
+	        } else {
+
+	        	@touch($logFile);
+
+	        	// Make log file writable by both command line and
+	        	// apache phps
+	        	@chmod($logFile, 0666);
 	        }
 
 	        $fp = @fopen($logFile, 'a');
