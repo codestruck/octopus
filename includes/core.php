@@ -6,6 +6,13 @@
     $_SERVER['REQUEST_TIME_MILLISECOND'] = microtime(true);
 
     /*
+     * Flash will send the HTTP_HOST with the port in it on mac
+     */
+    if (isset($_SERVER['HTTP_HOST']) && $pos = strpos($_SERVER['HTTP_HOST'], ':')) {
+        $_SERVER['HTTP_HOST'] = substr($_SERVER['HTTP_HOST'], 0, $pos);
+    }
+
+    /*
      * All core app functionality comes from here. Any page served up by the
      * app should include this file first.
      */
