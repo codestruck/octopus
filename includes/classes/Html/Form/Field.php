@@ -1,8 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Element');
-Octopus::loadClass('Octopus_Html_Form');
-
 /**
  * A field on a form.
  */
@@ -138,7 +135,6 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
      * Validates that input in this field is between two numbers.
      */
     public function between($inclusiveMin, $inclusiveMax, $message = null) {
-        Octopus::loadClass('Octopus_Html_Form_Field_Rule_Range');
         return $this->addRule(new Octopus_Html_Form_Field_Rule_Range($inclusiveMin, $inclusiveMax, $message));
     }
 
@@ -220,13 +216,9 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
         }
 
         if (parse_regex($patternOrFieldName)) {
-
-            Octopus::loadClass('Octopus_Html_Form_Field_Rule_Regex');
             $rule = new Octopus_Html_Form_Field_Rule_Regex($patternOrFieldName, $message);
             $rule->emptyIsValid = ($emptyIsValid === null ? true : $emptyIsValid);
-
         } else {
-            Octopus::loadClass('Octopus_Html_Form_Field_Rule_MatchField');
             $rule = new Octopus_Html_Form_Field_Rule_MatchField($patternOrFieldName, $message);
             $rule->emptyIsValid = ($emptyIsValid === null ? false : $emptyIsValid);
 
@@ -239,7 +231,6 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
      * Adds a callback rule to this field.
      */
     public function mustPass($callback, $message = null, $emptyIsValid = null) {
-        Octopus::loadClass('Octopus_Html_Form_Field_Rule_Callback');
         $rule = new Octopus_Html_Form_Field_Rule_Callback($callback, $message);
         if ($emptyIsValid !== null) $rule->emptyIsValid = $emptyIsValid;
         return $this->addRule($rule);
@@ -258,7 +249,6 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
         if ($required) {
 
             if (!$this->_requiredRule) {
-                Octopus::loadClass('Octopus_Html_Form_Field_Rule_Required');
                 $this->_requiredRule = new Octopus_Html_Form_Field_Rule_Required($this);
             }
 
@@ -496,8 +486,6 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
             $class = empty($entry['class']) ? $class : $entry['class'];
             $attributes = array_merge(empty($entry['attributes']) ? array() : $entry['attributes'], $attributes);
         }
-
-        Octopus::loadClass($class);
 
         if ($class == 'Octopus_Html_Form_Field') {
             return new Octopus_Html_Form_Field('input', $type, $name, $label, $attributes);

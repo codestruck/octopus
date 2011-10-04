@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Image_Mode_Base');
-
 class Octopus_Image_Mode_Upload extends Octopus_Image_Mode_Base {
 
     function Octopus_Image_Mode_Upload($src, $layout) {

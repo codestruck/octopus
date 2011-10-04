@@ -73,7 +73,7 @@ abstract class Octopus_App_TestCase extends PHPUnit_Extensions_OutputTestCase {
         $url = trim($url, '/');
         if ($url) $url .= '/';
 
-        return $urlBase . $url;        
+        return $urlBase . $url;
     }
 
 
@@ -96,7 +96,7 @@ abstract class Octopus_App_TestCase extends PHPUnit_Extensions_OutputTestCase {
         }
 
         if (!self::$sessionID) {
-            self::$sessionID = time();
+            self::$sessionID = md5(uniqid());
         }
 
         $tries = 0;
@@ -104,7 +104,7 @@ abstract class Octopus_App_TestCase extends PHPUnit_Extensions_OutputTestCase {
         $report = true;
 
         while(1) {
-            
+
             if ($tries >= 1) {
                 die("Could not set up environment. Tried $tries times.");
             }
@@ -118,7 +118,7 @@ abstract class Octopus_App_TestCase extends PHPUnit_Extensions_OutputTestCase {
             if (is_dir($this->testRootDir)) {
                 if (!recursive_delete($this->testRootDir, true, $failures)) {
                     if ($report) {
-                        dump_r("testRootDir already exists and could not be deleted: {$this->testRootDir}", $failures);
+                        dump_r("testRootDir already exists and could not be deleted.", $this->testRootDir, $failures);
                     }
                     continue;
                 }
@@ -129,7 +129,7 @@ abstract class Octopus_App_TestCase extends PHPUnit_Extensions_OutputTestCase {
                     continue;
                 }
             }
-             
+
             if (!@mkdir($this->testRootDir, 0777, true)) {
                 if ($report) dump_r("mkdir failed for testRootDir: {$this->testRootDir}");
                 continue;
@@ -152,7 +152,7 @@ abstract class Octopus_App_TestCase extends PHPUnit_Extensions_OutputTestCase {
                     if ($report) dump_r("Failed to symlink in site dir: $siteDirLinkTarget -> $siteDirLinkName");
                     continue;
                 }
-            
+
             } else {
                 // Create a working site dir
                 $siteDir = $this->getSiteDir();

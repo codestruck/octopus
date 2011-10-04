@@ -1,9 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Element');
-Octopus::loadClass('Octopus_Html_Table');
-Octopus::loadClass('Octopus_Html_Table_Column');
-
 /**
  * A chunk of content rendered inside a table.
  */
@@ -28,14 +24,14 @@ class Octopus_Html_Table_Content extends Octopus_Html_Element {
      */
     public function fillCell($table, $column, $cell, &$obj) {
 
-    	if (!empty($this->options['function'])) {
+        if (!empty($this->options['function'])) {
 
-    		// Use a function to render this cell's content
-    		$value = null;
-    		$content = self::applyFunction($this->options['function'], $value, $obj, $notUsed, $this, false);
-    		$this->html($content);
+            // Use a function to render this cell's content
+            $value = null;
+            $content = self::applyFunction($this->options['function'], $value, $obj, $notUsed, $this, false);
+            $this->html($content);
 
-    	}
+        }
 
         $pattern = '/\{\$([a-z0-9_\.\|\>\(\)-]+)\}/i';
 
@@ -141,7 +137,7 @@ class Octopus_Html_Table_Content extends Octopus_Html_Element {
     public static function applyFunction($function, &$value, &$row, &$escape, $context = null, $useValue = true) {
 
         if (empty($function)) {
-        	return $useValue ? $value : '';
+            return $useValue ? $value : '';
         }
 
         $f = $function;
@@ -151,15 +147,15 @@ class Octopus_Html_Table_Content extends Octopus_Html_Element {
             return $value->$f();
         } else if (is_string($f) && is_object($context) && method_exists($context, $f)) {
 
-    		if ($useValue) {
-    			return $context->$f($value, $row);
-    		} else {
-    			return $context->$f($row);
-    		}
+            if ($useValue) {
+                return $context->$f($value, $row);
+            } else {
+                return $context->$f($row);
+            }
 
-	    } else if ($row instanceof Octopus_Model && is_string($f) && method_exists($row, $f)) {
+        } else if ($row instanceof Octopus_Model && is_string($f) && method_exists($row, $f)) {
 
-        	return $row->$f($value, $row);
+            return $row->$f($value, $row);
 
         }
 
@@ -183,25 +179,25 @@ class Octopus_Html_Table_Content extends Octopus_Html_Element {
             }
 
             if ($useValue) {
-	            if ($useExtraArgs) {
-	                return call_user_func($f, $value, $row, $context);
-	            } else {
-	                return call_user_func($f, $value);
-	            }
-	       	} else {
-	       		if ($useExtraArgs) {
-	       			return call_user_func($f, $row, $context);
-		       	} else {
-		       			return call_user_func($f, $row);
-		       	}
-	       	}
+                if ($useExtraArgs) {
+                    return call_user_func($f, $value, $row, $context);
+                } else {
+                    return call_user_func($f, $value);
+                }
+            } else {
+                if ($useExtraArgs) {
+                    return call_user_func($f, $row, $context);
+                } else {
+                        return call_user_func($f, $row);
+                }
+            }
 
         }
 
         if (is_array($f)) {
-	        list($obj, $method) = $f;
-	        $f = get_class($obj) . '::' . $method;
-	    }
+            list($obj, $method) = $f;
+            $f = get_class($obj) . '::' . $method;
+        }
 
         $escape = false;
         return '<span style="color:red;">Function not found: ' . h($f) . '</span>';

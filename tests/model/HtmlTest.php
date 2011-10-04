@@ -1,8 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_DB');
-Octopus::loadClass('Octopus_Model');
-
 db_error_reporting(DB_PRINT_ERRORS);
 
 function custom_function($model, $field) {
@@ -38,21 +35,21 @@ class Html extends Octopus_Model {
             'type' => 'html',
             'allow_tags' => 'strong,a[href]',
         ),
-     
-        
+
+
     );
-    
+
     public function custom_method($model, $field) {
         return 'from custom method';
     }
-    
+
 }
 
 /**
  * @group Model
  */
 class ModelHtmlTest extends Octopus_App_TestCase {
-    
+
     function __construct() {
         Octopus_DB_Schema_Model::makeTable('html');
     }
@@ -63,10 +60,10 @@ class ModelHtmlTest extends Octopus_App_TestCase {
 
         $db =& Octopus_DB::singleton();
         $db->query('TRUNCATE htmls');
-        
+
         $str = '<p>some <strong>strings</strong> have <a href="http://cnn.com/" class="linkClass">links</a>.</p>';
         $this->rawString = $str;
-        
+
         $html = new Html();
         $html->body1 = $str;
         $html->body2 = $str;
@@ -76,7 +73,7 @@ class ModelHtmlTest extends Octopus_App_TestCase {
         $html->tag2 = $str;
         $html->tag3 = $str;
         $html->save();
-        
+
     }
 
     function testDefault() {
@@ -102,7 +99,7 @@ class ModelHtmlTest extends Octopus_App_TestCase {
         $html->escape();
         $this->assertEquals('from custom function', $html->body4);
     }
-    
+
     function testHtmlTagP() {
         $html = new Html(1);
         $html->escape();

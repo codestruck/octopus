@@ -53,8 +53,6 @@ abstract class Octopus_Model_Field {
         }
 
         $class = 'Octopus_Model_Field_' . camel_case($type, true);
-        Octopus::loadClass($class);
-
         $options['type'] = $type;
 
         return new $class($name, $modelClass, $options);
@@ -274,22 +272,22 @@ abstract class Octopus_Model_Field {
         if (strcmp($operator, 'IN') == 0) {
 
             $value = is_array($value) ? $value : array($value);
-			$expr = '';
+            $expr = '';
 
-			if (empty($value)) {
+            if (empty($value)) {
 
-				// IN empty array = false
-				$expr = '0';
+                // IN empty array = false
+                $expr = '0';
 
-			} else {
+            } else {
 
-	            foreach($value as $item) {
-	                $params[] = $item;
-	                $expr .= ($expr == '' ? '' : ',') . '?';
-	            }
+                foreach($value as $item) {
+                    $params[] = $item;
+                    $expr .= ($expr == '' ? '' : ',') . '?';
+                }
 
-	            $expr = "`$table`.`$fieldName` IN ($expr)";
-	        }
+                $expr = "`$table`.`$fieldName` IN ($expr)";
+            }
 
         } else {
             $params[] = $value;

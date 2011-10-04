@@ -1,8 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Image');
-Octopus::loadClass('Octopus_Html_Element');
-
 /**
  * Smarty plugin
  *

@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Table_Content');
-
 class Octopus_Html_Table_Action extends Octopus_Html_Table_Content {
 
     public function __construct($id, $label = null, $url = null, $options = null) {

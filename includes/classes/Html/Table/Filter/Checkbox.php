@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Table_Filter');
-
 /**
  * Simple checkbox filter
  * @TODO test

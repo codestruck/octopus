@@ -31,6 +31,7 @@
     require_once(OCTOPUS_FUNCTIONS_DIR . 'files.php');
     require_once(OCTOPUS_FUNCTIONS_DIR . 'http.php');
     require_once(OCTOPUS_FUNCTIONS_DIR . 'html.php');
+    require_once(OCTOPUS_FUNCTIONS_DIR . 'db.php');
     require_once(OCTOPUS_FUNCTIONS_DIR . 'themes.php');
     require_once(OCTOPUS_FUNCTIONS_DIR . 'compat.php');
 
@@ -79,7 +80,6 @@
                 }
             }
 
-            Octopus::loadClass('Octopus_App');
             Octopus_App::start($options);
         }
 
@@ -93,7 +93,7 @@
     function render_page($path = null) {
 
         $app = Octopus_App::singleton();
-        
+
         if ($app->DEV) {
             // In dev mode, use buffered output and add extra debugging info
             $response = $app->getResponse($path, true);
@@ -117,11 +117,11 @@
 
         dump_r($ex);
 
-    	if (class_exists('Octopus_App') && Octopus_App::isStarted()) {
-    		$app = Octopus_App::singleton();
-    		$response = $app->getCurrentResponse();
-    		if ($response) $response->flush();
-    	}
+        if (class_exists('Octopus_App') && Octopus_App::isStarted()) {
+            $app = Octopus_App::singleton();
+            $response = $app->getCurrentResponse();
+            if ($response) $response->flush();
+        }
 
 
         die();

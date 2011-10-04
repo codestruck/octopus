@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Template_Renderer');
-
 /**
  * Class responsible for locating controllers and rendering views.
  */
@@ -59,7 +57,7 @@ class Octopus_Dispatcher {
 
         if (!is_array($data)) {
             $data = array('data' => $data);
-        } 
+        }
 
         // For e.g. 301 redirects we don't need to bother rendering
         if (!$response->shouldContinueProcessing()) {

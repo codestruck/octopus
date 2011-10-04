@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Element');
-Octopus::loadClass('Octopus_Html_Form_Field');
 
 /**
  * A control for filtering a table's contents.
@@ -208,16 +206,9 @@ abstract class Octopus_Html_Table_Filter {
     }
 }
 
-Octopus::loadClass('Octopus_Html_Table_Filter_Text');
 Octopus_Html_Table_Filter::register('text', 'Octopus_Html_Table_Filter_Text');
-
-Octopus::loadClass('Octopus_Html_Table_Filter_Search');
 Octopus_Html_Table_Filter::register('search', 'Octopus_Html_Table_Filter_Search');
-
-Octopus::loadClass('Octopus_Html_Table_Filter_Select');
 Octopus_Html_Table_Filter::register('select', 'Octopus_Html_Table_Filter_Select');
-
-Octopus::loadClass('Octopus_Html_Table_Filter_Checkbox');
 Octopus_Html_Table_Filter::register('checkbox', 'Octopus_Html_Table_Filter_Checkbox');
 
 ?>

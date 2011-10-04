@@ -1,8 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_DB');
-Octopus::loadClass('Octopus_DB_Helper');
-
 class Octopus_DB_Delete extends Octopus_DB_Helper {
 
     function Octopus_DB_Delete($sql = null, $params = array()) {
