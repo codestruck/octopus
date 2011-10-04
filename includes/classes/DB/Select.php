@@ -16,6 +16,33 @@ class Octopus_DB_Select extends Octopus_DB_Helper {
     }
 
     /**
+     * @return Octopus_DB_Select A DB_Select that you can call getOne() on
+     * to return the number of rows matched by this select.
+     * This is public for testing purposes.
+     */
+    public function createCountSelect() {
+
+    	$s = clone($this);
+
+    	foreach($s->tables as $table => $fields) {
+    		$s->tables[$table] = array();
+    	}
+
+		$s->runFunction('COUNT', '', '*');
+		$s->joinFields = array();
+
+    	return $s;
+    }
+
+    /**
+     * @return The number of rows matched by this select.
+     */
+    public function numRows() {
+    	$s = $this->createCountSelect();
+    	return $s->getOne();
+    }
+
+    /**
      * Set table name, table alias and fields to select
      *
      * @param array|string $table string TABLE_NAME -or- array(TABLE_NAME, TABLE_ALIAS)
@@ -229,12 +256,7 @@ class Octopus_DB_Select extends Octopus_DB_Helper {
         $tableList = array();
         $fieldList = array();
 
-        $multiTable = false;
-
-        if (count($this->tables) > 1 || count($this->joinFields) > 0 || count($this->joins) > 0) {
-            $multiTable = true;
-        }
-
+        $multiTable = (count($this->tables) > 1) || (count($this->joinFields) > 0) || (count($this->joins) > 0);
 
         foreach ($this->tables as $table => $fields) {
 
@@ -244,7 +266,9 @@ class Octopus_DB_Select extends Octopus_DB_Helper {
                 $tableList[] = $table;
             }
 
+
             if (is_array($fields) && count($fields) > 0) {
+
                 foreach ($fields as $field) {
 
                     $fl = '';
@@ -285,6 +309,7 @@ class Octopus_DB_Select extends Octopus_DB_Helper {
 
                     $fieldList[] = $fl;
                 }
+
             } else if (!is_array($fields)) {
                 $fl = '';
 
@@ -300,6 +325,30 @@ class Octopus_DB_Select extends Octopus_DB_Helper {
                 $fieldList[] = $fl;
             }
         }
+
+        // Handle functions not run against any table, e.g. COUNT(*)
+        foreach($this->funcs as $func => $tables) {
+        	foreach($tables as $table => $fields) {
+        		if ($table === '') {
+
+        			if (is_array($fields)) {
+        				$field = $fields[0];
+        				$alias = $fields[1];
+        			} else {
+        				$field = $fields;
+        				$alias = '';
+        			}
+
+        			if ($alias) {
+        				$alias = " AS $alias";
+        			}
+
+        			$fl = strtoupper($func) . "($field){$alias}";
+        			$fieldList[] = $fl;
+        		}
+        	}
+        }
+
 
         foreach ($this->joinFields as $info) {
             list($table, $field) = $info;
