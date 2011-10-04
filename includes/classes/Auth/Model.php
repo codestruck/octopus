@@ -323,7 +323,7 @@ END;
     /**
      * Clears out old records in the user_auth table.
      */
-    private function cleanOutUserAuthTable() {
+    protected function cleanOutUserAuthTable() {
 
         $d = new Octopus_DB_Delete();
         $d->comment('Octopus_Auth_Model::cleanup');
@@ -345,7 +345,7 @@ END;
      * @return String The random hash that identifies this user's record
      * in the user_auth table (if any).
      */
-    private function getAuthHash() {
+    protected function getAuthHash() {
 
     	$h =& self::$authHashes;
     	$realm = $this->getRealm();
@@ -368,7 +368,7 @@ END;
         return null;
     }
 
-    private function setAuthHash($hash, $remember = false) {
+    protected function setAuthHash($hash, $remember = false) {
 
     	if (empty($this->cookieName)) {
     		throw new Octopus_Exception("Cookie name has not been configured on auth class " . get_class($this));
@@ -391,6 +391,11 @@ END;
 
 	        $expire = $remember ? time() + ($this->rememberDays * 24 * 60 * 60) : 0;
 	       	Octopus_Cookie::set($this->cookieName, $hash, $expire, $this->cookiePath, null, $this->cookieSsl);
+
+            // set a cookie to trigger ssl redirect if we set secure only auth cookie
+            if ($this->cookieSsl) {
+                Octopus_Cookie::set('probably_signed_in', '1', $expire, $this->cookiePath, null, false);
+            }
 
 	    } else {
 
@@ -433,7 +438,7 @@ END;
     private function getLogger() {
     	$dir = get_option('LOG_DIR');
     	if (!$dir) $dir = get_option('OCTOPUS_PRIVATE_DIR');
-        $log = new Octopus_Logger_File($dir . 'auth.log');
+        return new Octopus_Logger_File($dir . 'auth.log');
     }
 
     private function getPasswordSalt() {
