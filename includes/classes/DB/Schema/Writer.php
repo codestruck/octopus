@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_DB_Schema_Reader');
-
 class Octopus_DB_Schema_Writer {
 
     function Octopus_DB_Schema_Writer($tableName, $db = null) {
@@ -228,7 +226,7 @@ class Octopus_DB_Schema_Writer {
     function create() {
 
         if ($siteDir = get_option('SITE_DIR')) {
-        
+
             $modificationFile = $siteDir . 'upgrades/' . $this->tableName . '.php';
             $fnc = 'modify_database_upgrade_' . $this->tableName;
 

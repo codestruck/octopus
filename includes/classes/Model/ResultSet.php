@@ -1,9 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Model_Restriction');
-Octopus::loadClass('Octopus_Model_Restriction_Field');
-Octopus::loadClass('Octopus_Model_Restriction_Sql');
-
 /**
  * Class that handles searching for Octopus_Model instances.
  */
@@ -130,8 +126,8 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpa
      * Sends this ResultSet to dump_r without breaking the chain.
      */
     public function dump() {
-    	dump_r($this);
-    	return $this;
+        dump_r($this);
+        return $this;
     }
 
     /**

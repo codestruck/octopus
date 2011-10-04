@@ -1,6 +1,4 @@
 <?php
-Octopus::loadClass('Octopus_Logger_File');
-
 class Octopus_DB_Driver_Pdo {
 
     public $handle = null;

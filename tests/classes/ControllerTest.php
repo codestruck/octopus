@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_App_TestCase');
-
 class ControllerTestController extends Octopus_Controller {
 
     public function do_redirect($url) {

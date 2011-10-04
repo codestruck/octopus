@@ -2,15 +2,6 @@
 
 Octopus::loadExternal('phpass');
 
-Octopus::loadClass('Octopus_Cookie');
-Octopus::loadClass('Octopus_DB_Delete');
-Octopus::loadClass('Octopus_DB_Insert');
-Octopus::loadClass('Octopus_DB_Select');
-Octopus::loadClass('Octopus_DB_Update');
-Octopus::loadClass('Octopus_Mail');
-Octopus::loadClass('Octopus_Settings');
-Octopus::loadClass('Octopus_Model');
-
 abstract class Octopus_Auth_Model extends Octopus_Model {
 
 	/**

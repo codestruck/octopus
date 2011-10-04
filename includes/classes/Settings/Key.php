@@ -38,7 +38,6 @@ class Octopus_Settings_Key {
 
     public function createEditor() {
 
-        Octopus::loadClass('Octopus_Html_Form_Field');
         $field = new Octopus_Html_Form_Field($this->name);
 
         if (isset($this->options['desc'])) {

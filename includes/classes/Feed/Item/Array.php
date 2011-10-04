@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Feed_Item');
-
 class Octopus_Feed_Item_Array implements Octopus_Feed_Item {
 
     private $data;

@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Page');
-
 class PageTest extends Octopus_App_TestCase {
 
     function testSetTitle() {
@@ -308,7 +306,7 @@ END;
                     'attributes' => array(),
                     'section' => '',
                     'weight' => 0,
-                    
+
                 ),
             ),
             $this->unsetIndexes($page->getJavascriptFiles())
@@ -675,7 +673,7 @@ END
     }
 
     function testUseJavascriptAliases() {
-        
+
         $page = new Octopus_Html_Page(array(
             'URL_BASE' => '/subdir/'
         ));
@@ -691,7 +689,7 @@ END
         $page->addJavascript('/script/global.js');
         $page->addJavascript('/script/this_page.js');
         $page->addJavascript('http://jquery.com/jquery.js', -100);
-        
+
 
         $this->assertHtmlEquals(
             <<<END
@@ -705,7 +703,7 @@ END
     }
 
     function testJavascriptAliasesUseBest() {
-        
+
         $page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
 
         $page->addJavascript('/a.js');
@@ -728,7 +726,7 @@ END
     }
 
     function testJavascriptAliasesUseLowestWeight() {
-        
+
         $page = new Octopus_Html_Page();
 
         $page->addJavascript('/a.js');
@@ -749,7 +747,7 @@ END
     }
 
     function testGetJavascriptFilesWithAliases() {
-        
+
         $page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
 
         $page->addJavascript('/a.js');
@@ -769,7 +767,7 @@ END
     }
 
     function testUseCssAliases() {
-        
+
         $page = new Octopus_Html_Page(array(
             'URL_BASE' => '/subdir/'
         ));
@@ -798,7 +796,7 @@ END
     }
 
     function testAddJavascriptToDifferentArea() {
-        
+
         $page = new Octopus_Html_Page();
         $page->addJavascript('/global.js', 'bottom', 100);
 
@@ -828,7 +826,7 @@ END
     }
 
     function testAddJavascriptMagicMethods() {
-        
+
         $page = new Octopus_Html_Page();
         $page->addBottomJavascript('/global.js', 100);
 
@@ -858,7 +856,7 @@ END
     }
 
     function testAddLiteralJavascriptToDifferentArea() {
-        
+
         $page = new Octopus_Html_Page();
         $page->addLiteralJavascript(
             "alert('hello world!');",
@@ -880,7 +878,7 @@ END
     }
 
     function testRenderHead() {
-        
+
         $page = new Octopus_Html_Page();
 
         $page->addJavascript('/global.js');

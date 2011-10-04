@@ -1,8 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_DB_Schema');
-Octopus::loadClass('Octopus_DB_Schema_Writer');
-
 /**
  * @group schema
  * @group DB

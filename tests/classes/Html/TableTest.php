@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Table');
-
 class HtmlTablePerson extends Octopus_Model {
 
     protected $fields = array(

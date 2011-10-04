@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Table_Filter');
-
 /**
  * A filter that is just a text box. Actual filter is done via a callback supplied
  * as an option.

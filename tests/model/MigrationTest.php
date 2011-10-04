@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_DB_Migration_Runner');
-
 class MigrateTestPerson extends Octopus_Model {
 
     protected $fields = array(
@@ -52,11 +50,6 @@ class MigrateTestCategory extends Octopus_Model {
         'name'
     );
 }
-
-Octopus::loadClass('Octopus_DB_Schema');
-Octopus::loadClass('Octopus_DB_Schema_Model');
-Octopus::loadClass('Octopus_DB_Schema_Reader');
-Octopus::loadClass('Octopus_DB_Migration');
 
 /**
  * Tests model's migration abilities

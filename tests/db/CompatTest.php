@@ -1,10 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_DB_Delete');
-Octopus::loadClass('Octopus_DB_Insert');
-Octopus::loadClass('Octopus_DB_Select');
-Octopus::loadClass('Octopus_DB_Update');
-
 /**
  * @group DB
  */
