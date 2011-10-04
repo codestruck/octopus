@@ -414,6 +414,33 @@ END
             $table->toArray()
         );
 
+    }
+
+    function testInitPageFromQueryString() {
+
+        $table = new Octopus_Html_Table('paging');
+        $table->addColumn('name');
+        $table->addColumn('age');
+        $table->setDataSource(HtmlTablePerson::all());
+
+        $_GET['page'] = '2';
+
+        $this->assertEquals(2, $table->getPage());
+
+    }
+
+    function testInitPageFromQueryStringAfterSort() {
+
+        $table = new Octopus_Html_Table('paging');
+        $table->addColumn('name');
+        $table->addColumn('age');
+        $table->setDataSource(HtmlTablePerson::all());
+
+        $table->setDefaultSorting('name');
+
+        $_GET['page'] = '2';
+
+        $this->assertEquals(2, $table->getPage());
 
     }
 
