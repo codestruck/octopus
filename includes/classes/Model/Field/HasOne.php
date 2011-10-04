@@ -112,7 +112,7 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         }
 
         if ($object && !$object->id) {
-            throw new Octopus_Model_Exception("HasOne has an object to save, but it does not have an id.");
+            throw new Octopus_Model_Exception("HasOne {$this->field} has an object to save, but it does not have an id.");
         }
 
         // save id of subobject in this field
