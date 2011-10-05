@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Settings_Key');
-
 /**
  * Class that manages app settings.
  */

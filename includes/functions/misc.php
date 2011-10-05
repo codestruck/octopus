@@ -23,8 +23,13 @@
             return $options[$name];
         } else if (class_exists('Octopus_App') && Octopus_App::isStarted()) {
             $app = Octopus_App::singleton();
-            return $app->getOption($name, $default);
-        } else if (defined($name)) {
+            $val = $app->getOption($name, $default);
+            if ($val) {
+                return $val;
+            }
+        }
+
+        if (defined($name)) {
             return constant($name);
         } else {
             return $default;

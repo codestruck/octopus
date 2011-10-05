@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Minify_Strategy');
-
 /**
  * Minification strategy that combines multiple files into one.
  */

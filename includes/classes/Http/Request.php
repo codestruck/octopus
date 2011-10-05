@@ -6,8 +6,6 @@
  * timeouts
  */
 
-Octopus::loadClass('Http_Request_Sockets');
-Octopus::loadClass('Http_Request_Curl');
 
 function octopus_http_get($url, $args = array()) {
     $http = new Octopus_Http_Request();

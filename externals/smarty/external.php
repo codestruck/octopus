@@ -64,6 +64,7 @@ class Octopus_Smarty extends Octopus_Base {
         $security_policy = new Smarty_Security($this->smarty);
         $security_policy->php_functions = array();
         $security_policy->php_modifiers = array();
+        $security_policy->secure_dir = array(get_option('SITE_DIR') . 'views');
         $this->smarty->enableSecurity($security_policy);
 
         if (DEV) {
@@ -87,6 +88,17 @@ class Octopus_Smarty extends Octopus_Base {
 
         foreach($data as $key => $value) {
             $smartyData->assign($key, $value);
+        }
+
+        // For relative paths, go from /views
+        if ($templateFile[0] !== '/') {
+        	foreach(array('SITE_DIR', 'OCTOPUS_DIR') as $opt) {
+        		$file = get_option($opt) . 'views/' . $templateFile;
+        		if (is_file($file)) {
+        			$templateFile = $file;
+        			break;
+        		}
+        	}
         }
 
         // Look for templates in the same directory the file is in.

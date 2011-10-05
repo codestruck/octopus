@@ -1,15 +1,54 @@
 <?php
 
-Octopus::loadClass('Octopus_DB_Select');
-
 /**
  * @group DB
  */
 class Octopus_DB_Select_Test extends PHPUnit_Framework_TestCase
 {
 
-    function __construct()
-    {
+
+    function testNumRowsOneTable() {
+
+    	$s = new Octopus_DB_Select();
+    	$s->table('test');
+    	$s->where('foo = 1');
+
+    	$this->assertEquals('SELECT COUNT(*) FROM test WHERE foo = 1', $s->createCountSelect()->getSql());
+
+    }
+
+    function testNumRowsInnerJoin() {
+
+    	$s = new Octopus_DB_Select();
+    	$s->table('test');
+    	$s->innerJoin('other_table', 'test_id', array('field1', 'field2'));
+    	$s->where('field1 = 2');
+
+    	$this->assertEquals('SELECT COUNT(*) FROM test INNER JOIN other_table USING (test_id) WHERE field1 = 2', $s->createCountSelect()->getSql());
+
+    }
+
+    function testNumRowsLeftJoin() {
+
+    	$s = new Octopus_DB_Select();
+    	$s->table('test');
+    	$s->leftJoin('other_table', 'test_id', array('field1', 'field2'));
+    	$s->where('field1 = 2');
+
+    	$this->assertEquals('SELECT COUNT(*) FROM test LEFT JOIN other_table USING (test_id) WHERE field1 = 2', $s->createCountSelect()->getSql());
+
+    }
+
+
+    function testNumRowsRightJoin() {
+
+    	$s = new Octopus_DB_Select();
+    	$s->table('test');
+    	$s->rightJoin('other_table', 'test_id', array('field1', 'field2'));
+    	$s->where('field1 = 2');
+
+    	$this->assertEquals('SELECT COUNT(*) FROM test RIGHT JOIN other_table USING (test_id) WHERE field1 = 2', $s->createCountSelect()->getSql());
+
     }
 
     function testGetSql()

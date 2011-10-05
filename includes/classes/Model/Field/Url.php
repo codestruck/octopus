@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Model_Field_String');
-
 class Octopus_Model_Field_Url extends Octopus_Model_Field_String {
 
     public function __construct($field, $modelClass, $options) {

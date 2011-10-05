@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Page');
-
 class PageTest extends Octopus_App_TestCase {
 
     function testSetTitle() {

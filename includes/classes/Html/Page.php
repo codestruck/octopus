@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Element');
-
 class Octopus_Html_Page {
 
     private static $instance = null;

@@ -394,14 +394,14 @@ function __octopus_toggleRaw(niceID, rawID, buttonID) {
 }
 
 function __octopus_debug_collect_at_bottom() {
-    
+
     if (!document.getElementsByClassName) {
         return;
     }
-        
+
     var els = document.getElementsByClassName("octopusDebug");
     var ar = [];
-    
+
     for(var i = 0; i < els.length; i++) {
         ar[i] = els[i];
     }
@@ -422,12 +422,12 @@ function __octopus_debug_collect_at_bottom() {
 }
 
 function __octopus_debug_onload() {
-    
+
     if (document.getElementsByClassName) {
-        
+
         var blocks = document.getElementsByClassName("octopusDebug");
         for(var i = 0; i < blocks.length; i++) {
-        
+
             var block = blocks[i]
             if (block.__octopus_collectLink) {
                 continue;
@@ -758,7 +758,7 @@ $text
 
 END;
 
-    
+
         if (!self::$_renderedCss) {
             $result .= self::$css;
         }
@@ -1147,7 +1147,7 @@ END;
 
             $hex = sprintf('%X', $x);
             $result .= '<span class="octopusDebugHexNumber">&nbsp;&mdash;&nbsp;hex #' . $hex . '</span>';
-            
+
             $octal = sprintf('%o', $x);
             $result .= '<span class="octopusDebugOctalNumber">&nbsp;&mdash;&nbsp;octal ' . $octal;
             if ($x >= 0100111 && $x <= 0100777) {
@@ -1178,10 +1178,10 @@ END;
         $result = '"' . $str . '" - ' . $length;
 
         if (strlen($str) > 1 && $str[0] === '/' && file_exists($str)) {
-            
+
             $isDir = is_dir($str);
             $isLink = is_link($str);
-            
+
             $type = 'file';
             if ($isDir) $type = 'directory';
             if ($isLink) $type .= ' (link)';
@@ -1304,7 +1304,7 @@ END;
     } /* }}} */
 
     private static function getNumberAsFilePermissions($perms) {
-        
+
         if (($perms & 0xC000) == 0xC000) {
             // Socket
             $info = 's';
@@ -1350,7 +1350,7 @@ END;
         $info .= (($perms & 0x0002) ? 'w' : '-');
         $info .= (($perms & 0x0001) ?
                     (($perms & 0x0200) ? 't' : 'x' ) :
-                    (($perms & 0x0200) ? 'T' : '-'));        
+                    (($perms & 0x0200) ? 'T' : '-'));
 
         return $info;
     }
@@ -1472,6 +1472,55 @@ if (!function_exists('dump_r')) {
 
         $d->render();
 
+        // Write a log file for e.g. api calls etc.
+        if (defined('OCTOPUS_PRIVATE_DIR')) {
+
+	        $logFile = OCTOPUS_PRIVATE_DIR . 'dump_r.log';
+
+    		$d = new Octopus_Debug('dump_r');
+        	foreach($args as $arg) {
+            	$d->addVariable($arg);
+	        }
+
+	        if (is_file($logFile)) {
+	        	$size = @filesize($logFile);
+	        	if ($size && $size > (1 * 1024 * 1024) * 5) {
+	        		@unlink($logFile);
+	        	}
+	        } else {
+
+	        	@touch($logFile);
+
+	        	// Make log file writable by both command line and
+	        	// apache phps
+	        	@chmod($logFile, 0666);
+	        }
+
+	        $fp = @fopen($logFile, 'a');
+	        if ($fp) {
+
+		        if (empty($GLOBALS['__OCTOPUS_DUMP_R_CALLED'])) {
+
+		        	$GLOBALS['__OCTOPUS_DUMP_R_CALLED'] = true;
+
+					$now = date('r');
+
+		        	@fwrite(
+			        	$fp,
+			        	<<<END
+
+********************************************************************************
+$now
+
+END
+			        );
+		        }
+
+		        $text = $d->renderText(true);
+		        @fwrite($fp, $text . "\n");
+		        @fclose($fp);
+	        }
+	    }
     }
 
     /**

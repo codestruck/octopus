@@ -61,7 +61,6 @@ class Octopus_Nav_Item {
             $class = 'Octopus_Nav_Item';
         }
 
-        Octopus::loadClass($class);
         return new $class($options);
     }
 

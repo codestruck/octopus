@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Form_Field');
-
 class Octopus_Html_Form extends Octopus_Html_Element {
 
     private $_rules = array();
@@ -461,10 +459,10 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      */
     public function submit(Array $values) {
 
-    	$this->setValues($values);
-    	$this->_submitted = true;
+        $this->setValues($values);
+        $this->_submitted = true;
 
-    	return $this;
+        return $this;
     }
 
     private function setValuesRecursive($el, &$values) {
@@ -495,7 +493,6 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      * Adds a callback rule to this form.
      */
     public function mustPass($callback, $message = null) {
-        Octopus::loadClass('Octopus_Html_Form_Rule_Callback');
         return $this->addRule(new Octopus_Html_Form_Rule_Callback($callback, $message));
     }
 
@@ -876,9 +873,9 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      */
     public function wasSubmitted() {
 
-    	if ($this->_submitted !== null) {
-    		return $this->_submitted;
-    	}
+        if ($this->_submitted !== null) {
+            return $this->_submitted;
+        }
 
         $actualMethod = strtolower(isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'get');
         $thisMethod = strtolower($this->getAttribute('method', 'get'));

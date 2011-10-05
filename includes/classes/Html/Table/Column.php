@@ -1,8 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Element');
-Octopus::loadClass('Octopus_Html_Table_Content');
-
 define('OCTOPUS_SORT_ASC', 'asc');
 define('OCTOPUS_SORT_DESC', 'desc');
 
@@ -75,8 +72,6 @@ class Octopus_Html_Table_Column {
 
     public function addAction($id, $label = null, $url = null, $options = null) {
 
-        Octopus::loadClass('Octopus_Html_Table_Action');
-
         if ($id instanceof Octopus_Html_Table_Content) {
             $action = $id;
         } else {
@@ -102,7 +97,6 @@ class Octopus_Html_Table_Column {
 
     public function addToggle($id, $labels = null, $url = null, $options = null) {
 
-        Octopus::loadClass('Octopus_Html_Table_Toggle');
         $toggle = new Octopus_Html_Table_Toggle($id, $labels, $url, $options);
 
         return $this->addAction($toggle);
@@ -412,7 +406,7 @@ class Octopus_Html_Table_Column {
      */
     protected function applyFunction(&$value, &$row, &$escape) {
 
-    	return Octopus_Html_Table_Content::applyFunction($this->options['function'], $value, $row, $escape, $this);
+        return Octopus_Html_Table_Content::applyFunction($this->options['function'], $value, $row, $escape, $this);
 
     }
 
@@ -443,17 +437,17 @@ class Octopus_Html_Table_Column {
         $title = null;
 
         if (isset($o['label'])) {
-        	$title = $o['label'];
+            $title = $o['label'];
         } else if (isset($o['title'])) {
-        	$title = $o['title'];
+            $title = $o['title'];
         } else if (isset($o['desc'])) {
-        	$title = $o['desc'];
+            $title = $o['desc'];
         } else if (isset($o['name'])) {
-        	$title = $o['name'];
+            $title = $o['name'];
         }
 
         if ($title === null) {
-        	$title = humanize($id);
+            $title = humanize($id);
         }
 
         $o['title'] = $title;

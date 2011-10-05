@@ -1,18 +1,13 @@
 <?php
 
-Octopus::loadClass('Octopus_Logger_File');
-Octopus::loadExternal('htmlmimemail');
-
 define_unless('LOG_EMAILS', false);
 define_unless('SEND_EMAILS', true);
 
-//MH: PHP 4 doesn't know this.
-define_unless('DATE_RFC822', 'D, d M y H:i:s O');
-
-
 class Octopus_Mail {
 
-    function Octopus_Mail() {
+    public function __construct() {
+
+    	Octopus::loadExternal('htmlmimemail');
 
         $this->mailHandler = new htmlMimeMail();
 
@@ -98,9 +93,10 @@ END;
             $output .= "Html Contents:\n\n{$this->html}\n\n";
         }
 
-        $fp = fopen('/tmp/sole_email_test.log', 'a');
-        fwrite($fp, $output);
-        fclose($fp);
+        $dir = get_option('LOG_DIR');
+        if (!$dir) $dir = get_option('OCTOPUS_PRIVATE_DIR');
+        $log = new Octopus_Logger_File($dir . 'emails.log');
+        $log->log($output);
 
     }
 

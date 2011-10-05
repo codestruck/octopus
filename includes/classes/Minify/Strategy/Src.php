@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Minify_Strategy');
-
 /**
  * Minification strategy that uses '_src' at the end of a filename to indicate
  * the unminified version of a file, and returns either the 'src' version or

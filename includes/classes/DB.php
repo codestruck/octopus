@@ -1,15 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_DB_Result');
-Octopus::loadClass('Octopus_DB_Error');
-Octopus::loadClass('Octopus_DB_Exception');
-
-if (class_exists('PDO') && !defined('NO_PDO')) {
-    Octopus::loadClass('Octopus_DB_Driver_Pdo');
-} else {
-    Octopus::loadClass('Octopus_DB_Driver_Mysql');
-}
-
 class Octopus_DB extends Octopus_Base {
 
     public $queryCount = 0;

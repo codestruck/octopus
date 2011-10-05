@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Feed');
-
 class Octopus_Feed_Rss extends Octopus_Feed {
 
     public function render($return = false) {
@@ -57,7 +55,7 @@ END;
         foreach(array('title', 'description', 'content', 'link', 'guid', 'pubDate') as $attr) {
 
             $value = $$attr;
-            
+
             if ($value === null) {
 
                 if ($attr !== 'content') {
@@ -69,7 +67,7 @@ END;
 
             if ($attr === 'description' || $attr === 'title' || $attr === 'content') {
                 $value = "<![CDATA[$value]]>";
-            } 
+            }
 
             if ($attr === 'content') {
                 $attr = 'content:encoded';

@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Model');
-
 class Different extends Octopus_Model {
     protected $table = 'nonstandard';
     protected $fields = array(

@@ -1,15 +1,5 @@
 <?php
 
-
-Octopus::loadClass('Octopus_Model');
-Octopus::loadClass('Octopus_Nav');
-Octopus::loadClass('Octopus_Dispatcher');
-Octopus::loadClass('Octopus_Request');
-Octopus::loadClass('Octopus_Response');
-Octopus::loadClass('Octopus_Controller');
-Octopus::loadClass('Octopus_Controller_Api');
-Octopus::loadClass('Octopus_Settings');
-
 // Shortcut functions
 function app_error($error, $level = E_USER_WARNING) {
     Octopus_App::singleton()->error($error, $level);
@@ -191,11 +181,11 @@ class Octopus_App {
      */
     public function shutdownHandler() {
 
-    	$error = error_get_last();
-    	if ($error && !empty($error['type']) && ($error['type'] & E_ERROR)) {
-    		$resp = $this->getCurrentResponse();
-    		if ($resp) $resp->flush();
-    	}
+        $error = error_get_last();
+        if ($error && !empty($error['type']) && ($error['type'] & E_ERROR)) {
+            $resp = $this->getCurrentResponse();
+            if ($resp) $resp->flush();
+        }
 
     }
 
@@ -215,8 +205,8 @@ class Octopus_App {
         }
 
         if ($level & E_ERROR) {
-        	$resp = $this->getCurrentResponse();
-        	$resp->flush();
+            $resp = $this->getCurrentResponse();
+            $resp->flush();
         }
 
         if ($this->_prevErrorHandler) {
@@ -356,8 +346,6 @@ class Octopus_App {
      */
     public function migrate($version = null) {
 
-        Octopus::loadClass('Octopus_DB_Migration_Runner');
-
         $db = Octopus_DB::singleton();
 
         $runner = new Octopus_DB_Migration_Runner($this->getMigrationDirs());
@@ -373,7 +361,6 @@ class Octopus_App {
      */
     public function haveMigrationsToRun() {
 
-        Octopus::loadClass('Octopus_DB_Migration_Runner');
         $runner = new Octopus_DB_Migration_Runner($this->getMigrationDirs());
 
         return $runner->isUpToDate();
@@ -714,6 +701,12 @@ class Octopus_App {
             self::$_instance = null;
         }
 
+       	$o =& $this->_options;
+
+        Octopus::removeControllerDir($o['OCTOPUS_DIR'] . 'controllers/');
+        Octopus::removeClassDir($o['SITE_DIR'] . 'classes/');
+        Octopus::removeControllerDir($o['SITE_DIR'] . 'controllers/');
+
     }
 
 
@@ -794,6 +787,10 @@ class Octopus_App {
             }
         }
 
+        Octopus::addControllerDir($o['SITE_DIR'] . 'controllers/');
+        Octopus::addControllerDir($o['OCTOPUS_DIR'] . 'controllers/');
+        Octopus::addClassDir($o['SITE_DIR'] . 'classes/', true);
+        // NOTE: OCTOPUS_DIR/includes/classes is added automatically by including includes/classes/Octopus.php
     }
 
     private function _figureOutSecurity() {

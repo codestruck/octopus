@@ -1,8 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Nav_Item');
-Octopus::loadClass('Octopus_Nav_Item_File');
-
 class Octopus_Nav_Item_Directory extends Octopus_Nav_Item {
 
     public static $defaults = array(
