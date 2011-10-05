@@ -93,9 +93,10 @@ END;
             $output .= "Html Contents:\n\n{$this->html}\n\n";
         }
 
-        $fp = fopen('/tmp/sole_email_test.log', 'a');
-        fwrite($fp, $output);
-        fclose($fp);
+        $dir = get_option('LOG_DIR');
+        if (!$dir) $dir = get_option('OCTOPUS_PRIVATE_DIR');
+        $log = new Octopus_Logger_File($dir . 'emails.log');
+        $log->log($output);
 
     }
 

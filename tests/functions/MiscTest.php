@@ -1,5 +1,7 @@
 <?php
 
+define('MISC_TEST_ABCDEFG', '42');
+
     /**
      * @group core
      */
@@ -110,6 +112,11 @@
                     'Failed: ' . $ext
                 );
             }
+        }
+
+        function testGetOptionDefine() {
+            $this->assertEquals('42', get_option('MISC_TEST_ABCDEFG'));
+
         }
 
     }

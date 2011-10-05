@@ -68,10 +68,19 @@
             $oldArgs[$key] = $value;
         }
 
-        $qs = octopus_http_build_query($oldArgs);
+        if ($options && isset($options['html']) && $options['html']) {
+            $qs = octopus_http_build_query($oldArgs, '&amp;');
+        } else {
+            $qs = octopus_http_build_query($oldArgs);
+        }
 
         if ($qs) {
-            $url .= '?' . $qs;
+            // need to append a slash to plain domain
+            if (preg_match('/https?:\/\//', $url) && substr_count($url, '/') < 3) {
+                $url = end_in('/', $url) . '?' . $qs;
+            } else {
+                $url .= '?' . $qs;
+            }
         }
 
         return $url;
