@@ -53,8 +53,6 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
 
     public function __get($var) {
 
-        // TODO: always store primary key in a 'real' var?
-
         if ($var === 'id' || $var === $this->getPrimaryKey())  {
 
             if ($this->_id && !$this->recordStillExists()) {
@@ -459,6 +457,8 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
 
             if (is_numeric($name)) {
                 $name = is_array($options) ? $options['name'] : $options;
+            } else if (is_string($options)) {
+            	$options = array('type' => $options);
             }
 
             $field = Octopus_Model_Field::getField($name, $class, $options);
