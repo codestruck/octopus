@@ -62,9 +62,27 @@ END;
         );
 
         $this->assertEquals(
+            'http://www.google.com/?one=foo',
+            u('http://www.google.com', array('one' => 'foo')),
+            'Add slash with args'
+        );
+
+        $this->assertEquals(
             '/test/foo?color=has%20space',
             u('/test/foo', array('color' => 'has space')),
-            'proper escaping of spaces"'
+            'proper escaping of spaces'
+        );
+
+        $this->assertEquals(
+            '/test/foo?one=foo&two=has%20space',
+            u('/test/foo', array('one' => 'foo', 'two' => 'has space')),
+            'default short ampersands'
+        );
+
+        $this->assertEquals(
+            '/test/foo?one=foo&amp;two=has%20space',
+            u('/test/foo', array('one' => 'foo', 'two' => 'has space'), array('html' => true)),
+            'specify html style expanded ampersands'
         );
 
     }
@@ -99,9 +117,14 @@ END;
 
         foreach(array('/', 'http://') as $prefix) {
 
+            $expect = "{$prefix}whatever?foo=baz&action=search&unchanged=1&q=hinz";
+            if ($prefix != '/') {
+                $expect = "{$prefix}whatever/?foo=baz&action=search&unchanged=1&q=hinz";
+            }
+
             $url = "{$prefix}whatever?foo=bar&action&unchanged=1&q=matt&shoulddisappear=3";
             $this->assertEquals(
-                "{$prefix}whatever?foo=baz&action=search&unchanged=1&q=hinz",
+                $expect,
                 u(
                     $url,
                     array(
