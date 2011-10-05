@@ -988,10 +988,20 @@ END;
 
     /**
      * @return Number The # of records in this ResultSet.
+     * @param $considerLimit Boolean Whether If true, and the resultset has
+     * been limited using limit(), then the result of count() will be at
+     * most the # of records the resultset is limited to.
      */
-    public function count() {
+    public function count($considerLimit = true) {
+
     	$s = $this->buildSelect();
-    	return $s->numRows();
+    	$count = $s->numRows();
+
+    	if ($considerLimit && $this->_maxRecords !== null) {
+    		return min($this->_maxRecords, $count);
+    	}
+
+    	return $count;
     }
 
     // }}}
