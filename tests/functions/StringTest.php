@@ -362,4 +362,97 @@ class StringTests extends PHPUnit_Framework_TestCase
 
     }
 
+    function testLinkify() {
+
+        $text = <<<END
+<a href="http://cnn.com/">CNN</a>
+<a href="http://cnn.com">http://cnn.com/</a>
+http://cnn.com/
+END;
+
+        $result = <<<END
+<a href="http://cnn.com/">CNN</a>
+<a href="http://cnn.com">http://cnn.com/</a>
+<a href="http://cnn.com/">http://cnn.com/</a>
+END;
+
+        $this->assertEquals($result, linkify($text));
+
+        $text = 'http://cnn.com/';
+        $result = '<a href="http://cnn.com/">http://cnn.com/</a>';
+
+        $this->assertEquals($result, linkify($text));
+
+    }
+
+    function testLinkifyHtml() {
+
+        $text = <<<END
+<br> http://cnn.com/
+http://cnn.com/<br>
+
+END;
+
+        $result = <<<END
+<br> <a href="http://cnn.com/">http://cnn.com/</a>
+<a href="http://cnn.com/">http://cnn.com/</a><br>
+
+END;
+
+        $this->assertEquals($result, linkify($text));
+
+    }
+
+    function testLinkifyDot() {
+
+        $text = <<<END
+http://cnn.com/)
+http://cnn.com/.
+http://cnn.com/).
+http://cnn.com/.)
+
+END;
+
+        $result = <<<END
+<a href="http://cnn.com/">http://cnn.com/</a>)
+<a href="http://cnn.com/">http://cnn.com/</a>.
+<a href="http://cnn.com/">http://cnn.com/</a>).
+<a href="http://cnn.com/">http://cnn.com/</a>.)
+
+END;
+
+        $this->assertEquals($result, linkify($text));
+
+    }
+
+    function testAddLinkReferences() {
+
+        $data = array(
+            'one' => 'foo',
+            'two' => 'has spaces',
+        );
+
+        $str = 'one=foo&amp;two=has%20spaces';
+
+        $text = <<<END
+<a href="http://cnn.com/">CNN</a>
+<a href="http://cnn.com">http://cnn.com/</a>
+<a href="http://www.cnn.com/">CNN</a>
+<a href="http://cnn.com/?mike=1">CNN</a>
+<a href="http://msnbc.com">http://cnn.com/tricky</a>
+END;
+
+        $result = <<<END
+<a href="http://cnn.com/?$str">CNN</a>
+<a href="http://cnn.com/?$str">http://cnn.com/</a>
+<a href="http://www.cnn.com/?$str">CNN</a>
+<a href="http://cnn.com/?mike=1&amp;$str">CNN</a>
+<a href="http://msnbc.com">http://cnn.com/tricky</a>
+END;
+
+        $this->assertEquals($result, add_link_references($text, 'cnn.com', $data));
+
+    }
+
+
 }

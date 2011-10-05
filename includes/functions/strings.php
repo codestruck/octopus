@@ -254,7 +254,45 @@
      * Turns URLs in $s into hyperlinks.
      */
     function linkify($s) {
-        // TODO implement
+
+        Octopus::loadExternal('simplehtmldom');
+
+        $s = '<p>' . $s . '</p>';
+        $dom = str_get_html($s);
+        $regex = '/(\s|^)(https?:\/\/[^\s<]+?[^\.])(\.?(\s|$|\)))/ims';
+
+        foreach ($dom->nodes as $el) {
+            // dump_r($el->tag, $el->nodetype);
+
+            if ($el->tag == 'text') {
+                if (count($el->nodes) == 0 && $el->parent->tag != 'a') {
+                    $el->innertext = preg_replace($regex, '$1<a href="$2">$2</a>$3', $el->innertext);
+                }
+            }
+
+        }
+
+        return substr($dom->save(), 3, -4);
+
+    }
+
+    function add_link_references($s, $domain, $data) {
+
+        Octopus::loadExternal('simplehtmldom');
+
+        $s = '<p>' . $s . '</p>';
+        $dom = str_get_html($s);
+
+        foreach ($dom->find('a') as $el) {
+
+            if (preg_match('/https?:\/\/(www.)?' . preg_quote($domain, '/') . '(\/.*|$)/', $el->href)) {
+                $el->href = u($el->href, $data, array('html' => true));
+            }
+
+        }
+
+        return substr($dom->save(), 3, -4);
+
     }
 
     /**
