@@ -613,13 +613,7 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         $result = new StdClass();
         $result->errors = array();
 
-        if (!$this->validateSecurityToken()) {
-
-        	$result->errors[] = 'This form has expired.';
-
-        	// Don't even bother running any other validation rules.
-
-        } else {
+        if ($this->validateSecurityToken()) {
 
 	        foreach($this->children() as $c) {
 	            $this->validateRecursive($c, $values, $result);
@@ -642,8 +636,9 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 	            }
 
 	        }
-
-	    }
+		} else {
+			$result->errors[] = 'This form has expired.';
+		}
 
         $result->success = (count($result->errors) == 0);
 

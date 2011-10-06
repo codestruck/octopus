@@ -87,8 +87,8 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
         $form->add('foo')->mustMatch('/^\d{5}(-\d+)?$/');
 
         $tests = array(
-            '' => true,
-            '     ' => true,
+            '' => false,
+            '     ' => false,
             '98225' => true,
             'hi there' => false
 
@@ -97,6 +97,20 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
         foreach($tests as $input => $expectedResult) {
             $this->runValidationTest($form, $input, $expectedResult);
         }
+
+    }
+
+    function testStopCheckingRulesOnFailure() {
+
+    	$form = new Octopus_Html_Form('shortCircuit');
+    	$form->add('foo')
+    		->required()
+    		->mustMatch('/\d+/');
+
+    	$form->submit(array('foo' => ''));
+    	$form->validate($result);
+    	$this->assertFalse($result->success);
+    	$this->assertEquals(1, count($result->errors));
 
     }
 
