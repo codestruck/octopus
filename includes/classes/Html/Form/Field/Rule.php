@@ -7,11 +7,6 @@ abstract class Octopus_Html_Form_Field_Rule {
 
     public $message;
 
-    /**
-     * Whether or not empty input should be regarded as valid.
-     */
-    public $emptyIsValid = true;
-
     public function __construct($message = null) {
         $this->message = $message;
     }
@@ -38,13 +33,7 @@ abstract class Octopus_Html_Form_Field_Rule {
      * @param $data Array All data posted for the form.
      */
     public function validate($field, $data) {
-
         $input = $this->getInput($field, $data);
-
-        if (trim($input) === '' && $this->emptyIsValid) {
-            return true;
-        }
-
         return $this->doValidation($input, $field, $data);
     }
 
