@@ -330,9 +330,14 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
 
             $v = $r->validate($this, $data);
 
-            if ($v === true) {
+            // true or non-zero = pass
+            if ($v === true || is_numeric($v) && $v != 0) {
                 continue;
-            } else if ($v === false) {
+        	}
+
+        	$errorCount++;
+
+        	if ($v === false || $v === 0) {
                 $result->errors[] = $r->getMessage($this, $data);
             } else if (is_string($v)) {
                 $result->errors[] = $v;
@@ -340,7 +345,8 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
                 $result->errors += $v;
             }
 
-            $errorCount++;
+            break;
+
         }
 
         $result->success = !$errorCount;
