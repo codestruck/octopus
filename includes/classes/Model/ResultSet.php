@@ -273,8 +273,16 @@ END;
      * @param $sql String The SQL to inject into the WHERE clause
      * @param $params Array Any paramters referenced by $sql
      */
-    private function whereSql($sql, $params = array()) {
+    public function whereSql($sql, $params = array()) {
+
+    	if (!is_array($params)) {
+    		$args = func_get_args();
+    		array_shift($args);
+    		$params = $args;
+    	}
+
         $result = $this->where(array($sql => $params));
+
         return $result;
     }
 
