@@ -609,6 +609,10 @@ END;
 
         foreach($criteria as $arg) {
 
+        	if ($arg instanceof Octopus_Model) {
+        		$arg = array('id' => $arg->id);
+        	}
+
             if ($arg instanceof Octopus_Model_ResultSet) {
                 $result = $this->createChild($arg->_criteria, null, $conjunction);
                 $lastFieldName = null;
