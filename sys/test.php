@@ -18,15 +18,15 @@ END;
     array_shift($argv); // remove script name
     $what = strtolower(array_shift($argv));
 
-    $extraArgs = implode(' ', $argv);
-
     $testSys = ($what === 'sys' || $what === 'all');
     $testSite = ($what === 'site' || $what === 'all');
 
     if (!($testSys || $testSite)) {
-        echo $usage;
-        exit(1);
+        $testSite = true;
+        array_unshift($argv, $what);
     }
+
+	$extraArgs = implode(' ', $argv);
 
     $phpUnit = trim(`which phpunit`);
     if (!$phpUnit) {

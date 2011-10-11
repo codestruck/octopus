@@ -12,8 +12,7 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
      */
     private static $_formats = array(
         'email' => array(
-            'function' => 'is_email',
-            'emptyIsValid' => true
+            'function' => array('Octopus_Html_Form_Field', 'validateEmail'),
         )
     );
 
@@ -182,9 +181,9 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
         if (is_array($entry)) {
 
             if (isset($entry['function'])) {
-                return $this->mustPass($entry['function'], $message, isset($entry['emptyIsValid']) ? $entry['emptyIsValid'] : null);
+                return $this->mustPass($entry['function'], $message);
             } else if (isset($entry['pattern'])) {
-                return $this->mustMatch($entry['pattern'], $message, isset($entry['emptyIsValid']) ? $entry['emptyIsValid'] : null);
+                return $this->mustMatch($entry['pattern'], $message);
             }
 
         } else if (is_string($entry)) {
@@ -205,23 +204,13 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
      * @param $patternOrFieldName String Either a regular expression OR the
      * name of another field on this form that this field's value must match.
      * @param $message String Error message to show if validation fails.
-     * @param $emptyIsValid bool Whether or not an empty field value counts as
-     * valid. Defaults to TRUE.
      */
-    public function mustMatch($patternOrFieldName, $message = null, $emptyIsValid = null) {
-
-        if (is_bool($message) && $emptyIsValid === null) {
-            $emptyIsValid = $message;
-            $message = null;
-        }
+    public function mustMatch($patternOrFieldName, $message = null) {
 
         if (parse_regex($patternOrFieldName)) {
             $rule = new Octopus_Html_Form_Field_Rule_Regex($patternOrFieldName, $message);
-            $rule->emptyIsValid = ($emptyIsValid === null ? true : $emptyIsValid);
         } else {
             $rule = new Octopus_Html_Form_Field_Rule_MatchField($patternOrFieldName, $message);
-            $rule->emptyIsValid = ($emptyIsValid === null ? false : $emptyIsValid);
-
         }
 
         return $this->addRule($rule);
@@ -230,9 +219,8 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
     /**
      * Adds a callback rule to this field.
      */
-    public function mustPass($callback, $message = null, $emptyIsValid = null) {
+    public function mustPass($callback, $message = null) {
         $rule = new Octopus_Html_Form_Field_Rule_Callback($callback, $message);
-        if ($emptyIsValid !== null) $rule->emptyIsValid = $emptyIsValid;
         return $this->addRule($rule);
     }
 
@@ -342,9 +330,14 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
 
             $v = $r->validate($this, $data);
 
-            if ($v === true) {
+            // true or non-zero = pass
+            if ($v === true || is_numeric($v) && $v != 0) {
                 continue;
-            } else if ($v === false) {
+        	}
+
+        	$errorCount++;
+
+        	if ($v === false || $v === 0) {
                 $result->errors[] = $r->getMessage($this, $data);
             } else if (is_string($v)) {
                 $result->errors[] = $v;
@@ -352,7 +345,8 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
                 $result->errors += $v;
             }
 
-            $errorCount++;
+            break;
+
         }
 
         $result->success = !$errorCount;
@@ -492,6 +486,15 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
         } else {
             return new $class($type, $name, $label, $attributes);
         }
+    }
+
+    /**
+     * Helper function used for mustBe('email');
+     */
+    public static function validateEmail($input) {
+    	$input = trim($input);
+    	if (!$input) return true;
+    	return is_email($input);
     }
 
 }

@@ -429,4 +429,13 @@
         return $ip;
     }
 
-?>
+    function octopus_http_get($url, $args = array()) {
+        $http = new Octopus_Http_Request();
+        return $http->request($url, null, $args);
+    }
+
+    function octopus_http_post($url, $data, $args = array()) {
+        $args['method'] = 'POST';
+        $http = new Octopus_Http_Request();
+        return $http->request($url, $data, $args);
+    }
