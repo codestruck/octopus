@@ -18,6 +18,7 @@ class Octopus_Mail {
         $this->text = '';
         $this->html = '';
 
+        $this->files = array();
     }
 
     function to($to) {
@@ -46,6 +47,12 @@ class Octopus_Mail {
 
     function html($html) {
         $this->html = $html;
+    }
+
+    function attach($file) {
+        if (is_file($file)) {
+            $this->files[] = $file;
+        }
     }
 
     function send() {
@@ -93,6 +100,10 @@ END;
             $output .= "Html Contents:\n\n{$this->html}\n\n";
         }
 
+        foreach ($this->files as $file) {
+            $output .= "Attached File: " . basename($file) . "\n";
+        }
+
         $dir = get_option('LOG_DIR');
         if (!$dir) $dir = get_option('OCTOPUS_PRIVATE_DIR');
         $log = new Octopus_Logger_File($dir . 'emails.log');
@@ -129,6 +140,10 @@ END;
         $this->mailHandler->setFrom($this->from);
         $this->mailHandler->setSubject($this->subject);
         $this->mailHandler->setHeader('Date', date(DATE_RFC822));
+
+        foreach ($this->files as $file) {
+            $this->mailHandler->addAttachment($file);
+        }
 
         $send_type = 'mail';
 
