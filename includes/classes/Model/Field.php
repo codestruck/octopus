@@ -154,18 +154,6 @@ abstract class Octopus_Model_Field {
         }
     }
 
-    public function validate($model) {
-
-        if ($this->getOption('required')) {
-            $value = $this->accessValue($model);
-            if (!$value) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     protected function escape($model, $value) {
 
         $func = $this->getOption('escape', true);

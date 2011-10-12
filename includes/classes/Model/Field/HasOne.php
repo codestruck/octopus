@@ -88,24 +88,10 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
 
         }
 
-        if ($value && !$value->validate()) {
-            return false;
-        }
+        if ($value && $this->shouldCascadeSave()) {
 
-        if ($value) {
-
-            if ($this->shouldCascadeSave()) {
-
-                if (!$value->save()) {
-                    return false;
-                }
-
-            } else {
-
-                if (!$value->validate()) {
-                    return false;
-                }
-
+            if (!$value->save()) {
+                return false;
             }
 
         }
@@ -116,17 +102,6 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
 
         $sqlQuery->set($col, $value ? $value->id : '');
     }
-
-
-    public function validate($model) {
-        $obj = $this->accessValue($model);
-        if ($this->getOption('required')) {
-            return $obj && $obj->validate();
-        } else {
-            return true;
-        }
-    }
-
 
     public function migrate($schema, $table) {
         $col = to_id($this->getFieldName());

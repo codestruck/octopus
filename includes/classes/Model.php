@@ -31,7 +31,6 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
     private $_exists = null;
     private $dataLoaded = false;
 
-    private $errors = array();
     private $touchedFields = array();
 
     public $escaped = false;
@@ -227,11 +226,6 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
             return true;
         }
 
-        if (!$this->validate()) {
-            //errors?
-            return false;
-        }
-
         if ($this->_id === null) {
             $fields = $this->getFields();
         } else {
@@ -323,39 +317,6 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
     // THIS IS A DIRTY HACK AND SHOULD BE KILLED
     public function hasProperty($p) {
         return isset($this->data[$p]);
-    }
-
-    public function validate() {
-
-        $pass = true;
-        $this->errors = array();
-
-        if ($this->_id !== null) {
-
-            $fields = array();
-            foreach($this->touchedFields as $name => $unused) {
-                $field = $this->getField($name);
-                if (!$field) continue;
-                $fields[] = $field;
-            }
-
-        } else {
-            $fields = $this->getFields();
-        }
-
-        foreach ($fields as $field) {
-            if (!$field->validate($this)) {
-                $this->errors[] = array('field' => $field->getFieldname(), 'message' => 'is required');
-                $pass = false;
-            }
-        }
-
-        return $pass;
-
-    }
-
-    public function getErrors() {
-        return $this->errors;
     }
 
     public function getDisplayField() {
