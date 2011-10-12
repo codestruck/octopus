@@ -605,7 +605,17 @@ END;
         $result = get_class($this);
         foreach($this->toArray() as $key => $value) {
             try {
-                if ($value instanceof Dumpable) {
+
+            	if ($value instanceof Octopus_Model) {
+            		$class = get_class($value);
+            		$value = "{$value} ($class, id = {$value->id})";
+            	} else if ($value instanceof Octopus_Model_ResultSet) {
+            		$count = count($value);
+            		$params = array();
+            		$sql = $value->getSql($params);
+            		$sql = normalize_sql($sql, $params);
+            		$value = "ResultSet (count = $count, sql = $sql)";
+	            } else if ($value instanceof Dumpable) {
                   $value = $value->__dumpText();
                 }
                 $result .= <<<END
