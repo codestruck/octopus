@@ -98,6 +98,18 @@ abstract class Octopus_Model_Field {
 
     }
 
+    /**
+     * Loads data into this field from a DB row. For certain field types,
+     * setValue($model, $row[$field->getFieldname()]) will not necessarily work.
+     * (e.g. HasOne)
+     */
+    public function loadValue(Octopus_Model $model, $row) {
+    	$name = $this->getFieldName();
+    	if (isset($row[$name])) {
+    		$this->setValue($model, $row[$name]);
+    	}
+    }
+
     public function getFieldName() {
         return $this->field;
     }

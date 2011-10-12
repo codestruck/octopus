@@ -27,6 +27,10 @@ class Octopus_Model_Field_HasMany extends Octopus_Model_Field {
         return $resultSet;
     }
 
+    public function loadValue(Octopus_Model $model, $row) {
+    	// NOOP
+    }
+
     public function migrate($schema, $table) {
 
         // TODO: should hasMany require a hasOne on the other class? Or can we
@@ -70,10 +74,27 @@ class Octopus_Model_Field_HasMany extends Octopus_Model_Field {
         $filtering = $this->getOption('filter', false);
         if ($filtering) {
             $obj->item_type = $key;
-            $key = 'item_id';
-        }
 
-        $obj->$key = $value;
+            // TODO: let filter specify the field on the other end
+
+	        foreach($obj->getFields() as $field) {
+
+	        	if (!$field instanceof Octopus_Model_Field_HasOne) {
+	        		continue;
+	        	}
+
+	        	if (!$field->getOption('filter', false)) {
+	        		continue;
+	        	}
+
+	        	$field->setValue($obj, $value);
+	        	break;
+	        }
+
+       	} else {
+       		$obj->$key = $value;
+       	}
+
         $obj->save();
 
     }

@@ -75,14 +75,11 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
             if ($field) {
                 $item = $field->accessValue($this);
                 return ($item) ? $item->id : null;
-            } else {
-                return null;
             }
 
-        } else {
-            throw new Octopus_Model_Exception('Cannot access field ' . $var . ' on Model ' . $this->getClassName());
         }
 
+        throw new Octopus_Model_Exception('Cannot access field ' . $var . ' on Model ' . $this->getClassName());
     }
 
     public function __set($var, $value) {
@@ -173,6 +170,12 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         return $this->_exists;
     }
 
+    public function getData() { return $this->data; }
+
+    public function getTouchedFields() {
+    	return $this->touchedFields;
+    }
+
     public function setInternalValue($field, $value, $makesDirty = true) {
         if ($makesDirty) $this->touchedFields[$field] = true;
         $this->data[$field] = $value;
@@ -190,35 +193,28 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         return !empty($this->touchedFields[$fieldName]);
     }
 
+
+    public function setData($data) {
+
+        foreach($this->getFields() as $field) {
+	        $field->loadValue($this, $data);
+	    }
+
+    }
+
     protected function _setData($data) {
-        $fields = $this->getFields();
+
         $pk = $this->getPrimaryKey();
-
-        foreach ($data as $key => $value) {
-
-            // on relations when item_id comes out of the db row, we need to allow that
-            $short = preg_replace('/_id$/', '', $key);
-
-            if (isset($fields[$key]) || $key == $pk || isset($fields[$short])) {
-                $this->$key = $value;
-            }
-
-            if (isset($fields[$key])) {
-                $this->touchedFields[$key] = true;
-            }
+        if (isset($data[$pk])) {
+        	$this->id = $data[$pk];
         }
+        unset($data[$pk]);
+
+        $this->setData($data);
 
         $this->dataLoaded = true;
     }
 
-    public function setData($data) {
-        $fields = $this->getFields();
-        foreach ($data as $key => $value) {
-            if (isset($fields[$key])) {
-                $this->$key = $value;
-            }
-        }
-    }
 
     public function save() {
 
@@ -339,7 +335,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
             $fields = array();
             foreach($this->touchedFields as $name => $unused) {
                 $field = $this->getField($name);
-                if (!$field) throw new Octopus_Model_Exception("Invalid field: " . $name);
+                if (!$field) continue;
                 $fields[] = $field;
             }
 
