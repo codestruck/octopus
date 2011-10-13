@@ -327,8 +327,13 @@
      */
     function pluralize($x) {
 
-        if (preg_match('/s$/i', $x)) {
-            return $x;
+        if (preg_match('/([aeiou])?(s)?s$/i', $x, $m)) {
+
+            if (!empty($m[1]) && !empty($m[2])) {
+            	return $x . 'es';
+            } else {
+            	return $x;
+            }
         }
 
         $x = preg_replace('/([^aeiou])y$/i', '$1ies', $x, 1, $count);
