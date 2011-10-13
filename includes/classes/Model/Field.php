@@ -42,10 +42,6 @@ abstract class Octopus_Model_Field {
 
     public static function getField($name, $modelClass, $options) {
 
-    	if (is_string($options)) {
-    		dump_r($options);
-    	}
-
         if (isset(self::$magicFieldDefaults[$name])) {
             $options = array_merge(self::$magicFieldDefaults[$name], $options);
         }
