@@ -50,6 +50,26 @@ class HasOneTest extends Octopus_App_TestCase {
 
 	}
 
+	function testUnsetLazyLoadedHasOne() {
+
+		$category = new HasOneCategory();
+		$category->name = __METHOD__;
+		$category->save();
+
+		$person = new HasOnePerson();
+		$person->category = $category;
+		$person->save();
+
+		$person = new HasOnePerson($person->id);
+		$person->category = null;
+
+		$this->assertSame(null, $person->category);
+
+		$person->save();
+		$this->assertSame(null, $person->category);
+
+	}
+
 	function testHasOneNullByDefault() {
 
 		$person = new HasOnePerson();
