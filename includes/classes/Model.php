@@ -132,6 +132,42 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
 
     }
 
+    /**
+     * Compares this instance against something else for equality.
+     *
+     *	@return
+     *	True if:
+     *		* $other is numeric, nonzero, and == to this instance's id,
+     *		* $other is an instance of the same class with a nonzero id equal
+     *		  to this instance's id.
+     */
+    public function eq($other) {
+
+    	if ($other === $this) {
+    		return true;
+    	}
+
+    	// Note that without an id, only reference equality works
+
+    	if (!$other || !$this->id) {
+    		return false;
+    	}
+
+    	if (is_numeric($other)) {
+    		return $this->id == $other;
+    	}
+
+    	if (is_object($other)) {
+
+    		$class = get_class($this);
+    		$otherClass = get_class($other);
+
+    		return $class === $otherClass && $other->id == $this->id;
+    	}
+
+    	return false;
+    }
+
     public function exists() {
         return ($this->_id !== null);
     }
