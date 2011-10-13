@@ -26,8 +26,13 @@ abstract class Octopus_Model_Field {
     private static $fieldTypeAliases = array(
         'text' => 'string',
         'bool' => 'boolean',
-        'number' => 'numeric'
+        'number' => 'numeric',
     );
+
+    private static $helperFieldTypes = array(
+    	'money' => array('type' => 'numeric', 'decimal_places' => 2),
+        'currency' => array('type' => 'numeric', 'decimal_places' => 2)
+	);
 
     public function __construct($field, $modelClass, $options) {
         $this->field = $field;
@@ -37,10 +42,9 @@ abstract class Octopus_Model_Field {
 
     public static function getField($name, $modelClass, $options) {
 
-        if (is_string($options)) {
-            $field = $options;
-            $options = array();
-        }
+    	if (is_string($options)) {
+    		dump_r($options);
+    	}
 
         if (isset(self::$magicFieldDefaults[$name])) {
             $options = array_merge(self::$magicFieldDefaults[$name], $options);
@@ -49,7 +53,13 @@ abstract class Octopus_Model_Field {
         $type = isset($options['type']) ? $options['type'] : 'string';
 
         if (isset(self::$fieldTypeAliases[$type])) {
-            $type = self::$fieldTypeAliases[$type];
+        	$type = self::$fieldTypeAliases[$type];
+        }
+
+        if (isset(self::$helperFieldTypes[$type])) {
+        	$help = self::$helperFieldTypes[$type];
+        	if (isset($help['type'])) $type = $help['type'];
+        	$options = array_merge($help, $options);
         }
 
         $class = 'Octopus_Model_Field_' . camel_case($type, true);

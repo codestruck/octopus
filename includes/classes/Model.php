@@ -414,6 +414,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
 
             if (is_numeric($name)) {
                 $name = is_array($options) ? $options['name'] : $options;
+                $options = array();
             } else if (is_string($options)) {
             	$options = array('type' => $options);
             }
