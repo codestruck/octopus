@@ -32,6 +32,7 @@ class ModelOneToManyTest extends Octopus_DB_TestCase
         $this->assertEquals($nailsBefore + 1, $nailsAfter);
     }
 
+    /*
     function testInValidNail()
     {
         $nailsBefore = table_count('nails');
@@ -47,6 +48,7 @@ class ModelOneToManyTest extends Octopus_DB_TestCase
         $this->assertEquals($nailsBefore, $nailsAfter);
         $this->assertEquals($hammersBefore, $hammersAfter);
     }
+    */
 
     function testSetNailId()
     {

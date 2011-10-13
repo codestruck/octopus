@@ -257,7 +257,8 @@ class StringTests extends PHPUnit_Framework_TestCase
             'categories' => 'categories',
             'boy' => 'boys',
             'way' => 'ways',
-            'fox' => 'foxes'
+            'fox' => 'foxes',
+            'class' => 'classes'
 
          );
 

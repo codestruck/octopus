@@ -273,8 +273,16 @@ END;
      * @param $sql String The SQL to inject into the WHERE clause
      * @param $params Array Any paramters referenced by $sql
      */
-    private function whereSql($sql, $params = array()) {
+    public function whereSql($sql, $params = array()) {
+
+    	if (!is_array($params)) {
+    		$args = func_get_args();
+    		array_shift($args);
+    		$params = $args;
+    	}
+
         $result = $this->where(array($sql => $params));
+
         return $result;
     }
 
@@ -600,6 +608,10 @@ END;
         $lastFieldName = null;
 
         foreach($criteria as $arg) {
+
+        	if ($arg instanceof Octopus_Model) {
+        		$arg = array('id' => $arg->id);
+        	}
 
             if ($arg instanceof Octopus_Model_ResultSet) {
                 $result = $this->createChild($arg->_criteria, null, $conjunction);
@@ -988,10 +1000,20 @@ END;
 
     /**
      * @return Number The # of records in this ResultSet.
+     * @param $considerLimit Boolean Whether If true, and the resultset has
+     * been limited using limit(), then the result of count() will be at
+     * most the # of records the resultset is limited to.
      */
-    public function count() {
+    public function count($considerLimit = true) {
+
     	$s = $this->buildSelect();
-    	return $s->numRows();
+    	$count = $s->numRows();
+
+    	if ($considerLimit && $this->_maxRecords !== null) {
+    		return min($this->_maxRecords, $count);
+    	}
+
+    	return $count;
     }
 
     // }}}

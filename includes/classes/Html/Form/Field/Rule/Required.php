@@ -16,10 +16,8 @@ class Octopus_Html_Form_Field_Rule_Required extends Octopus_Html_Form_Field_Rule
         }
     }
 
-    // NOTE: since whether doValidation is called depends on the value of the
-    // $emptyIsValid instance variable, required doesn't use it.
     protected function doValidation($input, $field, $data) {
-        throw new Octopus_Exception("Not used.");
+        return strlen(trim($input)) > 0;
     }
 
     protected function getDefaultMessage($field, $data) {
