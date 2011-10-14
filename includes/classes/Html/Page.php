@@ -52,8 +52,8 @@ class Octopus_Html_Page {
     protected $meta = array();
     protected $links = array();
 
-    private $scriptAliaser = null;
-    public $cssAliaser = null;
+    private $javascriptAliaser = null;
+    private $cssAliaser = null;
     private $minifiers = array();
 
     protected $fullTitle = null;
@@ -127,13 +127,44 @@ class Octopus_Html_Page {
     	return $this->addMinifier('css', $type);
     }
 
+    /**
+     * Clears any existing javascript minfiers and adds the given one.
+     */
+    public function setJavascriptMinifier($type) {
+    	return $this->setMinfier('javascript', $type);
+    }
+
+    public function setCssMinifier($type) {
+    	return $this->setMinfier('css', $type);
+    }
+
+    private function setMinfier($fileType, $type) {
+
+    	$this->minifiers[$fileType] = array();
+    	$this->addMinifier($fileType, $type);
+
+    	$aliaserVar = $fileType . 'Aliaser';
+    	if ($this->$aliaserVar) {
+    		$this->minifiers[$fileType][] = $this->$aliaserVar;
+    	}
+
+    	return $this;
+    }
+
     private function addMinifier($fileType, $type) {
 
     	$minifier = null;
 
     	if (is_string($type)) {
-    		Octopus::loadClass($type);
+
+    		if (class_exists($type)) {
+    			$minifier = new $type();
+    		} else {
+    			$type = 'Octopus_Minify_Strategy_' . camel_case($type, true);
+    		}
+
     		$minifier = new $type();
+
     	} else {
     		$minifier = $type;
     	}
@@ -610,15 +641,15 @@ class Octopus_Html_Page {
      */
     public function addJavascriptAlias($files, $alias) {
 
-    	if (!$this->scriptAliaser) {
+    	if (!$this->javascriptAliaser) {
     		Octopus::loadClass('Octopus_Minify_Strategy_Alias');
-    		$this->scriptAliaser = new Octopus_Minify_Strategy_Alias();
-    		$this->addJavascriptMinifier($this->scriptAliaser);
+    		$this->javascriptAliaser = new Octopus_Minify_Strategy_Alias();
+    		$this->addJavascriptMinifier($this->javascriptAliaser);
     	}
 
     	$files = array_map(array($this, 'getPhysicalPathAllowMissing'), $files);
 
-    	$this->scriptAliaser->addAlias($files, $alias);
+    	$this->javascriptAliaser->addAlias($files, $alias);
 
         return $this;
     }

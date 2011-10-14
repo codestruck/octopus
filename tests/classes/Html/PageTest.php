@@ -929,4 +929,92 @@ END
         );
     }
 
+    function testCombineJavascript() {
+
+    	$page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
+
+    	$siteDir = $this->getSiteDir();
+    	$scriptDir = $siteDir . 'script/';
+    	mkdir($scriptDir);
+
+    	file_put_contents(
+    		"{$scriptDir}a.js",
+    		<<<END
+/* contents of file a */
+END
+	    );
+
+	    file_put_contents(
+	    	"{$scriptDir}b.js",
+	    	<<<END
+/* contents of file b */
+END
+		);
+
+    	$page->addJavascript('/script/a.js');
+    	$page->addJavascript('/script/b.js');
+    	$page->setJavascriptMinifier('combine');
+
+    	$js = $page->getJavascriptFiles();
+    	$this->assertEquals(1, count($js));
+    	$js = array_shift($js);
+    	$file = $this->getRootDir() . preg_replace('#^/subdir/#i', '', $js['file']);
+
+    	$this->assertEquals(
+	    	<<<END
+/* contents of file a */
+
+/* contents of file b */
+END
+			,
+			file_get_contents($file)
+		);
+
+    	file_put_contents(
+    		"{$scriptDir}a.js",
+    		<<<END
+/* contents of file a UPDATED!!!! */
+END
+	    );
+
+    	$js = $page->getJavascriptFiles();
+    	$this->assertEquals(1, count($js));
+    	$js = array_shift($js);
+    	$file = $this->getRootDir() . preg_replace('#^/subdir/#i', '', $js['file']);
+
+    	$this->assertEquals(
+	    	<<<END
+/* contents of file a UPDATED!!!! */
+
+/* contents of file b */
+END
+			,
+			file_get_contents($file)
+		);
+
+    	file_put_contents(
+    		"{$scriptDir}b.js",
+    		<<<END
+/* contents of file b UPDATED!!!! */
+END
+	    );
+
+    	$js = $page->getJavascriptFiles();
+    	$this->assertEquals(1, count($js));
+    	$js = array_shift($js);
+    	$file = $this->getRootDir() . preg_replace('#^/subdir/#i', '', $js['file']);
+
+    	$this->assertEquals(
+	    	<<<END
+/* contents of file a UPDATED!!!! */
+
+/* contents of file b UPDATED!!!! */
+END
+			,
+			file_get_contents($file)
+		);
+
+
+    }
+
 }
