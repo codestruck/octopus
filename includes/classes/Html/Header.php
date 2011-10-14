@@ -10,7 +10,7 @@ class Octopus_Html_Header extends Octopus_Html_Page {
 	public function __construct($options = array()) {
 		parent::__construct($options);
 		$this->addJavascriptMinifier('src');
-		$this->cssMinifier('src');
+		$this->addCssMinifier('src');
 	}
 
     public static function singleton() {

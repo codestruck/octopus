@@ -131,7 +131,7 @@ class Octopus_Html_Page {
     /**
      * @param $type Mixed Either a minifier instance or a class name.
      */
-    public function addCssMinfier($type) {
+    public function addCssMinifier($type) {
     	return $this->addMinifier('css', $type);
     }
 
@@ -818,7 +818,7 @@ class Octopus_Html_Page {
         // /whatever/core/sites/site, so stripping ROOT_DIR off SITE_DIR
         // fails.
         if (defined('SG_VERSION')) {
-            $root = preg_replace('#/core/$', '/', $root, -1, $count);
+            $root = preg_replace('#/core/$#', '/', $root, -1, $count);
             if ($count > 0 && starts_with($file, $root, false, $remainder)) {
                 return $this->options['URL_BASE'] . $remainder;
             }
@@ -948,6 +948,12 @@ class Octopus_Html_Page {
 
         $index = self::counter();
 
+
+        if (!preg_match('#^(https?)?://#i', $file)) {
+            $file = $this->getPhysicalPathAllowMissing($file);
+        }
+
+
         $info = compact('file', 'attributes', 'weight', 'index');
         if ($ie) $info['ie'] = $ie;
 
@@ -1014,9 +1020,7 @@ class Octopus_Html_Page {
         $css = $this->minify('css', $css);
 
         foreach($css as &$item) {
-        	if (isset($item['file'])) {
-	        	$item['file'] = $this->u($item['file']);
-	        }
+        	$item['file'] = $this->getUrlForFile($item['file']);
         }
 
 

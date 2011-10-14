@@ -9,7 +9,7 @@ class Octopus_Minify_Strategy_Src extends Octopus_Minify_Strategy {
 
 
 	public function minify($files, $options = array()) {
-		
+
 		$result = array();
 
 		foreach($files as $file) {
@@ -29,7 +29,7 @@ class Octopus_Minify_Strategy_Src extends Octopus_Minify_Strategy {
 	}
 
 	private function getMinifiedFile($file) {
-		
+
 		$info = pathinfo($file);
 		$info['filename'] = preg_replace('/_src$/i', '', $info['filename']);
 		$info['extension'] = empty($info['extension']) ? '' : '.' . $info['extension'];
@@ -41,7 +41,7 @@ class Octopus_Minify_Strategy_Src extends Octopus_Minify_Strategy {
 		$srcExists = is_file($src);
 
 		if ($fileExists && $srcExists) {
-			
+
 			$fileTime = filemtime($file);
 			$srcTime = filemtime($src);
 
