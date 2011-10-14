@@ -17,8 +17,8 @@ class Octopus_Html_Page {
          * Minifiers to use.
          */
         'minify' => array(
-            'javascript' => array('Octopus_Minify_Strategy_Src'),
-            'css' => array('Octopus_Minify_Strategy_Src')
+            'javascript' => array(),
+            'css' => array()
         ),
 
         /**
@@ -111,6 +111,14 @@ class Octopus_Html_Page {
 
     private static function counter() {
         return self::$counter++;
+    }
+
+    public function combineJavascript() {
+    	return $this->addMinifier('javascript', 'Octopus_Minify_Strategy_Combine');
+    }
+
+    public function combineCss() {
+    	return $this->addMinifier('css', 'Octopus_Minify_Strategy_Combine');
     }
 
     /**

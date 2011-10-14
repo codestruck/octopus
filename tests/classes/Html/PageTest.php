@@ -929,6 +929,9 @@ END
         );
     }
 
+    /**
+     * @group slow
+     */
     function testCombineJavascript() {
 
     	$page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
@@ -970,6 +973,8 @@ END
 			file_get_contents($file)
 		);
 
+		sleep(2);
+
     	file_put_contents(
     		"{$scriptDir}a.js",
     		<<<END
@@ -991,6 +996,8 @@ END
 			,
 			file_get_contents($file)
 		);
+
+		sleep(2);
 
     	file_put_contents(
     		"{$scriptDir}b.js",
@@ -1014,6 +1021,60 @@ END
 			file_get_contents($file)
 		);
 
+
+    }
+
+    /**
+     * @group slow
+     */
+    function testCombineJavascriptRegenerateOnDemand() {
+
+    	$page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
+
+    	$siteDir = $this->getSiteDir();
+    	$scriptDir = $siteDir . 'script/';
+    	mkdir($scriptDir);
+
+    	file_put_contents(
+    		"{$scriptDir}a.js",
+    		<<<END
+/* contents of file a */
+END
+	    );
+
+	    file_put_contents(
+	    	"{$scriptDir}b.js",
+	    	<<<END
+/* contents of file b */
+END
+		);
+
+    	$page->addJavascript('/script/a.js');
+    	$page->addJavascript('/script/b.js');
+    	$page->setJavascriptMinifier('combine');
+
+    	$js = $page->getJavascriptFiles();
+    	$this->assertEquals(1, count($js));
+    	$js = array_shift($js);
+    	$file = $this->getRootDir() . preg_replace('#^/subdir/#i', '', $js['file']);
+    	$mtime = filemtime($file);
+
+    	sleep(2);
+
+    	$page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
+
+    	$siteDir = $this->getSiteDir();
+    	$scriptDir = $siteDir . 'script/';
+
+    	$page->addJavascript('/script/a.js');
+    	$page->addJavascript('/script/b.js');
+    	$page->setJavascriptMinifier('combine');
+
+    	$js = $page->getJavascriptFiles();
+    	$this->assertEquals(1, count($js));
+    	$js = array_shift($js);
+    	$file = $this->getRootDir() . preg_replace('#^/subdir/#i', '', $js['file']);
+    	$this->assertEquals($mtime, filemtime($file));
 
     }
 

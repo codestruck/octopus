@@ -1,187 +1,62 @@
 <?php
 
-class Octopus_Html_Header extends Octopus_Base {
+/**
+ *
+ */
+class Octopus_Html_Header extends Octopus_Html_Page {
 
-    function Octopus_Html_Header() {
-        $this->js = array();
-        $this->css = array();
-        $this->trackModified = true;
-        $this->baseDir = '';
-        $this->URL_BASE = URL_BASE;
-    }
+	private static $instance = null;
 
-    public static function &singleton() {
-        return Octopus_Base::base_singleton('Octopus_Html_Header');
+	public function __construct($options = array()) {
+		parent::__construct($options);
+		$this->addJavascriptMinifier('src');
+		$this->cssMinifier('src');
+	}
+
+    public static function singleton() {
+
+    	if (!self::$instance) {
+    		self::$instance = new Octopus_Html_Header();
+    	}
+
+        return self::$instance;
     }
 
     /**
-     *
+     * @deprecated
      * @return string CSS and JS HTML headers
      */
-    function getHeader() {
+    public function getHeader() {
 
         $output = "\n";
-        $output .= $this->getCssHeader();
-        $output .= $this->getJavascriptHeader();
+        $output .= $this->renderCss(true);
+        $output .= $this->renderJavascript(true);
         return $output;
 
     }
 
     /**
-     * Add Javascript include
-     *
-     * @param string $file name of javascript file
-     * @return void
+     * @deprecated
      */
-    function addJavascript($file, $attributes = array()) {
-        $this->js[$file] = $attributes;
-    }
-
-    function getJavascriptHeader() {
-
-        $headers = '';
-
-        foreach ($this->js as $file => $attributes) {
-
-            $headers .= '<script type="text/javascript" src="' . $this->getFileModifiedLink($file) . '"' . $this->buildAttributeString($attributes) . '></script>';
-            $headers .= "\n";
-
-        }
-
-        return $headers;
-
+    public function getJavascriptHeader() {
+    	return $this->renderJavascript(true);
     }
 
     /**
-     * Add CSS include
-     *
-     * @param string $file name of css file
-     * @return void
+     * @deprecated
      */
-    function addCss($file, $attributes = array()) {
-        $this->css[$file] = $attributes;
+    public function getCssHeader() {
+    	return $this->renderCss(true);
     }
 
-    function getCssHeader() {
-
-        $headers = '';
-
-        foreach ($this->css as $file => $attributes) {
-
-            $headers .= '<link rel="stylesheet" type="text/css" href="' . $this->getFileModifiedLink($file) . '"' . $this->buildAttributeString($attributes) . ' />';
-            $headers .= "\n";
-
-        }
-
-        return $headers;
-
-    }
-
-    function getFileModified($file) {
-
-        if ($this->URL_BASE != '/') {
-            $file = preg_replace('|^' . $this->URL_BASE . '|', '/', $file);
-        }
-
-        $pos = strpos($file, '?');
-        if ($pos) {
-            $file = substr($file, 0, $pos);
-        }
-
-        $fullfile = ROOT_DIR . $file;
-
-        if ($this->baseDir) {
-            $basefullfile = ROOT_DIR . $this->baseDir . '/' . $file;
-            if (is_file($basefullfile)) {
-                $fullfile = $basefullfile;
-            }
-        }
-
-        $mtime = filemtime($fullfile);
-
-        return $mtime;
-    }
-
-    function getFileSrc($file) {
-
-        $rawFile = $file;
-
-        // get relative base file path ?
-        if ($this->URL_BASE != '/') {
-            $rawFile = preg_replace('|^' . $this->URL_BASE . '|', '/', $file);
-        }
-
-        $lastDot = strrpos($rawFile, '.');
-        $src = substr($rawFile, 0, $lastDot) . '_src' . substr($rawFile, $lastDot);
-
-        $fullSrc = ROOT_DIR . $src;
-
-        if ($this->baseDir && $rawFile[0] != '/') {
-            $fullSrc = ROOT_DIR . $this->baseDir . '/' . $src;
-        }
-
-        if (is_file($fullSrc)) {
-            $lastDot = strrpos($file, '.');
-            $src = substr($file, 0, $lastDot) . '_src' . substr($file, $lastDot);
-
-            return $src;
-        }
-
-        return $file;
-
-    }
-
-    function getFileModifiedLink($file) {
-
-        // allow remote urls to be used
-        if (substr($file, 0, 4) == 'http') {
-            return $file;
-        }
-
-        if ($this->trackModified) {
-
-            $srcFile = $this->getFileSrc($file);
-            $srcMtime = $this->getFileModified($srcFile);
-            $mtime = $this->getFileModified($file);
-
-            if ($srcMtime > $mtime) {
-                $file = $srcFile;
-                $mtime = $srcMtime;
-            }
-
-            $end = '';
-
-            $pos = strpos($file, '?');
-            if ($pos) {
-                $file = $file . '&amp;' . $mtime;
-            } else {
-                $file = $file . '?' . $mtime;
-            }
-
-        }
-
-        return u($file);
-    }
-
-    function buildAttributeString($attrs) {
-
-        $attributes = '';
-
-        foreach ($attrs as $attr => $value) {
-            $attributes .= " $attr=\"$value\"";
-        }
-
-        return $attributes;
-
-    }
 
     function useTinyMce() {
-        $this->addJavascript('scripts/tiny_mce/tiny_mce.js');
-        $this->addJavascript('scripts/tinyMceInit.js');
+        $this->addJavascript('/scripts/tiny_mce/tiny_mce.js');
+        $this->addJavascript('/scripts/tinyMceInit.js');
     }
 
     function useManageTable() {
-        $this->addJavascript(URL_BASE . 'admin/scripts/ajaxToggles.js');
+        $this->addJavascript('/admin/scripts/ajaxToggles.js');
     }
 
     function useTabs() {

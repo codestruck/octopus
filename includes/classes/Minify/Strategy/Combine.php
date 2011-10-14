@@ -4,16 +4,18 @@
  * Minification strategy that combines multiple files into one.
  */
 class Octopus_Minify_Strategy_Combine extends Octopus_Minify_Strategy {
-	
+
 	public function minify($files, $options = array()) {
-		
+
 		$result = array();
 		$handledFiles = array();
-		
+
 		$deleteHash = '';
 		$uniqueHash = '';
 
 		$extension = '';
+
+		clearstatcache();
 
 		foreach($files as $file) {
 
@@ -37,9 +39,10 @@ class Octopus_Minify_Strategy_Combine extends Octopus_Minify_Strategy {
 
 		// see if there is a cache file available
 		$uniqueHash = md5($uniqueHash);
+		$deleteHash = md5($deleteHash);
 
-		$cacheFile = $this->getCacheFile($uniqueHash, $deleteHash, $extension, $options);
-		
+		$cacheFile = $this->getCacheFile('combine', $uniqueHash, $deleteHash, $extension, $options);
+
 		if (!$cacheFile) {
 
 			$content = '';
@@ -47,14 +50,16 @@ class Octopus_Minify_Strategy_Combine extends Octopus_Minify_Strategy {
 				$content .= ($content ? "\n\n" : '') . file_get_contents($f);
 			}
 
-			$deleteHash = md5($deleteHash);
-
-			$cacheFile = $this->saveCacheFile($uniqueHash, $deleteHash, $extension, $content);
+			$cacheFile = $this->saveCacheFile('combine', $uniqueHash, $deleteHash, $extension, $content);
 		}
 
-		return array(
-			$cacheFile => $handledFiles
-		);
+		if ($cacheFile) {
+			return array(
+				$cacheFile => $handledFiles
+			);
+		} else {
+			return array();
+		}
 	}
 
 }

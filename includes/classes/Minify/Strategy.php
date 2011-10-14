@@ -6,7 +6,7 @@
 abstract class Octopus_Minify_Strategy {
 
 	/**
-	 * @param $files Mixed 
+	 * @param $files Mixed
 	 *		Either:
 	 *			An array of *absolute physical file paths* (e.g., /var/www/whatever.js) or
 	 *          full http urls (http://jquery.com/jquery.js)
@@ -21,9 +21,9 @@ abstract class Octopus_Minify_Strategy {
 	abstract public function minify($files, $options = array());
 
 	protected function getCacheDir($options = array()) {
-		
+
 		$dir = get_option('OCTOPUS_CACHE_DIR', null, $options);
-		
+
 		if (!$dir) {
 			throw new Octopus_Exception('OCTOPUS_CACHE_DIR not set.');
 		}
@@ -31,10 +31,13 @@ abstract class Octopus_Minify_Strategy {
 		return rtrim($dir, '/') . '/';
 	}
 
-	protected function getCacheFile($uniqueHash, $deleteHash, $extension, $options = array()) {
-		
+	protected function getCacheFile($function, $uniqueHash, $deleteHash, $extension, $options = array()) {
+
 		$cacheDir = $this->getCacheDir($options);
+		if ($function) $cacheDir .= rtrim($function, '/') . '/';
+
 		$file = $cacheDir . $deleteHash . '-' . $uniqueHash . $extension;
+		//dump_r("EXISTS? $file", is_file($file));
 
 		return is_file($file) ? $file : false;
 	}
@@ -54,18 +57,21 @@ abstract class Octopus_Minify_Strategy {
 	 * @param $options Array helper options.
 	 * @return String Physical path to the file.
 	 */
-	protected function saveCacheFile($uniqueHash, $deleteHash, $extension, $content, $options = array()) {
-		
-		$cacheDir = get_option('OCTOPUS_CACHE_DIR', null, $options) . 'combine/';
+	protected function saveCacheFile($function, $uniqueHash, $deleteHash, $extension, $content, $options = array()) {
 
-		@mkdir($cacheDir);
+		$cacheDir = get_option('OCTOPUS_CACHE_DIR', null, $options);
+		if ($function) $cacheDir .= rtrim($function, '/') . '/';
+
+		if (!is_dir($cacheDir)) {
+			mkdir($cacheDir);
+		}
 
 		if ($deleteHash) {
 
 			// Remove old cache files for this content
 			$oldFilesGlob = $cacheDir . $deleteHash . '-*' . $extension;
 			$oldFiles = glob($oldFilesGlob);
-			
+
 			if ($oldFiles) {
 				foreach($oldFiles as $f) {
 					unlink($f);
@@ -76,8 +82,9 @@ abstract class Octopus_Minify_Strategy {
 		$cacheFile = $cacheDir . $deleteHash . '-' . $uniqueHash . $extension;
 
 		file_put_contents($cacheFile, $content);
+		//dump_r("WRITE: $cacheFile");
 
-		return $cacheFile;
+		return is_file($cacheFile) ? $cacheFile : false;
 	}
 }
 
