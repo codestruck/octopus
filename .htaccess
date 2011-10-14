@@ -1,4 +1,6 @@
 Options -Indexes FollowSymLinks
+FileETag None
+AddDefaultCharset UTF-8
 
 <IfModule mod_rewrite.c>
 
