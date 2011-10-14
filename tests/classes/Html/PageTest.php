@@ -110,7 +110,7 @@ END
 
             $page->addCss($toAdd);
             $soFar[] = array(
-                'url' => $expected,
+                'file' => $expected,
                 'attributes' => array('media' => 'all'),
                 'weight' => 0
             );
@@ -134,7 +134,7 @@ END;
         $page->addCss('foo.css', 'screen');
         $this->assertEquals(
             array(
-                'url' => 'foo.css',
+                'file' => 'foo.css',
                 'attributes' => array('media' => 'screen'),
                 'weight' => 0
             ),
@@ -145,7 +145,7 @@ END;
         $page->addCss('foo.css', array('media' => 'screen'));
         $this->assertEquals(
             array(
-                'url' => 'foo.css',
+                'file' => 'foo.css',
                 'attributes' => array('media' => 'screen'),
                 'weight' => 0
             ),
@@ -810,7 +810,7 @@ END
 
         $this->assertHtmlEquals(
             <<<END
-<link href="/subdir/base_and_styles.css" rel="stylesheet" type="text/css" />
+<link href="/subdir/base_and_styles.css" rel="stylesheet" type="text/css" media="all" />
 <link href="/subdir/something_else.css" rel="stylesheet" type="text/css" media="all" />
 END
             ,

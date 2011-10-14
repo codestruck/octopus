@@ -53,7 +53,7 @@ class Octopus_Html_Page {
     protected $links = array();
 
     private $scriptAliaser = null;
-    private $cssAliaser = null;
+    public $cssAliaser = null;
     private $minifiers = array();
 
     protected $fullTitle = null;
@@ -865,14 +865,14 @@ class Octopus_Html_Page {
 
     /**
      * Add a CSS file.
-     * @param $url String The file to add. URL_BASE gets prepended
+     * @param $file String The file to add. URL_BASE gets prepended
      * automatically.
      * @param $options Mixed Options for this file <b>or</b> the media
      * type (e.g. 'screen') <b>or</b> a weight (higher weight = included
      * first).
      *
      */
-    public function addCss($url, $weight = null, $attributes = array()) {
+    public function addCss($file, $weight = null, $attributes = array()) {
 
         if (is_string($attributes)) {
             $attributes = array('media' => $attributes);
@@ -907,13 +907,12 @@ class Octopus_Html_Page {
             $weight = 0;
         }
 
-        $url = $this->u($url);
         $index = self::counter();
 
-        $info = compact('url', 'attributes', 'weight', 'index');
+        $info = compact('file', 'attributes', 'weight', 'index');
         if ($ie) $info['ie'] = $ie;
 
-        $this->css[$url] = $info;
+        $this->css[$file] = $info;
 
         return $this;
     }
@@ -961,10 +960,9 @@ class Octopus_Html_Page {
     /**
      * Removes a CSS file.
      */
-    public function removeCss($url) {
+    public function removeCss($file) {
 
-        $url = $this->u($url);
-        unset($this->css[$url]);
+        unset($this->css[$file]);
 
         return $this;
     }
@@ -976,15 +974,20 @@ class Octopus_Html_Page {
 
         $css = $this->minify('css', $css);
 
+        foreach($css as &$item) {
+        	if (isset($item['file'])) {
+	        	$item['file'] = $this->u($item['file']);
+	        }
+        }
+
+
         return $css;
     }
 
-    public function getCssFile($url) {
+    public function getCssFile($file) {
 
-        $url = $this->u($url);
-
-        if (isset($this->css[$url])) {
-            $file = $this->css[$url];
+        if (isset($this->css[$file])) {
+            $file = $this->css[$file];
             unset($file['index']);
             return $file;
         }
@@ -1012,7 +1015,7 @@ class Octopus_Html_Page {
                 $el->text($info['content']);
             } else {
                 $el = new Octopus_Html_Element('link');
-                $el->href = $info['url'];
+                $el->href = $info['file'];
                 $el->type = "text/css";
                 $el->rel = "stylesheet";
             }
@@ -1414,8 +1417,6 @@ END;
 
             if (!empty($item['file'])) {
                 $itemsByUrl[$item['file']] = $item;
-            } else if (!empty($item['url'])) {
-                $itemsByUrl[$item['url']] = $item;
             } else {
                 $noUrlItems[] = $item;
             }

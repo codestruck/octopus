@@ -1,10 +1,41 @@
 <?php
 
-/**
- * @group slow
- */
 class MinifyTest extends Octopus_App_TestCase {
 
+	function testAliasStrategyLocalFiles() {
+
+		$s = new Octopus_Minify_Strategy_Alias();
+
+		$s->addAlias(array('/a.js', '/b.js'), '/ab.js');
+
+		$minified = $s->minify(array('/a.js', '/b.js', '/c.js'));
+
+		$this->assertEquals(
+			array('/ab.js' => array('/a.js', '/b.js')),
+			$minified
+		);
+
+	}
+
+	function testAliasRemoteFiles() {
+
+		$s = new Octopus_Minify_Strategy_Alias();
+		$s->addAlias(array('http://a.com/script.js', 'http://b.com/script.js'), '/ab.js');
+
+		$minified = $s->minify(array('http://a.com/script.js', '/whatever.js', 'http://b.com/script.js'));
+
+		$this->assertEquals(
+			array(
+				'/ab.js' => array('http://a.com/script.js', 'http://b.com/script.js')
+			),
+			$minified
+		);
+
+	}
+
+	/**
+	 * @group slow
+	 */
     function testSrcStrategy() {
 
         $app = $this->getApp();
@@ -59,6 +90,9 @@ class MinifyTest extends Octopus_App_TestCase {
 
     }
 
+    /**
+     * @group slow
+     */
     function testCombineStrategy() {
 
         $app = $this->getApp();
