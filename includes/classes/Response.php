@@ -230,7 +230,7 @@ class Octopus_Response {
      * @throws Octopus_Exception if response is not buffered.
      */
     public function replaceContent($search, $replace) {
-        
+
         if (!$this->_buffer) {
             throw new Octopus_Exception("Octopus_Response::replaceContent can't be called on unbuffered responses");
         }
@@ -286,6 +286,20 @@ class Octopus_Response {
         $result .= $this->getContent();
 
         return $result;
+    }
+
+    /**
+     * @return A reference to the current response, if any is in progress.
+     */
+    public static function current() {
+
+    	if (!Octopus_App::isStarted()) {
+    		return null;
+    	}
+
+    	$app = Octopus_App::singleton();
+    	return $app->getCurrentResponse();
+
     }
 
 }

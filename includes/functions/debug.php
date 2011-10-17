@@ -1535,8 +1535,15 @@ END
      * @param mixed Any values you want displayed.
      */
     function dump_x() {
+
         $args = func_get_args();
         call_user_func_array('dump_r', $args);
+
+        if (class_exists('Octopus_Response')) {
+        	$resp = Octopus_Response::current();
+        	if ($resp) $resp->flush();
+        }
+
         exit();
     }
 
