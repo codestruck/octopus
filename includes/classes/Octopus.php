@@ -228,27 +228,25 @@ class Octopus {
         }
         self::$externals[$name] = true;
 
-        $dir = '';
+        // First, look in site dir
+        foreach(array('SITE_DIR', 'OCTOPUS_DIR') as $key) {
 
-        if (class_exists('Octopus_App') && Octopus_App::isStarted()) {
-            $dir = Octopus_App::singleton()->getOption('OCTOPUS_EXTERNALS_DIR');
-        } else if (defined('OCTOPUS_EXTERNALS_DIR')) {
-            $dir = OCTOPUS_EXTERNALS_DIR;
+        	$dir = get_option($key);
+        	if (!$dir || !is_dir($dir)) {
+        		continue;
+        	}
+
+        	$externalsDir = $dir . "externals/{$name}/";
+        	$file = $externalsDir . 'external.php';
+
+        	if (is_file($file)) {
+        		self::loadExternalFile($name, $file, $version);
+        		return true;
+        	}
+
         }
 
-        $EXTERNAL_DIR = "{$dir}{$name}/";
-
-        $file = "{$EXTERNAL_DIR}external.php";
-        if (!is_file($file)) {
-            $file = ROOT_DIR . 'site/externals/' . $name . '/external.php';
-        }
-
-        require_once($file);
-
-        $func = "external_{$name}";
-        if (function_exists($func)) {
-            $func($version);
-        }
+    	throw new Octopus_Exception("External not found: $name");
     }
 
     /**
@@ -256,8 +254,23 @@ class Octopus {
      */
     public static function loadModel() {}
 
-    private static function requireOnce($file) {
+    private static function requireOnce($file, $vars = array()) {
+        extract($vars);
         require_once($file);
+    }
+
+    private static function loadExternalFile($name, $file, $version) {
+
+		self::requireOnce($file, array('EXTERNAL_DIR' => dirname($file) . '/'));
+		self::callExternalFunction($name, $version);
+
+    }
+
+    private static function callExternalFunction($external, $version) {
+    	$func = 'external_' . $external;
+    	if (function_exists($func)) {
+    		$func($version);
+    	}
     }
 }
 
