@@ -543,8 +543,12 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
 
     private static function internalGet($className, $idOrName, $orderBy = null) {
 
-        if ($idOrName === null) {
+        if ($idOrName === null || $idOrName === false) {
             return false;
+        }
+
+        if (is_string($idOrName) && trim($idOrName) === '') {
+        	return false;
         }
 
         if (is_object($idOrName) && get_class($idOrName) === $className) {
