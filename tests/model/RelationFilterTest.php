@@ -5,13 +5,13 @@ db_error_reporting(DB_PRINT_ERRORS);
 class Comment extends Octopus_Model {
     protected $fields = array(
         'content',
-        'item_type',
-        'item_id' => array(
-            'type' => 'numeric',
-        ),
         'parent' => array(
             'type' => 'hasOne',
             'filter' => true
+        ),
+        'item_type',
+        'item_id' => array(
+            'type' => 'numeric',
         ),
     );
 }

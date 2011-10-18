@@ -7,7 +7,12 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
 
     public function accessValue($model, $saving = false) {
 
-        $fieldName = $this->getFieldName();
+        if ($this->getOption('filter', false)) {
+            $fieldName = 'item_id';
+        } else {
+            $fieldName = $this->getFieldName();
+        }
+
         $value = $model->getInternalValue($fieldName);
 
         if (!$value) {
@@ -34,6 +39,10 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
 
     	$name = $this->getFieldName();
     	$col = $this->getColumn();
+
+        if ($this->getOption('filter', false)) {
+            return;
+        }
 
     	if (isset($row[$col])) {
     		$this->setValue($model, $row[$col]);
