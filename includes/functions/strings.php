@@ -537,12 +537,8 @@
      */
     function wildcardify($s, $wrap = '%') {
 
-        // Escape backslashes
-        $s = str_replace('\\', '\\\\', $s);
-
         // Escape wildcard chars
-        $s = str_replace('%', '\\%', $s);
-        $s = str_replace('_', '\\_', $s);
+        $s = escape_wildcards($s);
 
         $starCount = $questionCount = 0;
 
@@ -556,6 +552,14 @@
         return $s;
     }
 
-    // TODO: function escape_wildcards()
+    function escape_wildcards($s) {
+
+    	$s = str_replace('\\', '\\\\', $s);
+        $s = str_replace('%', '\\%', $s);
+        $s = str_replace('_', '\\_', $s);
+
+        return $s;
+
+    }
 
 ?>
