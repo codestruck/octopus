@@ -16,7 +16,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpa
     private $_criteria;
     private $_orderBy;
     private $_select;
-    private $query;
+    protected $query;
 
     private $_currentQuery = null;
     private $_current = null;
@@ -352,6 +352,12 @@ END;
         }
 
         return $sql;
+    }
+
+    public function getNormalizedSql() {
+    	$params = array();
+    	$sql = $this->getSql($params);
+    	return normalize_sql($sql, $params);
     }
 
     /**
@@ -796,9 +802,10 @@ END;
     }
 
     /**
-     * Runs the backing query and
+     * Executes the SQL query backing this ResultSet.
+     * @return Octopus_DB_Result
      */
-    private function &query($new = false) {
+    protected function &query($new = false) {
 
         if ($this->query && !$new) {
             return $this->query;
