@@ -1,13 +1,17 @@
 <?php
 
-Octopus::loadClass('Octopus_DataSource');
-
 /**
- * Class for helping with paged data.
+ * Helper for paginating data. Wraps another Octopus_DataSource and serves
+ * as a limited view of it. Also handles rendering pagination links.
  */
-class Octopus_Paginate {
+class Octopus_Paginate implements Octopus_DataSource {
 
-    public static defaults = array(
+    public static $defaults = array(
+
+    	/**
+    	 * URL of the current page. If null, REQUEST_URI is used.
+    	 */
+    	'currentUrl' => null,
 
         /**
          * QueryString arg used to specify the page.
@@ -19,19 +23,23 @@ class Octopus_Paginate {
          */
         'perPage' => 10,
 
+        /**
+         * View to use to render a pager
+         */
+        'view' => null,
+
     );
 
-    private $dataSource;
+    private $dataSource = null;
+    private $limitedDataSource = null;
     private $options;
     private $page = 0;
 
     public function __construct($dataSource, $options = array()) {
 
         if (is_array($dataSource)) {
-            Octopus::loadClass('Octopus_DataSource_Array');
             $dataSource = new Octopus_DataSource_Array($dataSource);
         } else if (is_string($dataSource)) {
-            Octopus::loadClass('Octopus_DataSource_Sql')
             $dataSource = new Octopus_DataSource_Sql($dataSource);
         }
 
@@ -39,8 +47,8 @@ class Octopus_Paginate {
             throw new Octopus_Exception('Data sources must implement Octopus_DataSource');
         }
 
-        $this->dataSource = $dataSource; 
-        $this->options = array_merge(self::$defaults, $options);       
+        $this->dataSource = $dataSource;
+        $this->options = array_merge(self::$defaults, $options);
 
         foreach(array('page', 'currentPage') as $key) {
             if (isset($this->options[$key])) {
@@ -51,14 +59,22 @@ class Octopus_Paginate {
         }
     }
 
+    public function count() {
+    	return $this->dataSource->count();
+    }
+
     /**
      * @return Number The # of pages.
      */
     public function getPageCount() {
-        
+
         $count = count($this->dataSource);
         return ceil($count / $this->options['perPage']);
 
+    }
+
+    public function getCurrentPage() {
+    	throw new Octopus_Exception("Not implemented: " . __METHOD__);
     }
 
     /**
@@ -66,51 +82,6 @@ class Octopus_Paginate {
      */
     public function getPageNumbers() {
         return range(1, $this->getPageCount());
-    }
-
-    /**
-     * @param $page Number Page to get items for (one-based).
-     * @return Iterable Items to display on the given page.
-     */
-    public function getItemsForPage($page = null) {
-        
-        if ($page === null) {
-            $page = $this->page;
-        }
-
-        $from = ($page - 1) * $this->options['perPage'] + 1;
-        $to = min(($page) * $this->options['perPage'], $total);
-
-
-    }
-
-    public function getModelData() {
-
-        $data = $this->dataSource;
-
-        $total = $this->dataSource->count();
-        $page = $this->options['currentPage'];
-        $pages = ceil($total / $this->options['perPage']);
-        $page_numbers = ($pages > 1) ? range(1, $pages) : array(1);
-
-        // sort
-        foreach ($this->columns as $col) {
-            $data = $col->sortResultSet($data);
-        }
-
-        // then limit
-        $data = $data->limit(($from - 1), $this->options['perPage']);
-
-        return array(
-            'currentPage' => $page,
-            'totalItems' => $total,
-            'from' => $from,
-            'to' => $to,
-            'totalPages' => $pages,
-            'page_numbers' => $page_numbers,
-            'data' => $data,
-        );
-
     }
 
     /**
@@ -133,6 +104,13 @@ class Octopus_Paginate {
         $args[$arg] = $page;
 
         return substr($currentUrl, $qPos) . '?' . http_build_query($args);
+    }
+
+    /**
+     * @return Number the number of items being paged (disregarding any limits).
+     */
+    public function getTotalItemCount() {
+    	return count($this);
     }
 
     /**
@@ -197,6 +175,23 @@ class Octopus_Paginate {
 
         return $html;
     }
+
+    /**
+     * Renders a pagination control.
+     */
+    public function render($return = false) {
+
+    	$html = $this->makeLinks();
+
+  		if ($return) {
+  			return $html;
+  		} else {
+  			echo $html;
+  			return $this;
+  		}
+
+    }
+
 
 }
 

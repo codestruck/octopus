@@ -7,7 +7,7 @@ Octopus::loadClass('Octopus_DataSource');
  * @TODO TEST!
  */
 class Octopus_DataSource_Sql implements Octopus_DataSource {
-	
+
 	private $sql;
 	private $db;
 	private $sorting = array();
@@ -30,11 +30,11 @@ class Octopus_DataSource_Sql implements Octopus_DataSource {
 		$result->filters[] = array($field, $value);
 	}
 
-	public function getItems($start = 0; $count = 0) {
-		
+	public function getItems($start = 0, $count = 0) {
+
 		$sql = $this->sql;
 		$params = array();
-		
+
 		// TODO: handle pre-existing WHERE clauses
 
 		$needWhere = true;
@@ -75,7 +75,7 @@ class Octopus_DataSource_Sql implements Octopus_DataSource {
 		} else if (strcasecmp($asc, 'desc') === 0) {
 			$asc = false;
 		}
-	
+
 		$newSorting = array($field => $asc);
 		foreach($this->sorting as $field => $asc) {
 			if (!isset($newSorting($field))) {

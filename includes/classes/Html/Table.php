@@ -145,7 +145,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
     private $_dataSource = null;
     private $_originalDataSource = null;
-    private $_pagerData = null;
+    private $_pager = null;
     private $_currentPage = 1;
 
     private $_shouldInitFromEnvironment = true;
@@ -369,7 +369,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     public function getPageCount() {
-        return $this->getPagerData('pages');
+        $p = $this->getPager();
+        return $p->getPageCount();
     }
 
     public function setPage($page) {
@@ -572,7 +573,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      * @return Number The total # of records.
      */
     public function count() {
-        return $this->getPagerData('totalItems');
+    	$p = $this->getPager();
+    	return $p->getTotalItemCount();
     }
 
     public function isSorted() {
@@ -584,9 +586,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      * @return Mixed The data being shown in the table.
      */
     public function &getData() {
-        $pd = $this->getPagerData();
-        $data =& $pd['data'];
-        return $data;
+        return $this->getPager();
     }
 
     public function &getDataSource() {
@@ -705,62 +705,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
     }
 
-    /**
-     * @return Array Full pager data for this table.
-     */
-    private function getPagerData($key = null) {
-
-        $this->initFromEnvironment();
-
-        if ($this->_pagerData) {
-
-            if ($this->_pagerData['currentPage'] !== $this->getPage()) {
-                $this->_pagerData = null;
-            }
-
-        }
-
-
-        if (!$this->_pagerData) {
-
-            $ds = ($this->_dataSource ? $this->_dataSource : array());
-
-            $options = array_merge($this->_pagerOptions, array('currentPage' => $this->_currentPage));
-
-            $pager = new Octopus_Html_Table_Paginate($ds, $options, $this->_sortColumns);
-            $this->_pagerData = $pager->getData();
-
-            $this->rememberState();
-        }
-
-        if ($key === null) {
-            return $this->_pagerData;
-        }
-
-        $keys = explode('.', $key);
-        $v = $this->_pagerData;
-        while($key = array_shift($keys)) {
-            $v = $v[$key];
-        }
-        return $v;
-    }
-
     private function debugging() {
         return !empty($this->_options['debug']);
-    }
-
-    /**
-     * Returns HTML for a div describing the current position in the table.
-     */
-    protected function renderLocationDiv() {
-
-        $p = $this->getPagerData();
-
-        return <<<END
-            <div class="pagerLoc">
-            Showing {$p['from']} to {$p['to']} of {$p['totalItems']}
-            </div>
-END;
     }
 
     /**
@@ -1108,6 +1054,15 @@ END;
         $this->setPage($page);
     }
 
+    protected function getPager() {
+
+    	if ($this->_pager) {
+    		return $this->_pager;
+    	}
+
+    	return $this->_pager = new Octopus_Paginate();
+    }
+
     /**
      * Hook to tweak a row before it is loaded up with junk.
      */
@@ -1169,10 +1124,9 @@ END;
 
     protected function renderBody(&$array = null) {
 
-        $rows = $this->getData();
-        $pagerData = $this->getPagerData();
+        $pager = $this->getPager();
 
-        if ($pagerData['totalItems'] == 0) {
+        if (!count($pager)) {
             $td = new Octopus_Html_Element('td', array('class' => 'emptyNotice'));
             $td->html($this->_options['emptyContent']);
             return '<tbody class="emptyNotice"><tr>' . $td . '</tr></tbody>';
@@ -1186,7 +1140,7 @@ END;
         $td = new Octopus_Html_Element('td');
 
         $rowIndex = 1;
-        foreach($rows as $row) {
+        foreach($pager as $row) {
 
             $tr->reset();
             $this->prepareBodyRow($tr, $row, $rowIndex);
@@ -1314,17 +1268,9 @@ END;
 
     protected function renderPager() {
 
-        if (!$this->_options['pager']) {
-            return '';
-        }
+    	$p = $this->getPager();
+    	return $p->render(true);
 
-        $p = $this->getPagerData();
-
-        $html = Octopus_Html_Table_Paginate::makeLinks($p, $this->_options);
-
-        $html .= $this->renderLocationDiv();
-
-        return $html;
     }
 
     /**
