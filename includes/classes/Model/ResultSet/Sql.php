@@ -7,6 +7,7 @@ class Octopus_Model_ResultSet_Sql extends Octopus_Model_ResultSet {
 
 	private $sql;
 	private $params;
+	private $count = 0;
 
 	public function __construct($modelClass, $sql, $params = array()) {
 
@@ -34,6 +35,11 @@ class Octopus_Model_ResultSet_Sql extends Octopus_Model_ResultSet {
     public function where() { return $this; }
     public function orderBy() { return $this; }
     public function thenOrderBy() { return $this; }
+    public function count($useLimit = false) { return $this->count; }
+
+    public function setCount($count) {
+    	$this->count = $count;
+    }
 
     protected function &query($new = false) {
 
