@@ -20,6 +20,7 @@ class Schemab extends Octopus_Model {
 
 /**
  * @group Model
+ * @group schema
  */
 class ModelSchemaTest extends PHPUnit_Framework_TestCase
 {

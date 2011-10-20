@@ -62,6 +62,19 @@ class Octopus_DB_Schema_Reader {
         return $fields;
     }
 
-}
+    function getIndexes() {
 
-?>
+        $sql = "SHOW INDEXES IN `$this->tableName`";
+        $query = $this->db->query($sql, true);
+
+        $indexes = array();
+
+        while ($result = $query->fetchRow()) {
+            $indexes[] = $result;
+        }
+
+        return $indexes;
+
+    }
+
+}
