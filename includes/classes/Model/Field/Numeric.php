@@ -6,19 +6,16 @@ class Octopus_Model_Field_Numeric extends Octopus_Model_Field {
 
         $value = parent::accessValue($model, $saving);
 
-        // regexs to truncate decimal fields
-        if (!$saving && $decimal_places = $this->getOption('decimal_places')) {
-            $value = preg_replace('/^(.*\.\d{' . $decimal_places . '})(\d*)/', '$1', $value);
+        return $this->normalizeValue($value, 0);
+    }
 
-            // overflow the precision
-            if ($precision = $this->getOption('precision')) {
-                $value = min($value * pow(10, $decimal_places), doubleval(str_repeat('9', $precision))) / pow(10, $decimal_places);
-            }
+    public function setValue($model, $value) {
 
-        }
+    	$value = $this->normalizeValue($value, false);
 
-        return $value;
-
+    	if ($value !== false) {
+    		return parent::setValue($model, $value);
+    	}
     }
 
     public function migrate($schema, $table) {
@@ -34,8 +31,43 @@ class Octopus_Model_Field_Numeric extends Octopus_Model_Field {
 
     public function save($model, $sqlQuery) {
         $value = $this->accessValue($model, true);
-        $value = preg_replace('/[^\d\.-]/', '', $value);
         $sqlQuery->set($this->getFieldName(), $value);
+    }
+
+    private function normalizeValue($value, $valueIfInvalid = 0) {
+
+    	$currencySymbol = $this->getOption('currency_symbol', '$');
+    	$thousandsSep = $this->getOption('thousands_separator', ',');
+		$decimalPlaces = $this->getOption('decimal_places');
+
+    	if (is_string($value) && strlen($value)) {
+    		$value = str_replace($currencySymbol, '', $value);
+    		$value = str_replace($thousandsSep, '', $value);
+    	}
+
+    	if (!is_numeric($value)) {
+    		if (is_bool($valueIfInvalid)) {
+    			return $valueIfInvalid;
+    		} else {
+    			return $decimalPlaces ? doubleval($valueIfInvalid) : intval($valueIfInvalid);
+    		}
+    	}
+
+    	if ($decimalPlaces) {
+
+    		$value = doubleval($value);
+    		$value = round($value, $decimalPlaces); // mysql rounds rather than truncating
+
+			if ($precision = $this->getOption('precision')) {
+                $value = min($value * pow(10, $decimalPlaces), doubleval(str_repeat('9', $precision))) / pow(10, $decimalPlaces);
+            }
+
+    	} else {
+    		$value = intval($value);
+    	}
+
+    	return $value;
+
     }
 
 }

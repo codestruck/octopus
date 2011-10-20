@@ -3,7 +3,7 @@
 class Product extends Octopus_Model {
     protected $fields = array(
         'name' => array(
-            'required' => true
+            // 'required' => true
         ),
         'group' => array(
             'type' => 'manyToMany',
@@ -14,7 +14,7 @@ class Product extends Octopus_Model {
 class Group extends Octopus_Model {
     protected $fields = array(
         'name' => array(
-            'required' => true,
+            // 'required' => true,
         ),
         'product' => array(
             'type' => 'manyToMany',
@@ -26,7 +26,7 @@ class Group extends Octopus_Model {
 class Nail extends Octopus_Model {
     protected $fields = array(
         'name' => array(
-            'required' => true
+            // 'required' => true
         ),
         'hammer' => array(
             'type' => 'hasMany',
@@ -45,7 +45,7 @@ class Nail extends Octopus_Model {
 class Hammer extends Octopus_Model {
     protected $fields = array(
         'name' => array(
-            'required' => true,
+            // 'required' => true,
         ),
         'slug' => array(
             'type' => 'slug',
@@ -53,7 +53,7 @@ class Hammer extends Octopus_Model {
         ),
         'nail' => array(
             'type' => 'hasOne',
-            'required' => true
+            // 'required' => true
         ),
         'active' => array(
             'type' => 'boolean',
@@ -69,7 +69,7 @@ class Hammer extends Octopus_Model {
 class Sledgehammer extends Octopus_Model {
     protected $fields = array(
         'name' => array(
-            'required' => true,
+            // 'required' => true,
         ),
         'favorite_nail' => array(
             'type' => 'hasOne',
@@ -157,4 +157,4 @@ class FindPost extends Octopus_Model {
 
 }
 
-
+?>

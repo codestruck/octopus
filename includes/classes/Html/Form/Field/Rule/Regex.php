@@ -18,7 +18,9 @@ class Octopus_Html_Form_Field_Rule_Regex extends Octopus_Html_Form_Field_Rule {
     }
 
     public function doValidation($input, $field, $data) {
+
         return !!preg_match($this->pattern, $input);
+
     }
 
 }

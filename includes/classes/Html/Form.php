@@ -602,31 +602,34 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         $result = new StdClass();
         $result->errors = array();
 
-        foreach($this->children() as $c) {
-            $this->validateRecursive($c, $values, $result);
-        }
+		if ($this->verifySecurityToken()) {
 
-        foreach($this->_rules as $r) {
+	        foreach($this->children() as $c) {
+	            $this->validateRecursive($c, $values, $result);
+	        }
 
-            $ruleResult = $r->validate($this, $values);
+	        foreach($this->_rules as $r) {
 
-            if ($ruleResult === true) {
-                continue;
-            } else if ($ruleResult === false) {
-                $result->errors[] = $r->getMessage($this, $values);
-            } else if (is_string($ruleResult)) {
-                $result->errors[] = $ruleResult;
-            } else if (is_array($ruleResult)) {
-                foreach($ruleResult as $err) {
-                    $result->errors[] = $err;
-                }
-            }
+	            $ruleResult = $r->validate($this, $values);
 
-        }
+	            if ($ruleResult === true) {
+	                continue;
+	            } else if ($ruleResult === false) {
+	                $result->errors[] = $r->getMessage($this, $values);
+	            } else if (is_string($ruleResult)) {
+	                $result->errors[] = $ruleResult;
+	            } else if (is_array($ruleResult)) {
+	                foreach($ruleResult as $err) {
+	                    $result->errors[] = $err;
+	                }
+	            }
 
-        if (!$this->verifySecurityToken()) {
-            $result->errors[] = 'This form has expired';
-        }
+	        }
+
+	    } else {
+	    	$result->errors[] = 'This form has expired';
+	    }
+
 
         $result->success = (count($result->errors) == 0);
 

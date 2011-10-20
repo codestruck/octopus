@@ -33,7 +33,8 @@ function smarty_function_url($params, $template) {
     $url = $path;
 
     if (count($args)) {
-        $url .= '?' . octopus_http_build_query($args, $sep);
+        $query = octopus_http_build_query($args, $sep);
+        if ($query) $url .= "?$query";
     }
 
     if ($forceEnding) {

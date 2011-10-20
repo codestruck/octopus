@@ -58,16 +58,19 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
                 continue;
             }
 
-            if (is_string($options) || (is_array($options) && count($options) == 2 && is_callable($options))) {
+            if (is_callable($options)) {
+            	$options = call_user_func($options, $this);
+            	$this->addOptions($options);
+            	return $this;
+            }
 
-                $options = call_user_func($options, $this);
-                $this->addOptions($options);
-                return $this;
-
+            if (is_string($options)) {
+            	// A single option
+            	$this->addOption($options);
+            	continue;
             }
 
             $attributes = null;
-
 
             foreach($options as $value => $text) {
 
@@ -163,7 +166,7 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
         $attributes['value'] = $value;
 
         $opt = new Octopus_Html_Element('option', $attributes);
-        $opt->text($text);
+        $opt->html(strip_tags($text));
 
         return $opt;
     }

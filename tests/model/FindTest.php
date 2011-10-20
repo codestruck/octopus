@@ -12,6 +12,33 @@ class FindTest extends Octopus_DB_TestCase {
         parent::__construct('model/find-data.xml');
     }
 
+    function testGetEmptyStringReturnsFalse() {
+
+    	$author = FindAuthor::get('');
+    	$this->assertFalse($author, '::get(<empty string>) should return false');
+
+    	$author = FindAuthor::get("\t  \t");
+    	$this->assertFalse($author, "::get(<all whitespace string>) should return false");
+
+
+    	$emptyNameAuthor = new FindAuthor();
+    	$emptyNameAuthor->name = '';
+    	$emptyNameAuthor->save();
+    	$this->assertTrue(!!$emptyNameAuthor->id, 'test author not saved');
+
+    	$whitespaceNameAuthor = new FindAuthor();
+    	$whitespaceNameAuthor->name = "\t  \t";
+    	$whitespaceNameAuthor->save();
+    	$this->assertTrue(!!$whitespaceNameAuthor->id, "test author not saved");
+
+    	$author = FindAuthor::get('');
+    	$this->assertFalse($author, '::get(<empty string>) should return false after save');
+
+    	$author = FindAuthor::get("\t  \t");
+    	$this->assertFalse($author, "::get(<all whitespace string>) should return false after save");
+
+    }
+
     function testStringDefaultsToEqualsOperator() {
 
         $author = new FindAuthor();

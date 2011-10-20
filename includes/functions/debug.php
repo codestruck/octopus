@@ -1487,6 +1487,13 @@ if (!function_exists('dump_r')) {
 	        	if ($size && $size > (1 * 1024 * 1024) * 5) {
 	        		@unlink($logFile);
 	        	}
+	        } else {
+
+	        	@touch($logFile);
+
+	        	// Make log file writable by both command line and
+	        	// apache phps
+	        	@chmod($logFile, 0666);
 	        }
 
 	        $fp = @fopen($logFile, 'a');
@@ -1528,8 +1535,15 @@ END
      * @param mixed Any values you want displayed.
      */
     function dump_x() {
+
         $args = func_get_args();
         call_user_func_array('dump_r', $args);
+
+        if (class_exists('Octopus_Response')) {
+        	$resp = Octopus_Response::current();
+        	if ($resp) $resp->flush();
+        }
+
         exit();
     }
 

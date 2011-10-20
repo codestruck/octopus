@@ -364,6 +364,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     public function getPage() {
+        $this->initFromEnvironment();
         return $this->_currentPage;
     }
 
@@ -638,7 +639,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         return $this;
     }
 
-    public function sort(/* lots of different ways */) {
+    private function sort(/* lots of different ways */) {
 
         $this->initFromEnvironment();
 
