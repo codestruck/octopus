@@ -6,7 +6,11 @@
     function camel_case($s, $initialCapital = false) {
 
         $s = trim($s);
-        $s = preg_replace('/([\p{Ll}\d])(\p{Lu})/', '$1_$2', $s);
+        if (!defined('PREG_BAD_UTF8_OFFSET_ERROR')) {
+           $s = preg_replace('/([a-z\d])([A-Z])/', '$1_$2', $s);
+        } else {
+            $s = preg_replace('/([\p{Ll}\d])(\p{Lu})/', '$1_$2', $s);
+        }
 
         $parts = preg_split('/[-_\s]+/', $s);
 
@@ -250,7 +254,45 @@
      * Turns URLs in $s into hyperlinks.
      */
     function linkify($s) {
-        // TODO implement
+
+        Octopus::loadExternal('simplehtmldom');
+
+        $s = '<p>' . $s . '</p>';
+        $dom = str_get_html($s);
+        $regex = '/(\s|^)(https?:\/\/[^\s<]+?[^\.])(\.?(\s|$|\)))/ims';
+
+        foreach ($dom->nodes as $el) {
+            // dump_r($el->tag, $el->nodetype);
+
+            if ($el->tag == 'text') {
+                if (count($el->nodes) == 0 && $el->parent->tag != 'a') {
+                    $el->innertext = preg_replace($regex, '$1<a href="$2">$2</a>$3', $el->innertext);
+                }
+            }
+
+        }
+
+        return substr($dom->save(), 3, -4);
+
+    }
+
+    function add_link_references($s, $domain, $data) {
+
+        Octopus::loadExternal('simplehtmldom');
+
+        $s = '<p>' . $s . '</p>';
+        $dom = str_get_html($s);
+
+        foreach ($dom->find('a') as $el) {
+
+            if (preg_match('/https?:\/\/(www.)?' . preg_quote($domain, '/') . '(\/.*|$)/', $el->href)) {
+                $el->href = u($el->href, $data, array('html' => true));
+            }
+
+        }
+
+        return substr($dom->save(), 3, -4);
+
     }
 
     /**
@@ -285,8 +327,15 @@
      */
     function pluralize($x) {
 
-        if (preg_match('/s$/i', $x)) {
-            return $x;
+        if (preg_match('/([aieou]?)(s?)s$/i', $x, $m)) {
+
+        	if ($m[1] && $m[2]) {
+        		// class -> classes
+        		return $x . 'es';
+        	} else {
+        		// already plural already
+        		return $x;
+        	}
         }
 
         $x = preg_replace('/([^aeiou])y$/i', '$1ies', $x, 1, $count);
@@ -488,12 +537,8 @@
      */
     function wildcardify($s, $wrap = '%') {
 
-        // Escape backslashes
-        $s = str_replace('\\', '\\\\', $s);
-
         // Escape wildcard chars
-        $s = str_replace('%', '\\%', $s);
-        $s = str_replace('_', '\\_', $s);
+        $s = escape_wildcards($s);
 
         $starCount = $questionCount = 0;
 
@@ -507,6 +552,14 @@
         return $s;
     }
 
-    // TODO: function escape_wildcards()
+    function escape_wildcards($s) {
+
+    	$s = str_replace('\\', '\\\\', $s);
+        $s = str_replace('%', '\\%', $s);
+        $s = str_replace('_', '\\_', $s);
+
+        return $s;
+
+    }
 
 ?>

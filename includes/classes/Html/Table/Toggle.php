@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Table_Action');
-
 class Octopus_Html_Table_Toggle extends Octopus_Html_Table_Content {
 
     public static $defaults = array(

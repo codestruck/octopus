@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Http_Request_Base');
-
 class Octopus_Http_Request_Curl extends Octopus_Http_Request_Base {
 
     public function request($url, $data = null, $args = array()) {
@@ -47,15 +45,11 @@ class Octopus_Http_Request_Curl extends Octopus_Http_Request_Base {
             curl_setopt($handle, CURLOPT_ENCODING, $this->args['Accept-Encoding']);
         }
 
-        $headerOpts = array(
-            'Accept',
-        );
-
         $request_headers = array();
 
-        foreach($headerOpts as $opt) {
-            if (isset($this->args[$opt])) {
-                $request_headers[$opt] = $this->args[$opt];
+        foreach($this->args as $opt => $value) {
+            if (!in_array($opt, $this->reservedOpts)) {
+                $request_headers[$opt] = $value;
             }
         }
 

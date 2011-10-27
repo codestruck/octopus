@@ -1,9 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Model_Restriction');
-Octopus::loadClass('Octopus_Model_Restriction_Field');
-Octopus::loadClass('Octopus_Model_Restriction_Sql');
-
 /**
  * Class that handles searching for Octopus_Model instances.
  */
@@ -20,7 +16,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpa
     private $_criteria;
     private $_orderBy;
     private $_select;
-    private $query;
+    protected $query;
 
     private $_currentQuery = null;
     private $_current = null;
@@ -130,8 +126,8 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpa
      * Sends this ResultSet to dump_r without breaking the chain.
      */
     public function dump() {
-    	dump_r($this);
-    	return $this;
+        dump_r($this);
+        return $this;
     }
 
     /**
@@ -277,8 +273,16 @@ END;
      * @param $sql String The SQL to inject into the WHERE clause
      * @param $params Array Any paramters referenced by $sql
      */
-    private function whereSql($sql, $params = array()) {
+    public function whereSql($sql, $params = array()) {
+
+    	if (!is_array($params)) {
+    		$args = func_get_args();
+    		array_shift($args);
+    		$params = $args;
+    	}
+
         $result = $this->where(array($sql => $params));
+
         return $result;
     }
 
@@ -348,6 +352,12 @@ END;
         }
 
         return $sql;
+    }
+
+    public function getNormalizedSql() {
+    	$params = array();
+    	$sql = $this->getSql($params);
+    	return normalize_sql($sql, $params);
     }
 
     /**
@@ -605,6 +615,10 @@ END;
 
         foreach($criteria as $arg) {
 
+        	if ($arg instanceof Octopus_Model) {
+        		$arg = array('id' => $arg->id);
+        	}
+
             if ($arg instanceof Octopus_Model_ResultSet) {
                 $result = $this->createChild($arg->_criteria, null, $conjunction);
                 $lastFieldName = null;
@@ -791,9 +805,10 @@ END;
     }
 
     /**
-     * Runs the backing query and
+     * Executes the SQL query backing this ResultSet.
+     * @return Octopus_DB_Result
      */
-    private function &query($new = false) {
+    protected function &query($new = false) {
 
         if ($this->query && !$new) {
             return $this->query;
@@ -995,9 +1010,20 @@ END;
 
     /**
      * @return Number The # of records in this ResultSet.
+     * @param $considerLimit Boolean Whether If true, and the resultset has
+     * been limited using limit(), then the result of count() will be at
+     * most the # of records the resultset is limited to.
      */
-    public function count() {
-        return $this->query()->numRows();
+    public function count($considerLimit = true) {
+
+    	$s = $this->buildSelect();
+    	$count = $s->numRows();
+
+    	if ($considerLimit && $this->_maxRecords !== null) {
+    		return min($this->_maxRecords, $count);
+    	}
+
+    	return $count;
     }
 
     // }}}

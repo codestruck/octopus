@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Table_Filter_Text');
-
 /**
  * TextBox filter that uses Octopus_Model free text searching.
  */

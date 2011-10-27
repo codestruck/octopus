@@ -1,8 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_App_TestCase');
-Octopus::loadClass('Octopus_Controller_Api');
-
 class TestApiController extends Octopus_Controller_Api {
 
     var $protect = array('protectedAddMember');
@@ -55,7 +52,7 @@ class ApiControllerTest extends Octopus_App_TestCase {
     }
 
     function testContentType() {
-            
+
         $app = $this->StartApp();
 
         $this->createControllerFile(
@@ -64,7 +61,7 @@ class ApiControllerTest extends Octopus_App_TestCase {
 <?php
 
 class Api1TestContentTypeController extends Octopus_Controller_Api {
-    
+
     public function test() {
         return array('foo' => 'bar');
     }

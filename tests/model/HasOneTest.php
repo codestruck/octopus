@@ -4,6 +4,10 @@ class HasOneCategory extends Octopus_Model {
 	protected $fields = array('name');
 }
 
+class Incorrect_Casing extends Octopus_Model {
+	protected $fields = array('name');
+}
+
 class HasOnePerson extends Octopus_Model {
 	protected $fields = array(
 		'name',
@@ -25,31 +29,56 @@ class HasOnePerson extends Octopus_Model {
 			'type' => 'hasOne',
 			'model' => 'HasOneCategory',
 			'skipSave' => true
-		)
+		),
+		'camel_case_model' => array(
+			'type' => 'hasOne',
+			'model' => 'Incorrect_Casing',
+		),
 	);
 }
 
 class HasOneTest extends Octopus_App_TestCase {
-	
+
 	function setUp() {
-		
+
 		parent::setUp();
 
 		Octopus::loadClass('Octopus_DB_Schema_Model');
 		Octopus_DB_Schema_Model::makeTable('HasOnePerson');
 		Octopus_DB_Schema_Model::makeTable('HasOneCategory');
+		Octopus_DB_Schema_Model::makeTable(new Incorrect_Casing());
+
+	}
+
+	function testUnsetLazyLoadedHasOne() {
+
+		$category = new HasOneCategory();
+		$category->name = __METHOD__;
+		$category->save();
+
+		$person = new HasOnePerson();
+		$person->category = $category;
+		$person->save();
+
+		$person = new HasOnePerson($person->id);
+		$person->category = null;
+
+		$this->assertSame(null, $person->category);
+
+		$person->save();
+		$this->assertSame(null, $person->category);
 
 	}
 
 	function testHasOneNullByDefault() {
-		
+
 		$person = new HasOnePerson();
 		$this->assertNull($person->category, 'category is null by default');
 
 	}
 
 	function testSaveHasOne() {
-		
+
 		$cat = new HasOneCategory();
 		$cat->name = __METHOD__;
 
@@ -70,12 +99,12 @@ class HasOneTest extends Octopus_App_TestCase {
 	}
 
 	function testSetHasOneToID() {
-		
+
 		$cat = new HasOneCategory();
 		$cat->name = __METHOD__;
 		$cat->save();
 
-		$person = new HasOnePerson();	
+		$person = new HasOnePerson();
 		$person->category = $cat->id;
 
 		$this->assertTrue(!!$person->category, 'category set to something via id');
@@ -85,7 +114,7 @@ class HasOneTest extends Octopus_App_TestCase {
 	}
 
 	function testCascadeSaveByDefault() {
-		
+
 		$cat = new HasOneCategory();
 		$cat->name = __METHOD__;
 
@@ -102,7 +131,7 @@ class HasOneTest extends Octopus_App_TestCase {
 	 * @expectedException Octopus_Model_Exception
 	 */
 	function testDisableCascadeAndSaveUnsavedThrowsException() {
-		
+
 		$cat = new HasOneCategory();
 		$cat->name = __METHOD__;
 
@@ -114,7 +143,7 @@ class HasOneTest extends Octopus_App_TestCase {
 	}
 
 	function testCascadeDeleteDisabledByDefault() {
-		
+
 		$cat = new HasOneCategory();
 		$cat->name = __METHOD__;
 
@@ -154,6 +183,20 @@ class HasOneTest extends Octopus_App_TestCase {
 
 		$this->assertFalse(!!HasOnePerson::get($personID), 'person deleted after delete() call');
 		$this->assertFalse(!!HasOneCategory::get($catID), 'category deleted after deleting person');
+
+	}
+
+	function testSpecificModelName() {
+
+		$person = new HasOnePerson();
+		$ic = new Incorrect_Casing();
+		$ic->name = 'Tandy';
+
+		$person->camel_case_model = $ic;
+		$person->save();
+
+		$ic = Incorrect_Casing::get(1);
+		$this->assertEquals('Tandy', $ic->name);
 
 	}
 

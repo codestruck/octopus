@@ -1,8 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_DB');
-Octopus::loadClass('Octopus_DB_Schema_Writer');
-
 class Octopus_DB_Schema {
 
     private $db;

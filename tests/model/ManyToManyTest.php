@@ -1,9 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_DB');
-Octopus::loadClass('Octopus_DB_Schema_Model');
-Octopus::loadClass('Octopus_Model');
-
 db_error_reporting(DB_PRINT_ERRORS);
 
 class PluralFieldNameTestProduct extends Octopus_Model {

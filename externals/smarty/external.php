@@ -1,6 +1,7 @@
 <?php
 
-require_once(dirname(__FILE__) . '/Smarty-3.0.8/libs/Smarty.class.php');
+define('SMARTY_VERSION', '3.0.8');
+require_once(dirname(__FILE__) . '/Smarty-' . SMARTY_VERSION . '/libs/Smarty.class.php');
 
 class Octopus_Smarty extends Octopus_Base {
 
@@ -48,7 +49,7 @@ class Octopus_Smarty extends Octopus_Base {
         }
 
         $this->smarty = new Smarty();
-        $this->smarty->error_reporting = E_ALL & ~E_NOTICE;
+        $this->smarty->error_reporting = E_ERROR;
         $this->smarty->template_dir = $templateDir;
         $this->smarty->compile_dir = $compileDir;
         $this->smarty->allow_php_tag = true;
@@ -56,16 +57,18 @@ class Octopus_Smarty extends Octopus_Base {
         // custom plugin dir
         $this->smarty->plugins_dir = array(
             OCTOPUS_DIR . 'externals/smarty/plugins/',
-            dirname(__FILE__) . '/Smarty-3.0.8/libs/plugins/',
+            dirname(__FILE__) . '/Smarty-' . SMARTY_VERSION . '/libs/plugins/',
         );
 
         // allow all php functions and modifiers
         $security_policy = new Smarty_Security($this->smarty);
         $security_policy->php_functions = array();
         $security_policy->php_modifiers = array();
+        $security_policy->secure_dir = array(get_option('SITE_DIR') . 'views');
         $this->smarty->enableSecurity($security_policy);
 
         if (DEV) {
+        	$this->smarty->error_reporting = E_ALL & ~E_NOTICE;
             $this->smarty->_file_perms = 0666;
             $this->smarty->_dir_perms = 0777;
             $this->smarty->compile_error = true;
@@ -85,6 +88,17 @@ class Octopus_Smarty extends Octopus_Base {
 
         foreach($data as $key => $value) {
             $smartyData->assign($key, $value);
+        }
+
+        // For relative paths, go from /views
+        if ($templateFile[0] !== '/') {
+        	foreach(array('SITE_DIR', 'OCTOPUS_DIR') as $opt) {
+        		$file = get_option($opt) . 'views/' . $templateFile;
+        		if (is_file($file)) {
+        			$templateFile = $file;
+        			break;
+        		}
+        	}
         }
 
         // Look for templates in the same directory the file is in.

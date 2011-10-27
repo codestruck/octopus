@@ -6,8 +6,6 @@ define('OCTOPUS_MIGRATIONS_TABLE', '_migrations');
 // added to this internally so that they are run first.
 define('OCTOPUS_MIGRATIONS_RUN_FIRST_OFFSET', -1000000);
 
-Octopus::loadClass('Octopus_DB_Select');
-
 class Octopus_DB_Migration_Runner {
 
     private $dirs;

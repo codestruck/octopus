@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Http_Request');
-
 /**
  * @group http
  */

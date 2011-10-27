@@ -1,71 +1,69 @@
 <?php
 
-Octopus::loadClass('Octopus_Minify_Strategy');
-
 /**
  * Minification strategy that combines multiple files into one.
  */
 class Octopus_Minify_Strategy_Combine extends Octopus_Minify_Strategy {
-	
-	public function getMinifiedUrls($urls, $options = array()) {
-		
-		$result = array();
-		$files = array();
-		$handledUrls = array();
-		$dirs = $this->getDirectoriesToSearch($options);
-		
-		$deleteHash = '';
-		$uniqueHash = '';
 
-		$extension = '';
+    public function getMinifiedUrls($urls, $options = array()) {
 
-		foreach($urls as $url) {
+        $result = array();
+        $files = array();
+        $handledUrls = array();
+        $dirs = $this->getDirectoriesToSearch($options);
 
-			if (!$this->looksLikeLocalFile($url)) {
-				continue;
-			}
+        $deleteHash = '';
+        $uniqueHash = '';
 
-			$file = $this->getFileForUrl($url, $dirs);
+        $extension = '';
 
-			if ($file) {
+        foreach($urls as $url) {
 
-				if (!$extension) {
-					$info = pathinfo($file);
-					$extension = ($info['extension'] ? '.' : '') . $info['extension'];
-				}
+            if (!$this->looksLikeLocalFile($url)) {
+                continue;
+            }
 
-				$files[] = $file;
-				$handledUrls[] = $url;
-				$deleteHash .= '|' . $file;
-				$uniqueHash .= '|' . $file . '?' . filemtime($file);
-			}
-		}
+            $file = $this->getFileForUrl($url, $dirs);
 
-		if (empty($files)) {
-			return $files;
-		}
+            if ($file) {
 
-		// see if there is a cache file available
-		$uniqueHash = md5($uniqueHash);
+                if (!$extension) {
+                    $info = pathinfo($file);
+                    $extension = ($info['extension'] ? '.' : '') . $info['extension'];
+                }
 
-		$cacheFile = $this->getCacheFile($uniqueHash, $deleteHash, $extension, $options);
-		
-		if (!$cacheFile) {
+                $files[] = $file;
+                $handledUrls[] = $url;
+                $deleteHash .= '|' . $file;
+                $uniqueHash .= '|' . $file . '?' . filemtime($file);
+            }
+        }
 
-			$content = '';
-			foreach($files as $f) {
-				$content .= ($content ? "\n\n" : '') . file_get_contents($f);
-			}
+        if (empty($files)) {
+            return $files;
+        }
 
-			$deleteHash = md5($deleteHash);
+        // see if there is a cache file available
+        $uniqueHash = md5($uniqueHash);
 
-			$cacheFile = $this->saveCacheFile($uniqueHash, $deleteHash, $extension, $content);
-		}
+        $cacheFile = $this->getCacheFile($uniqueHash, $deleteHash, $extension, $options);
 
-		return array(
-			$this->getUrlForFile($cacheFile, false, $options) => $handledUrls
-		);
-	}
+        if (!$cacheFile) {
+
+            $content = '';
+            foreach($files as $f) {
+                $content .= ($content ? "\n\n" : '') . file_get_contents($f);
+            }
+
+            $deleteHash = md5($deleteHash);
+
+            $cacheFile = $this->saveCacheFile($uniqueHash, $deleteHash, $extension, $content);
+        }
+
+        return array(
+            $this->getUrlForFile($cacheFile, false, $options) => $handledUrls
+        );
+    }
 
 }
 

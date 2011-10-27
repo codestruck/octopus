@@ -26,8 +26,13 @@ abstract class Octopus_Model_Field {
     private static $fieldTypeAliases = array(
         'text' => 'string',
         'bool' => 'boolean',
-        'number' => 'numeric'
+        'number' => 'numeric',
     );
+
+    private static $helperFieldTypes = array(
+    	'money' => array('type' => 'numeric', 'decimal_places' => 2),
+        'currency' => array('type' => 'numeric', 'decimal_places' => 2)
+	);
 
     public function __construct($field, $modelClass, $options) {
         $this->field = $field;
@@ -44,11 +49,6 @@ abstract class Octopus_Model_Field {
 
     public static function getField($name, $modelClass, $options) {
 
-        if (is_string($options)) {
-            $field = $options;
-            $options = array();
-        }
-
         if (isset(self::$magicFieldDefaults[$name])) {
             $options = array_merge(self::$magicFieldDefaults[$name], $options);
         }
@@ -56,12 +56,16 @@ abstract class Octopus_Model_Field {
         $type = isset($options['type']) ? $options['type'] : 'string';
 
         if (isset(self::$fieldTypeAliases[$type])) {
-            $type = self::$fieldTypeAliases[$type];
+        	$type = self::$fieldTypeAliases[$type];
+        }
+
+        if (isset(self::$helperFieldTypes[$type])) {
+        	$help = self::$helperFieldTypes[$type];
+        	if (isset($help['type'])) $type = $help['type'];
+        	$options = array_merge($help, $options);
         }
 
         $class = 'Octopus_Model_Field_' . camel_case($type, true);
-        Octopus::loadClass($class);
-
         $options['type'] = $type;
 
         return new $class($name, $modelClass, $options);
@@ -107,6 +111,18 @@ abstract class Octopus_Model_Field {
 
     }
 
+    /**
+     * Loads data into this field from a DB row. For certain field types,
+     * setValue($model, $row[$field->getFieldname()]) will not necessarily work.
+     * (e.g. HasOne)
+     */
+    public function loadValue(Octopus_Model $model, $row) {
+    	$name = $this->getFieldName();
+    	if (isset($row[$name])) {
+    		$this->setValue($model, $row[$name]);
+    	}
+    }
+
     public function getFieldName() {
         return $this->field;
     }
@@ -140,17 +156,15 @@ abstract class Octopus_Model_Field {
     public function afterMigrate($schema) {
     }
 
-
-    public function validate($model) {
-
-        if ($this->getOption('required')) {
-            $value = $this->accessValue($model);
-            if (!$value) {
-                return false;
-            }
+    public function migrateIndexes($schema, $table) {
+        $index = $this->getOption('index', false);
+        if ($index === 'unique') {
+            $table->newIndex('UNIQUE', $this->getFieldName());
+        } else if ($index === 'fulltext') {
+        	$table->newIndex('FULLTEXT', $this->getFieldName());
+        } else if ($index == 'index' || $index === true) {
+            $table->newIndex($this->getFieldName());
         }
-
-        return true;
     }
 
     protected function escape($model, $value) {
@@ -281,22 +295,22 @@ abstract class Octopus_Model_Field {
         if (strcmp($operator, 'IN') == 0) {
 
             $value = is_array($value) ? $value : array($value);
-			$expr = '';
+            $expr = '';
 
-			if (empty($value)) {
+            if (empty($value)) {
 
-				// IN empty array = false
-				$expr = '0';
+                // IN empty array = false
+                $expr = '0';
 
-			} else {
+            } else {
 
-	            foreach($value as $item) {
-	                $params[] = $item;
-	                $expr .= ($expr == '' ? '' : ',') . '?';
-	            }
+                foreach($value as $item) {
+                    $params[] = $item;
+                    $expr .= ($expr == '' ? '' : ',') . '?';
+                }
 
-	            $expr = "`$table`.`$fieldName` IN ($expr)";
-	        }
+                $expr = "`$table`.`$fieldName` IN ($expr)";
+            }
 
         } else {
             $params[] = $value;

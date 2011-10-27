@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Minify_Strategy');
-
 /**
  * Minification strategy that uses '_src' at the end of a filename to indicate
  * the unminified version of a file, and returns either the 'src' version or
@@ -10,63 +8,63 @@ Octopus::loadClass('Octopus_Minify_Strategy');
 class Octopus_Minify_Strategy_Src extends Octopus_Minify_Strategy {
 
 
-	public function getMinifiedUrls($urls, $options = array()) {
-		
-		$result = array();
-		$dirs = $this->getDirectoriesToSearch($options);
+    public function getMinifiedUrls($urls, $options = array()) {
 
-		foreach($urls as $url) {
+        $result = array();
+        $dirs = $this->getDirectoriesToSearch($options);
 
-			if (!$this->looksLikeLocalFile($url)) {
-				continue;
-			}
+        foreach($urls as $url) {
 
-			foreach($dirs as $dir) {
-				
-				$file = $dir . ltrim($url, '/');
-				$minifiedFile = $this->getMinifiedFile($file);
+            if (!$this->looksLikeLocalFile($url)) {
+                continue;
+            }
 
-				if ($minifiedFile) {
-					$minifiedUrl = $this->getUrlForFile($minifiedFile);
-					$result[$minifiedUrl] = array($url);
-					break;
-				}
+            foreach($dirs as $dir) {
 
-			}
-		}
+                $file = $dir . ltrim($url, '/');
+                $minifiedFile = $this->getMinifiedFile($file);
 
-		return $result;
-	}
+                if ($minifiedFile) {
+                    $minifiedUrl = $this->getUrlForFile($minifiedFile);
+                    $result[$minifiedUrl] = array($url);
+                    break;
+                }
 
-	private function getMinifiedFile($file) {
-		
-		$info = pathinfo($file);
-		$info['filename'] = preg_replace('/_src$/i', '', $info['filename']);
-		$info['extension'] = empty($info['extension']) ? '' : '.' . $info['extension'];
+            }
+        }
 
-		$file = "{$info['dirname']}/{$info['filename']}{$info['extension']}";
-		$src =  "{$info['dirname']}/{$info['filename']}_src{$info['extension']}";
+        return $result;
+    }
 
-		$fileExists = is_file($file);
-		$srcExists = is_file($src);
+    private function getMinifiedFile($file) {
 
-		if ($fileExists && $srcExists) {
-			
-			$fileTime = filemtime($file);
-			$srcTime = filemtime($src);
+        $info = pathinfo($file);
+        $info['filename'] = preg_replace('/_src$/i', '', $info['filename']);
+        $info['extension'] = empty($info['extension']) ? '' : '.' . $info['extension'];
 
-			return ($srcTime >= $fileTime ? $src : $file);
+        $file = "{$info['dirname']}/{$info['filename']}{$info['extension']}";
+        $src =  "{$info['dirname']}/{$info['filename']}_src{$info['extension']}";
 
-		} else if ($fileExists) {
-			return $file;
-		} else if ($srcExists) {
-			return $src;
-		} else {
-			return false;
-		}
-	}
+        $fileExists = is_file($file);
+        $srcExists = is_file($src);
 
-	
+        if ($fileExists && $srcExists) {
+
+            $fileTime = filemtime($file);
+            $srcTime = filemtime($src);
+
+            return ($srcTime >= $fileTime ? $src : $file);
+
+        } else if ($fileExists) {
+            return $file;
+        } else if ($srcExists) {
+            return $src;
+        } else {
+            return false;
+        }
+    }
+
+
 
 }
 

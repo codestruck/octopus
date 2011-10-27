@@ -1,8 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_DB');
-Octopus::loadClass('Octopus_Model');
-
 db_error_reporting(DB_PRINT_ERRORS);
 
 function trigger_onCreate(Octopus_Model $model, Octopus_Model_Field $field) {

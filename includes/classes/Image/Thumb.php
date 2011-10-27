@@ -1,8 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Image');
-Octopus::loadClass('Octopus_Directory');
-
 class Octopus_Image_Thumb {
 
     function getThumbPath($file, $width = null, $height = null, $action = 'r') {

@@ -1,8 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_DB');
-Octopus::loadClass('Octopus_Model');
-
 db_error_reporting(DB_PRINT_ERRORS);
 
 class Minpost extends Octopus_Model {
@@ -255,6 +252,7 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
         $this->assertEquals(1, $post->minpost_id);
     }
 
+    /*
     function testValidate()
     {
         $post = new Minpost();
@@ -262,6 +260,7 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
         $post->body = 'And a body';
         $this->assertTrue($post->validate());
     }
+
 
     function testValidateMissingTitle()
     {
@@ -313,6 +312,7 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
         $this->assertEquals('title', $error['field']);
         $this->assertEquals('is required', $error['message']);
     }
+    */
 
     function testToString()
     {

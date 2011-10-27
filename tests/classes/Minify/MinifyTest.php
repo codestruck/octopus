@@ -1,167 +1,164 @@
 <?php
 
-Octopus::loadClass('Octopus_Minify_Strategy_Src');
-Octopus::loadClass('Octopus_Minify_Strategy_Combine');
-
 /**
  * @group slow
  */
 class MinifyTest extends Octopus_App_TestCase {
-	
-	function testSrcStrategy() {
-		
-		$app = $this->getApp();
 
-		foreach(array('SITE_DIR', 'ROOT_DIR') as $dirName) {
+    function testSrcStrategy() {
 
-			$dir = $app->getOption($dirName);
-			$file = $dir . 'file.js';
-			$src = $dir . 'file_src.js';
+        $app = $this->getApp();
 
-			$rootDir = $app->getOption('ROOT_DIR');
-			$urlDir = '/' . substr($dir, strlen($rootDir));
+        foreach(array('SITE_DIR', 'ROOT_DIR') as $dirName) {
 
-			touch($file);
-			sleep(1);
-			touch($src);
+            $dir = $app->getOption($dirName);
+            $file = $dir . 'file.js';
+            $src = $dir . 'file_src.js';
 
-			$strat = new Octopus_Minify_Strategy_Src();
+            $rootDir = $app->getOption('ROOT_DIR');
+            $urlDir = '/' . substr($dir, strlen($rootDir));
 
-			$this->assertEquals(
-				array(
-					$urlDir . 'file_src.js?' . filemtime($src) => array('/file.js')
-				),
-				$strat->getMinifiedUrls(array('/file.js')),
-				"dir: $dirName"
-			);
+            touch($file);
+            sleep(1);
+            touch($src);
 
-			sleep(1);
-			touch($file);
+            $strat = new Octopus_Minify_Strategy_Src();
 
-			$this->assertEquals(
-				array(
-					$urlDir . 'file.js?' . filemtime($file) => array('/file.js')
-				),
-				$strat->getMinifiedUrls(array('/file.js'))
-			);
+            $this->assertEquals(
+                array(
+                    $urlDir . 'file_src.js?' . filemtime($src) => array('/file.js')
+                ),
+                $strat->getMinifiedUrls(array('/file.js')),
+                "dir: $dirName"
+            );
 
-			unlink($file);
+            sleep(1);
+            touch($file);
 
-			// if only src exists, link to src
-			$this->assertEquals(
-				array(
-					$urlDir . 'file_src.js?' . filemtime($src) => array('/file.js')
-				),
-				$strat->getMinifiedUrls(array('/file.js'))
-			);
+            $this->assertEquals(
+                array(
+                    $urlDir . 'file.js?' . filemtime($file) => array('/file.js')
+                ),
+                $strat->getMinifiedUrls(array('/file.js'))
+            );
 
-			unlink($src);
+            unlink($file);
 
-			$this->assertEquals(array(), $strat->getMinifiedUrls(array('/file.js')));
-		}
+            // if only src exists, link to src
+            $this->assertEquals(
+                array(
+                    $urlDir . 'file_src.js?' . filemtime($src) => array('/file.js')
+                ),
+                $strat->getMinifiedUrls(array('/file.js'))
+            );
 
-	}
+            unlink($src);
 
-	function testCombineStrategy() {
-		
-		$app = $this->getApp();
+            $this->assertEquals(array(), $strat->getMinifiedUrls(array('/file.js')));
+        }
 
-		foreach(array('SITE_DIR', 'ROOT_DIR') as $dirName) {
+    }
 
-			$dir = $app->getOption($dirName);
-			$cacheDir = $app->getOption('OCTOPUS_CACHE_DIR');
+    function testCombineStrategy() {
 
-			$a = $dir . 'a.js';
-			$b = $dir . 'b.js';
+        $app = $this->getApp();
 
-			$aContents = 'contents of file a';
-			$bContents = 'contents of file b';
+        foreach(array('SITE_DIR', 'ROOT_DIR') as $dirName) {
 
-			file_put_contents($a, $aContents);
-			file_put_contents($b, $bContents);
+            $dir = $app->getOption($dirName);
+            $cacheDir = $app->getOption('OCTOPUS_CACHE_DIR');
 
-			$strat = new Octopus_Minify_Strategy_Combine();
+            $a = $dir . 'a.js';
+            $b = $dir . 'b.js';
 
-			$deleteHash = md5("|$a|$b");
-			$uniqueHash = md5("|$a?" . filemtime($a) . "|$b?" . filemtime($b));
-			$cacheFile = "combine/$deleteHash-$uniqueHash.js";
+            $aContents = 'contents of file a';
+            $bContents = 'contents of file b';
 
-			$this->assertEquals(
-				array(
-					'/cache/' . $cacheFile => array('/a.js', '/b.js'),
-				),
-				$strat->getMinifiedUrls(array('/a.js', '/b.js'))
-			);
+            file_put_contents($a, $aContents);
+            file_put_contents($b, $bContents);
 
-			$this->assertEquals(
-				<<<END
+            $strat = new Octopus_Minify_Strategy_Combine();
+
+            $deleteHash = md5("|$a|$b");
+            $uniqueHash = md5("|$a?" . filemtime($a) . "|$b?" . filemtime($b));
+            $cacheFile = "combine/$deleteHash-$uniqueHash.js";
+
+            $this->assertEquals(
+                array(
+                    '/cache/' . $cacheFile => array('/a.js', '/b.js'),
+                ),
+                $strat->getMinifiedUrls(array('/a.js', '/b.js'))
+            );
+
+            $this->assertEquals(
+                <<<END
 $aContents
 
 $bContents
 END
-				,
-				file_get_contents($cacheDir . $cacheFile)
-			);
+                ,
+                file_get_contents($cacheDir . $cacheFile)
+            );
 
-			sleep(1);
+            sleep(1);
 
-			// Modify a file
-			$bContents = 'Modified b contents';
-			file_put_contents($b, $bContents);
+            // Modify a file
+            $bContents = 'Modified b contents';
+            file_put_contents($b, $bContents);
 
-			$deleteHash = md5("|$a|$b");
-			$uniqueHash = md5("|$a?" . filemtime($a) . "|$b?" . filemtime($b));
-			$prevCacheFile = $cacheFile;
-			$cacheFile = "combine/$deleteHash-$uniqueHash.js";
+            $deleteHash = md5("|$a|$b");
+            $uniqueHash = md5("|$a?" . filemtime($a) . "|$b?" . filemtime($b));
+            $prevCacheFile = $cacheFile;
+            $cacheFile = "combine/$deleteHash-$uniqueHash.js";
 
-			$this->assertEquals(
-				array(
-					'/cache/' . $cacheFile => array('/a.js', '/b.js'),
-				),
-				$strat->getMinifiedUrls(array('/a.js', '/b.js'))
-			);
+            $this->assertEquals(
+                array(
+                    '/cache/' . $cacheFile => array('/a.js', '/b.js'),
+                ),
+                $strat->getMinifiedUrls(array('/a.js', '/b.js'))
+            );
 
-			$this->assertEquals(
-				<<<END
+            $this->assertEquals(
+                <<<END
 $aContents
 
 $bContents
 END
-				,
-				file_get_contents($cacheDir . $cacheFile)
-			);
+                ,
+                file_get_contents($cacheDir . $cacheFile)
+            );
 
-			$this->assertFalse(is_file($cacheDir . $prevCacheFile), "old cache file for the content has been deleted ({$cacheDir}{$prevCacheFile})");
+            $this->assertFalse(is_file($cacheDir . $prevCacheFile), "old cache file for the content has been deleted ({$cacheDir}{$prevCacheFile})");
 
-			// get files in a different order
-			$deleteHash = md5("|$b|$a");
-			$uniqueHash = md5("|$b?" . filemtime($b) . "|$a?" . filemtime($a));
-			$cacheFile = "combine/$deleteHash-$uniqueHash.js";
+            // get files in a different order
+            $deleteHash = md5("|$b|$a");
+            $uniqueHash = md5("|$b?" . filemtime($b) . "|$a?" . filemtime($a));
+            $cacheFile = "combine/$deleteHash-$uniqueHash.js";
 
-			$this->assertEquals(
-				array(
-					'/cache/' . $cacheFile => array('/b.js', '/a.js'),
-				),
-				$strat->getMinifiedUrls(array('/b.js', '/a.js'))
-			);
+            $this->assertEquals(
+                array(
+                    '/cache/' . $cacheFile => array('/b.js', '/a.js'),
+                ),
+                $strat->getMinifiedUrls(array('/b.js', '/a.js'))
+            );
 
-			$this->assertEquals(
-				<<<END
+            $this->assertEquals(
+                <<<END
 $bContents
 
 $aContents
 END
-				,
-				file_get_contents($cacheDir . $cacheFile)
-			);
+                ,
+                file_get_contents($cacheDir . $cacheFile)
+            );
 
 
-			unlink($a);
-			unlink($b);
-		}
+            unlink($a);
+            unlink($b);
+        }
 
 
-	}
+    }
 
 }
 

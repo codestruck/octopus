@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Renderer');
-
 class RendererTest extends Octopus_App_TestCase {
 
     function testFindViewsInSubdir() {

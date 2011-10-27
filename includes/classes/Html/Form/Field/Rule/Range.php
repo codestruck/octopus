@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Form_Field_Rule');
-
 class Octopus_Html_Form_Field_Rule_Range extends Octopus_Html_Form_Field_Rule {
 
     private $min;
@@ -17,6 +15,10 @@ class Octopus_Html_Form_Field_Rule_Range extends Octopus_Html_Form_Field_Rule {
     protected function doValidation($input, $field, $data) {
 
         $input = trim($input);
+
+        if ($input === '') {
+        	return true;
+        }
 
         if (!is_numeric($input)) {
             return false;

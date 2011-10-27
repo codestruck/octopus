@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Form_Field_Rule');
-
 class Octopus_Html_Form_Field_Rule_Regex extends Octopus_Html_Form_Field_Rule {
 
     private $pattern;
@@ -20,7 +18,9 @@ class Octopus_Html_Form_Field_Rule_Regex extends Octopus_Html_Form_Field_Rule {
     }
 
     public function doValidation($input, $field, $data) {
+
         return !!preg_match($this->pattern, $input);
+
     }
 
 }

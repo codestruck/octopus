@@ -2,8 +2,6 @@
 
 require_once( dirname(dirname(__FILE__)) . '/bootstrap.php' );
 
-Octopus::loadClass('Octopus_Model');
-
 class Perf extends Octopus_Model {
     protected $fields = array(
         'title' => array(

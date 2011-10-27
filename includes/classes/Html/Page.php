@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Element');
-
 class Octopus_Html_Page {
 
     private static $instance = null;
@@ -1034,7 +1032,7 @@ END;
     }
 
     public function renderTitle($return = false) {
-        
+
         $html = '<title>' . $this->getFullTitle() . '</title>';
 
         if ($return) {
@@ -1049,9 +1047,9 @@ END;
      * Renders the entire <head> of the page.
      */
     public function renderHead($return = false, $includeTag = true, $useAliases = true) {
-        
+
         if ($return) {
-            
+
             $html = ($includeTag ? '<head>' : '');
 
             $html .= $this->renderTitle(true);
@@ -1090,7 +1088,7 @@ END;
     }
 
     private static function compareAliases($x, $y) {
-        
+
         $result = count($y['urls']) - count($x['urls']);
         if ($result !== 0) {
             return $result;
@@ -1154,7 +1152,7 @@ END;
      * $files.
      */
     protected function processAliases($items, $aliases) {
-        
+
         if (empty($aliases)) {
             return $items;
         }
@@ -1175,7 +1173,7 @@ END;
                 $a['index'] = $index;
                 $a['section'] = '';
 
-                // TODO: Actually compare attributes and section as well when checking if files can be 
+                // TODO: Actually compare attributes and section as well when checking if files can be
                 // aliased
 
                 $result[] = $a;
@@ -1185,7 +1183,7 @@ END;
                     if ($key !== false) unset($items[$key]);
                 }
 
-            } 
+            }
 
             if (empty($items)) {
                 break;
@@ -1202,7 +1200,7 @@ END;
     }
 
     private static function checkIfAlias($items, $aliasCandidateUrls, &$weight, &$index) {
-        
+
         if (empty($items)) {
             return empty($aliasCandidateUrls);
         }
@@ -1240,10 +1238,10 @@ END;
      * Given an array of items (script or css files), applies the minifier.
      */
     protected function &minify($items) {
-         
+
          if (empty($this->options['minifier'])) {
              return $items;
-         }   
+         }
 
          $minifiers = $this->options['minifier'];
          if (!is_array($minifiers)) $minifiers = array($minifiers);
@@ -1259,9 +1257,8 @@ END;
          }
 
          foreach($minifiers as $class) {
-             
+
              $class = 'Octopus_Minify_Strategy_' . camel_case($class, true);
-             Octopus::loadClass($class);
 
              $strat = new $class();
              $minified = $strat->getMinifiedUrls(array_keys($itemsByUrl));
@@ -1272,11 +1269,11 @@ END;
 
              foreach($minified as $url => $oldUrls) {
                  $oldUrl = array_shift($oldUrls);
-                 
+
                  $item =& $itemsByUrl[$oldUrl];
                  $item['old_url'] = $item['url'];
                  $item['url'] = $url;
-                 
+
                  foreach($oldUrls as $old) {
                      unset($itemsByUrl[$old]);
                  }

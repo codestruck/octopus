@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Form_Field');
-
 class Octopus_Html_Form extends Octopus_Html_Element {
 
     private $_rules = array();
@@ -461,10 +459,10 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      */
     public function submit(Array $values) {
 
-    	$this->setValues($values);
-    	$this->_submitted = true;
+        $this->setValues($values);
+        $this->_submitted = true;
 
-    	return $this;
+        return $this;
     }
 
     private function setValuesRecursive($el, &$values) {
@@ -495,7 +493,6 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      * Adds a callback rule to this form.
      */
     public function mustPass($callback, $message = null) {
-        Octopus::loadClass('Octopus_Html_Form_Rule_Callback');
         return $this->addRule(new Octopus_Html_Form_Rule_Callback($callback, $message));
     }
 
@@ -605,31 +602,34 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         $result = new StdClass();
         $result->errors = array();
 
-        foreach($this->children() as $c) {
-            $this->validateRecursive($c, $values, $result);
-        }
+		if ($this->verifySecurityToken()) {
 
-        foreach($this->_rules as $r) {
+	        foreach($this->children() as $c) {
+	            $this->validateRecursive($c, $values, $result);
+	        }
 
-            $ruleResult = $r->validate($this, $values);
+	        foreach($this->_rules as $r) {
 
-            if ($ruleResult === true) {
-                continue;
-            } else if ($ruleResult === false) {
-                $result->errors[] = $r->getMessage($this, $values);
-            } else if (is_string($ruleResult)) {
-                $result->errors[] = $ruleResult;
-            } else if (is_array($ruleResult)) {
-                foreach($ruleResult as $err) {
-                    $result->errors[] = $err;
-                }
-            }
+	            $ruleResult = $r->validate($this, $values);
 
-        }
+	            if ($ruleResult === true) {
+	                continue;
+	            } else if ($ruleResult === false) {
+	                $result->errors[] = $r->getMessage($this, $values);
+	            } else if (is_string($ruleResult)) {
+	                $result->errors[] = $ruleResult;
+	            } else if (is_array($ruleResult)) {
+	                foreach($ruleResult as $err) {
+	                    $result->errors[] = $err;
+	                }
+	            }
 
-        if (!$this->verifySecurityToken()) {
-            $result->errors[] = 'This form has expired';
-        }
+	        }
+
+	    } else {
+	    	$result->errors[] = 'This form has expired';
+	    }
+
 
         $result->success = (count($result->errors) == 0);
 
@@ -876,9 +876,9 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      */
     public function wasSubmitted() {
 
-    	if ($this->_submitted !== null) {
-    		return $this->_submitted;
-    	}
+        if ($this->_submitted !== null) {
+            return $this->_submitted;
+        }
 
         $actualMethod = strtolower(isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'get');
         $thisMethod = strtolower($this->getAttribute('method', 'get'));

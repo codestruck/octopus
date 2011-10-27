@@ -1,18 +1,13 @@
 <?php
 
-Octopus::loadClass('Octopus_Logger_File');
-Octopus::loadExternal('htmlmimemail');
-
 define_unless('LOG_EMAILS', false);
 define_unless('SEND_EMAILS', true);
 
-//MH: PHP 4 doesn't know this.
-define_unless('DATE_RFC822', 'D, d M y H:i:s O');
-
-
 class Octopus_Mail {
 
-    function Octopus_Mail() {
+    public function __construct() {
+
+    	Octopus::loadExternal('htmlmimemail');
 
         $this->mailHandler = new htmlMimeMail();
 
@@ -23,6 +18,7 @@ class Octopus_Mail {
         $this->text = '';
         $this->html = '';
 
+        $this->files = array();
     }
 
     function to($to) {
@@ -51,6 +47,12 @@ class Octopus_Mail {
 
     function html($html) {
         $this->html = $html;
+    }
+
+    function attach($file) {
+        if (is_file($file)) {
+            $this->files[] = $file;
+        }
     }
 
     function send() {
@@ -98,9 +100,14 @@ END;
             $output .= "Html Contents:\n\n{$this->html}\n\n";
         }
 
-        $fp = fopen('/tmp/sole_email_test.log', 'a');
-        fwrite($fp, $output);
-        fclose($fp);
+        foreach ($this->files as $file) {
+            $output .= "Attached File: " . basename($file) . "\n";
+        }
+
+        $dir = get_option('LOG_DIR');
+        if (!$dir) $dir = get_option('OCTOPUS_PRIVATE_DIR');
+        $log = new Octopus_Logger_File($dir . 'emails.log');
+        $log->log($output);
 
     }
 
@@ -133,6 +140,10 @@ END;
         $this->mailHandler->setFrom($this->from);
         $this->mailHandler->setSubject($this->subject);
         $this->mailHandler->setHeader('Date', date(DATE_RFC822));
+
+        foreach ($this->files as $file) {
+            $this->mailHandler->addAttachment($file);
+        }
 
         $send_type = 'mail';
 

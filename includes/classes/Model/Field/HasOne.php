@@ -7,136 +7,60 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
 
     public function accessValue($model, $saving = false) {
 
-        $fieldName = $this->getFieldName();
-        $key = to_id($fieldName);
-        $class = $this->getItemClass();
-
-        $filtering = $this->getOption('filter', false);
-        if ($filtering) {
-            $class = ucfirst($model->item_type);
-            $key = 'item_id';
+        if ($this->getOption('filter', false)) {
+            $fieldName = 'item_id';
+        } else {
+            $fieldName = $this->getFieldName();
         }
 
         $value = $model->getInternalValue($fieldName);
 
         if (!$value) {
-
-            // Since loadData() on model sets the _id field, check there as well
-            $value = $model->getInternalValue($key);
-            if (!$value) {
-                return null;
-            }
-
+            return null;
         }
 
         if (is_numeric($value)) {
 
-            // We have the ID, need to load up the corresponding object
-            $obj = new $class($value);
-            $value = array('id' => $value, 'object' => $obj);
+	        $class = $this->getItemClass($model);
 
-            // Cache id / object on the model as an array
+            // We have the ID, need to load up the corresponding object
+            $value = new $class($value);
+
+            // Cache object on model
             $model->setInternalValue($fieldName, $value, false);
         }
 
-        $obj = isset($value['object']) ? $value['object'] : null;
-        if ($obj) {
-            $obj->escaped = $model->escaped;
-        }
+        $value->escaped = $model->escaped;
 
-        return $obj;
+        return $value;
     }
 
-    public function migrate($schema, $table) {
-        $col = to_id($this->getFieldName());
-        $table->newKey($col);
-        $table->newIndex($col);
-    }
+    public function loadValue(Octopus_Model $model, $row) {
 
-    public function save($model, $sqlQuery) {
+    	$name = $this->getFieldName();
+    	$col = $this->getColumn();
 
-        $fieldName = $this->getFieldName();
-        $key = to_id($fieldName);
-
-        $filtering = $this->getOption('filter', false);
-        if ($filtering) {
-            $class = ucfirst($model->item_type);
-            $key = 'item_id';
-        }
-
-        // Since, for example, on a field called 'category', the DB value
-        // will be present on the model as 'category_id', we have to
-        // look both places.
-        $value = $model->getInternalValue($fieldName);
-        if (!$value) {
-            $value = $model->getInternalValue($key);
-        }
-
-        $object = null;
-
-        if ($value) {
-
-            if (is_array($value)) {
-                // setValue() sets $key to array('id' => x, 'object' => y);
-                $object = $value['object'];
-
-            } else if (is_numeric($arr)) {
-                // Since setValue() sets $key to an array, if it is still numeric,
-                // that means it hasn't been touched.
-                return;
-            }
-        }
-
-        if ($object && !$object->validate()) {
+        if ($this->getOption('filter', false)) {
             return;
         }
 
-        // MJE: this is to avoid a circular save loop with references
-        // Can probably be fixed by implementing dirty detection to avoid saving unneccessarily
-        if ($object) {
+    	if (isset($row[$col])) {
+    		$this->setValue($model, $row[$col]);
+    	}
 
-            if ($this->shouldCascadeSave()) {
-
-                if (!$object->save()) {
-                    return;
-                }
-
-            } else {
-
-                if (!$object->validate()) {
-                    return;
-                }
-
-            }
-
-        }
-
-        if ($object && !$object->id) {
-            throw new Octopus_Model_Exception("HasOne has an object to save, but it does not have an id.");
-        }
-
-        // save id of subobject in this field
-        $sqlQuery->set($key, $object ? $object->id : '');
     }
 
     public function setValue($model, $value) {
 
         $fieldName = $this->getFieldName();
-        $key = to_id($fieldName);
-        $class = $this->getItemClass();
-
-        $filtering = $this->getOption('filter', false);
-        if ($filtering) {
-            $class = ucfirst($model->item_type);
-            $key = 'item_id';
-        }
 
         // Handle $model->field = null or $model->field = false or whatever
         if (!$value) {
             $model->setInternalValue($fieldName, null);
-            $model->setInternalValue($key, null, false);
             return;
         }
+
+        $class = $this->getItemClass($model);
 
         // Handle $model->field = 55
         if (is_numeric($value)) {
@@ -150,20 +74,48 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
 
         if (!$value instanceof $class) {
             $valueClass = get_class($value);
-            throw new Octopus_Model_Exception("Value of HasOne field {$modelClass}.{$fieldName} must be an instance of $class, but was an instance of $valueClass");
+            $thisClass = get_class($model);
+            throw new Octopus_Model_Exception("Value of HasOne field {$thisClass}.{$fieldName} must be an instance of $class, but was an instance of $valueClass");
         }
 
-        $model->setInternalValue($fieldName, array('id' => $value->id, 'object' => $value));
-        $model->setInternalValue($key, $value->id, false);
+        $model->setInternalValue($fieldName, $value);
     }
 
-    public function validate($model) {
-        $obj = $this->accessValue($model);
-        if ($this->getOption('required')) {
-            return $obj->validate();
-        } else {
-            return true;
+    public function save($model, $sqlQuery) {
+
+        $fieldName = $this->getFieldName();
+        $col = $this->getColumn();
+
+        $value = $model->getInternalValue($fieldName);
+
+        if ($value) {
+
+        	if (is_numeric($value)) {
+        		$class = $this->getItemClass($model);
+        		$value = new $class($value);
+        	}
+
         }
+
+        if ($value && $this->shouldCascadeSave()) {
+
+            if (!$value->save()) {
+                return false;
+            }
+
+        }
+
+        if ($value && !$value->id) {
+            throw new Octopus_Model_Exception("HasOne {$this->field} has an object to save, but it does not have an id.");
+        }
+
+        $sqlQuery->set($col, $value ? $value->id : '');
+    }
+
+    public function migrate($schema, $table) {
+        $col = to_id($this->getFieldName());
+        $table->newKey($col);
+        $table->newIndex($col);
     }
 
     public function restrict($expression, $operator, $value, &$s, &$params, $model) {
@@ -275,10 +227,29 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         return in_array($operation, $cascade);
     }
 
-    private function getItemClass() {
+    private function getColumn() {
+
+    	if ($this->getOption('filter', false)) {
+    		return 'item_id';
+    	}
+
+    	return to_id($this->getFieldName());
+    }
+
+    private function getItemClass($model= null) {
+
+    	if ($model && $this->getOption('filter', false)) {
+    		return ucfirst($model->item_type);
+    	}
+
         // use the 'model' option as the classname, otherwise the fieldname
-        $class = $this->getOption('model', $this->getFieldName());
-        return ucfirst($class);
+        $class = $this->getOption('model', false);
+
+        if ($class === false) {
+            $class = camel_case($this->getFieldName(), true);
+        }
+
+        return $class;
     }
 
     public function restrictFreetext($model, $text) {

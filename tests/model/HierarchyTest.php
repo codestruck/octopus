@@ -1,14 +1,11 @@
 <?php
 
-Octopus::loadClass('Octopus_DB');
-Octopus::loadClass('Octopus_Model');
-
 db_error_reporting(DB_PRINT_ERRORS);
 
 class User extends Octopus_Model {
     protected $fields = array(
         'name' => array(
-            'required' => true
+            // 'required' => true
         ),
         'group' => array(
             'type' => 'hasMany',
@@ -19,7 +16,7 @@ class User extends Octopus_Model {
 class Container extends Octopus_Model {
     protected $fields = array(
         'name' => array(
-            'required' => true,
+            // 'required' => true,
         ),
         'user' => array(
             'type' => 'hasOne',
@@ -33,7 +30,7 @@ class Container extends Octopus_Model {
 class Thing extends Octopus_Model {
     protected $fields = array(
         'name' => array(
-            'required' => true,
+            // 'required' => true,
         ),
         'container' => array(
             'type' => 'hasOne',

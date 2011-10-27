@@ -23,12 +23,6 @@
  *
 **/
 
-Octopus::loadClass('Octopus_Image_Mode_Crop_Specific');
-Octopus::loadClass('Octopus_Image_Mode_Crop_Thumb');
-Octopus::loadClass('Octopus_Image_Mode_Crop');
-Octopus::loadClass('Octopus_Image_Mode_Upload');
-Octopus::loadClass('Octopus_Image_Mode_Resize');
-
 class Octopus_Image {
 
 

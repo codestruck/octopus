@@ -19,7 +19,6 @@ abstract class Octopus_Template_Renderer {
 
         foreach(self::$_registry as $pattern => $class) {
             if (preg_match($pattern, $filename)) {
-                Octopus::loadClass($class);
                 return new $class($filename);
             }
         }

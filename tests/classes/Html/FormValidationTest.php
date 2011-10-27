@@ -1,7 +1,6 @@
 <?php
 
 define('NO_INPUT', '--NO INPUT--');
-Octopus::loadClass('Octopus_Html_Form');
 
 /**
  * @group Html
@@ -12,7 +11,6 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
     function testEmailValidation() {
 
         $tests = array(
-            NO_INPUT => true,
             '' => true,
             '    ' => true,
             'matthinz@solegraphics.com' => true,
@@ -35,12 +33,11 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
 
     function runValidationTest($form, $input, $expectedResult) {
 
-        $data = array();
-        if ($input !== NO_INPUT) $data['foo'] = $input;
+        $data = array('foo' => $input);
 
         $form->setValues($data);
 
-        $this->assertEquals($data, $form->getValues());
+        $this->assertEquals($data, $form->getValues(), "failed on $input");
 
         $result = $form->validate();
 
@@ -56,7 +53,6 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
 
         $tests = array(
 
-            NO_INPUT => true,
             'pass' => true,
             'fail' => false,
             '  pass' => false
@@ -91,9 +87,8 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
         $form->add('foo')->mustMatch('/^\d{5}(-\d+)?$/');
 
         $tests = array(
-            NO_INPUT => true,
-            '' => true,
-            '     ' => true,
+            '' => false,
+            '     ' => false,
             '98225' => true,
             'hi there' => false
 
@@ -101,6 +96,43 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
 
         foreach($tests as $input => $expectedResult) {
             $this->runValidationTest($form, $input, $expectedResult);
+        }
+
+    }
+
+    function testStopCheckingRulesOnFailure() {
+
+    	$form = new Octopus_Html_Form('shortCircuit');
+    	$form->add('foo')
+    		->required()
+    		->mustMatch('/\d+/');
+
+    	$form->submit(array('foo' => ''));
+    	$form->validate($result);
+    	$this->assertFalse($result->success);
+    	$this->assertEquals(1, count($result->errors));
+
+    }
+
+    function testMustMatchOtherField() {
+
+        $tests = array(
+            array('', '', true),
+            array('foo', '', false),
+            array('foo', 'bar', false),
+            array('foo', 'foo', true)
+        );
+
+        foreach($tests as $params) {
+
+            list($email, $confirm_email, $succeeds) = $params;
+
+            $form = new Octopus_Html_Form('mustMatchOtherField');
+            $form->add('email');
+            $form->add('confirm_email')->mustMatch('email');
+
+            $form->submit(compact('email', 'confirm_email'));
+            $this->assertEquals($succeeds, $form->validate(), "'$email', '$confirm_email' " . ($succeeds ? 'succeeds' : 'fails'));
         }
 
     }
@@ -113,7 +145,6 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
              ->between(1, 10);
 
         $tests = array(
-            NO_INPUT => true,
             '' => true,
             '   ' => true,
             'plain text' => false,
@@ -140,7 +171,6 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
         $this->assertTrue(count($field->getRules()) === 1, 'Field should have a required rule on it');
 
         $tests = array(
-            NO_INPUT => false,
             '' => false,
             '     ' => false,
             '0' => true,
@@ -163,6 +193,8 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
     function testFormValidation() {
 
         $form = new Octopus_Html_Form('validation');
+        $form->add('x');
+        $form->add('y');
         $form->mustPass(array($this, '_test_validate_form'));
 
         $this->assertTrue($form->setValues(array('x' => 'pass', 'y' => 'pass'))->validate());

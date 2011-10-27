@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_DB_Schema');
-
 class Octopus_DB_Schema_Model {
 
     public static function makeTable($modelClass) {
@@ -14,8 +12,6 @@ class Octopus_DB_Schema_Model {
         } else {
 
             $modelClass = camel_case($modelClass, true);
-            Octopus::loadModel($modelClass);
-
             $model = new $modelClass();
         }
 

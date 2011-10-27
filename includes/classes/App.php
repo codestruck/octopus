@@ -1,15 +1,5 @@
 <?php
 
-
-Octopus::loadClass('Octopus_Model');
-Octopus::loadClass('Octopus_Nav');
-Octopus::loadClass('Octopus_Dispatcher');
-Octopus::loadClass('Octopus_Request');
-Octopus::loadClass('Octopus_Response');
-Octopus::loadClass('Octopus_Controller');
-Octopus::loadClass('Octopus_Controller_Api');
-Octopus::loadClass('Octopus_Settings');
-
 // Shortcut functions
 function app_error($error, $level = E_USER_WARNING) {
     Octopus_App::singleton()->error($error, $level);
@@ -76,7 +66,7 @@ class Octopus_App {
 
         /**
          * Whether or not to auto-include files in the site/functions directory.
-         * This option depends on use_site_config, if that is false, no 
+         * This option depends on use_site_config, if that is false, no
          * will be included.
          */
         'include_site_functions' => true,
@@ -182,6 +172,21 @@ class Octopus_App {
 
     protected function watchForErrors() {
         $this->_prevErrorHandler = set_error_handler(array($this, 'errorHandler'));
+        register_shutdown_function(array($this, 'shutdownHandler'));
+    }
+
+    /**
+     * Custom shutdown handler used to flush the response in the case of
+     * a fatal error. This ensures that
+     */
+    public function shutdownHandler() {
+
+        $error = error_get_last();
+        if ($error && !empty($error['type']) && ($error['type'] & E_ERROR)) {
+            $resp = $this->getCurrentResponse();
+            if ($resp) $resp->flush();
+        }
+
     }
 
     /**
@@ -197,6 +202,11 @@ class Octopus_App {
                 cancel_redirects();
             }
 
+        }
+
+        if ($level & E_ERROR) {
+            $resp = $this->getCurrentResponse();
+            $resp->flush();
         }
 
         if ($this->_prevErrorHandler) {
@@ -262,7 +272,7 @@ class Octopus_App {
         }
 
         foreach(array('OCTOPUS_PRIVATE_DIR', 'OCTOPUS_CACHE_DIR', 'OCTOPUS_UPLOAD_DIR') as $name) {
-            
+
             $dir = $o[$name];
             if (!is_dir($dir)) {
                 if (!@mkdir($dir, 0777, true)) {
@@ -336,8 +346,6 @@ class Octopus_App {
      */
     public function migrate($version = null) {
 
-        Octopus::loadClass('Octopus_DB_Migration_Runner');
-
         $db = Octopus_DB::singleton();
 
         $runner = new Octopus_DB_Migration_Runner($this->getMigrationDirs());
@@ -353,7 +361,6 @@ class Octopus_App {
      */
     public function haveMigrationsToRun() {
 
-        Octopus::loadClass('Octopus_DB_Migration_Runner');
         $runner = new Octopus_DB_Migration_Runner($this->getMigrationDirs());
 
         return $runner->isUpToDate();
@@ -689,10 +696,16 @@ class Octopus_App {
      * Shuts down / cleans up after this app instance.
      */
     public function stop() {
-        
+
         if (self::$_instance === $this) {
             self::$_instance = null;
         }
+
+       	$o =& $this->_options;
+
+        Octopus::removeControllerDir($o['OCTOPUS_DIR'] . 'controllers/');
+        Octopus::removeClassDir($o['SITE_DIR'] . 'classes/');
+        Octopus::removeControllerDir($o['SITE_DIR'] . 'controllers/');
 
     }
 
@@ -774,6 +787,10 @@ class Octopus_App {
             }
         }
 
+        Octopus::addControllerDir($o['SITE_DIR'] . 'controllers/');
+        Octopus::addControllerDir($o['OCTOPUS_DIR'] . 'controllers/');
+        Octopus::addClassDir($o['SITE_DIR'] . 'classes/', true);
+        // NOTE: OCTOPUS_DIR/includes/classes is added automatically by including includes/classes/Octopus.php
     }
 
     private function _figureOutSecurity() {
@@ -848,7 +865,7 @@ class Octopus_App {
     }
 
     private function _includeSiteFunctions() {
-        
+
         $o =& $this->_options;
         if (!($o['use_site_config'] && $o['include_site_functions'])) {
             return;
@@ -890,7 +907,7 @@ class Octopus_App {
 
         if (!$host) {
 
-            /* 
+            /*
              * NOTE: Getting the hostname via `hostname` can have unintended
              * consequences when multiple app installations are running on the
              * same server. For example, if you have apps on serverx in two
@@ -899,7 +916,7 @@ class Octopus_App {
              *  /var/www/app
              *  /var/www/app/dev
              *
-             * If 'dev.serverx' is mapped to app/dev, but hostname returns 
+             * If 'dev.serverx' is mapped to app/dev, but hostname returns
              * 'serverx', any config meant for dev.serverx will not be applied.
              */
 

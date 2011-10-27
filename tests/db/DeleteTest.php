@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_DB_Delete');
-
 /**
  * @group DB
  */

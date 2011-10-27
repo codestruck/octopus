@@ -1,6 +1,4 @@
 <?php
-Octopus::loadClass('Octopus_Logger_File');
-
 class Octopus_DB_Driver_Pdo {
 
     public $handle = null;
@@ -23,6 +21,7 @@ class Octopus_DB_Driver_Pdo {
         $this->handle->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
         $this->database = DB_database;
         $this->connection = $this->handle;
+
     }
 
     /**
@@ -30,26 +29,22 @@ class Octopus_DB_Driver_Pdo {
      */
     function query($sql, $params = array()) {
 
-        if ($sql !== $this->lastSql || preg_match('/select/i', $sql)) {
-            $this->lastQuery = $this->handle->prepare($sql);
-        }
-
-        $this->lastSql = $sql;
+        $query = $this->handle->prepare($sql);
 
         try {
-            $this->lastQuery->execute($params);
+            $query->execute($params);
         } catch (PDOException $e) {
             $this->success = false;
-            return $this->lastQuery;
+            return $query;
         }
 
-        if ($this->lastQuery->errorCode() === '00000') {
+        if ($query->errorCode() === '00000') {
             $this->success = true;
         } else {
             $this->success = false;
         }
 
-        return $this->lastQuery;
+        return $query;
     }
 
     function fetchAssoc($query) {

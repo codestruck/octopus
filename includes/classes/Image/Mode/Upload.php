@@ -1,7 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Image_Mode_Base');
-
 class Octopus_Image_Mode_Upload extends Octopus_Image_Mode_Base {
 
     function Octopus_Image_Mode_Upload($src, $layout) {
@@ -17,7 +15,7 @@ class Octopus_Image_Mode_Upload extends Octopus_Image_Mode_Base {
         $this->width = $this->src->width;
         $this->height = $this->src->height;
 
-        if ($this->src->ext == $this->ext) {
+        if ($this->src->ext == $this->ext && $this->quality == 100) {
             $this->direct_copy = true;
         }
 

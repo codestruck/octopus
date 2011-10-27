@@ -15,29 +15,18 @@ END;
     $testSys = null;
     $testSite = null;
 
-    foreach($argv as $arg) {
+    array_shift($argv); // remove script name
+    $what = strtolower(array_shift($argv));
 
-        switch(strtolower($arg)) {
+    $testSys = ($what === 'sys' || $what === 'all');
+    $testSite = ($what === 'site' || $what === 'all');
 
-            case 'all':
-                $testSys = $testSite = true;
-                break;
-
-            case 'sys':
-                $testSys = true;
-                break;
-
-            case 'site':
-                $testSite = true;
-                break;
-        }
-
+    if (!($testSys || $testSite)) {
+        $testSite = true;
+        array_unshift($argv, $what);
     }
 
-    if ($testSys === null && $testSite === null) {
-        echo $usage;
-        exit(1);
-    }
+	$extraArgs = implode(' ', $argv);
 
     $phpUnit = trim(`which phpunit`);
     if (!$phpUnit) {
@@ -50,6 +39,8 @@ END;
         exit(1);
     }
 
+
+
     $octopusDir = dirname(dirname(__FILE__)) . '/';
 
     if ($testSys) {
@@ -57,7 +48,7 @@ END;
         $xml = $octopusDir . 'phpunit.xml';
         $testDir = $octopusDir . 'tests';
 
-        passthru("$phpUnit --configuration \"$xml\" \"$testDir\"");
+        passthru("$phpUnit --configuration \"$xml\" $extraArgs \"$testDir\"");
     }
 
     if ($testSite) {
@@ -96,7 +87,7 @@ END;
             $cmd .= "--bootstrap \"$bootstrap\"";
         }
 
-        $cmd .= " \"$testDir\"";
+        $cmd .= " $extraArgs \"$testDir\"";
 
         passthru($cmd);
     }

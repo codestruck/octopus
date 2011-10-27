@@ -1,8 +1,5 @@
 <?php
 
-Octopus::loadClass('Octopus_Html_Element');
-Octopus::loadClass('Octopus_Html_Table_Content');
-
 define('OCTOPUS_SORT_ASC', 'asc');
 define('OCTOPUS_SORT_DESC', 'desc');
 
@@ -30,6 +27,13 @@ class Octopus_Html_Table_Column {
         'function' => null,
 
         /**
+         * Text put in the header cell for this column. The 'title'
+         * key is also supported for this. If not set, the column id is
+         * humanized and used.
+         */
+        'label' => null,
+
+        /**
          * Whether this column is sortable. NULL means it should judge for
          * itself whether it should be sortable.
          */
@@ -38,8 +42,7 @@ class Octopus_Html_Table_Column {
         /**
          * Column name to use for sorting, if not this one.
          */
-        'sortUsing' => null
-
+        'sortUsing' => null,
 
     );
 
@@ -69,8 +72,6 @@ class Octopus_Html_Table_Column {
 
     public function addAction($id, $label = null, $url = null, $options = null) {
 
-        Octopus::loadClass('Octopus_Html_Table_Action');
-
         if ($id instanceof Octopus_Html_Table_Content) {
             $action = $id;
         } else {
@@ -85,7 +86,6 @@ class Octopus_Html_Table_Column {
                 return $this->addToggle($id, $label, $url, $options);
             }
 
-
             $action = new Octopus_Html_Table_Action($id, $label, $url, $options);
         }
 
@@ -97,7 +97,6 @@ class Octopus_Html_Table_Column {
 
     public function addToggle($id, $labels = null, $url = null, $options = null) {
 
-        Octopus::loadClass('Octopus_Html_Table_Toggle');
         $toggle = new Octopus_Html_Table_Toggle($id, $labels, $url, $options);
 
         return $this->addAction($toggle);
@@ -407,52 +406,7 @@ class Octopus_Html_Table_Column {
      */
     protected function applyFunction(&$value, &$row, &$escape) {
 
-        if (empty($this->options['function'])) {
-            return $value;
-        }
-
-        $f = $this->options['function'];
-        $isString = is_string($f);
-        $isObject = is_object($value);
-
-        if ($isString && $isObject && method_exists($value, $f)) {
-            // TODO: should there be a way to supply arguments here?
-            return $value->$f();
-        } else if ($isString && method_exists($this, $f)) {
-            return $this->$f($value, $row);
-        } else if ($row instanceof Octopus_Model && method_exists($row, $f)) {
-            return $row->$f($value, $row);
-        }
-
-        if (is_callable($f)) {
-
-            /* HACK: not all built-in functions like receiving the row as
-             *       the 2nd argument.
-             *
-             * TODO: Have more calling options, something like:
-             *
-             *      array(
-             *          'function' => 'name of function',
-             *          'args' => array(OCTOPUS_ARG_VALUE, OCTOPUS_ARG_ROW, $customVariable, new Octopus_Function(...))
-             *      )
-             */
-
-            $useExtraArgs = true;
-            if ($isString) {
-                $noExtraArgs = array('htmlspecialchars', 'htmlentities', 'trim', 'ltrim', 'rtrim', 'nl2br', 'basename');
-                $useExtraArgs = !in_array($f, $noExtraArgs);
-            }
-
-            if ($useExtraArgs) {
-                return call_user_func($f, $value, $row, $this);
-            } else {
-                return call_user_func($f, $value);
-            }
-
-        }
-
-        $escape = false;
-        return '<span style="color:red;">Function not found: ' . h($f) . '</span>';
+        return Octopus_Html_Table_Content::applyFunction($this->options['function'], $value, $row, $escape, $this);
 
     }
 
@@ -480,19 +434,23 @@ class Octopus_Html_Table_Column {
         }
 
         // Normalize some field props
-        if (empty($o['title'])) {
+        $title = null;
 
-            if (!empty($o['desc'])) {
-                $o['title'] = $o['desc'];
-            } else if (!empty($o['label'])) {
-                $o['title'] = $o['label'];
-            } else if (!empty($o['name'])) {
-                $o['title'] = $o['name'];
-            } else {
-                $o['title'] = humanize($id);
-            }
-
+        if (isset($o['label'])) {
+            $title = $o['label'];
+        } else if (isset($o['title'])) {
+            $title = $o['title'];
+        } else if (isset($o['desc'])) {
+            $title = $o['desc'];
+        } else if (isset($o['name'])) {
+            $title = $o['name'];
         }
+
+        if ($title === null) {
+            $title = humanize($id);
+        }
+
+        $o['title'] = $title;
 
         if (empty($o['function']) && !empty($o['func'])) {
             $o['function'] = $o['func'];
