@@ -485,13 +485,13 @@ END
         $this->assertColsMatch($expectedCols, 'migrate_test_categories');
 
         $expectedCols = array(
-            'category_id' => array(
+            'migrate_test_person_id' => array(
                 'type' => 'int',
                 'size' => 10,
                 'options' => 'NOT NULL',
                 'index' => 'MUL'
             ),
-            'migrate_test_person_id' => array(
+            'migrate_test_category_id' => array(
                 'type' => 'int',
                 'size' => 10,
                 'options' => 'NOT NULL',

@@ -21,7 +21,7 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
     public function accessValue($model, $saving = false) {
 
         $type = camel_case(singularize($this->field));
-        $key = pluralize(strtolower(get_class($model)));
+        $key = $this->getOption('field', pluralize(strtolower(get_class($model))));
         $value = $model->id;
 
         $search = array($key => $value);
@@ -51,7 +51,8 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
      */
     public function restrict($expression, $operator, $value, &$s, &$params, $model) {
 
-        $s->innerJoin($this->getJoinTableName(), $this->getModelKey(), array());
+        $joinTable = $this->getJoinTableName();
+        $s->innerJoin($joinTable, $this->getModelKey(), array());
         $foreignKey = $this->getJoinedKey();
 
         return $this->defaultRestrict(array($joinTable, $foreignKey), $operator, $this->getDefaultSearchOperator(), $value, $s, $params, $model);
@@ -100,14 +101,27 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
      * @return String Third table used to join objects in a many-to-many
      * relationship.
      */
-    protected function getJoinTableName() {
+    public function getJoinTableName() {
 
     	if ($this->joinTableName) {
     		return $this->joinTableName;
     	}
 
     	$thisModel = singularize(underscore($this->getModelClass()));
-    	$joinedModel = singularize(underscore($this->getFieldName()));
+        $joinedModel = $this->getOption('model', singularize(underscore($this->getFieldName())));
+
+        $customTable = $this->getOption('model', false);
+        $customField = $this->getOption('field', false);
+        $relation = $this->getOption('relation', false);
+        if ($customTable && $customField && !$relation) {
+            throw Octopus_Exception('you must set relation option on custom manyToMany fields');
+        }
+
+        if ($relation) {
+            $tables = array(singularize(underscore($joinedModel)), $thisModel);
+            sort($tables);
+            return $this->joinTableName = sprintf('%s_%s_%s_join', $tables[0], $tables[1], $relation);
+        }
 
     	$tables = array($thisModel, $joinedModel);
     	sort($tables);
