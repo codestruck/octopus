@@ -21,7 +21,7 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
 
         if (is_numeric($value)) {
 
-	        $class = $this->getItemClass($model);
+            $class = $this->getItemClass($model);
 
             // We have the ID, need to load up the corresponding object
             $value = new $class($value);
@@ -37,16 +37,16 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
 
     public function loadValue(Octopus_Model $model, $row) {
 
-    	$name = $this->getFieldName();
-    	$col = $this->getColumn();
+        $name = $this->getFieldName();
+        $col = $this->getColumn();
 
         if ($this->getOption('filter', false)) {
             return;
         }
 
-    	if (isset($row[$col])) {
-    		$this->setValue($model, $row[$col]);
-    	}
+        if (isset($row[$col])) {
+        	$this->setValue($model, $row[$col]);
+        }
 
     }
 
@@ -90,10 +90,10 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
 
         if ($value) {
 
-        	if (is_numeric($value)) {
-        		$class = $this->getItemClass($model);
-        		$value = new $class($value);
-        	}
+            if (is_numeric($value)) {
+            	$class = $this->getItemClass($model);
+            	$value = new $class($value);
+            }
 
         }
 
@@ -229,18 +229,18 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
 
     private function getColumn() {
 
-    	if ($this->getOption('filter', false)) {
-    		return 'item_id';
-    	}
+        if ($this->getOption('filter', false)) {
+        	return 'item_id';
+        }
 
-    	return to_id($this->getFieldName());
+        return to_id($this->getFieldName());
     }
 
     private function getItemClass($model= null) {
 
-    	if ($model && $this->getOption('filter', false)) {
-    		return ucfirst($model->item_type);
-    	}
+        if ($model && $this->getOption('filter', false)) {
+        	return ucfirst($model->item_type);
+        }
 
         // use the 'model' option as the classname, otherwise the fieldname
         $class = $this->getOption('model', false);

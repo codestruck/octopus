@@ -275,11 +275,11 @@ END;
      */
     public function whereSql($sql, $params = array()) {
 
-    	if (!is_array($params)) {
-    		$args = func_get_args();
-    		array_shift($args);
-    		$params = $args;
-    	}
+        if (!is_array($params)) {
+        	$args = func_get_args();
+        	array_shift($args);
+        	$params = $args;
+        }
 
         $result = $this->where(array($sql => $params));
 
@@ -355,9 +355,9 @@ END;
     }
 
     public function getNormalizedSql() {
-    	$params = array();
-    	$sql = $this->getSql($params);
-    	return normalize_sql($sql, $params);
+        $params = array();
+        $sql = $this->getSql($params);
+        return normalize_sql($sql, $params);
     }
 
     /**
@@ -615,9 +615,9 @@ END;
 
         foreach($criteria as $arg) {
 
-        	if ($arg instanceof Octopus_Model) {
-        		$arg = array('id' => $arg->id);
-        	}
+            if ($arg instanceof Octopus_Model) {
+            	$arg = array('id' => $arg->id);
+            }
 
             if ($arg instanceof Octopus_Model_ResultSet) {
                 $result = $this->createChild($arg->_criteria, null, $conjunction);
@@ -654,7 +654,7 @@ END;
         if (!$this->_modelInstance) {
             $class = $this->getModel();
             if (!class_exists($class)) {
-            	throw new Octopus_Model_Exception("Model class not found: $class");
+                throw new Octopus_Model_Exception("Model class not found: $class");
             }
             $this->_modelInstance = new $class();
         }
@@ -1016,14 +1016,14 @@ END;
      */
     public function count($considerLimit = true) {
 
-    	$s = $this->buildSelect();
-    	$count = $s->numRows();
+        $s = $this->buildSelect();
+        $count = $s->numRows();
 
-    	if ($considerLimit && $this->_maxRecords !== null) {
-    		return min($this->_maxRecords, $count);
-    	}
+        if ($considerLimit && $this->_maxRecords !== null) {
+        	return min($this->_maxRecords, $count);
+        }
 
-    	return $count;
+        return $count;
     }
 
     // }}}

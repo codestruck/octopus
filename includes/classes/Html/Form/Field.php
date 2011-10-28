@@ -333,11 +333,11 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
             // true or non-zero = pass
             if ($v === true || is_numeric($v) && $v != 0) {
                 continue;
-        	}
+            }
 
-        	$errorCount++;
+            $errorCount++;
 
-        	if ($v === false || $v === 0) {
+            if ($v === false || $v === 0) {
                 $result->errors[] = $r->getMessage($this, $data);
             } else if (is_string($v)) {
                 $result->errors[] = $v;
@@ -492,9 +492,9 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
      * Helper function used for mustBe('email');
      */
     public static function validateEmail($input) {
-    	$input = trim($input);
-    	if (!$input) return true;
-    	return is_email($input);
+        $input = trim($input);
+        if (!$input) return true;
+        return is_email($input);
     }
 
 }

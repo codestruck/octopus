@@ -2,8 +2,8 @@
 
 class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
 
-	private $joinTableName = null;
-	private $joinedModelClass = null;
+    private $joinTableName = null;
+    private $joinedModelClass = null;
 
     public function save($model, $sqlQuery) {
 
@@ -34,10 +34,10 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
 
     public function migrate($schema, $table) {
 
-    	$joinTable = $schema->newTable($this->getJoinTableName());
+        $joinTable = $schema->newTable($this->getJoinTableName());
 
-    	$modelKey = $this->getModelKey();
-    	$joinKey = $this->getJoinedKey();
+        $modelKey = $this->getModelKey();
+        $joinKey = $this->getJoinedKey();
 
         $joinTable->newKey($modelKey);
         $joinTable->newIndex($modelKey);
@@ -69,13 +69,13 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
      */
     public function getJoinedModelClass() {
 
-    	if ($this->joinedModelClass) {
-    		return $this->joinedModelClass;
-    	}
+        if ($this->joinedModelClass) {
+        	return $this->joinedModelClass;
+        }
 
-    	$class = $this->getOption('model');
-    	if (!$class) $class = $this->getOption('class', camel_case(singularize($this->getFieldName()), true));
-    	return $this->joinedModelClass = $class;
+        $class = $this->getOption('model');
+        if (!$class) $class = $this->getOption('class', camel_case(singularize($this->getFieldName()), true));
+        return $this->joinedModelClass = $class;
 
     }
 
@@ -85,7 +85,7 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
      * this would return "product_id".
      */
     protected function getModelKey() {
-    	return to_id($this->getModelClass());
+        return to_id($this->getModelClass());
     }
 
     /**
@@ -94,7 +94,7 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
      * Product, this would return "category_id".
      */
     protected function getJoinedKey() {
-    	return to_id($this->getJoinedModelClass());
+        return to_id($this->getJoinedModelClass());
     }
 
     /**
@@ -103,11 +103,11 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
      */
     public function getJoinTableName() {
 
-    	if ($this->joinTableName) {
-    		return $this->joinTableName;
-    	}
+        if ($this->joinTableName) {
+        	return $this->joinTableName;
+        }
 
-    	$thisModel = singularize(underscore($this->getModelClass()));
+        $thisModel = singularize(underscore($this->getModelClass()));
         $joinedModel = $this->getOption('model', singularize(underscore($this->getFieldName())));
 
         $customTable = $this->getOption('model', false);
@@ -123,8 +123,8 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
             return $this->joinTableName = sprintf('%s_%s_%s_join', $tables[0], $tables[1], $relation);
         }
 
-    	$tables = array($thisModel, $joinedModel);
-    	sort($tables);
+        $tables = array($thisModel, $joinedModel);
+        sort($tables);
 
         return $this->joinTableName = sprintf('%s_%s_join', $tables[0], $tables[1]);
     }
@@ -138,7 +138,7 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
     public function handleRelation($action, $obj, $model) {
 
         if ($action === 'removeAll') {
-        	$this->clearJoinTableEntries($model);
+            $this->clearJoinTableEntries($model);
             return;
         }
 
@@ -159,37 +159,37 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
 
         if (is_object($obj)) {
 
-	        if ($obj instanceof $joinedClass) {
-	        	// Save changes before adding
-	        	$obj->save();
-	        }
-	        if (!($obj instanceof $joinedClass)) {
-        		$name = $this->getFieldName();
-        		$actualClass = get_class($obj);
-        		throw new Octopus_Model_Exception("Many-to-many relation $name only supports $joinedClass ($actualClass provided).");
-        	}
+            if ($obj instanceof $joinedClass) {
+            	// Save changes before adding
+            	$obj->save();
+            }
+            if (!($obj instanceof $joinedClass)) {
+            	$name = $this->getFieldName();
+            	$actualClass = get_class($obj);
+            	throw new Octopus_Model_Exception("Many-to-many relation $name only supports $joinedClass ($actualClass provided).");
+            }
 
         } else if (is_numeric($obj)) {
 
-        	// Handle IDs being passed in
-        	$obj = new $joinedClass($obj);
+            // Handle IDs being passed in
+            $obj = new $joinedClass($obj);
         }
 
         $this->clearJoinTableEntries($model, $obj);
 
         if ($action === 'add') {
 
-        	if (!$model->id) {
-        		$modelClass = $this->getModelClass();
-        		$fieldName = $this->getFieldName();
-        		throw new Octopus_Model_Exception("$modelClass needs to be saved before calling $action on it ($fieldName)");
-        	}
+            if (!$model->id) {
+            	$modelClass = $this->getModelClass();
+            	$fieldName = $this->getFieldName();
+            	throw new Octopus_Model_Exception("$modelClass needs to be saved before calling $action on it ($fieldName)");
+            }
 
-        	if (!$obj->id) {
-        		$modelClass = $this->getModelClass();
-        		$fieldName = $this->getFieldName();
-        		throw new Octopus_Model_Exception("$joinedClass needs to be saved before calling $action ($modelClass.$fieldName)");
-        	}
+            if (!$obj->id) {
+            	$modelClass = $this->getModelClass();
+            	$fieldName = $this->getFieldName();
+            	throw new Octopus_Model_Exception("$joinedClass needs to be saved before calling $action ($modelClass.$fieldName)");
+            }
 
             $i = new Octopus_DB_Insert();
             $i->table($this->getJoinTableName());
@@ -205,19 +205,19 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
      */
     public function checkHas($obj, $model) {
 
-    	if (!is_numeric($obj)) {
+        if (!is_numeric($obj)) {
 
-    		$joinedClass = $this->getJoinedModelClass();
+        	$joinedClass = $this->getJoinedModelClass();
 
-    		if (!$obj instanceof $joinedClass) {
-    			return false;
-    		}
+        	if (!$obj instanceof $joinedClass) {
+        		return false;
+        	}
 
-    		$id = $obj->id;
+        	$id = $obj->id;
 
-    	} else {
-    		$id = $obj;
-    	}
+        } else {
+        	$id = $obj;
+        }
 
         $s = new Octopus_DB_Select();
         $s->table($this->getJoinTableName());
@@ -239,7 +239,7 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
         $d->where($model->getPrimaryKey() . ' = ?', $model->id);
 
         if ($other) {
-        	$d->where($other->getPrimaryKey() . ' = ?', $other->id);
+            $d->where($other->getPrimaryKey() . ' = ?', $other->id);
         }
 
         $d->execute();

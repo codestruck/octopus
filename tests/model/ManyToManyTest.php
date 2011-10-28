@@ -22,21 +22,21 @@ class ManyGroup extends Octopus_Model {
 
 class PluralFieldNameTestProduct extends Octopus_Model {
 
-	protected $fields = array(
-		'name',
-		'groups' => array(
+    protected $fields = array(
+    	'name',
+    	'groups' => array(
             'type' => 'many_to_many',
             'model' => 'ManyGroup',
             'field' => 'products',
             'relation' => 'product',
         ),
-		'important_groups' => array(
+    	'important_groups' => array(
             'type' => 'many_to_many',
             'model' => 'ManyGroup',
             'field' => 'important_products',
             'relation' => 'important',
         )
-	);
+    );
 
 }
 
@@ -85,13 +85,13 @@ class ModelManyToManyTest extends Octopus_DB_TestCase
 
     function testPluralFieldNameJoinedClass() {
 
-    	$product = new PluralFieldNameTestProduct();
+        $product = new PluralFieldNameTestProduct();
 
-    	$field = $product->getField('groups');
-    	$this->assertEquals('ManyGroup', $field->getJoinedModelClass());
+        $field = $product->getField('groups');
+        $this->assertEquals('ManyGroup', $field->getJoinedModelClass());
 
-    	$field = $product->getField('important_groups');
-    	$this->assertEquals('ManyGroup', $field->getJoinedModelClass());
+        $field = $product->getField('important_groups');
+        $this->assertEquals('ManyGroup', $field->getJoinedModelClass());
 
         $product = new ManyGroup();
 
@@ -105,53 +105,53 @@ class ModelManyToManyTest extends Octopus_DB_TestCase
 
     function testPluralFieldName() {
 
-    	Octopus_DB_Schema_Model::makeTable('PluralFieldNameTestProduct');
+        Octopus_DB_Schema_Model::makeTable('PluralFieldNameTestProduct');
         Octopus_DB_Schema_Model::makeTable('ManyGroup');
 
-    	$group = new ManyGroup();
-    	$group->name = "Test Group";
-    	$group->save();
+        $group = new ManyGroup();
+        $group->name = "Test Group";
+        $group->save();
 
-    	$product = new PluralFieldNameTestProduct();
-    	$product->name = "test product";
-    	$product->save();
+        $product = new PluralFieldNameTestProduct();
+        $product->name = "test product";
+        $product->save();
 
-    	$product->addGroup($group);
-    	$this->assertEquals(1, count($product->groups));
-    	$this->assertTrue($product->hasGroup($group));
+        $product->addGroup($group);
+        $this->assertEquals(1, count($product->groups));
+        $this->assertTrue($product->hasGroup($group));
 
-    	$product->removeGroup($group);
-    	$this->assertFalse($product->hasGroup($group));
+        $product->removeGroup($group);
+        $this->assertFalse($product->hasGroup($group));
 
-    	$product->addGroup($group);
-    	$product->removeAllGroups();
-    	$this->assertEquals(0, count($product->groups));
+        $product->addGroup($group);
+        $product->removeAllGroups();
+        $this->assertEquals(0, count($product->groups));
     }
 
     function testPluralFieldNameSecondary() {
 
-		Octopus_DB_Schema_Model::makeTable('PluralFieldNameTestProduct');
+    	Octopus_DB_Schema_Model::makeTable('PluralFieldNameTestProduct');
         Octopus_DB_Schema_Model::makeTable('ManyGroup');
 
-    	$group = new ManyGroup();
-    	$group->name = "Test Group";
-    	$group->save();
+        $group = new ManyGroup();
+        $group->name = "Test Group";
+        $group->save();
 
-    	$product = new PluralFieldNameTestProduct();
-    	$product->name = "Test Product";
-    	$product->save();
+        $product = new PluralFieldNameTestProduct();
+        $product->name = "Test Product";
+        $product->save();
 
-    	$product->addImportantGroup($group);
-    	$this->assertEquals(1, count($product->important_groups));
+        $product->addImportantGroup($group);
+        $this->assertEquals(1, count($product->important_groups));
 
-    	$this->assertTrue($product->hasImportantGroup($group));
+        $this->assertTrue($product->hasImportantGroup($group));
 
-    	$product->removeImportantGroup($group);
-    	$this->assertFalse($product->hasImportantGroup($group));
+        $product->removeImportantGroup($group);
+        $this->assertFalse($product->hasImportantGroup($group));
 
-    	$product->addImportantGroup($group);
-    	$product->removeAllImportantGroups($group);
-    	$this->assertEquals(0, count($product->important_groups));
+        $product->addImportantGroup($group);
+        $product->removeAllImportantGroups($group);
+        $this->assertEquals(0, count($product->important_groups));
     }
 
     function testGroupCount()

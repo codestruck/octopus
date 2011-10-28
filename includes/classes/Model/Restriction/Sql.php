@@ -5,28 +5,28 @@
  * to a WHERE clause.
  */
 class Octopus_Model_Restriction_Sql implements Octopus_Model_Restriction {
-	
-	private $sql, $params;
 
-	public function __construct($sql, Array $params = array()) {
+    private $sql, $params;
+
+    public function __construct($sql, Array $params = array()) {
 
 
-		$this->sql = $sql;
-		$this->params = $params;
-	}
+    	$this->sql = $sql;
+    	$this->params = $params;
+    }
 
-	public function getSql(Octopus_DB_Select $s, Array &$params) {
-		
-		if (!$this->sql) {
-			return '';
-		}
+    public function getSql(Octopus_DB_Select $s, Array &$params) {
 
-		foreach($this->params as $p) {
-			$params[] = $p;
-		}
+    	if (!$this->sql) {
+    		return '';
+    	}
 
-		return "({$this->sql})";
-	}
+    	foreach($this->params as $p) {
+    		$params[] = $p;
+    	}
+
+    	return "({$this->sql})";
+    }
 
 }
 

@@ -102,15 +102,15 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
 
     function testStopCheckingRulesOnFailure() {
 
-    	$form = new Octopus_Html_Form('shortCircuit');
-    	$form->add('foo')
-    		->required()
-    		->mustMatch('/\d+/');
+        $form = new Octopus_Html_Form('shortCircuit');
+        $form->add('foo')
+        	->required()
+        	->mustMatch('/\d+/');
 
-    	$form->submit(array('foo' => ''));
-    	$form->validate($result);
-    	$this->assertFalse($result->success);
-    	$this->assertEquals(1, count($result->errors));
+        $form->submit(array('foo' => ''));
+        $form->validate($result);
+        $this->assertFalse($result->success);
+        $this->assertEquals(1, count($result->errors));
 
     }
 

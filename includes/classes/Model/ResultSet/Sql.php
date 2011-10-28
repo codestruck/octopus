@@ -5,20 +5,20 @@
  */
 class Octopus_Model_ResultSet_Sql extends Octopus_Model_ResultSet {
 
-	private $sql;
-	private $params;
+    private $sql;
+    private $params;
 
-	public function __construct($modelClass, $sql, $params = array()) {
+    public function __construct($modelClass, $sql, $params = array()) {
 
-		parent::__construct($modelClass);
-		$this->sql = $sql;
-		$this->params = $params;
+    	parent::__construct($modelClass);
+    	$this->sql = $sql;
+    	$this->params = $params;
 
-	}
+    }
 
     public function getSql(&$params = null) {
-    	$params = $this->params;
-    	return $this->sql;
+        $params = $this->params;
+        return $this->sql;
     }
 
     // These are all no-ops

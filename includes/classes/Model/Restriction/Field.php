@@ -5,25 +5,25 @@
  * on fields.
  */
 class Octopus_Model_Restriction_Field implements Octopus_Model_Restriction {
-	
-	private $model, $expression, $value;
 
-	public function __construct(Octopus_Model $model, $expression, $value) {
-		$this->model = $model;
-		$this->expression = $expression;
-		$this->value = $value;
-	}
+    private $model, $expression, $value;
 
-	/**
-	 * @param $s Octopus_DB_Select being constructed.
-	 * @param $params Array of parameters to be used by $s.
-	 * @return String SQL for use in the WHERE clause being generated.
-	 */
-	public function getSql(Octopus_DB_Select $s, Array &$params) {
-		
-		$model = $this->model;
-		$expr = $this->expression;
-		$value = $this->value;
+    public function __construct(Octopus_Model $model, $expression, $value) {
+    	$this->model = $model;
+    	$this->expression = $expression;
+    	$this->value = $value;
+    }
+
+    /**
+     * @param $s Octopus_DB_Select being constructed.
+     * @param $params Array of parameters to be used by $s.
+     * @return String SQL for use in the WHERE clause being generated.
+     */
+    public function getSql(Octopus_DB_Select $s, Array &$params) {
+
+    	$model = $this->model;
+    	$expr = $this->expression;
+    	$value = $this->value;
 
         if ($value instanceof Octopus_Model_ResultSet) {
 
@@ -59,19 +59,19 @@ class Octopus_Model_Restriction_Field implements Octopus_Model_Restriction {
 
         $modelClass = get_class($model);
         throw new Octopus_Exception("Field not found on model $modelClass: " . $field);
-	}
+    }
 
-	/**
-	 * @return bool Whether or not $str looks like it could be a field 
-	 * expression of the type parsed by parseFieldExpression
-	 * @see parseFieldExpression
-	 */
+    /**
+     * @return bool Whether or not $str looks like it could be a field
+     * expression of the type parsed by parseFieldExpression
+     * @see parseFieldExpression
+     */
     public static function looksLikeFieldExpression($str) {
         return !!preg_match('/^\s*[a-z0-9_]+(\.[a-z0-9_]+)?(\s+NOT)?(\s*[!<>=]+|\s+LIKE|\s+IN)?\s*$/i', $str);
     }
 
 
-	/**
+    /**
      * Takes a field expression (e.g., a key from a criteria array) and returns
      * an array with things about it.
      * @example

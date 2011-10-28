@@ -120,12 +120,12 @@ if (!function_exists('fuzzy_date')) {
     function format_time_span($seconds, $fuzzy = false) {
 
         $parts = get_time_span_parts($seconds);
-        
+
         // TODO: fuzzy
 
         $result = '';
         foreach($parts as $name => $count) {
-            
+
             $resultLen = strlen($result);
 
             if (!$resultLen && $name === 'seconds') {

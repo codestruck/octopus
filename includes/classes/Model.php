@@ -108,11 +108,11 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
 
     public function __call($name, $arguments) {
 
-    	// Handle e.g., addCategory, removeCategory, removeAllCategories,
-    	// hasCategory
+        // Handle e.g., addCategory, removeCategory, removeAllCategories,
+        // hasCategory
 
         if (!preg_match('/^(add|remove(All)?|has)([A-Z].*?)$/', $name, $matches)) {
-        	throw new Octopus_Model_Exception('Cannot call ' . $name . ' on Model ' . $this->getClassName());
+            throw new Octopus_Model_Exception('Cannot call ' . $name . ' on Model ' . $this->getClassName());
         }
 
         $action = $matches[1];
@@ -123,14 +123,14 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         if (!$field) $field = $this->getField(camel_case($fieldName));
 
         if (!$field) {
-        	$class = $this->getClassName();
-        	throw new Octopus_Model_Exception("Cannot call $name on model $class (field $fieldName does not exist).");
+            $class = $this->getClassName();
+            throw new Octopus_Model_Exception("Cannot call $name on model $class (field $fieldName does not exist).");
         }
 
         if ($action === 'has') {
-        	return $field->checkHas(array_shift($arguments), $this);
+            return $field->checkHas(array_shift($arguments), $this);
         } else {
-        	return $field->handleRelation($action, $arguments, $this);
+            return $field->handleRelation($action, $arguments, $this);
         }
 
     }
@@ -138,37 +138,37 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
     /**
      * Compares this instance against something else for equality.
      *
-     *	@return
-     *	True if:
-     *		* $other is numeric, nonzero, and == to this instance's id,
-     *		* $other is an instance of the same class with a nonzero id equal
-     *		  to this instance's id.
+     *    @return
+     *    True if:
+     *    	* $other is numeric, nonzero, and == to this instance's id,
+     *    	* $other is an instance of the same class with a nonzero id equal
+     *    	  to this instance's id.
      */
     public function eq($other) {
 
-    	if ($other === $this) {
-    		return true;
-    	}
+        if ($other === $this) {
+        	return true;
+        }
 
-    	// Note that without an id, only reference equality works
+        // Note that without an id, only reference equality works
 
-    	if (!$other || !$this->id) {
-    		return false;
-    	}
+        if (!$other || !$this->id) {
+        	return false;
+        }
 
-    	if (is_numeric($other)) {
-    		return $this->id == $other;
-    	}
+        if (is_numeric($other)) {
+        	return $this->id == $other;
+        }
 
-    	if (is_object($other)) {
+        if (is_object($other)) {
 
-    		$class = get_class($this);
-    		$otherClass = get_class($other);
+        	$class = get_class($this);
+        	$otherClass = get_class($other);
 
-    		return $class === $otherClass && $other->id == $this->id;
-    	}
+        	return $class === $otherClass && $other->id == $this->id;
+        }
 
-    	return false;
+        return false;
     }
 
     public function exists() {
@@ -211,7 +211,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
     public function getData() { return $this->data; }
 
     public function getTouchedFields() {
-    	return $this->touchedFields;
+        return $this->touchedFields;
     }
 
     public function setInternalValue($field, $value, $makesDirty = true) {
@@ -235,8 +235,8 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
     public function setData($data) {
 
         foreach($this->getFields() as $field) {
-	        $field->loadValue($this, $data);
-	    }
+            $field->loadValue($this, $data);
+        }
 
     }
 
@@ -244,7 +244,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
 
         $pk = $this->getPrimaryKey();
         if (isset($data[$pk])) {
-        	$this->id = $data[$pk];
+            $this->id = $data[$pk];
         }
         unset($data[$pk]);
 
@@ -419,10 +419,10 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
 
     /**
      * Resets the dirty tracking for this model (marks all fields as
-	 * unchanged).
+     * unchanged).
      */
     protected function resetDirtyState() {
-    	$this->touchedFields = array();
+        $this->touchedFields = array();
     }
 
     /**
@@ -455,7 +455,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
                 $name = is_array($options) ? $options['name'] : $options;
                 $options = array();
             } else if (is_string($options)) {
-            	$options = array('type' => $options);
+                $options = array('type' => $options);
             }
 
             $field = Octopus_Model_Field::getField($name, $class, $options);
@@ -547,7 +547,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         }
 
         if (is_string($idOrName) && trim($idOrName) === '') {
-        	return false;
+            return false;
         }
 
         if (is_object($idOrName) && get_class($idOrName) === $className) {
@@ -650,16 +650,16 @@ END;
         foreach($this->toArray() as $key => $value) {
             try {
 
-            	if ($value instanceof Octopus_Model) {
-            		$class = get_class($value);
-            		$value = "{$value} ($class, id = {$value->id})";
-            	} else if ($value instanceof Octopus_Model_ResultSet) {
-            		$count = count($value);
-            		$params = array();
-            		$sql = $value->getSql($params);
-            		$sql = normalize_sql($sql, $params);
-            		$value = "ResultSet (count = $count, sql = $sql)";
-	            } else if ($value instanceof Dumpable) {
+                if ($value instanceof Octopus_Model) {
+                	$class = get_class($value);
+                	$value = "{$value} ($class, id = {$value->id})";
+                } else if ($value instanceof Octopus_Model_ResultSet) {
+                	$count = count($value);
+                	$params = array();
+                	$sql = $value->getSql($params);
+                	$sql = normalize_sql($sql, $params);
+                	$value = "ResultSet (count = $count, sql = $sql)";
+                } else if ($value instanceof Dumpable) {
                   $value = $value->__dumpText();
                 }
                 $result .= <<<END
