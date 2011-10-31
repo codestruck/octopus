@@ -491,7 +491,7 @@ END
                 'options' => 'NOT NULL',
                 'index' => 'MUL'
             ),
-            'migrate_test_category_id' => array(
+            'category_id' => array(
                 'type' => 'int',
                 'size' => 10,
                 'options' => 'NOT NULL',
@@ -512,12 +512,10 @@ END
         foreach($cols as $id => $col) {
 
             if (!isset($expectedCols[$id])) {
-                dump_r($col);
                 $this->assertTrue(false, "Unexpected column `$id` found");
             }
 
             if (empty($expectedCols[$id])) {
-                dump_r($col);
                 $this->assertTrue(false, "Lazy programmer needs to fill in details for `$id`");
             }
 
