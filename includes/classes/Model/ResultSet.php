@@ -197,9 +197,13 @@ END;
 END;
 
             foreach($fields as $f) {
+                $value = $d[$f->getFieldName()];
+                if (is_object($value)) {
+                    $value = '[Object]';
+                }
                 $html .=
                     '<td>' .
-                    h($d[$f->getFieldName()]).
+                    h($value).
                     '</td>';
 
             }
