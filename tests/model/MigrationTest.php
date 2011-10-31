@@ -4,6 +4,10 @@ class MigrateTestPerson extends Octopus_Model {
 
     protected $fields = array(
         'name',
+        'name_short' => array('type' => 'text', 'length' => 50),
+        'name_short_size' => array('type' => 'text', 'size' => 50),
+        'name_long' => array('type' => 'text', 'size' => 260),
+        'name_really_long' => array('type' => 'text', 'length' => PHP_INT_MAX),
         'age' => array('type' => 'number'),
         'birth_date' => array( 'type' => 'datetime'),
         'just_date' => array('type' => 'date'),
@@ -356,6 +360,36 @@ END
                 'options' => 'NOT NULL',
                 'index' => ''
             ),
+
+			'name_short' => array(
+                'type' => 'varchar',
+                'size' => '50',
+                'options' => 'NOT NULL',
+                'index' => ''
+            ),
+
+			'name_short_size' => array(
+                'type' => 'varchar',
+                'size' => '50',
+                'options' => 'NOT NULL',
+                'index' => ''
+            ),
+
+			'name_long' => array(
+                'type' => 'text',
+                'size' => '',
+                'options' => 'NOT NULL',
+                'index' => ''
+            ),
+
+			'name_really_long' => array(
+                'type' => 'text',
+                'size' => '',
+                'options' => 'NOT NULL',
+                'index' => ''
+            ),
+
+
 
             'age' => array(
                 'type' => 'bigint',
