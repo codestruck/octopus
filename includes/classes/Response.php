@@ -293,12 +293,12 @@ class Octopus_Response {
      */
     public static function current() {
 
-    	if (!Octopus_App::isStarted()) {
-    		return null;
-    	}
+        if (!Octopus_App::isStarted()) {
+        	return null;
+        }
 
-    	$app = Octopus_App::singleton();
-    	return $app->getCurrentResponse();
+        $app = Octopus_App::singleton();
+        return $app->getCurrentResponse();
 
     }
 

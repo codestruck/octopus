@@ -701,7 +701,7 @@ class Octopus_App {
             self::$_instance = null;
         }
 
-       	$o =& $this->_options;
+           $o =& $this->_options;
 
         Octopus::removeControllerDir($o['OCTOPUS_DIR'] . 'controllers/');
         Octopus::removeClassDir($o['SITE_DIR'] . 'classes/');

@@ -18,6 +18,13 @@ class Octopus_Http_Request_Base {
             'Accept-Encoding' => 'gzip,deflate',
             'Accept' => '*/*',
         );
+
+        $this->reservedOpts = array(
+            'max_redirects',
+            'method',
+            'http_version',
+        );
+
     }
 
     public function getHeaders() {
@@ -43,7 +50,7 @@ class Octopus_Http_Request_Base {
             $port = $urlInfo['port'];
         }
 
-        $path = $urlInfo['path'];
+        $path = isset($urlInfo['path']) ? $urlInfo['path'] : '/';
         if (isset($urlInfo['query'])) {
             $path .= '?' . $urlInfo['query'];
         }

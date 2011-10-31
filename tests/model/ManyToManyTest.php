@@ -2,6 +2,54 @@
 
 db_error_reporting(DB_PRINT_ERRORS);
 
+class ManyGroup extends Octopus_Model {
+    protected $fields = array(
+        'name',
+        'products' => array(
+            'type' => 'many_to_many',
+            'model' => 'PluralFieldNameTestProduct',
+            'field' => 'groups',
+            'relation' => 'product'
+        ),
+        'important_products' => array(
+            'type' => 'many_to_many',
+            'model' => 'PluralFieldNameTestProduct',
+            'field' => 'important_groups',
+            'relation' => 'important',
+        ),
+    );
+}
+
+class PluralFieldNameTestProduct extends Octopus_Model {
+
+    protected $fields = array(
+    	'name',
+    	'groups' => array(
+            'type' => 'many_to_many',
+            'model' => 'ManyGroup',
+            'field' => 'products',
+            'relation' => 'product',
+        ),
+    	'important_groups' => array(
+            'type' => 'many_to_many',
+            'model' => 'ManyGroup',
+            'field' => 'important_products',
+            'relation' => 'important',
+        )
+    );
+
+}
+
+class OneSided extends Octopus_Model {
+    protected $fields = array(
+        'name',
+        'groups' => array(
+            'type' => 'many_to_many',
+            'relation' => 'onesided',
+        )
+    );
+}
+
 /**
  * @group Model
  */
@@ -10,6 +58,100 @@ class ModelManyToManyTest extends Octopus_DB_TestCase
     function __construct()
     {
         parent::__construct('model/relation-many-data.xml');
+    }
+
+    function testJoinTableNames() {
+        $product = new Product();
+        $field = $product->getField('groups');
+        $this->assertEquals('group_product_join', $field->getJoinTableName(), 'simple default joins');
+
+        $group = new Group();
+        $field = $group->getField('products');
+        $this->assertEquals('group_product_join', $field->getJoinTableName(), 'simple default joins');
+
+        $product = new PluralFieldNameTestProduct();
+        $field = $product->getField('groups');
+        $this->assertEquals('many_group_plural_field_name_test_product_product_join', $field->getJoinTableName());
+        $field = $product->getField('important_groups');
+        $this->assertEquals('many_group_plural_field_name_test_product_important_join', $field->getJoinTableName());
+
+        $product = new ManyGroup();
+        $field = $product->getField('products');
+        $this->assertEquals('many_group_plural_field_name_test_product_product_join', $field->getJoinTableName());
+        $field = $product->getField('important_products');
+        $this->assertEquals('many_group_plural_field_name_test_product_important_join', $field->getJoinTableName());
+
+    }
+
+    function testPluralFieldNameJoinedClass() {
+
+        $product = new PluralFieldNameTestProduct();
+
+        $field = $product->getField('groups');
+        $this->assertEquals('ManyGroup', $field->getJoinedModelClass());
+
+        $field = $product->getField('important_groups');
+        $this->assertEquals('ManyGroup', $field->getJoinedModelClass());
+
+        $product = new ManyGroup();
+
+        $field = $product->getField('products');
+        $this->assertEquals('PluralFieldNameTestProduct', $field->getJoinedModelClass());
+
+        $field = $product->getField('important_products');
+        $this->assertEquals('PluralFieldNameTestProduct', $field->getJoinedModelClass());
+
+    }
+
+    function testPluralFieldName() {
+
+        Octopus_DB_Schema_Model::makeTable('PluralFieldNameTestProduct');
+        Octopus_DB_Schema_Model::makeTable('ManyGroup');
+
+        $group = new ManyGroup();
+        $group->name = "Test Group";
+        $group->save();
+
+        $product = new PluralFieldNameTestProduct();
+        $product->name = "test product";
+        $product->save();
+
+        $product->addGroup($group);
+        $this->assertEquals(1, count($product->groups));
+        $this->assertTrue($product->hasGroup($group));
+
+        $product->removeGroup($group);
+        $this->assertFalse($product->hasGroup($group));
+
+        $product->addGroup($group);
+        $product->removeAllGroups();
+        $this->assertEquals(0, count($product->groups));
+    }
+
+    function testPluralFieldNameSecondary() {
+
+    	Octopus_DB_Schema_Model::makeTable('PluralFieldNameTestProduct');
+        Octopus_DB_Schema_Model::makeTable('ManyGroup');
+
+        $group = new ManyGroup();
+        $group->name = "Test Group";
+        $group->save();
+
+        $product = new PluralFieldNameTestProduct();
+        $product->name = "Test Product";
+        $product->save();
+
+        $product->addImportantGroup($group);
+        $this->assertEquals(1, count($product->important_groups));
+
+        $this->assertTrue($product->hasImportantGroup($group));
+
+        $product->removeImportantGroup($group);
+        $this->assertFalse($product->hasImportantGroup($group));
+
+        $product->addImportantGroup($group);
+        $product->removeAllImportantGroups($group);
+        $this->assertEquals(0, count($product->important_groups));
     }
 
     function testGroupCount()
@@ -230,5 +372,33 @@ class ModelManyToManyTest extends Octopus_DB_TestCase
         $g = new Group(2);
         $this->assertEquals(1, count($g->products));
     }
+
+    function testOneSided() {
+
+        $this->markTestIncomplete('TODO: implement one-sided many_to_many');
+
+        Octopus_DB_Schema_Model::makeTable('OneSided');
+
+        $group = new Group();
+        $group->name = "Test Group";
+        $group->save();
+
+        $product = new OneSided();
+        $product->name = "test product";
+        $product->save();
+
+        $product->addGroup($group);
+        $this->assertEquals(1, count($product->groups));
+        $this->assertTrue($product->hasGroup($group));
+
+        $product->removeGroup($group);
+        $this->assertFalse($product->hasGroup($group));
+
+        $product->addGroup($group);
+        $product->removeAllGroups();
+        $this->assertEquals(0, count($product->groups));
+
+    }
+
 }
 

@@ -17,7 +17,7 @@ class Octopus_Html_Form_Field_Rule_Range extends Octopus_Html_Form_Field_Rule {
         $input = trim($input);
 
         if ($input === '') {
-        	return true;
+            return true;
         }
 
         if (!is_numeric($input)) {

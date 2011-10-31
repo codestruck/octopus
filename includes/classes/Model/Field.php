@@ -30,14 +30,21 @@ abstract class Octopus_Model_Field {
     );
 
     private static $helperFieldTypes = array(
-    	'money' => array('type' => 'numeric', 'decimal_places' => 2),
+        'money' => array('type' => 'numeric', 'decimal_places' => 2),
         'currency' => array('type' => 'numeric', 'decimal_places' => 2)
-	);
+    );
 
     public function __construct($field, $modelClass, $options) {
         $this->field = $field;
         $this->modelClass = $modelClass;
         $this->options = $options;
+    }
+
+    /**
+     * @return String The model class this field is defined on.
+     */
+    public function getModelClass() {
+        return $this->modelClass;
     }
 
     public static function getField($name, $modelClass, $options) {
@@ -49,13 +56,13 @@ abstract class Octopus_Model_Field {
         $type = isset($options['type']) ? $options['type'] : 'string';
 
         if (isset(self::$fieldTypeAliases[$type])) {
-        	$type = self::$fieldTypeAliases[$type];
+            $type = self::$fieldTypeAliases[$type];
         }
 
         if (isset(self::$helperFieldTypes[$type])) {
-        	$help = self::$helperFieldTypes[$type];
-        	if (isset($help['type'])) $type = $help['type'];
-        	$options = array_merge($help, $options);
+            $help = self::$helperFieldTypes[$type];
+            if (isset($help['type'])) $type = $help['type'];
+            $options = array_merge($help, $options);
         }
 
         $class = 'Octopus_Model_Field_' . camel_case($type, true);
@@ -110,10 +117,10 @@ abstract class Octopus_Model_Field {
      * (e.g. HasOne)
      */
     public function loadValue(Octopus_Model $model, $row) {
-    	$name = $this->getFieldName();
-    	if (isset($row[$name])) {
-    		$this->setValue($model, $row[$name]);
-    	}
+        $name = $this->getFieldName();
+        if (isset($row[$name])) {
+        	$this->setValue($model, $row[$name]);
+        }
     }
 
     public function getFieldName() {
@@ -154,7 +161,7 @@ abstract class Octopus_Model_Field {
         if ($index === 'unique') {
             $table->newIndex('UNIQUE', $this->getFieldName());
         } else if ($index === 'fulltext') {
-        	$table->newIndex('FULLTEXT', $this->getFieldName());
+            $table->newIndex('FULLTEXT', $this->getFieldName());
         } else if ($index == 'index' || $index === true) {
             $table->newIndex($this->getFieldName());
         }

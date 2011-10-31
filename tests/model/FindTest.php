@@ -14,28 +14,28 @@ class FindTest extends Octopus_DB_TestCase {
 
     function testGetEmptyStringReturnsFalse() {
 
-    	$author = FindAuthor::get('');
-    	$this->assertFalse($author, '::get(<empty string>) should return false');
+        $author = FindAuthor::get('');
+        $this->assertFalse($author, '::get(<empty string>) should return false');
 
-    	$author = FindAuthor::get("\t  \t");
-    	$this->assertFalse($author, "::get(<all whitespace string>) should return false");
+        $author = FindAuthor::get("\t  \t");
+        $this->assertFalse($author, "::get(<all whitespace string>) should return false");
 
 
-    	$emptyNameAuthor = new FindAuthor();
-    	$emptyNameAuthor->name = '';
-    	$emptyNameAuthor->save();
-    	$this->assertTrue(!!$emptyNameAuthor->id, 'test author not saved');
+        $emptyNameAuthor = new FindAuthor();
+        $emptyNameAuthor->name = '';
+        $emptyNameAuthor->save();
+        $this->assertTrue(!!$emptyNameAuthor->id, 'test author not saved');
 
-    	$whitespaceNameAuthor = new FindAuthor();
-    	$whitespaceNameAuthor->name = "\t  \t";
-    	$whitespaceNameAuthor->save();
-    	$this->assertTrue(!!$whitespaceNameAuthor->id, "test author not saved");
+        $whitespaceNameAuthor = new FindAuthor();
+        $whitespaceNameAuthor->name = "\t  \t";
+        $whitespaceNameAuthor->save();
+        $this->assertTrue(!!$whitespaceNameAuthor->id, "test author not saved");
 
-    	$author = FindAuthor::get('');
-    	$this->assertFalse($author, '::get(<empty string>) should return false after save');
+        $author = FindAuthor::get('');
+        $this->assertFalse($author, '::get(<empty string>) should return false after save');
 
-    	$author = FindAuthor::get("\t  \t");
-    	$this->assertFalse($author, "::get(<all whitespace string>) should return false after save");
+        $author = FindAuthor::get("\t  \t");
+        $this->assertFalse($author, "::get(<all whitespace string>) should return false after save");
 
     }
 
@@ -50,11 +50,11 @@ class FindTest extends Octopus_DB_TestCase {
 
     function testInEmptyArray() {
 
-    	$posts = FindPost::all()->where('id in', array(4));
-    	$this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`find_post_id` IN('4')", $posts);
+        $posts = FindPost::all()->where('id in', array(4));
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`find_post_id` IN('4')", $posts);
 
-		$posts = FindPost::all()->where('id in', array());
-		$this->assertSqlEquals("SELECT * FROM find_posts WHERE 0", $posts);
+    	$posts = FindPost::all()->where('id in', array());
+    	$this->assertSqlEquals("SELECT * FROM find_posts WHERE 0", $posts);
 
     }
 

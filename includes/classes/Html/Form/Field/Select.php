@@ -59,15 +59,15 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
             }
 
             if (is_callable($options)) {
-            	$options = call_user_func($options, $this);
-            	$this->addOptions($options);
-            	return $this;
+                $options = call_user_func($options, $this);
+                $this->addOptions($options);
+                return $this;
             }
 
             if (is_string($options)) {
-            	// A single option
-            	$this->addOption($options);
-            	continue;
+                // A single option
+                $this->addOption($options);
+                continue;
             }
 
             $attributes = null;

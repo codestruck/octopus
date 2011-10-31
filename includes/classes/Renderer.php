@@ -5,14 +5,14 @@
  */
 class Octopus_Renderer {
 
-	protected $app;
+    protected $app;
 
-	/**
-	 * Creates a new renderer for the given app instance.
-	 */
-	public function __construct(Octopus_App $app) {
-		$this->app = $app;
-	}
+    /**
+     * Creates a new renderer for the given app instance.
+     */
+    public function __construct(Octopus_App $app) {
+    	$this->app = $app;
+    }
 
     /**
      * @return Array An array with the following keys:
@@ -45,7 +45,7 @@ class Octopus_Renderer {
         return array_filter($paths, 'trim');
     }
 
-	/**
+    /**
      * Renders out the result of an action.
      * @param $controller An Octopus_Controller instance.
      * @param $data Array The result of executing the action on the controller.
@@ -130,29 +130,29 @@ class Octopus_Renderer {
      * The default implementation of this function defines the following
      * extra keys:
      *
-     *	_GET -		$_GET
-     *  _POST -		$_POST
+     *    _GET -		$_GET
+     *  _POST -    	$_POST
      *
-     *	QS - 		$_GET as a string with no '?' at the beginning.
-     *	FULL_QS	-	$_GET as a string with a '?' at the beginning.
-     * 	QS_AND -	Character to use to build on FULL_QS (if FULL_QS is
-	 *              not '', this is '&'. Otherwise, it is '?').
+     *    QS - 		$_GET as a string with no '?' at the beginning.
+     *    FULL_QS	-	$_GET as a string with a '?' at the beginning.
+     *     QS_AND -	Character to use to build on FULL_QS (if FULL_QS is
+     *              not '', this is '&'. Otherwise, it is '?').
      *
-     *	URL_BASE -	Prefix for the app's public root.
+     *    URL_BASE -	Prefix for the app's public root.
      *
-     *	URI -			The full requested URI
-     *	URI_AS_CLASS -	The URI escaped for use as a css class
+     *    URI -			The full requested URI
+     *    URI_AS_CLASS -	The URI escaped for use as a css class
      *
-     *	ROOT_DIR
-     *	SITE_DIR
-     *	OCTOPUS_DIR
+     *    ROOT_DIR
+     *    SITE_DIR
+     *    OCTOPUS_DIR
      *
      */
     protected function getExtraViewData(Octopus_Request $request, Octopus_Response $response) {
 
-    	$result = array();
+        $result = array();
 
-    	// Full querystring
+        // Full querystring
         $qs = $_GET;
         $pathArg = $this->app->getOption('path_querystring_arg');
         unset($qs[$pathArg]);
@@ -203,12 +203,12 @@ class Octopus_Renderer {
 
     private function augmentViewData(Array &$data, Octopus_Request $request, Octopus_Response $response) {
 
-    	$extra = $this->getExtraViewData($request, $response);
-    	foreach($extra as $key => $value) {
-    		if (!isset($data[$key])) {
-    			$data[$key] = $value;
-    		}
-    	}
+        $extra = $this->getExtraViewData($request, $response);
+        foreach($extra as $key => $value) {
+        	if (!isset($data[$key])) {
+        		$data[$key] = $value;
+        	}
+        }
 
     }
 

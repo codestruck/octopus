@@ -19,36 +19,36 @@ class Octopus {
      * Adds a directory to be scanned for classes.
      */
     public static function addClassDir($dir, $prepend = false) {
-    	if ($prepend) {
-    		array_unshift(self::$classDirs, $dir);
-    	} else {
-    		array_push(self::$classDirs, $dir);
-    	}
+        if ($prepend) {
+        	array_unshift(self::$classDirs, $dir);
+        } else {
+        	array_push(self::$classDirs, $dir);
+        }
     }
 
     public static function removeClassDir($dir) {
-    	$index = array_search($dir, self::$classDirs);
-    	if ($index !== false) {
-	    	unset(self::$classDirs[$index]);
-	    }
+        $index = array_search($dir, self::$classDirs);
+        if ($index !== false) {
+        	unset(self::$classDirs[$index]);
+        }
     }
 
     /**
      * Adds a directory to be scanned for controllers.
      */
     public static function addControllerDir($dir, $prepend = false) {
-    	if ($prepend) {
-    		array_unshift(self::$controllerDirs, $dir);
-    	} else {
-    		array_push(self::$controllerDirs, $dir);
-    	}
+        if ($prepend) {
+        	array_unshift(self::$controllerDirs, $dir);
+        } else {
+        	array_push(self::$controllerDirs, $dir);
+        }
     }
 
     public static function removeControllerDir($dir) {
-    	$index = array_search($dir, self::$controllerDirs);
-    	if ($index !== false) {
-	    	unset(self::$controllerDirs[$index]);
-	    }
+        $index = array_search($dir, self::$controllerDirs);
+        if ($index !== false) {
+        	unset(self::$controllerDirs[$index]);
+        }
     }
 
     public static function autoLoadClass($class) {
@@ -170,8 +170,8 @@ class Octopus {
         }
 
         if ($debug) {
-        	$exists = array_map('is_file', $tried);
-        	dump_r($class, $tried, $exists);
+            $exists = array_map('is_file', $tried);
+            dump_r($class, $tried, $exists);
         }
 
         return false;
@@ -188,7 +188,7 @@ class Octopus {
         $class = preg_replace('/_*Controller$/', '', $class);
 
         if ($checkExists && class_exists($class)) {
-        	return true;
+            return true;
         }
 
         $tries = $debug ? array() : null;
@@ -210,7 +210,7 @@ class Octopus {
         }
 
         if ($debug) {
-        	dump_r($class, $tries);
+            dump_r($class, $tries);
         }
 
         return false;
@@ -231,22 +231,22 @@ class Octopus {
         // First, look in site dir
         foreach(array('SITE_DIR', 'OCTOPUS_DIR') as $key) {
 
-        	$dir = get_option($key);
-        	if (!$dir || !is_dir($dir)) {
-        		continue;
-        	}
+            $dir = get_option($key);
+            if (!$dir || !is_dir($dir)) {
+            	continue;
+            }
 
-        	$externalsDir = $dir . "externals/{$name}/";
-        	$file = $externalsDir . 'external.php';
+            $externalsDir = $dir . "externals/{$name}/";
+            $file = $externalsDir . 'external.php';
 
-        	if (is_file($file)) {
-        		self::loadExternalFile($name, $file, $version);
-        		return true;
-        	}
+            if (is_file($file)) {
+            	self::loadExternalFile($name, $file, $version);
+            	return true;
+            }
 
         }
 
-    	throw new Octopus_Exception("External not found: $name");
+        throw new Octopus_Exception("External not found: $name");
     }
 
     /**
@@ -261,16 +261,16 @@ class Octopus {
 
     private static function loadExternalFile($name, $file, $version) {
 
-		self::requireOnce($file, array('EXTERNAL_DIR' => dirname($file) . '/'));
-		self::callExternalFunction($name, $version);
+    	self::requireOnce($file, array('EXTERNAL_DIR' => dirname($file) . '/'));
+    	self::callExternalFunction($name, $version);
 
     }
 
     private static function callExternalFunction($external, $version) {
-    	$func = 'external_' . $external;
-    	if (function_exists($func)) {
-    		$func($version);
-    	}
+        $func = 'external_' . $external;
+        if (function_exists($func)) {
+        	$func($version);
+        }
     }
 }
 

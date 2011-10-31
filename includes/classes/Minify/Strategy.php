@@ -5,123 +5,123 @@
  */
 abstract class Octopus_Minify_Strategy {
 
-	/**
-	 * @param $urls Mixed Either an array of URLs, or a single URL string.
-	 * @param $options Array Environment options etc.
-	 * @return An array where keys are the new urls, and the values are arrays of
-	 * urls the key minifies.
-	 */
-	abstract public function getMinifiedUrls($urls, $options = array());
+    /**
+     * @param $urls Mixed Either an array of URLs, or a single URL string.
+     * @param $options Array Environment options etc.
+     * @return An array where keys are the new urls, and the values are arrays of
+     * urls the key minifies.
+     */
+    abstract public function getMinifiedUrls($urls, $options = array());
 
-	protected function getCacheDir($options = array()) {
-		
-		$dir = get_option('OCTOPUS_CACHE_DIR', null, $options);
-		
-		if (!$dir) {
-			throw new Octopus_Exception('OCTOPUS_CACHE_DIR not set.');
-		}
+    protected function getCacheDir($options = array()) {
 
-		return rtrim($dir, '/') . '/';
-	}
+    	$dir = get_option('OCTOPUS_CACHE_DIR', null, $options);
 
-	protected function &getDirectoriesToSearch($options = array()) {
+    	if (!$dir) {
+    		throw new Octopus_Exception('OCTOPUS_CACHE_DIR not set.');
+    	}
 
-		$dirs = get_option(array('SITE_DIR', 'OCTOPUS_DIR', 'ROOT_DIR'), null, $options);
+    	return rtrim($dir, '/') . '/';
+    }
 
-		foreach($dirs as $key => $dir) {
-			if (!$dir) {
-				unset($dirs[$key]);
-			}
-		}
+    protected function &getDirectoriesToSearch($options = array()) {
 
-		return $dirs;
-	}
+    	$dirs = get_option(array('SITE_DIR', 'OCTOPUS_DIR', 'ROOT_DIR'), null, $options);
 
-	protected function getCacheFile($uniqueHash, $deleteHash, $extension, $options = array()) {
-		
-		$cacheDir = $this->getCacheDir($options);
-		$file = $cacheDir . $deleteHash . '-' . $uniqueHash . $extension;
+    	foreach($dirs as $key => $dir) {
+    		if (!$dir) {
+    			unset($dirs[$key]);
+    		}
+    	}
 
-		return is_file($file) ? $file : false;
-	}
+    	return $dirs;
+    }
 
-	protected function getFileForUrl($url, $dirs) {
-		
-		foreach($dirs as $dir) {
-			$file = $dir . ltrim($url, '/');
-			if (is_file($file)) {
-				return $file;
-			}
-		}
+    protected function getCacheFile($uniqueHash, $deleteHash, $extension, $options = array()) {
 
-		return false;
-	}
+    	$cacheDir = $this->getCacheDir($options);
+    	$file = $cacheDir . $deleteHash . '-' . $uniqueHash . $extension;
 
-	protected function getUrlForFile($file, $includeModTime = true, $options = array()) {
-		
-		if (is_array($includeModTime)) {
-			$options = array_merge($includeModTime, $options);
-			$includeModTime = true;
-		}
+    	return is_file($file) ? $file : false;
+    }
 
-		$rootDir = get_option('ROOT_DIR', null, $options);
-		
-		$urlFile = $file;
-		if (starts_with($urlFile, $rootDir)) {
-			$urlFile = substr($file, strlen($rootDir));
-		}
+    protected function getFileForUrl($url, $dirs) {
 
-		$urlBase = get_option('URL_BASE', null, $options);
+    	foreach($dirs as $dir) {
+    		$file = $dir . ltrim($url, '/');
+    		if (is_file($file)) {
+    			return $file;
+    		}
+    	}
 
-		$url = rtrim($urlBase, '/') . '/' . ltrim($urlFile, '/');
-		
-		if ($includeModTime) {
-			$url .= '?' . filemtime($file);
-		} 
+    	return false;
+    }
 
-		return $url;
-	}
+    protected function getUrlForFile($file, $includeModTime = true, $options = array()) {
 
-	/**
-	 * @return Whether $url looks like a local file.
-	 */
-	protected function looksLikeLocalFile($url) {
-		return !preg_match('#^[a-z0-9_-]*://#i', $url);
-	}
+    	if (is_array($includeModTime)) {
+    		$options = array_merge($includeModTime, $options);
+    		$includeModTime = true;
+    	}
 
-	/**
-	 * Saves a cache file with the given content
-	 * @param $uniqueHash String Hash uniquely identifying the content / mtime
-	 * @param $deleteHash String Hash used to clear out old cached versions of this content.
-	 * @param $content String Data to put in the cache file.
-	 * @param $options Array helper options.
-	 * @return String Physical path to the file.
-	 */
-	protected function saveCacheFile($uniqueHash, $deleteHash, $extension, $content, $options = array()) {
-		
-		$cacheDir = get_option('OCTOPUS_CACHE_DIR', null, $options) . 'combine/';
+    	$rootDir = get_option('ROOT_DIR', null, $options);
 
-		@mkdir($cacheDir);
+    	$urlFile = $file;
+    	if (starts_with($urlFile, $rootDir)) {
+    		$urlFile = substr($file, strlen($rootDir));
+    	}
 
-		if ($deleteHash) {
+    	$urlBase = get_option('URL_BASE', null, $options);
 
-			// Remove old cache files for this content
-			$oldFilesGlob = $cacheDir . $deleteHash . '-*' . $extension;
-			$oldFiles = glob($oldFilesGlob);
-			
-			if ($oldFiles) {
-				foreach($oldFiles as $f) {
-					unlink($f);
-				}
-			}
-		}
+    	$url = rtrim($urlBase, '/') . '/' . ltrim($urlFile, '/');
 
-		$cacheFile = $cacheDir . $deleteHash . '-' . $uniqueHash . $extension;
+    	if ($includeModTime) {
+    		$url .= '?' . filemtime($file);
+    	}
 
-		file_put_contents($cacheFile, $content);
+    	return $url;
+    }
 
-		return $cacheFile;
-	}
+    /**
+     * @return Whether $url looks like a local file.
+     */
+    protected function looksLikeLocalFile($url) {
+    	return !preg_match('#^[a-z0-9_-]*://#i', $url);
+    }
+
+    /**
+     * Saves a cache file with the given content
+     * @param $uniqueHash String Hash uniquely identifying the content / mtime
+     * @param $deleteHash String Hash used to clear out old cached versions of this content.
+     * @param $content String Data to put in the cache file.
+     * @param $options Array helper options.
+     * @return String Physical path to the file.
+     */
+    protected function saveCacheFile($uniqueHash, $deleteHash, $extension, $content, $options = array()) {
+
+    	$cacheDir = get_option('OCTOPUS_CACHE_DIR', null, $options) . 'combine/';
+
+    	@mkdir($cacheDir);
+
+    	if ($deleteHash) {
+
+    		// Remove old cache files for this content
+    		$oldFilesGlob = $cacheDir . $deleteHash . '-*' . $extension;
+    		$oldFiles = glob($oldFilesGlob);
+
+    		if ($oldFiles) {
+    			foreach($oldFiles as $f) {
+    				unlink($f);
+    			}
+    		}
+    	}
+
+    	$cacheFile = $cacheDir . $deleteHash . '-' . $uniqueHash . $extension;
+
+    	file_put_contents($cacheFile, $content);
+
+    	return $cacheFile;
+    }
 }
 
 

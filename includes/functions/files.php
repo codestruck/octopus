@@ -223,7 +223,7 @@
      * @return bool True if directory now exists, false otherwise.
      */
     function mkdir_safe($dir, $baseDir = null, $recursive = true, $mode = 0777, $throwExceptions = true) {
-        
+
         if (!$baseDir) {
             $baseDir = get_option('ROOT_DIR');
             if (!$baseDir) {
@@ -246,7 +246,7 @@
         }
 
         if (!preg_match('#^' . preg_quote($baseDir) . '/#', $dir)) {
-            
+
             if ($throwExceptions) {
                 throw new Octopus_Exception("Cannot create directory outside of basedir.");
             } else {
@@ -264,7 +264,7 @@
         if ($recursive) {
 
             if (!is_dir($baseDir)) {
-                
+
                 if ($throwExceptions) {
                     throw new Octopus_Exception("Basedir does not exist: $baseDir");
                 } else {
@@ -285,9 +285,9 @@
                 }
 
             }
-            
+
         } else {
-            
+
             if (@mkdir($dir, $mode)) {
                 return false;
             } else {
@@ -297,7 +297,7 @@
         }
 
         if ($failed) {
-            
+
             if ($throwExceptions) {
                 throw new Octopus_Exception("Directory creation failed: $failed");
             } else {
@@ -309,13 +309,28 @@
         return true;
     }
 
+    function file_count($dir) {
+
+        $count = 0;
+        foreach (glob(end_in('/', $dir) . '*') as $file) {
+            if (is_dir($file)) {
+                $count += file_count($file);
+            } else {
+                $count++;
+            }
+        }
+
+        return $count;
+
+    }
+
     /**
      * Deletes somethin'
      * @param $force bool Whether to carry on if a delete fails.
      * @return bool True on success, false otherwise.
      */
     function recursive_delete($f, $force = false, &$failures = null) {
-        
+
         $f = rtrim($f, '/');
 
         if (!file_exists($f)) {
@@ -334,20 +349,20 @@
             }
 
         } else if (is_dir($f)) {
-            
+
             $handle = opendir($f);
             if ($handle === false) {
                 return false;
             }
 
             while (($file = readdir($handle)) !== false) {
-                
+
                 if ($file === '.' || $file === '..') {
                     continue;
                 }
 
                 $file = $f . '/' . $file;
-                
+
                 if (!recursive_delete($file, $force, $failures)) {
                     $success = false;
                     if (!$force) return $success;
@@ -356,7 +371,7 @@
             }
 
             closedir($handle);
-            
+
             if (@rmdir($f)) {
                 return $success;
             } else {
@@ -365,7 +380,7 @@
             }
 
         } else {
-            
+
             if (@unlink($f)) {
                 return true;
             } else {

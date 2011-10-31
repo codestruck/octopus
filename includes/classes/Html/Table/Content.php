@@ -112,26 +112,26 @@ class Octopus_Html_Table_Content extends Octopus_Html_Element {
      * Runs an abitrary function against a single value or a matched item
      * in a resultset.
      *
-     *	@param $function Callback to apply. If not set, $value will be
+     *    @param $function Callback to apply. If not set, $value will be
      *  returned. If set but not callable, an error message will be
      *  returned.
      *
-     *	@param $value Value being rendered, if known. I.e., if applyFunction
+     *    @param $value Value being rendered, if known. I.e., if applyFunction
      *  is being called for a column called 'name', this would be $row['name'].
      *
-     *	@param $row Row of data being rendered. Could be an array or an
+     *    @param $row Row of data being rendered. Could be an array or an
      *  Octopus_Model instance.
      *
-     *	@param $escape Gets set to a boolean value indicating whether the
+     *    @param $escape Gets set to a boolean value indicating whether the
      *  resulting HTML should be escaped.
      *
-     *	@param $context Execution context. Used to find a method to call
+     *    @param $context Execution context. Used to find a method to call
      *  if $function is a string.
      *
-     *	@param $useValue Whether or not to pass $value to functions, or just
+     *    @param $useValue Whether or not to pass $value to functions, or just
      *  $row.
      *
-     *	@return String The result of calling $function.
+     *    @return String The result of calling $function.
      *
      */
     public static function applyFunction($function, &$value, &$row, &$escape, $context = null, $useValue = true) {

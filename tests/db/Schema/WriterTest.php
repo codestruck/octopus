@@ -267,7 +267,8 @@ CHANGE `test_name` `test_name` text NOT NULL\n";
 
         $test = "ALTER TABLE `test`
 CHANGE `test_id` `test_id` int(10) NOT NULL AUTO_INCREMENT,
-ADD PRIMARY KEY (`test_id`)\n";
+ADD PRIMARY KEY (`test_id`)
+";
 
         $this->assertEquals($test, $sql);
 
@@ -300,7 +301,8 @@ PRIMARY KEY (`test_id`)
 
         $test = "ALTER TABLE `test`
 CHANGE `test_id` `test_id` int(10) NOT NULL,
-DROP PRIMARY KEY\n";
+DROP INDEX `PRIMARY`
+";
 
         $this->assertEquals($test, $sql);
         $w->create();
@@ -361,7 +363,7 @@ PRIMARY KEY (`test_id`)
         $sql = $w->toSql();
 
         $test = "ALTER TABLE `test`
-DROP COLUMN `test_id`\n";
+DROP COLUMN `test_id`, DROP PRIMARY KEY\n";
 
         $this->assertEquals($test, $sql);
 
@@ -421,7 +423,6 @@ END;
 
         $expected = <<<END
 ALTER TABLE `translation_values`
-ADD UNIQUE (`keyword_id`,`lang`),
 DROP COLUMN `value`
 
 END;
@@ -492,6 +493,39 @@ INDEX (`id`)
 );
 END;
         $this->assertEquals($expected, $sql);
+
+    }
+
+    function testDropUniqueMultiKey()
+    {
+
+        $this->db->query('DROP TABLE IF EXISTS translation_values');
+
+        $d = new Octopus_DB_Schema();
+        $t = $d->newTable('translation_values');
+        $t->newKey('keyword_id');
+        $t->newTextSmall('value');
+        $t->newIndex('UNIQUE', null, array('keyword_id', 'lang'));
+        $t->newTextSmall('lang');
+        $t->create();
+
+        $d = new Octopus_DB_Schema();
+        $t = $d->newTable('translation_values');
+        $t->newKey('keyword_id');
+        $t->newTextSmall('lang');
+        $sql = $t->toSql();
+        $t->create();
+
+        $expected = <<<END
+ALTER TABLE `translation_values`
+DROP INDEX `keyword_id`,
+DROP COLUMN `value`
+
+END;
+        $this->assertEquals($expected, $sql);
+
+        $query = $this->db->query('SHOW INDEXES in translation_values');
+        $this->assertEquals(0, $query->numRows());
 
     }
 

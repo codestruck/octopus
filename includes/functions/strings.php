@@ -329,13 +329,13 @@
 
         if (preg_match('/([aieou]?)(s?)s$/i', $x, $m)) {
 
-        	if ($m[1] && $m[2]) {
-        		// class -> classes
-        		return $x . 'es';
-        	} else {
-        		// already plural already
-        		return $x;
-        	}
+            if ($m[1] && $m[2]) {
+            	// class -> classes
+            	return $x . 'es';
+            } else {
+            	// already plural already
+            	return $x;
+            }
         }
 
         $x = preg_replace('/([^aeiou])y$/i', '$1ies', $x, 1, $count);
@@ -554,7 +554,7 @@
 
     function escape_wildcards($s) {
 
-    	$s = str_replace('\\', '\\\\', $s);
+        $s = str_replace('\\', '\\\\', $s);
         $s = str_replace('%', '\\%', $s);
         $s = str_replace('_', '\\_', $s);
 

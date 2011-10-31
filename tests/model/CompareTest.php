@@ -1,95 +1,95 @@
 <?php
 
 class EqTestModel extends Octopus_Model {
-	protected $fields = array('name');
+    protected $fields = array('name');
 }
 
 class EqTestModelSubclass extends EqTestModel {
-	protected $fields = array('name');
+    protected $fields = array('name');
 }
 
 class EqTestOtherModel extends Octopus_Model {
-	protected $fields = array('name');
+    protected $fields = array('name');
 }
 
 class CompareTest extends Octopus_App_TestCase {
 
-	function setUp() {
+    function setUp() {
 
-		parent::setUp();
+    	parent::setUp();
 
-		Octopus_DB_Schema_Model::makeTable('EqTestModel');
-		Octopus_DB_Schema_Model::makeTable('EqTestModelSubclass');
-		$db = Octopus_DB::singleton();
+    	Octopus_DB_Schema_Model::makeTable('EqTestModel');
+    	Octopus_DB_Schema_Model::makeTable('EqTestModelSubclass');
+    	$db = Octopus_DB::singleton();
 
-		$db->query('TRUNCATE TABLE eq_test_models');
-		$db->query('TRUNCATE TABLE eq_test_model_subclasses');
-
-
-	}
-
-	function testEqWithNumber() {
-
-		$m = new EqTestModel();
+    	$db->query('TRUNCATE TABLE eq_test_models');
+    	$db->query('TRUNCATE TABLE eq_test_model_subclasses');
 
 
-		$this->assertFalse($m->eq(0), 'Unsaved model not equal to 0');
+    }
 
-		$m->save();
-		$this->assertFalse($m->eq($m->id + 1), 'Model w/ id not equal to different id');
+    function testEqWithNumber() {
 
-		$this->assertTrue($m->eq($m->id), 'Model w/ id equal to same id');
-	}
+    	$m = new EqTestModel();
 
-	function testEqWithNull() {
 
-		$m = new EqTestModel();
-		$this->assertFalse($m->eq(null), 'not equal to null');
+    	$this->assertFalse($m->eq(0), 'Unsaved model not equal to 0');
 
-	}
+    	$m->save();
+    	$this->assertFalse($m->eq($m->id + 1), 'Model w/ id not equal to different id');
 
-	function testEqualToSelf() {
+    	$this->assertTrue($m->eq($m->id), 'Model w/ id equal to same id');
+    }
 
-		$m = new EqTestModel();
-		$this->assertTrue($m->eq($m), 'equal to self when unsaved');
+    function testEqWithNull() {
 
-		$m->save();
-		$this->assertTrue($m->eq($m), 'equal to self when saved');
+    	$m = new EqTestModel();
+    	$this->assertFalse($m->eq(null), 'not equal to null');
 
-	}
+    }
 
-	function testEqualToOtherOfSameClass() {
+    function testEqualToSelf() {
 
-		$m = new EqTestModel();
-		$m->save();
+    	$m = new EqTestModel();
+    	$this->assertTrue($m->eq($m), 'equal to self when unsaved');
 
-		$this->assertFalse($m->eq(new EqTestModel()), 'saved not equal to unsaved');
+    	$m->save();
+    	$this->assertTrue($m->eq($m), 'equal to self when saved');
 
-		$other = new EqTestModel($m->id);
-		$this->assertTrue($m->eq($other), 'saved equal to another instance w/ same id');
+    }
 
-	}
+    function testEqualToOtherOfSameClass() {
 
-	function testNotEqualToSubclass() {
+    	$m = new EqTestModel();
+    	$m->save();
 
-		$m = new EqTestModel();
-		$other = new EqTestModelSubclass();
+    	$this->assertFalse($m->eq(new EqTestModel()), 'saved not equal to unsaved');
 
-		$this->assertFalse($m->eq($other), 'not equal to unsaved subclass');
-		$this->assertFalse($other->eq($m), 'not equal to unsaved superclass');
+    	$other = new EqTestModel($m->id);
+    	$this->assertTrue($m->eq($other), 'saved equal to another instance w/ same id');
 
-		$m->save();
-		$this->assertFalse($m->eq($other), 'saved not equal to unsaved subclass');
-		$this->assertFalse($other->eq($m), 'unsaved not equal to saved superclass');
+    }
 
-		$other->save();
+    function testNotEqualToSubclass() {
 
-		$this->assertEquals($m->id, $other->id, 'sub- and super classes have same id');
+    	$m = new EqTestModel();
+    	$other = new EqTestModelSubclass();
 
-		$this->assertFalse($m->eq($other), 'saved not equal to saved subclass');
-		$this->assertFalse($other->eq($m), 'saved not equalto saved superclass');
+    	$this->assertFalse($m->eq($other), 'not equal to unsaved subclass');
+    	$this->assertFalse($other->eq($m), 'not equal to unsaved superclass');
 
-	}
+    	$m->save();
+    	$this->assertFalse($m->eq($other), 'saved not equal to unsaved subclass');
+    	$this->assertFalse($other->eq($m), 'unsaved not equal to saved superclass');
+
+    	$other->save();
+
+    	$this->assertEquals($m->id, $other->id, 'sub- and super classes have same id');
+
+    	$this->assertFalse($m->eq($other), 'saved not equal to saved subclass');
+    	$this->assertFalse($other->eq($m), 'saved not equalto saved superclass');
+
+    }
 
 }
 

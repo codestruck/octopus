@@ -23,8 +23,8 @@ class Octopus_DB_Schema_Writer {
         $this->newField($fieldName, 'int', $size, 'NOT NULL');
     }
 
-    function newBigInt($fieldName, $size = 20) {
-        $this->newField($fieldName, 'bigint', 20, 'NOT NULL');
+    function newBigInt($fieldName) {
+        $this->newField($fieldName, 'bigint', null, 'NOT NULL');
     }
 
     function newDate($fieldName) {
@@ -94,7 +94,7 @@ class Octopus_DB_Schema_Writer {
             $name = '';
         } else {
 
-            $field = $elements[0];
+            $field = null;
 
             if (!is_array($elements)) {
                 $field = $elements;
@@ -140,7 +140,30 @@ class Octopus_DB_Schema_Writer {
             return false;
         }
 
+/*        $field = $info['field'];
+
+        if (isset($this->indexes[ $field ]) && empty($current['index'])) {
+            return false;
+        }
+
+        if (!isset($this->indexes[ $field ]) && !empty($current['index'])) {
+            return false;
+        }*/
+
+        return true;
+    }
+
+    function indexesMatch($info, $current) {
+
         $field = $info['field'];
+
+        if (isset($this->indexes[ $field ]) && empty($current['index'])) {
+            return false;
+        }
+
+        if (!isset($this->indexes[ $field ]) && !empty($current['index'])) {
+            return false;
+        }
 
         return true;
     }
@@ -151,6 +174,59 @@ class Octopus_DB_Schema_Writer {
             $sql = sprintf("CHANGE `%s` `%s` %s(%s) %s", $info['field'], $info['field'], $info['type'], $info['size'], $info['options']);
         } else {
             $sql = sprintf("CHANGE `%s` `%s` %s %s", $info['field'], $info['field'], $info['type'], $info['options']);
+        }
+
+/*        $field = $info['field'];
+        if (!empty($current['index']) && !in_array($field, $this->hasIndexes)) {
+            if ($current['index'] == 'PRIMARY KEY') {
+                $sql .= sprintf(', DROP %s', $current['index']);
+            } else {
+                $sql .= sprintf(', DROP INDEX `%s`', $field);
+            }
+        }
+
+        if (empty($current['index']) && !empty($this->indexes[ $field ])) {
+                $sql .= ', ADD ' . $this->indexes[ $field ];
+        }
+*/
+        return $sql;
+    }
+
+    private function getIndexName($column) {
+        $sql = "SHOW INDEXES IN `{$this->tableName}` WHERE Column_name = '$column'";
+        $query = $this->db->query($sql, true);
+
+        $result = $query->fetchRow();
+
+        // only apply to the first column on multi-column indexes
+        if ($result['Seq_in_index'] == 1) {
+            return $result['Key_name'];
+        }
+
+        return false;
+    }
+
+    function alterIndexes($info, $current) {
+
+        $sql = '';
+
+        $field = $info['field'];
+        if (!empty($current['index']) && !in_array($field, $this->hasIndexes)) {
+            $indexName = $this->getIndexName($field);
+
+            if ($indexName) {
+                $sql .= sprintf('DROP INDEX `%s`', $indexName);
+            }
+
+/*            if ($current['index'] == 'PRIMARY KEY') {
+                $sql .= sprintf('DROP %s', $current['index']);
+            } else {
+                $sql .= sprintf('DROP INDEX `%s`', $field);
+            }*/
+        }
+
+        if (empty($current['index']) && !empty($this->indexes[ $field ])) {
+                $sql .= 'ADD ' . $this->indexes[ $field ];
         }
 
         return $sql;
@@ -179,7 +255,9 @@ class Octopus_DB_Schema_Writer {
         $sql = sprintf("DROP COLUMN `%s`", $field);
 
         if (!empty($info['index'])) {
-            if ($info['index'] != 'PRIMARY KEY') {
+            if ($info['index'] == 'PRIMARY KEY') {
+                $sql .= sprintf(', DROP %s', $info['index']);
+            } else {
                 $sql .= sprintf(', DROP INDEX `%s`', $field);
             }
         }
@@ -187,47 +265,6 @@ class Octopus_DB_Schema_Writer {
         return $sql;
     }
 
-    function indexesMatch($info, $current) {
-
-        $field = $info['field'];
-
-        if (isset($this->indexes[ $field ])) {
-            if (preg_match('/^PRIMARY KEY/', $this->indexes[ $field ])) {
-                if ($info['options'] == $current['options']) {
-                    return true;
-                }
-            }
-            return false;
-
-        }
-
-        if ($current['index'] == 'PRIMARY KEY') {
-            return false;
-        }
-
-        return true;
-    }
-
-    function alterIndexes($info, $current) {
-
-        $sql = '';
-        $field = $info['field'];
-
-        if (!empty($current['index']) && empty($this->indexes[ $field ])) {
-            if ($current['index'] == 'PRIMARY KEY') {
-                $sql .= sprintf('DROP %s', $current['index']);
-            }
-        }
-
-        if (!empty($this->indexes[ $field ])) {
-            if (strlen($sql)) {
-                $sql .= ', ';
-            }
-            $sql .= 'ADD ' . $this->indexes[ $field ];
-        }
-
-        return $sql;
-    }
 
     function createAddField($info) {
 
@@ -261,7 +298,6 @@ class Octopus_DB_Schema_Writer {
         if (trim($sql) != '') {
             $this->db->query($sql, true);
         }
-
     }
 
     function toSql() {
@@ -317,14 +353,9 @@ class Octopus_DB_Schema_Writer {
         $reader = new Octopus_DB_Schema_Reader($this->tableName);
 
         $sql = array();
+
         $existingFields = $reader->getFields();
         $fields = $this->fields;
-
-        foreach ($reader->getIndexes() as $index) {
-            if ($index['Key_name'] != 'PRIMARY' && $index['Seq_in_index'] == '1') {
-                $this->db->query('DROP INDEX `' . $index['Key_name'] . '` ON ' . $this->tableName, true);
-            }
-        }
 
         foreach ($existingFields as $existingField => $data) {
 
@@ -335,7 +366,6 @@ class Octopus_DB_Schema_Writer {
                 if (!$this->indexesMatch($fields[ $existingField ], $data)) {
                     $sql[] = $this->alterIndexes($fields[ $existingField ], $data);
                 }
-
             } else {
                 $sql[] = $this->alterDropField($data);
             }
@@ -346,6 +376,8 @@ class Octopus_DB_Schema_Writer {
         foreach ($fields as $field) {
             $sql[] = $this->alterAddField($field);
         }
+
+        $sql = array_filter($sql, 'trim');
 
         if (count($sql)) {
 
