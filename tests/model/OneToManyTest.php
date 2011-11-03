@@ -240,6 +240,8 @@ class ModelOneToManyTest extends Octopus_DB_TestCase
             'nail' => 1,
         ))->first();
 
+        $this->assertEquals(1, $nail->id);
+
     }
 
 }
