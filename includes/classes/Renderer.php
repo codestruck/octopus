@@ -173,6 +173,16 @@ class Octopus_Renderer {
         $result['URI'] = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : $request->getPath();
         $result['URI_AS_CLASS'] = to_css_class(str_replace('/', '', $request->getPath()));
 
+        $controller = preg_replace('/-?Controller$/', '', $request->getControllerClass());
+        $controller = strtolower(dashed($controller));
+
+        $action = $request->getAction();
+        $action = strtolower(dashed($action));
+
+        $result['CONTROLLER'] = $controller;
+		$result['ACTION'] = $action;
+        $result['ACTION_AS_CLASS'] = $controller . '-' . $action;
+
         if (class_exists('Octopus_Html_Page')) {
 
             $p = Octopus_Html_Page::singleton();
