@@ -181,6 +181,10 @@ END
                 'required' => 'required',
                 'html' => trim($name->render(true)),
                 'full_html' => trim($name->wrapper->render(true)),
+                'wrapper' => array(
+                	'open_tag' => $name->wrapper->renderOpenTag() . '>',
+                	'close_tag' => $name->wrapper->renderCloseTag('test')
+	            ),
                 'valid' => false,
                 'errors' => array('Name is required.'),
                 'label' => array(
@@ -230,7 +234,10 @@ END
                         'html' => '<label for="nameInput">Name:</label>'
                     ),
                     'full_html' => trim($name->wrapper->render(true)),
-
+	                'wrapper' => array(
+	                	'open_tag' => $name->wrapper->renderOpenTag() . '>',
+	                	'close_tag' => $name->wrapper->renderCloseTag('test')
+		            ),
                 )
             );
 
@@ -274,8 +281,11 @@ END
                             'html' => '<label for="close_tagInput">Close Tag:</label>'
 
                         ),
-                        'full_html' => trim($closeTag->wrapper->render(true))
-
+                        'full_html' => trim($closeTag->wrapper->render(true)),
+		                'wrapper' => array(
+		                	'open_tag' => $closeTag->wrapper->renderOpenTag() . '>',
+		                	'close_tag' => $closeTag->wrapper->renderCloseTag('test')
+			            ),
                     )
                 ),
 
@@ -509,6 +519,35 @@ END
 		$form = new Octopus_Html_Form('simulateSubmissionOnSecureForm');
     	$form->secure(10);
     	$form->add('name');
+
+    }
+
+    function testWrapperOpenAndCloseTagsInFormArray() {
+
+    	$form = new Octopus_Html_Form('wrapperOpenAndClosePresent');
+
+    	$form->add('foo')->required();
+    	$form->add('checkbox', 'bar')->required();
+
+    	$form = $form->toArray();
+
+    	$this->assertEquals(
+    		array(
+    			'open_tag' => '
+<div id="fooField" class="field foo text required">',
+    			'close_tag' => '</div>'
+	    	),
+	    	$form['foo']['wrapper']
+	    );
+
+	    $this->assertEquals(
+	    	array(
+	    		'open_tag' => '
+<div id="barField" class="field bar checkbox required">',
+	    		'close_tag' => '</div>'
+		    ),
+		    $form['bar']['wrapper']
+		);
 
     }
 

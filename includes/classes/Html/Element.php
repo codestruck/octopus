@@ -181,46 +181,6 @@ class Octopus_Html_Element {
         return $this;
     }
 
-    private function addContent($item, $prepend) {
-
-        if ($this->_content === null) {
-            $this->_content = array();
-        }
-
-        if (!is_array($item)) {
-            $this->takeOwnership($item);
-            if ($prepend) {
-                array_unshift($this->_content, $item);
-            } else {
-                $this->_content[] = $item;
-            }
-        } else {
-            foreach($item as $i) {
-                $this->takeOwnership($i);
-                if ($prepend) {
-                    array_unshift($this->_content, $i);
-                } else {
-                    $this->_content[] = $i;
-                }
-            }
-        }
-
-    }
-
-    private function &takeOwnership(&$item) {
-
-        if (!($item instanceof Octopus_Html_Element)) {
-            return $item;
-        }
-
-        if ($item->_parentElement) {
-            $item->_parentElement->remove($item);
-        }
-        $item->_parentElement = $this;
-
-        return $item;
-    }
-
     public function remove(/* $child */) {
 
         $args = func_get_args();
@@ -497,7 +457,12 @@ class Octopus_Html_Element {
         $this->_content = array();
     }
 
-    protected function renderOpenTag() {
+    /**
+     * @return String The full open tag for this element. If the element is
+     * content-less and can be rendered as, e.g. <span />, this will not include
+     * a closing ">". (That will be provided by renderCloseTag as appropriate.)
+     */
+    public function renderOpenTag() {
 
         $result = "\n<" . $this->_tag;
 
@@ -513,33 +478,14 @@ class Octopus_Html_Element {
     }
 
     /**
-     * @return string HTML representation of the given attribute/value combo.
+     * @param String $renderedContent The content to which this closing tag
+     * is being appended. This is used to figure out whether to render
+     * just " />" or the full close tag.
+     * @return String The close tag for this element. For content-less elements
+     * that allow it, this will just be " />", (e.g. <span />). Otherwise
+     * it will be, e.g. "</span>".
      */
-    protected static function renderAttribute($attr, $value, $alreadyEscaped = false) {
-
-        // Support e.g., 'autofocus' and 'required', which are rendered
-        // without values.
-        $hasValue = empty(self::$noValueAttrs[$attr]);
-
-        if (!($hasValue || $value)) {
-            return '';
-        }
-
-        if (!$alreadyEscaped) {
-            $attr = htmlspecialchars($attr);
-            $value = htmlspecialchars($value, ENT_QUOTES);
-        }
-
-        if ($hasValue) {
-            return $attr . '="' . $value . '"';
-        } else if ($value) {
-            return $attr;
-        } else {
-            return '';
-        }
-    }
-
-    protected function renderCloseTag(&$renderedContent) {
+    public function renderCloseTag($renderedContent) {
 
         if ($renderedContent || $this->requireCloseTag) {
             return '</' . $this->_tag . '>';
@@ -549,7 +495,10 @@ class Octopus_Html_Element {
 
     }
 
-    public function &renderContent() {
+    /**
+     * @return String The HTML content of this element.
+     */
+    public function renderContent() {
 
         $content = '';
         $count = 0;
@@ -582,30 +531,6 @@ class Octopus_Html_Element {
                 $this->_content = array_map('htmlspecialchars', $args);
                 return $this;
         }
-    }
-
-    private function getText() {
-
-        $text = '';
-
-        foreach($this->children() as $child) {
-
-            $childText = '';
-
-            if (is_string($child)) {
-                $childText = $child;
-            } else if ($child instanceof Octopus_Html_Element) {
-                $childText = $child->text();
-            }
-
-            if ($childText) {
-                $text .= ($text ? ' ' : '') . $childText;
-            }
-
-        }
-
-        return htmlspecialchars_decode($text);
-
     }
 
     public function toggleClass($class) {
@@ -661,6 +586,96 @@ class Octopus_Html_Element {
      * Hook that is called whenever an attribute changes.
      */
     protected function attributeChanged($attr, $oldValue, $newValue) {
+    }
+
+    /**
+     * @return string HTML representation of the given attribute/value combo.
+     */
+    protected static function renderAttribute($attr, $value, $alreadyEscaped = false) {
+
+        // Support e.g., 'autofocus' and 'required', which are rendered
+        // without values.
+        $hasValue = empty(self::$noValueAttrs[$attr]);
+
+        if (!($hasValue || $value)) {
+            return '';
+        }
+
+        if (!$alreadyEscaped) {
+            $attr = htmlspecialchars($attr);
+            $value = htmlspecialchars($value, ENT_QUOTES);
+        }
+
+        if ($hasValue) {
+            return $attr . '="' . $value . '"';
+        } else if ($value) {
+            return $attr;
+        } else {
+            return '';
+        }
+    }
+
+    private function addContent($item, $prepend) {
+
+        if ($this->_content === null) {
+            $this->_content = array();
+        }
+
+        if (!is_array($item)) {
+            $this->takeOwnership($item);
+            if ($prepend) {
+                array_unshift($this->_content, $item);
+            } else {
+                $this->_content[] = $item;
+            }
+        } else {
+            foreach($item as $i) {
+                $this->takeOwnership($i);
+                if ($prepend) {
+                    array_unshift($this->_content, $i);
+                } else {
+                    $this->_content[] = $i;
+                }
+            }
+        }
+
+    }
+
+    private function &takeOwnership(&$item) {
+
+        if (!($item instanceof Octopus_Html_Element)) {
+            return $item;
+        }
+
+        if ($item->_parentElement) {
+            $item->_parentElement->remove($item);
+        }
+        $item->_parentElement = $this;
+
+        return $item;
+    }
+
+    private function getText() {
+
+        $text = '';
+
+        foreach($this->children() as $child) {
+
+            $childText = '';
+
+            if (is_string($child)) {
+                $childText = $child;
+            } else if ($child instanceof Octopus_Html_Element) {
+                $childText = $child->text();
+            }
+
+            if ($childText) {
+                $text .= ($text ? ' ' : '') . $childText;
+            }
+
+        }
+
+        return htmlspecialchars_decode($text);
     }
 
     private static function _compareAttributes($x, $y) {
