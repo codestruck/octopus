@@ -286,7 +286,13 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
         }
 
         if ($this->wrapper) {
+
             $result['full_html'] = trim($this->wrapper->render(true));
+            $result['wrapper'] = array(
+            	'open_tag' => $this->wrapper->renderOpenTag() . '>',
+            	'close_tag' => $this->wrapper->renderCloseTag('foo'),
+	        );
+
         } else {
             $result['full_html'] = $result['html'];
         }

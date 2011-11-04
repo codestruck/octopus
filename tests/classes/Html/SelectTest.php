@@ -214,7 +214,11 @@ END;
                     'text' => 'Foo:',
                     'html' => '<label for="fooInput">Foo:</label>'
                 ),
-                'full_html' => trim($select->wrapper->render(true))
+                'full_html' => trim($select->wrapper->render(true)),
+                'wrapper' => array(
+                	'open_tag' => $select->wrapper->renderOpenTag() . '>',
+                	'close_tag' => $select->wrapper->renderCloseTag('test')
+	            ),
             ),
             $select->toArray()
         );

@@ -81,6 +81,10 @@ class FormFieldTest extends Octopus_Html_TestCase {
                 'name' => 'foo',
                 'html' => trim($textarea->render(true)),
                 'full_html' => trim($textarea->wrapper->render(true)),
+                'wrapper' => array(
+                	'open_tag' => $textarea->wrapper->renderOpenTag() . '>',
+                	'close_tag' => $textarea->wrapper->renderCloseTag('test')
+	            ),
                 'label' => array(
                     'text' => 'Foo:',
                     'html' => '<label for="fooInput">Foo:</label>',
