@@ -175,8 +175,10 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         return ($this->_id !== null);
     }
 
-    // lazy load from id
-    private function loadData() {
+    /**
+     * If the data for this model has not been loaded from the DB, loads it.
+	 */
+    protected function loadData() {
 
         if ($this->dataLoaded) {
             return;
@@ -194,7 +196,12 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
 
     }
 
-    private function recordStillExists() {
+    /**
+     * @return True if we've checked that a record with this record's ID exists
+     * in the database, false otherwise. Note that the result of this method
+     * is cached.
+     */
+    protected function recordStillExists() {
 
         if ($this->_exists === null) {
 
