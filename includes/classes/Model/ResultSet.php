@@ -688,6 +688,12 @@ END;
 
         foreach($orderBy as $fieldName => $dir) {
 
+        	// Special-case 'RAND()',
+        	if (strcasecmp('RAND()', $fieldName) === 0) {
+        		$s->orderBy('RAND()');
+        		continue;
+        	}
+
             $info = Octopus_Model_Restriction_Field::parseFieldExpression($fieldName, $this->getModelInstance());
             extract($info);
 

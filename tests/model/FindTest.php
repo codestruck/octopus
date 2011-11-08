@@ -12,6 +12,17 @@ class FindTest extends Octopus_DB_TestCase {
         parent::__construct('model/find-data.xml');
     }
 
+    function testOrderByRand() {
+
+    	$posts = FindPost::all()->orderBy('RAND()');
+
+    	$this->assertSqlEquals(
+    		'SELECT * FROM find_posts ORDER BY RAND()',
+    		$posts
+	    );
+
+    }
+
     function testGetEmptyStringReturnsFalse() {
 
         $author = FindAuthor::get('');
