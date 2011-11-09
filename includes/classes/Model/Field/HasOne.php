@@ -46,6 +46,8 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
 
         if (isset($row[$col])) {
         	$this->setValue($model, $row[$col]);
+        } else if (isset($row[$name])) {
+        	$this->setValue($model, $row[$name]);
         }
 
     }

@@ -50,6 +50,24 @@ class HasOneTest extends Octopus_App_TestCase {
 
     }
 
+    function testInitializeFromArray() {
+
+    	$category = new HasOneCategory();
+    	$category->name = __METHOD__;
+    	$category->save();
+
+    	$person = new HasOnePerson(array(
+    		'category' => $category
+	    ));
+	    $this->assertTrue(!!$person->category, "category initialized from array passed to ctor");
+	    $this->assertEquals($category->id, $person->category->id);
+	    $person->save();
+
+	    $person = new HasOnePerson($person->id);
+	    $this->assertEquals($category->id, $person->category->id);
+
+    }
+
     function testUnsetLazyLoadedHasOne() {
 
     	$category = new HasOneCategory();
