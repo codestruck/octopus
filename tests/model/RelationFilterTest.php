@@ -1,41 +1,5 @@
 <?php
 
-db_error_reporting(DB_PRINT_ERRORS);
-
-class Comment extends Octopus_Model {
-    protected $fields = array(
-        'content',
-        'parent' => array(
-            'type' => 'hasOne',
-            'filter' => true
-        ),
-        'item_type',
-        'item_id' => array(
-            'type' => 'numeric',
-        ),
-    );
-}
-
-class Car extends Octopus_Model {
-    protected $fields = array(
-        'name',
-        'comment' => array(
-            'type' => 'hasMany',
-            'filter' => true,
-        ),
-    );
-}
-
-class Boat extends Octopus_Model {
-    protected $fields = array(
-        'name',
-        'comment' => array(
-            'type' => 'hasMany',
-            'filter' => true,
-        ),
-    );
-}
-
 /**
  * @group Model
  */
@@ -83,6 +47,46 @@ class ModelRelationFilterTest extends Octopus_DB_TestCase
         $comments = $boat->comments;
         $this->assertEquals(1, count($comments));
         $this->assertEquals('Added Comment', $comments->first()->content);
+
+    }
+
+    function testAddUserComment() {
+
+        $user = new CommentUser();
+        $user->name = 'Teddy';
+        $user->save();
+
+        $comment = new Comment();
+        $comment->content = 'testAddUserComment';
+        $comment->creator = $user;
+
+        $boat = new Boat(2);
+        $boat->addComment($comment);
+
+        $c = new Comment(7);
+        $this->assertEquals('testAddUserComment', $c->content);
+        $this->assertEquals(2, $comment->creator->id);
+
+    }
+
+    function testAddUserCommentLazy() {
+
+        $user = new CommentUser();
+        $user->name = 'Teddy';
+        $user->save();
+
+        $user = new CommentUser(2);
+
+        $comment = new Comment();
+        $comment->content = 'testAddUserCommentLazy';
+        $comment->creator = $user;
+
+        $boat = new Boat(2);
+        $boat->addComment($comment);
+
+        $c = new Comment(7);
+        $this->assertEquals('testAddUserCommentLazy', $c->content);
+        $this->assertEquals(2, $comment->creator->id);
 
     }
 

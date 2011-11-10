@@ -157,4 +157,59 @@ class FindPost extends Octopus_Model {
 
 }
 
+class Comment extends Octopus_Model {
+    protected $fields = array(
+        'content' => array(
+            'type' => 'text',
+            'onCreate' => 'triggerCreate',
+        ),
+        'creator' => array(
+            'type' => 'hasOne',
+            'model' => 'CommentUser',
+        ),
+        'parent' => array(
+            'type' => 'hasOne',
+            'filter' => true
+        ),
+        'item_type',
+        'item_id' => array(
+            'type' => 'numeric',
+        ),
+    );
+
+    public function triggerCreate($model, $field) {
+        return $field->accessValue($model);
+    }
+}
+
+class CommentUser extends Octopus_Model {
+    protected $fields = array(
+        'name',
+        'comments' => array(
+            'type' => 'hasMany',
+        ),
+
+    );
+}
+
+class Car extends Octopus_Model {
+    protected $fields = array(
+        'name',
+        'comment' => array(
+            'type' => 'hasMany',
+            'filter' => true,
+        ),
+    );
+}
+
+class Boat extends Octopus_Model {
+    protected $fields = array(
+        'name',
+        'comment' => array(
+            'type' => 'hasMany',
+            'filter' => true,
+        ),
+    );
+}
+
 ?>
