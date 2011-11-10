@@ -167,7 +167,7 @@ END
             'method' => 'post',
             'novalidate' => 'novalidate',
             'valid' => false,
-            'errors' => array('Name is required.'),
+            'errors' => array('name' => array('Name is required.')),
             'fields' => array(),
 
             'name' => array(

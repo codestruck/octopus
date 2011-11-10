@@ -840,8 +840,15 @@ class Octopus_Html_Form extends Octopus_Html_Element {
             if ($el instanceof Octopus_Html_Form_Field) {
 
                 $fieldResult = $el->validate($values);
+                $name = $el->name;
+
                 foreach($fieldResult->errors as $err) {
-                    $result->errors[] = $err;
+
+                    if (!isset($result->errors[$name])) {
+                    	$result->errors[$name] = array();
+                    }
+
+                    $result->errors[$name][] = $err;
                 }
 
             }
