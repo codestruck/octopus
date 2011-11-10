@@ -255,7 +255,12 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
     }
 
     public function restrictFreetext($model, $text) {
-        $class = $this->getItemClass();
+        $class = $this->getItemClass($model);
+
+        if (!$class) {
+            return null;
+        }
+
         $obj = new $class();
         $displayField = $obj->getDisplayField();
         if (!$displayField) {
