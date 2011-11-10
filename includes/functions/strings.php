@@ -299,7 +299,7 @@
      * Given an arbitrary SQL string, normalizes it (compacts whitespace,
      * removes newlines) so it can be compared, e.g. for testing.
      */
-    function normalize_sql($sql, $params = null) {
+    function normalize_sql($sql, $params = null, $detectErrors = false) {
 
         // TODO: move to a tests.php file that is only included w/ tests?
         // TODO: actually watch out for whitespace in fields
@@ -318,6 +318,9 @@
             $pos += strlen($p);
         }
 
+        if ($detectErrors && count($params)) {
+        	throw new Octopus_Exception(count($params) . " parameter(s) left in params array: " . implode(',', $params));
+        }
 
         return $sql;
     }
@@ -348,19 +351,23 @@
     }
 
     /**
-     * print count then correctly pluralized word
+     * @return count then correctly pluralized word
+     * @param $format Whether to pass the number through number_format.
      */
-    function plural_count($array_or_number, $word) {
+    function plural_count($array_or_number, $word, $format = true) {
+
         if (is_numeric($array_or_number)) {
             $count = $array_or_number;
         } else {
             $count = count($array_or_number);
         }
 
+        $nice_count = $format ? number_format($count) : $count;
+
         if ($count != 1) {
-            return $count . ' ' . pluralize($word);
+            return $nice_count . ' ' . pluralize($word);
         } else {
-            return $count . ' ' . $word;
+            return $nice_count . ' ' . $word;
         }
     }
 
