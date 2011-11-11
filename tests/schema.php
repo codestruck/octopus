@@ -100,6 +100,11 @@ function run_creates() {
     Octopus_DB_Schema_Model::makeTable('lack');
     Octopus_DB_Schema_Model::makeTable('notext');
 
+    Octopus_DB_Schema_Model::makeTable('Comment');
+    Octopus_DB_Schema_Model::makeTable('CommentUser');
+    Octopus_DB_Schema_Model::makeTable('Boat');
+    Octopus_DB_Schema_Model::makeTable('Car');
+
     // NonStandard
     $sql = "CREATE TABLE IF NOT EXISTS nonstandard (
             `different_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
