@@ -14,6 +14,8 @@ class Octopus_Model_Field_Datetime extends Octopus_Model_Field {
             $this->defaultOptions = array(
                 'onSave' => '_setNow',
             );
+        } else {
+            $this->defaultOptions['form'] = true;
         }
 
         $this->defaultOptions['date_format'] = 'Y-m-d H:i:s';
