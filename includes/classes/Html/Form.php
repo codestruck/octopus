@@ -659,10 +659,15 @@ class Octopus_Html_Form extends Octopus_Html_Element {
             $this->errorList->clear();
         }
 
-        foreach($validationResult->errors as $err) {
-            $li = new Octopus_Html_Element('li');
-            $li->html($err);
-            $this->errorList->append($li);
+        foreach($validationResult->errors as $errs) {
+        	if (!is_array($errs)) {
+        		$errs = array($errs);
+        	}
+        	foreach($errs as $err) {
+	            $li = new Octopus_Html_Element('li');
+	            $li->html($err);
+	            $this->errorList->append($li);
+	        }
         }
 
 
