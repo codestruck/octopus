@@ -6,7 +6,11 @@ AddDefaultCharset UTF-8
 
     RewriteEngine on
 
-    RewriteRule "^(.*/)?\.git/" - [F,L]
+    # Block access to .git and .svn directories
+    RewriteRule "^(.*/)?\.(git|svn)/" - [F,L]
+
+    # Block access to _private
+    RewriteRule "^(.*/)?_private/" - [F,L]
 
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
