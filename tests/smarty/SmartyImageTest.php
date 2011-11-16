@@ -306,6 +306,44 @@ END;
     }
 
     /**
+     * @group slow
+     * @dataProvider getSiteDirImages
+     */
+    function testResizeUsesCache($file, $fileUrl) {
+
+    	$test = <<<END
+{image src="$file" width="10" height="5" resize="true"}
+END;
+
+    	$info = pathinfo($file);
+
+    	// NOTE: Octopus_Image_Mode_Resize does not let you resize something w/ a different
+    	// aspect ratio, so resizing a 100x75 image to 10x5 results in a 6x5 image.
+
+    	$mtime = filemtime($file);
+    	$expected = <<<END
+<img src="/cache/smarty_image/{$mtime}_[MD5]_r_10x5_.{$info['extension']}?$mtime" width="6" height="5" />
+END;
+
+    	$this->assertSmartyEquals($expected, $test, '', true);
+
+    	sleep(2);
+
+    	$this->assertSmartyEquals($expected, $test, '', true);
+
+    	touch($file);
+
+    	$mtime = filemtime($file);
+    	$expected = <<<END
+<img src="/cache/smarty_image/{$mtime}_[MD5]_r_10x5_.{$info['extension']}?$mtime" width="6" height="5" />
+END;
+
+    	$this->assertSmartyEquals($expected, $test, '', true);
+
+
+    }
+
+    /**
      * @dataProvider getSiteDirImages
      */
     function testCrop($file, $fileUrl) {
@@ -521,6 +559,30 @@ END;
     	}
 
     }
+
+	function testRemoteImageNoAction() {
+
+		$remoteImage = "http://www.google.com/intl/en_com/images/srpr/logo3w.png";
+
+		$test = "{image file=\"$remoteImage\"}";
+		$expected = "<img src=\"$remoteImage\" />";
+
+		$this->assertSmartyEquals($expected, $test);
+
+	}
+
+	function testRemoteImageResize() {
+
+		$remoteImage = "http://www.google.com/intl/en_com/images/srpr/logo3w.png";
+
+		$test = "{image file=\"$remoteImage\" width=100 action=resize}";
+
+		$expected = <<<END
+<img src="/cache/smarty_image/[MTIME]_[MD5]_r_100x35_.png?[MTIME]" width="101" height="35" />
+END;
+
+		$this->assertSmartyEquals($expected, $test, 'remote image resize', true, true);
+	}
 
 
 

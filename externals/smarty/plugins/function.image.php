@@ -12,6 +12,7 @@
  */
 function smarty_function_image($params, $template)
 {
+
     $imageAttrs = array();
     $linkAttrs = array();
     $missingAttrs = array();
@@ -24,6 +25,7 @@ function smarty_function_image($params, $template)
 
     $failIfMissing = false;
     $shimAttrs = null;
+    $isRemote = false;
 
     foreach($params as $key => $value) {
 
@@ -49,10 +51,9 @@ function smarty_function_image($params, $template)
                 break;
 
             case 'root_dir':
-                $baseDir = $value ? rtrim($value, '/') . '/' : $value;
+            	$baseDir = $value;
                 $key = null;
                 break;
-
         }
 
         if (!$key) {
@@ -93,7 +94,11 @@ function smarty_function_image($params, $template)
 
     }
 
-    if (!isset($imageAttrs['src'])) {
+    if ($baseDir) {
+    	$baseDir = end_in('/', $baseDir);
+    }
+
+    if ($failIfMissing && !isset($imageAttrs['src'])) {
         throw new SmartyException("file or src attribute must be specified for {image}.", E_USER_NOTICE);
     }
 
@@ -117,18 +122,19 @@ function smarty_function_image($params, $template)
         }
     }
 
+
     $dirs = _octopus_smarty_get_directories($baseDir, $urlBase);
+    $cacheDir = _octopus_smarty_get_cache_dir($imageAttrs);
 
     // Resolve where the image actually is
-    $tries = null;
-    $file = _octopus_smarty_find_image($imageAttrs['src'], $dirs, $urlBase, $template, $tries);
+    $file = _octopus_smarty_find_image($imageAttrs['src'], $dirs, $urlBase, $template, $action, $cacheDir, $isRemote);
 
     if (!$file) {
 
         if ($failIfMissing) {
 
             $tries = array();
-            _octopus_smarty_find_image($imageAttrs['src'], $dirs, $urlBase, $template, $tries);
+            _octopus_smarty_find_image($imageAttrs['src'], $dirs, $urlBase, $template, $action, $cacheDir, $isRemote, $tries);
 
             throw new SmartyException("Image file not found: '{$imageAttrs['src']}'. Tried: " . implode(', ', $tries));
         }
@@ -154,13 +160,13 @@ function smarty_function_image($params, $template)
 
         if (isset($missingAttrs['src'])) {
 
-            $file = _octopus_smarty_find_image($missingAttrs['src'], $dirs, $urlBase, $template, $tries);
+            $file = _octopus_smarty_find_image($missingAttrs['src'], $dirs, $urlBase, $template, $action, $cacheDir, $isRemote);
 
             if (!$file) {
                 if ($failIfMissing) {
                     throw new SmartyException("Could not find image to use when missing: '{$missingAttrs['src']}'.");
                 } else {
-                        return '';
+                    return '';
                 }
             }
 
@@ -181,9 +187,9 @@ function smarty_function_image($params, $template)
         $width = isset($imageAttrs['width']) ? $imageAttrs['width'] : null;
         $height = isset($imageAttrs['height']) ? $imageAttrs['height'] : null;
 
-        $file = _octopus_smarty_modify_image($file, $action, $width, $height, $constrain, $imageAttrs);
+        $file = _octopus_smarty_modify_image($file, $action, $width, $height, $constrain, $cacheDir, $imageAttrs);
 
-    } else {
+    } else if (!$isRemote) {
 
         $size = @getimagesize($file);
 
@@ -202,14 +208,15 @@ function smarty_function_image($params, $template)
         }
     }
 
-    $imageAttrs['src'] = _octopus_smarty_get_file_url($file, $dirs, $urlBase);
+	$imageAttrs['src'] = _octopus_smarty_get_file_url($file, $dirs, $urlBase);
 
-    if (isset($params['ignoredims']) && $params['ignoredims']) {
+    if (!empty($params['ignoredims'])) {
         unset($imageAttrs['width']);
         unset($imageAttrs['height']);
     }
 
     unset($imageAttrs['ignoredims']);
+    unset($imageAttrs['cache_dir']);
 
     $img = new Octopus_Html_Element('img', $imageAttrs);
 
@@ -227,10 +234,11 @@ function smarty_function_image($params, $template)
  * Given an arbitrary image source, returns the physical path to the image file,
  * or false if it can't be found.
  */
-function _octopus_smarty_find_image($src, $dirs, $urlBase, $template, &$tries = null) {
+function _octopus_smarty_find_image($src, $dirs, $urlBase, $template, $action, $cacheDir, &$isRemote, &$tries = null) {
 
     /* Cases Handled:
      *
+     * 0. src is an external url
      * 1. src is relative to the template directory
      * 2. src is physical path to image (/var/www/images/whatever.gif)
      * 3. src is valid http-path (sub ROOT_DIR for URL_BASE)
@@ -241,7 +249,67 @@ function _octopus_smarty_find_image($src, $dirs, $urlBase, $template, &$tries = 
      */
 
     $src = trim($src);
+    $isRemote = false;
+
     if (!$src) return false;
+
+    if (preg_match('#^(https?)?://#i', $src)) {
+
+    	// This is an external URL. If we need to crop/resize or anything,
+    	// cache it locally first, and operate on that file.
+
+    	$isRemote = true;
+
+    	if (!$action) {
+    		return $src;
+    	}
+
+    	// Note: Don't rely on URL for image extension. Use the actual detected
+    	// image type.
+
+    	$cacheFile = $cacheDir . 'http_' . md5($src);
+
+    	foreach(array('.jpg', '.gif', '.png') as $ext) {
+    		$f = $cacheFile . $ext;
+    		if (is_file($f)) {
+
+    			// TODO: Actual http last-modified support?
+    			if (time() - filemtime($f) > 86400) {
+    				@unlink($f);
+    				break;
+    			} else {
+    				return $f;
+    			}
+
+    		}
+    	}
+
+    	// TODO: max 5 second timeout?
+    	$req = new Octopus_Http_Request();
+    	$bytes = $req->request($src);
+
+    	if (!@file_put_contents($cacheFile, $bytes)) {
+    		return false;
+    	}
+
+    	$size = @getimagesize($cacheFile);
+
+    	if (!$size) {
+    		@unlink($cacheFile);
+    		return false;
+    	}
+
+    	$ext = image_type_to_extension($size[2]);
+    	if ($ext === '.jpeg') $ext = '.jpg';
+    	$cacheFileWithExt = $cacheFile . $ext;
+
+    	if (!@rename($cacheFile, $cacheFileWithExt)) {
+    		@unlink($cacheFile);
+    		return false;
+    	}
+
+    	return $cacheFileWithExt;
+    }
 
     // Interpret relative paths as relative to the template directory
     if (!starts_with($src, '/')) {
@@ -288,18 +356,21 @@ function _octopus_smarty_get_file_url($file, $dirs, $urlBase, $includeModTime = 
 
     /* Cases Handled:
      *
+     * 0. $file is an external URL
      * 1. $file starts with SITE_DIR
      * 2. $file starts with OCTOPUS_DIR
      * 3. $file starts with ROOT_DIR
      */
+
+    if (preg_match('#^(https?)?://#i', $file)) {
+    	return $file;
+    }
 
     $originalFile = $file;
 
     $soleCmsRootDirHack = null;
 
     foreach($dirs as $key => $dir) {
-
-
 
         if (!starts_with($file, $dir)) {
             continue;
@@ -360,7 +431,7 @@ function &_octopus_smarty_get_directories($baseDir, &$urlBase) {
 /**
  * On-the-fly resizes/crops an image and returns the physical path of the resized image file.
  */
-function _octopus_smarty_modify_image($file, $action, $width, $height, $constrain, &$imageAttrs) {
+function _octopus_smarty_modify_image($file, $action, $width, $height, $constrain, $cacheDir, &$imageAttrs) {
 
     if ($width === null && $height === null) {
         return $file;
@@ -370,7 +441,7 @@ function _octopus_smarty_modify_image($file, $action, $width, $height, $constrai
     $size = @getimagesize($file);
 
     if (!$size) {
-        throw new SmartyException("Could not get size of image file: '{$imageAttrs['src']}.");
+        throw new SmartyException("Could not get size of image file: '$file'.");
     }
 
     list($originalWidth, $originalHeight) = $size;
@@ -414,7 +485,7 @@ function _octopus_smarty_modify_image($file, $action, $width, $height, $constrai
         $constrain = 'h';
     }
 
-    $constrainFileName = str_replace('<', 'lt', str_replace('>', 'gt', $constrain));
+    $constrainFileName = str_replace(array('<', '>'), array('lt', 'gt'), $constrain);
 
     /* Cached file name uses:
      *
@@ -428,47 +499,65 @@ function _octopus_smarty_modify_image($file, $action, $width, $height, $constrai
      * files from the cache.
      */
 
-    $info = pathinfo($file);
     $mtime = filemtime($file);
     $hash = md5($file . $mtime);
-
-    $cacheDir = null;
-    if (isset($imageAttrs['cache_dir'])) {
-        $cacheDir = rtrim($imageAttrs['cache_dir'], '/') . '/';
-        unset($imageAttrs['cache_dir']);
-    } else {
-        $cacheDir = get_option('OCTOPUS_CACHE_DIR');
-        if (!$cacheDir) {
-            throw new SmartyException("No cache dir available for resizing.");
-        }
-        $cacheDir .= 'smarty_image/';
-    }
+    $ext = image_type_to_extension($size[2]);
+    if ($ext === '.jpeg') $ext = '.jpg';
 
     $cacheName = "{$mtime}_{$hash}_{$action}_{$width}x{$height}_{$constrainFileName}";
-    $cacheFile = $cacheDir . $cacheName;
+    $cacheFile = $cacheDir . $cacheName . $ext;
 
-    if (is_file($cacheFile)) {
-        return $cacheFile;
-    }
+    if (!is_file($cacheFile)) {
 
-    // Not in cache, so do some resizing.
-    $layout = compact('action', 'width', 'height');
-    $layout['mod'] = '';
-    if ($constrain) $layout['constrain'] = $constrain;
+	    // Not in cache, so do some resizing.
+	    $layout = compact('action', 'width', 'height');
+	    $layout['mod'] = '';
+	    if ($constrain) $layout['constrain'] = $constrain;
 
-    $i = new Octopus_Image(array($layout));
+	    $i = new Octopus_Image(array($layout));
 
-    $i->keep_type = true;
-    $i->processImages($cacheDir, $cacheName, $file);
+	    $i->keep_type = true;
+	    $i->processImages($cacheDir, $cacheName, $file);
 
-    $file = $cacheFile . '.' . $info['extension'];
+	}
 
     // TODO: Octopus_Image should return image size info
-    $size = getimagesize($file);
+
+    // NOTE: Octopus_Image may not resize an image to the exact dimensions
+    //       requested (e.g., to keep aspect ratios from getting fucked when
+	//		 resizing). So, we have to correct the "width" and "height" attributes
+	// 		 on the resulting <img> element as necessary.
+
+    $size = getimagesize($cacheFile);
+
     if ($size) {
         $imageAttrs['width'] = $size[0];
         $imageAttrs['height'] = $size[1];
     }
 
-    return $file;
+    return $cacheFile;
 }
+
+function _octopus_smarty_get_cache_dir(&$params) {
+
+    if (isset($params['cache_dir'])) {
+        $cacheDir = rtrim($params['cache_dir'], '/') . '/';
+        unset($params['cache_dir']);
+    } else {
+        $cacheDir = get_option('OCTOPUS_CACHE_DIR');
+        if (!$cacheDir) {
+            throw new SmartyException("No cache dir available for images.");
+        }
+        $cacheDir .= 'smarty_image/';
+    }
+
+    if (!is_dir($cacheDir)) {
+    	if (!@mkdir($cacheDir, 0777, true)) {
+    		throw new SmartyException("Could not create image cache dir.");
+    	}
+    }
+
+    return $cacheDir;
+}
+
+?>
