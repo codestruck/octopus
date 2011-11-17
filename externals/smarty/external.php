@@ -28,7 +28,7 @@ class Octopus_Smarty extends Octopus_Base {
             if (isset($app->template_dir)) {
                 $templateDir = $app->template_dir;
             } else {
-                $templateDir = get_option('SITE_DIR') . 'views';
+                $templateDir = get_option('SITE_DIR') . 'views/';
             }
 
         }
@@ -64,7 +64,15 @@ class Octopus_Smarty extends Octopus_Base {
         $security_policy = new Smarty_Security($this->smarty);
         $security_policy->php_functions = array();
         $security_policy->php_modifiers = array();
-        $security_policy->secure_dir = array(get_option('SITE_DIR') . 'views');
+        $security_policy->secure_dir = array(
+
+        	// Allow smarty views
+	        get_option('SITE_DIR') . 'views',
+
+	        // Allow smarty page templates for the curren theme
+	        get_option('SITE_DIR') . 'themes/' . get_option('site.theme') . '/templates/html'
+
+	    );
         $this->smarty->enableSecurity($security_policy);
 
         if (DEV) {
