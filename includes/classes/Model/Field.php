@@ -16,8 +16,7 @@ abstract class Octopus_Model_Field {
         'updated' => array( 'type' => 'datetime'),
         'active' => array( 'type' => 'boolean'),
         'order' => array( 'type' => 'order'),
-        'slug' => array('type' => 'slug')
-
+        'slug' => array('type' => 'slug'),
     );
 
     /**
@@ -27,11 +26,13 @@ abstract class Octopus_Model_Field {
         'text' => 'string',
         'bool' => 'boolean',
         'number' => 'numeric',
+        // 'file' => 'virtual',
     );
 
     private static $helperFieldTypes = array(
         'money' => array('type' => 'numeric', 'decimal_places' => 2),
-        'currency' => array('type' => 'numeric', 'decimal_places' => 2)
+        'currency' => array('type' => 'numeric', 'decimal_places' => 2),
+        'file' => array('type' => 'virtual', 'form_type' => 'file'),
     );
 
     public function __construct($field, $modelClass, $options) {

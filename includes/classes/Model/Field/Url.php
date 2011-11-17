@@ -7,6 +7,7 @@ class Octopus_Model_Field_Url extends Octopus_Model_Field_String {
         $options['onSave'] = array('Octopus_Model_Field_Url', 'onSave');
 
         parent::__construct($field, $modelClass, $options);
+        $this->defaultOptions['form'] = true;
     }
 
     public static function onSave($model, $field) {
