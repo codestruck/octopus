@@ -98,7 +98,6 @@ abstract class Octopus_Model_Field {
     }
 
     public function save($model, $sqlQuery) {
-
         $sqlQuery->set($this->getFieldName(), $this->accessValue($model, true));
     }
 
@@ -107,9 +106,7 @@ abstract class Octopus_Model_Field {
     }
 
     public function setValue($model, $value) {
-
         $model->setInternalValue($this->getFieldName(), $value);
-
     }
 
     /**
