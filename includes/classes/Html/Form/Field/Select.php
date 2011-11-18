@@ -24,8 +24,9 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
         }
 
         parent::__construct('select', $type, $name, $label, $attributes);
-        $this->setAttribute('name', $name);
         $this->removeAttribute('type');
+        $this->setAttribute('name', $name);
+
         $this->requireCloseTag = true;
 
         if ($options) $this->addOptions($options);
@@ -112,11 +113,19 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
 
     public function setAttribute($attr, $value) {
 
-        if (strcasecmp($attr, 'value') == 0) {
+        if ($attr == 'value') {
             return $this->setSelectedValue($value);
-        } else {
-            return parent::setAttribute($attr, $value);
-        }
+        } else if ($attr == 'name') {
+
+        	if ($this->getAttribute('multiple')) {
+        		$value = end_in('[]', $value);
+        	} else {
+        		$value = str_replace('[]', '', $value);
+        	}
+
+    	}
+
+        return parent::setAttribute($attr, $value);
 
     }
 
@@ -162,6 +171,20 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
 		}
 
 	}
+
+    protected function attributeChanged($attr, $oldValue, $newValue) {
+
+    	// Use array-style name if multiple is specified
+    	if ($attr == 'multiple') {
+
+    		if ($newValue) {
+    			$this->setAttribute('name', end_in('[]', $this->getAttribute('name')));
+    		} else {
+    			$this->setAttribute('name', str_replace('[]', '', $this->getAttribute('name')));
+    		}
+
+    	}
+    }
 
     /**
      * Factory method for creating <options>

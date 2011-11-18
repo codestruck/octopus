@@ -237,6 +237,8 @@ END;
 
 		$select->multiple = true;
 
+		$this->assertEquals('test[]', $select->name, 'Name updated');
+
 		/*
 		$this->assertHtmlEquals(
 			<<<END
@@ -255,7 +257,7 @@ END
 		$select->val(array('a', 'b'));
 		$this->assertHtmlEquals(
 			<<<END
-<select id="testInput" class="test select" name="test" multiple>
+<select id="testInput" class="test select" name="test[]" multiple>
 <option value="a" selected>foo</option>
 <option value="b" selected>bar</option>
 <option value="c">baz</option>
@@ -271,7 +273,7 @@ END
 		$select->val('a', 'c');
 		$this->assertHtmlEquals(
 			<<<END
-<select id="testInput" class="test select" name="test" multiple>
+<select id="testInput" class="test select" name="test[]" multiple>
 <option value="a" selected>foo</option>
 <option value="b">bar</option>
 <option value="c" selected>baz</option>
