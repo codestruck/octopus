@@ -135,6 +135,35 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
     }
 
     /**
+     * Gets/sets the value of this field. Called without arguments, returns
+     * the selected value (or the value of the first option if none is
+	 * explicitly selected). Called with arguments, it sets the value.
+	 *
+	 * If the 'multiple' attribute is true, this will ALWAYS return an array,
+	 * even if there is nothing currently selected. When 'multiple' is on, you
+	 * can pass an array of values or multiple arguments to select items.
+     */
+	public function val(/* No args = return val, 1 or more args = set value */) {
+
+		$args = func_get_args();
+
+		switch(count($args)) {
+
+			case 0:
+				return $this->getSelectedValue();
+
+			case 1:
+				return $this->setSelectedValue($args[0]);
+
+			default:
+
+				return $this->setSelectedValue($args);
+
+		}
+
+	}
+
+    /**
      * Factory method for creating <options>
      */
     protected function createOption($value, $text, $attributes) {
@@ -173,52 +202,70 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
 
     private function getSelectedValue() {
 
-        $result = null;
+    	$result = $this->multiple ? array() : null;
+    	$firstValue = null;
 
         foreach($this->children() as $o) {
 
             if ($o->selected) {
-                return $o->value === null ? $o->text() : $o->value;
-            } else if ($result === null) {
+
+            	$value = $o->value;
+            	if ($value === null) $value = $o->text();
+
+            	if (is_array($result)) {
+            		$result[] = $value;
+            	} else {
+            		return $value;
+            	}
+
+            } else if ($result === null && $firstValue === null) {
 
                 // by default, 1st option is selected
-                $result = $o->value === null ? $o->text() : $o->value;
+            	$firstValue = $o->value;
+            	if ($firstValue === null) $firstValue = $o->text();
+
             }
         }
 
-        return $result;
-
+        return $result === null ? $firstValue : $result;
     }
 
-    private function setSelectedValue($value) {
+    private function setSelectedValue($newValue) {
 
-        // TODO: is value case-sensitive?
+        $values = is_array($newValue) ? $newValue : array($newValue);
 
-        if ($value instanceof Octopus_Model) {
-            $value = $value->id;
+        if (!$this->multiple && count($values) > 1) {
+        	$values = array_slice($value, 0, 1);
         }
 
-        $options = $this->children();
-        $set = false;
+        $changed = false;
+		$options = $this->children();
 
         foreach($options as $o) {
 
-            $val = $o->value;
-            if ($val === null) $val = $o->text();
+            $optionVal = $o->value;
+            if ($optionVal === null) $optionVal = $o->text();
 
-            if (strcasecmp($val, $value) == 0) {
-                $o->selected = true;
-                $set = true;
-            } else {
-                $o->selected = false;
-            }
+            $o->selected = false;
 
-        }
+	        foreach($values as $value) {
 
-        if ($set) $this->valueChanged();
+		        if ($value instanceof Octopus_Model) {
+		            $value = $value->id;
+		        }
+
+	            if ($optionVal == $value && !$o->selected) {
+	                $o->selected = true;
+	                $changed = true;
+	            }
+
+        	}
+
+	    }
+
+        if ($changed) $this->valueChanged();
 
         return $this;
-
     }
 
     /**

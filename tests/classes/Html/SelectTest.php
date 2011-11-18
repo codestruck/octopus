@@ -224,6 +224,68 @@ END;
         );
 
     }
+
+	function testMultipleSelection() {
+
+		$select = Octopus_Html_Form_Field::create('select', 'test');
+
+		$select->addOptions(array(
+			'a' => 'foo',
+			'b' => 'bar',
+			'c' => 'baz'
+		));
+
+		$select->multiple = true;
+
+		/*
+		$this->assertHtmlEquals(
+			<<<END
+<select id="testInput" class="test select" name="test" multiple>
+<option value="a" selected>foo</option>
+<option value="b">bar</option>
+<option value="c">baz</option>
+</select>
+END
+			,
+			$select->render(true),
+			'first item selected by default'
+		);
+		*/
+
+		$select->val(array('a', 'b'));
+		$this->assertHtmlEquals(
+			<<<END
+<select id="testInput" class="test select" name="test" multiple>
+<option value="a" selected>foo</option>
+<option value="b" selected>bar</option>
+<option value="c">baz</option>
+</select>
+END
+			,
+			$select->render(true),
+			'Set multiple values using array to val()'
+		);
+		$this->assertEquals(array('a', 'b'), $select->val(), 'Multiple values returned by val()');
+
+
+		$select->val('a', 'c');
+		$this->assertHtmlEquals(
+			<<<END
+<select id="testInput" class="test select" name="test" multiple>
+<option value="a" selected>foo</option>
+<option value="b">bar</option>
+<option value="c" selected>baz</option>
+</select>
+END
+			,
+			$select->render(true),
+			'Set multiple values as multiple args to val()'
+		);
+
+
+	}
+
+
 }
 
 ?>
