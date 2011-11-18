@@ -287,6 +287,19 @@ END
 
 	}
 
+	function testLoadMultipleValues() {
+
+		$select = Octopus_Html_Form_Field::create('select', 'test');
+		$select->addOptions(array('a' => 'foo', 'b' => 'bar', 'c' => 'baz'));
+		$select->multiple = true;
+
+		$values = array('test' => array('a', 'c'));
+
+		$select->loadValue($values);
+		$this->assertEquals(array('a', 'c'), $select->val());
+
+	}
+
 
 }
 
