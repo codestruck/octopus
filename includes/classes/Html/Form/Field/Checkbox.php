@@ -2,17 +2,24 @@
 
 class Octopus_Html_Form_Field_Checkbox extends Octopus_Html_Form_Field {
 
+	private $multiple = false;
+
     public function __construct($type, $name, $label, $attributes = null) {
         parent::__construct('input', $type, $name, $label, $attributes);
 
         if (substr($name, -2) === '[]') {
+
+        	$this->multiple = true;
+
             $cssName = substr($name, 0, -2);
             $this->class = to_css_class($cssName);
-            $this->id = to_css_class($cssName . ucfirst($attributes['value']) . 'Input');
-            $this->wrapperId = to_css_class($cssName . ucfirst($attributes['value']) . 'Field');
-            $this->wrapperClass = $this->class . ' ' . to_css_class('value' . $attributes['value']) . ' ' . $type;
+            $this->id = to_css_class($cssName . camel_case($attributes['value'], true) . 'Input');
+
+            //$this->wrapperId = to_css_class($cssName . camel_case($attributes['value'], true) . 'Field');
+            //$this->wrapperClass = $this->class . ' ' . to_css_class('value' . $attributes['value']) . ' ' . $type;
 
             $this->addClass('value' . $attributes['value'])->addClass($type);
+
         }
 
     }
@@ -42,6 +49,22 @@ class Octopus_Html_Form_Field_Checkbox extends Octopus_Html_Form_Field {
         }
 
     }
+	public function readValue(&$values) {
+
+		if ($this->multiple) {
+
+			$name = preg_replace('/\[\]$/', '', $this->name);
+			if (!isset($values[$name])) $values[$name] = array();
+
+			if ($this->checked) {
+				$values[$name][] = $this->value;
+			}
+
+		} else {
+			return parent::readValue($values);
+		}
+
+	}
 
     public function val(/* $val */) {
 
@@ -53,7 +76,7 @@ class Octopus_Html_Form_Field_Checkbox extends Octopus_Html_Form_Field {
             default:
                 $values = func_get_arg(0);
 
-                if (substr($this->name, -2) === '[]') {
+                if ($this->multiple) {
                     $on = false;
                     if (is_array($values)) {
                         $on = in_array($this->value, $values);
@@ -65,6 +88,21 @@ class Octopus_Html_Form_Field_Checkbox extends Octopus_Html_Form_Field {
                     return $this->checked($values);
                 }
         }
+
+    }
+
+    protected function createWrapper($tag = null) {
+
+    	$wrapper = parent::createWrapper($tag);
+    	if (!$this->multiple) {
+    		return $wrapper;
+    	}
+
+    	$cssName = substr($this->name, 0, -2);
+    	$wrapper->id = to_css_class($cssName . camel_case($this->value, true) . 'Field');
+		$wrapper->class = 'field ' . $this->class;
+
+    	return $wrapper;
 
     }
 

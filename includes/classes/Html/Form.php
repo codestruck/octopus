@@ -51,11 +51,14 @@ class Octopus_Html_Form extends Octopus_Html_Element {
             $field = $typeOrElement;
             $this->currentSection->append($field);
         } else {
+
             $field = Octopus_Html_Form_Field::create($typeOrElement, $name, $label, $attributes);
+
             if ($field) {
-                $wrapper = $this->wrapField($field);
-                $this->currentSection->append($wrapper);
+                $field->wrapper = $field->wrap();
+                $this->currentSection->append($field->wrapper ? $field->wrapper : $field);
             }
+
         }
 
         if ($field->type == 'file') {
@@ -802,40 +805,6 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     	// Include the signature field in the rendered content.
 		$result = $this->getSignatureFieldHtml() . "\n" . parent::renderContent();
 		return $result;
-    }
-
-    /**
-     * For fields added like add('type', 'name', array()), wraps in a div and
-     * adds a label.
-     */
-    protected function wrapField($field) {
-
-        if ($field->type == 'hidden') {
-            return $field;
-        }
-
-        $label = new Octopus_Html_Element('label');
-        $field->addLabel($label);
-
-        $wrapper = new Octopus_Html_Element('div');
-        $wrapper->id = $field->wrapperId;
-        $wrapper->addClass('field', $field->wrapperClass);
-
-        if ($field->type == 'checkbox') {
-
-            // HACK: Checkboxes are usually like [x] Label rather than Label [x]
-
-
-            $wrapper->append($field);
-            $wrapper->append($label);
-        } else {
-            $wrapper->append($label);
-            $wrapper->append($field);
-        }
-
-        $field->wrapper = $wrapper;
-
-        return $wrapper;
     }
 
     private function validateRecursive(&$el, &$values, &$result) {

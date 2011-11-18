@@ -84,27 +84,25 @@ END;
 
     function testRadioValidate() {
 
-    	$this->markTestSkipped();return;
-
         $form = new Octopus_Html_Form('test');
         $field = $form->add('radio', 'color')->required();
         $field->addOption('pink', 'Pink');
         $field->addOption('blue', 'Blue');
         $field->addOption('green', 'Green');
 
-        $_POST['color'] = array('pink');
-        $_POST['__octform'] = $form->getSignature();
-        $_SERVER['REQUEST_METHOD'] = 'post';
+        $form->submit(array('color' => array('pink')));
 
-        $this->assertTrue($form->submitted(), 'The form was submitted');
+        $this->assertEquals(array('pink'), $field->val());
 
-$valid = $form->validate($result);
-        dump_r($result);
-$this->assertTrue($valid, 'The form was validated');
+		$valid = $form->validate($result);
+
+		$this->assertTrue($valid, 'The form was validated');
+
+		$sig = $form->getSignature();
         $expect = <<<END
 
 <form id="test" method="post" novalidate>
-<input type="hidden" name="__octopus_form_test_submitted" value="1" />
+<input type="hidden" name="__octform" value="$sig" />
 <div id="colorField" class="field color radio required">
 <label>Color:</label>
 <div class="colorRadioGroup radioGroup required">
