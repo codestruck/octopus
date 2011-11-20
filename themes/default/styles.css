@@ -147,6 +147,10 @@ input.text, textarea {
 	width: 200px;
 }
 
+select {
+	margin-top: 2px;
+}
+
 button {
 	font-size: 20px;
 	padding: 5px;
@@ -189,12 +193,4 @@ a.add, a.back {
 	display: block;
 	font-size: 24px;
 	margin: 50px 0 0 0;
-}
-
-a.back {
-	margin-left: 110px;
-}
-
-body.action-delete a.back {
-	margin-left: 0;
 }
