@@ -500,7 +500,7 @@ abstract class Octopus_Controller {
 		$this->view = 'scaffold_delete';
 
 		$id = array_shift($args);
-		$item = $model::get($id);
+		$item = call_user_func(array($model, 'get'), $id);
 
 		if (!$item) {
 			return $this->notFound();
@@ -539,7 +539,7 @@ abstract class Octopus_Controller {
 		$this->view = 'scaffold_edit';
 
     	$id = array_shift($args);
-    	$item = $model::get($id);
+    	$item = call_user_func(array($model, 'get'), $id);
 
     	if (!$item) {
     		return $this->notFound('404');
@@ -604,7 +604,7 @@ abstract class Octopus_Controller {
 		$this->view = 'scaffold_view';
 
     	$id = array_shift($args);
-    	$item = $model::get($id);
+    	$item = call_user_func(array($model, 'get'), $id);
 
     	if (!$item) {
     		return $this->notFound();
@@ -674,7 +674,7 @@ abstract class Octopus_Controller {
 	    	)
 	    ));
 
-    	$table->setDataSource($model::all());
+    	$table->setDataSource(call_user_func(array($model, 'all')));
 
     	return $table;
 
