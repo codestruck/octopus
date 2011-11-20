@@ -174,7 +174,7 @@ class Octopus_Html_Table_Content extends Octopus_Html_Element {
 
             $useExtraArgs = true;
             if (is_string($f)) {
-                $noExtraArgs = array('htmlspecialchars', 'htmlentities', 'trim', 'ltrim', 'rtrim', 'nl2br', 'basename');
+                $noExtraArgs = array('htmlspecialchars', 'htmlentities', 'trim', 'ltrim', 'rtrim', 'nl2br', 'basename', 'number_format');
                 $useExtraArgs = !in_array($f, $noExtraArgs);
             }
 
