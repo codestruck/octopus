@@ -8,7 +8,7 @@ body {
 	background: #fff;
 	border: 1px solid #e9e9e9;
 	color: #333;
-	font-family: 'Helvetica Nueue', Helvetica, Arial, sans-serif;
+	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 	font-size: 16px;
 	margin: 40px auto;
 	padding: 20px;
@@ -16,12 +16,18 @@ body {
 }
 
 h1, h2, h3, h4 {
+	letter-spacing: -1px;
 	margin: 0 0 10px 0;
 	padding: 0;
 }
 
 h1 {
+	font-size: 1.3em;
 	margin-bottom: 30px;
+}
+
+h2 {
+	font-size: 1.2em;
 }
 
 a {
@@ -32,13 +38,51 @@ a:hover {
 	text-decoration: underline;
 }
 
-#view-content {
-	min-height: 400px;
+header {
+	border-bottom: 1px solid #e9e9e9;
+	margin-bottom: 20px;
+	overflow: hidden;
+	padding-bottom: 20px;
 }
 
-#footer {
-	color: #888;
-	font-size: 10px;
+header .logo {
+	float: left;
+}
+
+header h1 {
+	font-size: 28px;
+	margin: 0;
+}
+
+header a {
+	color: #333;
+}
+
+header nav {
+	float: right;
+}
+
+header nav ul {
+	margin: 0;
+	padding: 0;
+}
+
+header nav li {
+	float: left;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+header nav a {
+	color: #00f;
+	display: block;
+	line-height: 32px;
+	padding: 0 0 0 30px;
+}
+
+#view-content {
+	min-height: 400px;
 }
 
 .flash {
@@ -49,6 +93,12 @@ a:hover {
 .flash.success {
 	background: #afa;
 }
+
+footer {
+	color: #888;
+	font-size: 10px;
+}
+
 
 /***************************************
  *
@@ -87,6 +137,17 @@ th a {
 	color: #333;
 	text-decoration: none;
 }
+
+th.sortDesc a {
+	background: url(images/arrow_down.png) right center no-repeat;
+	padding-right: 20px;
+}
+
+th.sortAsc a {
+	background: url(images/arrow_up.png) right center no-repeat;
+	padding-right: 20px;
+}
+
 
 td {
 	border: 1px solid #e9e9e9;
@@ -192,5 +253,5 @@ form.scaffold-delete div.buttons {
 a.add, a.back {
 	display: block;
 	font-size: 24px;
-	margin: 50px 0 0 0;
+	margin: 50px 0;
 }

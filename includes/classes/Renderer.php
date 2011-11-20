@@ -183,6 +183,8 @@ class Octopus_Renderer {
 		$result['ACTION'] = $action;
         $result['ACTION_AS_CLASS'] = $controller . '-' . $action;
 
+        $result['SETTINGS'] = $this->app->getSettings();
+
         if (class_exists('Octopus_Html_Page')) {
 
             $p = Octopus_Html_Page::singleton();

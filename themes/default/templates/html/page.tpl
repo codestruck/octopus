@@ -3,15 +3,36 @@
 {$HEAD}
 <body class="{$ACTION_AS_CLASS} action-{$ACTION|to_css_class}">
 
-	{render_flash()}
+	<div id="wrap">
 
-	<div id="view-content">
-    {$view_content}
-    </div>
+		<header>
+			<a class="logo" href="{"/"|u}"><h1>{$SETTINGS['site.name']|h}</h1></a>
 
-    <div id="footer">
-    	This is the default octopus theme.
-    </div>
+			{if $controller_links}
+			<nav class="controller-links">
+			{foreach from=$controller_links key=text item=url}
+			<li><a href="{$url|h}">{$text|h}</a></li>
+			{/foreach}
+			</nav>
+			{/if}
+
+		</header>
+
+		<section id="content">
+
+			{render_flash()}
+
+			<div id="view-content">
+		    {$view_content}
+		    </div>
+
+	   	</section>
+
+	   	<footer>
+	    	This is the default Octopus theme. You're welcome.
+	    </footer>
+
+	</div> <!-- #wrap -->
 
 </body>
 </html>

@@ -387,6 +387,8 @@ abstract class Octopus_Controller {
 			return $result;
 		}
 
+		return array('controller_links' => $this->getControllerLinks());
+
     }
 
     /**
@@ -489,7 +491,9 @@ abstract class Octopus_Controller {
 
     	}
 
-    	return compact('model', 'form', 'index_url');
+		$controller_links = $this->getControllerLinks();
+
+    	return compact('model', 'form', 'index_url', 'controller_links');
     }
 
     /**
@@ -527,7 +531,9 @@ abstract class Octopus_Controller {
     	$var = underscore($model);
     	if (!isset($$var)) $$var = $item;
 
-    	return compact('item', $var, 'model', 'form', 'index_url');
+		$controller_links = $this->getControllerLinks();
+
+    	return compact('item', $var, 'model', 'form', 'index_url', 'controller_links');
     }
 
 
@@ -572,8 +578,9 @@ abstract class Octopus_Controller {
     	$var = underscore($model);
     	if (!isset($$var)) $$var = $item;
 
+		$controller_links = $this->getControllerLinks();
 
-		return compact('id', 'model', 'item', $var, 'form', 'index_url');
+		return compact('id', 'model', 'item', $var, 'form', 'index_url', 'controller_links');
     }
 
     /**
@@ -593,7 +600,9 @@ abstract class Octopus_Controller {
 
     	$add_url = $this->getActionUrl('add');
 
-    	return compact('model', 'table', 'add_url');
+		$controller_links = $this->getControllerLinks();
+
+    	return compact('model', 'table', 'add_url', 'controller_links');
     }
 
     /**
@@ -621,7 +630,9 @@ abstract class Octopus_Controller {
     	$var = underscore($model);
     	if (!isset($$var)) $$var = $item;
 
-    	return compact('id', 'item', $var, 'model', 'fields', 'index_url');
+    	$controller_links = $this->getControllerLinks();
+
+    	return compact('id', 'item', $var, 'model', 'fields', 'index_url', 'controller_links');
 
     }
 
@@ -694,6 +705,32 @@ abstract class Octopus_Controller {
 		}
 
 		return false;
+    }
+
+    /**
+     * @return Array Keys are text, values are urls. Links to the controllers
+     * in the site's controllers/ directory. This is used by the default theme
+     * to render a nav.
+     */
+    private function getControllerLinks() {
+
+    	$links = array();
+
+    	$files = glob(SITE_DIR . 'controllers/*.php');
+    	if (!$files) return $links;
+
+    	foreach($files as $f) {
+
+    		$name = basename($f, '.php');
+    		$url = '/' . dashed($name);
+    		$name = humanize($name);
+
+    		$links[$name] = u($url);
+
+    	}
+
+    	return $links;
+
     }
 
 }
