@@ -5,6 +5,7 @@ class Octopus_Html_Form_Field_Checkbox extends Octopus_Html_Form_Field {
 	private $multiple = false;
 
     public function __construct($type, $name, $label, $attributes = null) {
+
         parent::__construct('input', $type, $name, $label, $attributes);
 
         if (substr($name, -2) === '[]') {
@@ -14,9 +15,6 @@ class Octopus_Html_Form_Field_Checkbox extends Octopus_Html_Form_Field {
             $cssName = substr($name, 0, -2);
             $this->class = to_css_class($cssName);
             $this->id = to_css_class($cssName . camel_case($attributes['value'], true) . 'Input');
-
-            //$this->wrapperId = to_css_class($cssName . camel_case($attributes['value'], true) . 'Field');
-            //$this->wrapperClass = $this->class . ' ' . to_css_class('value' . $attributes['value']) . ' ' . $type;
 
             $this->addClass('value' . $attributes['value'])->addClass($type);
 
@@ -104,6 +102,10 @@ class Octopus_Html_Form_Field_Checkbox extends Octopus_Html_Form_Field {
 
     	return $wrapper;
 
+    }
+
+    protected function getDefaultLabel($name) {
+    	return rtrim(parent::getDefaultLabel($name), ':');
     }
 
     protected function valueChanged() {

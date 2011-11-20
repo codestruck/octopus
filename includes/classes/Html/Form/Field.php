@@ -34,14 +34,13 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
 
         parent::__construct($tag, $attributes);
 
-        if ($label === null) {
-            // TODO: Don't include ':' at the end (do it with :after css?)
-            $label = humanize($name) . ':';
-        }
-
         $this->type = $type;
         $this->name = $name;
         $this->id = $name . 'Input';
+
+        if ($label === null) {
+        	$label = $this->getDefaultLabel($name);
+        }
 
         $this->addClass(to_css_class($name), to_css_class($type))
              ->label($label);
@@ -455,9 +454,24 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
         return $wrapper;
     }
 
+    /**
+     * @param String $name Name to use to generate a default label.
+     * @return String Default text to put in this control's label.
+     */
+    protected function getDefaultLabel($name) {
+
+    	return humanize($name) . ':';
+
+    }
+
+    /**
+     * Sets the text of any labels that have been added to this field. This
+     * is called automatically when you call the label() method.
+     */
     protected function updateLabels() {
 
-        $text = $this->_label;
+    	$text = $this->_label;
+
         foreach($this->_labelElements as $l) {
             $l->setAttribute('for', $this->id)
               ->html($text ? $text : '');
@@ -545,10 +559,7 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
             unset($attributes['name']);
         }
 
-        if ($label === null) {
-            $label = isset($attributes['label']) ? $attributes['label'] : humanize($name) . ':';
-            unset($attributes['label']);
-        }
+        unset($attributes['label']);
 
         $class = 'Octopus_Html_Form_Field';
 
