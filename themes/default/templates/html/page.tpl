@@ -1,27 +1,16 @@
-<?php
-
-    /*
-     * A standard page template.
-     *
-     */
-
-?>
 <!doctype html>
 <html>
-<head>
-<style>
-html { font-family: Helvetica, sans-serif; }
-</style>
-</head>
-<body>
+{$HEAD}
+<body class="{$ACTION_AS_CLASS} action-{$ACTION|to_css_class}">
 
-    <div id="wrap">
+	{render_flash()}
 
-        <?php echo $view_content; ?>
+	<div id="view-content">
+    {$view_content}
+    </div>
 
-        <div id="sideBoxes">
-        </div>
-
+    <div id="footer">
+    	This is the default octopus theme.
     </div>
 
 </body>
