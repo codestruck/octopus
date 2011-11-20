@@ -2,7 +2,7 @@
 
 site.name:
   desc: The name of this website.
-  default: My Awesome Project Octopus Site
+  default_func: guess_site_name
 
 site.theme.*:
   desc: The theme to use. To set the theme for a specific path, use the setting site.theme.your.path

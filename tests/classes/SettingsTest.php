@@ -173,6 +173,28 @@ END
 
     }
 
+    function testArrayAccess() {
+
+        $settings = new Octopus_Settings();
+        $settings->addFromYaml(<<<END
+site_lang:
+  default: en-us
+site_name:
+  default: Default Site Name
+END
+        );
+
+        $this->assertTrue(isset($settings['site_lang']), 'site_lang is set');
+        $this->assertEquals('en-us', $settings['site_lang']);
+
+        $settings['site_lang'] = 'fr';
+        $this->assertEquals('fr', $settings->get('site_lang'));
+
+        unset($settings['site_lang']);
+        $this->assertEquals('en-us', $settings['site_lang']);
+
+    }
+
     function dontTestLoadFromPHP() {
 
         $phpFile = $this->testDir . '/php_test.php';
@@ -334,6 +356,26 @@ END
             $this->assertEquals($expected, $settings->get($input), "Failed on $input");
 
         }
+
+    }
+
+    function defaultSettingValueFunction() {
+    	return $this->defaultUsingFunctionValue;
+    }
+    private $defaultUsingFunctionValue;
+
+    function testFunctionForDefault() {
+
+		$settings = new Octopus_Settings();
+		$settings->addFromArray(array(
+			'some.setting' => array('default_func' => array($this, 'defaultSettingValueFunction'))
+		));
+
+		$this->defaultUsingFunctionValue = 42;
+		$this->assertEquals(42, $settings->get('some.setting'));
+
+		$settings->set('some.setting', '99');
+		$this->assertEquals(99, $settings->get('some.setting'));
 
     }
 
