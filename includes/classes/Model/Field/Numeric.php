@@ -39,6 +39,26 @@ class Octopus_Model_Field_Numeric extends Octopus_Model_Field {
         $sqlQuery->set($this->getFieldName(), $value);
     }
 
+    public function addToTable($table) {
+
+        if (!$this->getOption('table', true)) {
+            return;
+        }
+
+        $formatFunc = 'number_format';
+
+        $type = $this->getOption('original_type');
+        if ($type === 'money' || $type === 'currency') {
+        	$formatFunc = 'html_format_money';
+        }
+
+        $table->addColumns(array(
+	        $this->getFieldName() => array(
+	        	'function' => $formatFunc
+		    )
+	    ));
+    }
+
     private function normalizeValue($value, $valueIfInvalid = 0) {
 
         $currencySymbol = $this->getOption('currency_symbol', '$');

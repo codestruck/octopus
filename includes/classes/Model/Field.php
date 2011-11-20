@@ -55,6 +55,7 @@ abstract class Octopus_Model_Field {
         }
 
         $type = isset($options['type']) ? $options['type'] : 'string';
+        $originalType = $type;
 
         if (isset(self::$fieldTypeAliases[$type])) {
             $type = self::$fieldTypeAliases[$type];
@@ -68,6 +69,7 @@ abstract class Octopus_Model_Field {
 
         $class = 'Octopus_Model_Field_' . camel_case($type, true);
         $options['type'] = $type;
+        $options['original_type'] = $originalType;
 
         return new $class($name, $modelClass, $options);
     }
