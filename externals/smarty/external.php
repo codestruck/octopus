@@ -64,13 +64,22 @@ class Octopus_Smarty extends Octopus_Base {
         $security_policy = new Smarty_Security($this->smarty);
         $security_policy->php_functions = array();
         $security_policy->php_modifiers = array();
+
+        $siteDir = get_option('SITE_DIR');
+        $theme = get_option('site.theme');
+        $octopusDir = get_option('OCTOPUS_DIR');
+
         $security_policy->secure_dir = array(
 
         	// Allow smarty views
-	        get_option('SITE_DIR') . 'views',
+	        $siteDir . 'views',
+
+	        $octopusDir . 'views',
 
 	        // Allow smarty page templates for the curren theme
-	        get_option('SITE_DIR') . 'themes/' . get_option('site.theme') . '/templates/html'
+	        $siteDir . 'themes/' . $theme . '/templates/html',
+
+	        $octopusDir . 'themes/' . $theme . '/templates/html'
 
 	    );
         $this->smarty->enableSecurity($security_policy);
