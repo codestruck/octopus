@@ -11,7 +11,7 @@ class Octopus_Model_Field_Boolean extends Octopus_Model_Field {
         $table->newBool($this->getFieldName());
     }
 
-    public function addToForm($form) {
+    public function addToForm(Octopus_Html_Form $form) {
 
     	if (!$this->shouldAddToForm()) {
     		return;
