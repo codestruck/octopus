@@ -351,13 +351,13 @@ abstract class Octopus_Model_Field {
     }
 
     /**
-     * Adds controls for this field to an Octopus_Html_Form.
+     * Adds controls for this field to a form.
      */
-    public function addToForm($form) {
+    public function addToForm(Octopus_Html_Form $form) {
 
-        if (!$this->getOption('form', true)) {
-            return;
-        }
+    	if (!$this->shouldAddToForm()) {
+    		return;
+    	}
 
         $field = $form->add('text', $this->getFieldName());
 
@@ -371,15 +371,22 @@ abstract class Octopus_Model_Field {
 
     }
 
-    public function addToTable($table) {
+    /**
+     * Adds a column for this field to a table.
+     */
+    public function addToTable(Octopus_Html_Table $table) {
 
-        if (!$this->getOption('table', true)) {
-            return;
-        }
+    	if (!$this->shouldAddToTable()) {
+    		return;
+    	}
 
         $table->addColumn($this->getFieldName());
     }
 
+    /**
+     * Form validation callback used to verify that the contents of this field
+     * are unique.
+     */
     public function validateUniqueness($value, $data, $formField) {
 
         $modelClass = $this->modelClass;
@@ -405,6 +412,32 @@ abstract class Octopus_Model_Field {
 
     public function restrictFreetext($model, $text) {
         return new Octopus_Model_Restriction_Field($model, $this->getFieldname() . ' LIKE', $text);
+    }
+
+    protected function shouldAddToForm() {
+
+    	$defaultValue = !in_array(
+	    	$this->getFieldName(),
+	    	array(
+	    		'created',
+	    		'updated',
+	    		'password',
+		    )
+		);
+
+    	return !!$this->getOption('form', $defaultValue);
+    }
+
+    protected function shouldAddToTable() {
+
+    	$defaultValue = !in_array(
+	    	$this->getFieldName(),
+	    	array(
+	    		'password',
+		    )
+		);
+
+    	return !!$this->getOption('table', $defaultValue);
     }
 
 }

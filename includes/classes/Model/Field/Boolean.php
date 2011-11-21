@@ -13,6 +13,10 @@ class Octopus_Model_Field_Boolean extends Octopus_Model_Field {
 
     public function addToForm($form) {
 
+    	if (!$this->shouldAddToForm()) {
+    		return;
+    	}
+
     	$form->add('checkbox', $this->getFieldName());
 
     }
