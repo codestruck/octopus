@@ -716,7 +716,7 @@ abstract class Octopus_Controller {
 
     	$links = array();
 
-    	$files = glob(SITE_DIR . 'controllers/*.php');
+    	$files = glob(get_option('SITE_DIR') . 'controllers/*.php');
     	if (!$files) return $links;
 
     	foreach($files as $f) {

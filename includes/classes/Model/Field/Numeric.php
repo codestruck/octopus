@@ -39,7 +39,7 @@ class Octopus_Model_Field_Numeric extends Octopus_Model_Field {
         $sqlQuery->set($this->getFieldName(), $value);
     }
 
-    public function addToTable($table) {
+    public function addToTable(Octopus_Html_Table $table) {
 
         if (!$this->getOption('table', true)) {
             return;
