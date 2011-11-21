@@ -108,7 +108,7 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
         }
 
         $thisModel = singularize(underscore($this->getModelClass()));
-        $joinedModel = $this->getOption('model', singularize(underscore($this->getFieldName())));
+        $joinedModel = singularize(underscore($this->getOption('model', $this->getFieldName())));
 
         $customTable = $this->getOption('model', false);
         $customField = $this->getOption('field', false);

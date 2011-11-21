@@ -51,6 +51,13 @@ class Octopus_DB_Schema_IndexTest extends PHPUnit_Framework_TestCase {
         $t->newIndex('UNIQUE', 'value');
         $t->create();
 
+        $reader = new Octopus_DB_Schema_Reader('translation_values');
+        $indexes = $reader->getIndexes();
+
+        $this->assertEquals('value', $indexes[1]['Key_name']);
+        $this->assertEquals('value', $indexes[1]['Column_name']);
+        $this->assertEquals(0, $indexes[1]['Non_unique']);
+
         $d = new Octopus_DB_Schema();
         $t = $d->newTable('translation_values');
         $t->newKey('keyword_id', true);
@@ -63,6 +70,7 @@ class Octopus_DB_Schema_IndexTest extends PHPUnit_Framework_TestCase {
 
         $reader = new Octopus_DB_Schema_Reader('translation_values');
         $indexes = $reader->getIndexes();
+        // dump_r($indexes);
 
         $this->assertEquals('value', $indexes[1]['Key_name']);
         $this->assertEquals('value', $indexes[1]['Column_name']);

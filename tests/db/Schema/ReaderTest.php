@@ -39,7 +39,7 @@ class Octopus_DB_Schema_Reader_Test extends PHPUnit_Framework_TestCase
 
         $this->assertEquals('int', $fields['test_id']['type']);
         $this->assertEquals('NOT NULL AUTO_INCREMENT', $fields['test_id']['options']);
-        $this->assertEquals('PRIMARY KEY', $fields['test_id']['index']);
+        $this->assertEquals('PRIMARY', $fields['test_id']['index']);
     }
 
     function testReadIndexes() {

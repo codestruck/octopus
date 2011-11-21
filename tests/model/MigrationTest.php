@@ -351,7 +351,7 @@ END
                 'type' => 'int',
                 'size' => '10',
                 'options' => 'NOT NULL AUTO_INCREMENT',
-                'index' => 'PRIMARY KEY'
+                'index' => 'PRIMARY'
             ),
 
             'name' => array(
@@ -484,7 +484,7 @@ END
                 'type' => 'int',
                 'size' => 10,
                 'options' => 'NOT NULL AUTO_INCREMENT',
-                'index' => 'PRIMARY KEY'
+                'index' => 'PRIMARY'
             ),
             'name' => array(
                 'type' => 'varchar',
@@ -506,7 +506,7 @@ END
                 'type' => 'int',
                 'size' => 10,
                 'options' => 'NOT NULL AUTO_INCREMENT',
-                'index' => 'PRIMARY KEY'
+                'index' => 'PRIMARY'
             ),
             'name' => array(
                 'type' => 'varchar',
@@ -525,14 +525,14 @@ END
                 'options' => 'NOT NULL',
                 'index' => 'MUL'
             ),
-            'category_id' => array(
+            'migrate_test_category_id' => array(
                 'type' => 'int',
                 'size' => 10,
                 'options' => 'NOT NULL',
                 'index' => 'MUL'
             )
         );
-        $this->assertColsMatch($expectedCols, 'category_migrate_test_person_join');
+        $this->assertColsMatch($expectedCols, 'migrate_test_category_migrate_test_person_join');
     }
 
     function assertColsMatch($expectedCols, $table) {
