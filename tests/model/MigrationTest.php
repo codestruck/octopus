@@ -4,6 +4,10 @@ class MigrateTestPerson extends Octopus_Model {
 
     protected $fields = array(
         'name',
+        'name_short' => array('type' => 'text', 'length' => 50),
+        'name_short_size' => array('type' => 'text', 'size' => 50),
+        'name_long' => array('type' => 'text', 'size' => 260),
+        'name_really_long' => array('type' => 'text', 'length' => PHP_INT_MAX),
         'age' => array('type' => 'number'),
         'birth_date' => array( 'type' => 'datetime'),
         'just_date' => array('type' => 'date'),
@@ -357,6 +361,36 @@ END
                 'index' => ''
             ),
 
+			'name_short' => array(
+                'type' => 'varchar',
+                'size' => '50',
+                'options' => 'NOT NULL',
+                'index' => ''
+            ),
+
+			'name_short_size' => array(
+                'type' => 'varchar',
+                'size' => '50',
+                'options' => 'NOT NULL',
+                'index' => ''
+            ),
+
+			'name_long' => array(
+                'type' => 'text',
+                'size' => '',
+                'options' => 'NOT NULL',
+                'index' => ''
+            ),
+
+			'name_really_long' => array(
+                'type' => 'text',
+                'size' => '',
+                'options' => 'NOT NULL',
+                'index' => ''
+            ),
+
+
+
             'age' => array(
                 'type' => 'bigint',
                 'size' => 20,
@@ -485,13 +519,13 @@ END
         $this->assertColsMatch($expectedCols, 'migrate_test_categories');
 
         $expectedCols = array(
-            'category_id' => array(
+            'migrate_test_person_id' => array(
                 'type' => 'int',
                 'size' => 10,
                 'options' => 'NOT NULL',
                 'index' => 'MUL'
             ),
-            'migrate_test_person_id' => array(
+            'category_id' => array(
                 'type' => 'int',
                 'size' => 10,
                 'options' => 'NOT NULL',
@@ -512,12 +546,10 @@ END
         foreach($cols as $id => $col) {
 
             if (!isset($expectedCols[$id])) {
-                dump_r($col);
                 $this->assertTrue(false, "Unexpected column `$id` found");
             }
 
             if (empty($expectedCols[$id])) {
-                dump_r($col);
                 $this->assertTrue(false, "Lazy programmer needs to fill in details for `$id`");
             }
 

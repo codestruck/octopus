@@ -3,7 +3,7 @@
 /**
  * Class that manages app settings.
  */
-class Octopus_Settings extends Octopus_Base implements Iterator {
+class Octopus_Settings extends Octopus_Base implements Iterator, ArrayAccess {
 
     private $_keys = array();
     private $_values = array();
@@ -263,6 +263,26 @@ class Octopus_Settings extends Octopus_Base implements Iterator {
     }
 
     /* End Iterator Implementation }}} */
+
+    /* ArrayAccess Implementation */
+
+    public function offsetExists($offset) {
+
+    	return !!$this->getKey($offset, false);
+
+    }
+
+    public function offsetGet($offset) {
+    	return $this->get($offset);
+    }
+
+    public function offsetSet($offset, $value) {
+    	return $this->set($offset, $value);
+    }
+
+    public function offsetUnset($offset) {
+    	$this->reset($offset);
+    }
 
     public static function singleton() {
         return Octopus_App::singleton()->getSettings();

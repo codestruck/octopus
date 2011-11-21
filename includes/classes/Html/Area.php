@@ -4,7 +4,7 @@
      * A chunk of a page.
      */
     class Octopus_Html_Area {
-        
+
         static $defaults = array(
             'display_order' => 0
         );

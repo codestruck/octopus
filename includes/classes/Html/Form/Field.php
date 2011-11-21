@@ -18,8 +18,6 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
 
     public $help = null;
     public $wrapper = null;
-    public $wrapperId = null;
-    public $wrapperClass = null;
 
     private $_rules = array();
     private $_requiredRule = null;
@@ -36,20 +34,16 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
 
         parent::__construct($tag, $attributes);
 
-        if ($label === null) {
-            // TODO: Don't include ':' at the end (do it with :after css?)
-            $label = humanize($name) . ':';
-        }
-
         $this->type = $type;
         $this->name = $name;
         $this->id = $name . 'Input';
-        $this->wrapperId = $name . 'Field';
+
+        if ($label === null) {
+        	$label = $this->getDefaultLabel($name);
+        }
 
         $this->addClass(to_css_class($name), to_css_class($type))
              ->label($label);
-
-        $this->wrapperClass = $this->class;
     }
 
     public function addClass() {
@@ -255,6 +249,21 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
         return $this;
     }
 
+    public function isRequired() {
+
+    	if ($this->required) {
+    		return true;
+    	}
+
+    	foreach($this->_rules as $rule) {
+    		if ($rule instanceof Octopus_Html_Form_Field_Rule_Required) {
+    			return true;
+    		}
+    	}
+
+    	return false;
+    }
+
     /**
      * @return Array An array of details about this field suitable for use
      * in rendering via a template.
@@ -286,7 +295,13 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
         }
 
         if ($this->wrapper) {
+
             $result['full_html'] = trim($this->wrapper->render(true));
+            $result['wrapper'] = array(
+            	'open_tag' => $this->wrapper->renderOpenTag() . '>',
+            	'close_tag' => $this->wrapper->renderCloseTag('foo'),
+	        );
+
         } else {
             $result['full_html'] = $result['html'];
         }
@@ -333,11 +348,11 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
             // true or non-zero = pass
             if ($v === true || is_numeric($v) && $v != 0) {
                 continue;
-        	}
+            }
 
-        	$errorCount++;
+            $errorCount++;
 
-        	if ($v === false || $v === 0) {
+            if ($v === false || $v === 0) {
                 $result->errors[] = $r->getMessage($this, $data);
             } else if (is_string($v)) {
                 $result->errors[] = $v;
@@ -368,19 +383,95 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
     }
 
     /**
-     * Reads this field's value into a final array of values.
-     * @param $posted Array The data posted, e.g. $_POST
-     * @param $values Array Array being populated w/ form data.
+     * Given an array of posted values, intializes this field.
      */
-    public function readValue(&$posted, &$values) {
-        if (isset($posted[$this->name])) {
-            $values[$this->name] = $posted[$this->name];
-        }
+    public function loadValue(&$values) {
+
+    	$name = preg_replace('/\[\]$/', '', $this->name);
+		$value = isset($values[$name]) ? $values[$name] : null;
+
+		$this->val($value);
+
+        return $this;
+
     }
 
+    /**
+     * Reads this field's value into a final array of values.
+     * @param $values Array Array being populated w/ form data.
+     */
+    public function readValue(&$values) {
+
+    	$name = preg_replace('/\[\]$/', '', $this->name);
+        $values[$name] = $this->val();
+
+        return $this;
+    }
+
+    /**
+     * Creates a wrapper/label structure for this field, adds the field to
+     * it in the correct place, and returns the wrapper.
+     */
+    public function wrap() {
+
+		if ($this->type == 'hidden') {
+			// Hidden inputs don't get wrapped
+            return $this;
+        }
+
+        $label = new Octopus_Html_Element('label');
+        $this->addLabel($label);
+
+        $wrapper = $this->createWrapper();
+        if (!$wrapper) return $this;
+
+        if ($this->type == 'checkbox') {
+
+            // Checkboxes are usually like [x] Label rather than Label [x]
+            $wrapper->append($this);
+            $wrapper->append($label);
+
+        } else {
+            $wrapper->append($label);
+            $wrapper->append($this);
+        }
+
+        return $wrapper;
+    }
+
+    /**
+     * @return Octopus_Html_Element An empty html element to be used to wrap
+     * this field, or null if this field should not be wrapped.
+     */
+    protected function createWrapper($tag = null) {
+
+    	if ($tag === null) $tag = 'div';
+
+		$wrapper = new Octopus_Html_Element($tag);
+        $wrapper->id = preg_replace('/\[\]$/', '', $this->name) . 'Field';
+        $wrapper->addClass('field', $this->class);
+
+        return $wrapper;
+    }
+
+    /**
+     * @param String $name Name to use to generate a default label.
+     * @return String Default text to put in this control's label.
+     */
+    protected function getDefaultLabel($name) {
+
+    	return humanize($name) . ':';
+
+    }
+
+    /**
+     * Sets the text of any labels that have been added to this field. This
+     * is called automatically when you call the label() method.
+     */
     protected function updateLabels() {
 
-        $text = $this->_label;
+    	$text = $this->_label;
+
         foreach($this->_labelElements as $l) {
             $l->setAttribute('for', $this->id)
               ->html($text ? $text : '');
@@ -468,10 +559,7 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
             unset($attributes['name']);
         }
 
-        if ($label === null) {
-            $label = isset($attributes['label']) ? $attributes['label'] : humanize($name) . ':';
-            unset($attributes['label']);
-        }
+        unset($attributes['label']);
 
         $class = 'Octopus_Html_Form_Field';
 
@@ -492,9 +580,9 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
      * Helper function used for mustBe('email');
      */
     public static function validateEmail($input) {
-    	$input = trim($input);
-    	if (!$input) return true;
-    	return is_email($input);
+        $input = trim($input);
+        if (!$input) return true;
+        return is_email($input);
     }
 
 }

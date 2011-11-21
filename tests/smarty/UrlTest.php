@@ -85,6 +85,20 @@ class UrlTest extends Octopus_App_TestCase {
         $this->assertSmartyEquals($expected, $test, '', false, false, $assign);
     }
 
+    function testUseRequestURIAsDefaultPath() {
+    	$_SERVER['REQUEST_URI'] = '/foo';
+        $test = '{url}';
+        $expected = '/foo';
+        $this->assertSmartyEquals($expected, $test, '', false, false);
+    }
+
+    function testReplaceArgsInRequestURI() {
+    	$_SERVER['REQUEST_URI'] = '/foo?something=bar&something_else=3';
+        $test = '{url something=foo}';
+        $expected = '/foo?something=foo&amp;something_else=3';
+        $this->assertSmartyEquals($expected, $test, '', false, false);
+    }
+
     // MOVE TO COMMON CLASS OR APP CLASS
     function assertSmartyEquals($expected, $value, $message = '', $replaceMD5 = false, $replaceMtime = false, $assign = array()) {
 

@@ -87,6 +87,12 @@ class Octopus_Response {
      */
     public function flush() {
 
+    	if ($this->_status && empty($this->_flushedHeaders['status'])) {
+    		header($this->_status);
+    		$this->_flushedHeaders['status'] = $this->_status;
+    		$this->_status = null;
+    	}
+
         foreach($this->_headers as $key => $value) {
             if (!isset($this->_flushedHeaders[$key])) {
                 header("$key: $value");
@@ -293,12 +299,12 @@ class Octopus_Response {
      */
     public static function current() {
 
-    	if (!Octopus_App::isStarted()) {
-    		return null;
-    	}
+        if (!Octopus_App::isStarted()) {
+        	return null;
+        }
 
-    	$app = Octopus_App::singleton();
-    	return $app->getCurrentResponse();
+        $app = Octopus_App::singleton();
+        return $app->getCurrentResponse();
 
     }
 

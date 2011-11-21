@@ -12,30 +12,41 @@ class FindTest extends Octopus_DB_TestCase {
         parent::__construct('model/find-data.xml');
     }
 
+    function testOrderByRand() {
+
+    	$posts = FindPost::all()->orderBy('RAND()');
+
+    	$this->assertSqlEquals(
+    		'SELECT * FROM find_posts ORDER BY RAND()',
+    		$posts
+	    );
+
+    }
+
     function testGetEmptyStringReturnsFalse() {
 
-    	$author = FindAuthor::get('');
-    	$this->assertFalse($author, '::get(<empty string>) should return false');
+        $author = FindAuthor::get('');
+        $this->assertFalse($author, '::get(<empty string>) should return false');
 
-    	$author = FindAuthor::get("\t  \t");
-    	$this->assertFalse($author, "::get(<all whitespace string>) should return false");
+        $author = FindAuthor::get("\t  \t");
+        $this->assertFalse($author, "::get(<all whitespace string>) should return false");
 
 
-    	$emptyNameAuthor = new FindAuthor();
-    	$emptyNameAuthor->name = '';
-    	$emptyNameAuthor->save();
-    	$this->assertTrue(!!$emptyNameAuthor->id, 'test author not saved');
+        $emptyNameAuthor = new FindAuthor();
+        $emptyNameAuthor->name = '';
+        $emptyNameAuthor->save();
+        $this->assertTrue(!!$emptyNameAuthor->id, 'test author not saved');
 
-    	$whitespaceNameAuthor = new FindAuthor();
-    	$whitespaceNameAuthor->name = "\t  \t";
-    	$whitespaceNameAuthor->save();
-    	$this->assertTrue(!!$whitespaceNameAuthor->id, "test author not saved");
+        $whitespaceNameAuthor = new FindAuthor();
+        $whitespaceNameAuthor->name = "\t  \t";
+        $whitespaceNameAuthor->save();
+        $this->assertTrue(!!$whitespaceNameAuthor->id, "test author not saved");
 
-    	$author = FindAuthor::get('');
-    	$this->assertFalse($author, '::get(<empty string>) should return false after save');
+        $author = FindAuthor::get('');
+        $this->assertFalse($author, '::get(<empty string>) should return false after save');
 
-    	$author = FindAuthor::get("\t  \t");
-    	$this->assertFalse($author, "::get(<all whitespace string>) should return false after save");
+        $author = FindAuthor::get("\t  \t");
+        $this->assertFalse($author, "::get(<all whitespace string>) should return false after save");
 
     }
 
@@ -50,11 +61,11 @@ class FindTest extends Octopus_DB_TestCase {
 
     function testInEmptyArray() {
 
-    	$posts = FindPost::all()->where('id in', array(4));
-    	$this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`find_post_id` IN('4')", $posts);
+        $posts = FindPost::all()->where('id in', array(4));
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`find_post_id` IN('4')", $posts);
 
-		$posts = FindPost::all()->where('id in', array());
-		$this->assertSqlEquals("SELECT * FROM find_posts WHERE 0", $posts);
+    	$posts = FindPost::all()->where('id in', array());
+    	$this->assertSqlEquals("SELECT * FROM find_posts WHERE 0", $posts);
 
     }
 
@@ -476,82 +487,6 @@ END;
         $this->assertTitlesMatch($fooExpr, $posts, $test);
     }
 
-/*
-    function testFindByAndGetByMagicMethods() {
-
-        $fields = array(
-            // This isn't technically a field?
-            //'Id' => 5,
-            'Slug' => 'magic-method-test-post',
-            'Title' => array('LIKE', 'Magic Method Test Post'),
-            'Body' => array('LIKE', 'Magic Method Test Post Body'),
-            //'Author' => 1,
-            'Active' => 0,
-            'DisplayOrder' => 42,
-            // Hard to test, also, would you ever do findByCreated()?
-            // It would be more like findNewerThan(x) findOlderThan(x)
-            //'Created',
-            //'Updated'
-        );
-
-        foreach($fields as $f => $v) {
-
-            $op = '=';
-            if (is_array($v)) {
-                $op = $v[0];
-                $v = $v[1];
-            }
-
-            $findMethod = "findBy$f";
-            $posts = FindPost::$findMethod($v);
-
-
-            $col = underscore($f);
-            $value = is_numeric($v) ? $v : "'$v'";
-
-            $this->assertSqlEquals(
-                "SELECT * FROM find_posts WHERE (`$col` $op $value)",
-                $posts,
-                "column '$col' using method '$findMethod'"
-            );
-
-            $this->assertCountEquals(1, $posts);
-
-            if ($f == 'Active' || $f == 'DisplayOrder') continue;
-
-            $getMethod = "getBy$f";
-            $post = FindPost::$getMethod($v);
-            $this->assertTrueish($post, "getBy$f did not return anything.");
-            $this->assertEquals(5, $post->id, "getBy$f got the wrong post.");
-        }
-
-    }
- */
-    function testFindByAndGetByMagicMethodsWithName() {
-
-        /*
-        No join stuff yet!
-
-        $posts = FindPost::findByAuthor('* Hinz');
-
-        $this->assertSqlEquals(
-            "SELECT * FROM find_posts, findauthors WHERE findauthors.findauthor_id = find_posts.author_id AND findauthors.name LIKE '% Hinz'",
-            $posts
-        );
-
-        $this->assertCountEquals(2, $posts);
-
-        foreach($posts as $post) {
-            $this->assertEquals("Matt Hinz", $post->author->name);
-        }
-
-
-        $post = FindPost::getByAuthor("* Hinz");
-        $this->assertTrueish($post, "getByAuthor did not return anything");
-        $this->assertEquals("Matt Hinz", $post->author->name, "wrong author on post returned by getByAuthor");
-        */
-    }
-
     function testWhereActiveMagicMethods() {
 
         $query = FindPost::all()->whereActive();
@@ -758,9 +693,9 @@ END;
         $this->assertSqlEquals("SELECT * FROM find_posts WHERE NOT (`find_posts`.`find_post_id` IN $idSql)", $posts, 'NOT IN');
     }
 
+/*
     function testRelatedCriteria() {
 
-        /*
         NONE OF THIS YET
 
         $posts = FindPost::all()->where('author.name', 'Matt Hinz');
@@ -768,9 +703,9 @@ END;
             "SELECT * FROM find_posts, `findauthors` WHERE (`findauthors`.`findauthor_id` = `findpost`.`author_id`) AND `findauthor`.`name` LIKE 'Matt Hinz'",
             $posts
         );
-        */
 
     }
+*/
 
     function testResultSetForeachAll() {
 

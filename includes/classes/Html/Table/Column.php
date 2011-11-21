@@ -391,7 +391,7 @@ class Octopus_Html_Table_Column {
         $count = 0;
 
         foreach($rs as $model) {
-            $result .= '<li>' . htmlspecialchars($model) . '</li>';
+            $result .= '<li>' . h($model) . '</li>';
             $count++;
         }
 

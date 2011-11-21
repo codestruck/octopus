@@ -1,11 +1,9 @@
 <?php
 
-require_once 'PHPUnit/Extensions/OutputTestCase.php';
-
 /**
  * @group core
  */
-class FlashTests extends PHPUnit_Extensions_OutputTestCase
+class FlashTests extends PHPUnit_Framework_TestCase
 {
 
     function testDefaultType() {

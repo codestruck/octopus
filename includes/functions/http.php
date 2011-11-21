@@ -252,9 +252,12 @@
             $d = new Octopus_Debug();
             $d->addSquashedRedirect($location);
 
+            $d->add('Backtrace', Octopus_Debug::getBacktraceHtml());
+
             if (!empty($GLOBALS['__OCTOPUS_CANCEL_REDIRECT_BACKTRACE'])) {
                 $d->add('Cancellation Source Backtrace', Octopus_Debug::getBacktraceHtml($GLOBALS['__OCTOPUS_CANCEL_REDIRECT_BACKTRACE']));
             }
+
 
             if ($resp) {
                 $resp->append($d->render(true));

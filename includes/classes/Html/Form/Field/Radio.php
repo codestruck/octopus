@@ -7,31 +7,23 @@ class Octopus_Html_Form_Field_Radio extends Octopus_Html_Form_Field {
 
     protected $valueField = null;
     protected $textField = null;
-    public $name;
-    protected $isRequired = null;
+    public $name; // must be public for required rule to work
     protected $options = array();
 
     public function __construct($type, $name, $label, $attributes = null) {
+
         parent::__construct('div', $type, $name, $label, $attributes);
+
         $this->removeAttribute('type');
         $this->removeAttribute('id');
         $this->removeAttribute('name');
+
+        $this->removeClass($type);
+        $this->removeClass($name);
+		$this->addClass(to_css_class($this->name) . 'RadioGroup', 'radioGroup');
+
         $this->requireCloseTag = true;
 
-        $this->removeClass($this->name);
-        $this->removeClass($type);
-
-        $this->addClass(to_css_class($this->name . 'RadioGroup'));
-        $this->addClass('radioGroup');
-
-        $this->wrapperClass = to_css_class($this->name) . ' ' . to_css_class($type);
-    }
-
-    public function required($required = true) {
-        parent::required($required);
-        $this->isRequired = $required;
-        $this->removeAttribute('required');
-        return $this;
     }
 
     /**
@@ -96,17 +88,47 @@ class Octopus_Html_Form_Field_Radio extends Octopus_Html_Form_Field {
         switch($argCount) {
 
             case 0:
-                // uh?
-                return null;
+
+            	$sel = array();
+                $this->getSelectedValues($this, $sel);
+                return $sel;
 
             default:
+
                 $value = func_get_arg(0);
                 if (is_array($value)) {
                     $value = array_pop($value);
                 }
-                $this->options[ $value ]->checked = true;
+
+                if (!empty($value)) {
+                	$this->options[ $value ]->checked = true;
+                }
+
                 return $this;
         }
+    }
+
+    public function required($required = true) {
+    	$result = parent::required($required);
+    	$this->removeAttribute('required');
+    	return $result;
+    }
+
+    private function getSelectedValues($el, &$values) {
+
+    	if (!$el instanceof Octopus_Html_Element) {
+    		return;
+    	}
+
+    	if ($el->is('input') && $el->type == 'radio' && $el->name = $this->name) {
+    		if ($el->checked) $values[] = $el->value;
+    	}
+
+    	foreach($el->children() as $child) {
+    		$this->getSelectedValues($child, $values);
+    	}
+
+
     }
 
     public function &toArray() {
@@ -121,6 +143,22 @@ class Octopus_Html_Form_Field_Radio extends Octopus_Html_Form_Field {
         }
 
         return $result;
+    }
+
+    public function wrap($tag = null) {
+
+    	$wrapper = parent::wrap($tag);
+    	$wrapper->class = trim(str_replace(
+    		array(to_css_class($this->name) . 'RadioGroup', 'radioGroup'),
+    		'',
+    		$wrapper->class
+	    ));
+	    $wrapper->addClass('field');
+	    $wrapper->addClass($this->name);
+	    $wrapper->addClass('radio');
+
+	    return $wrapper;
+
     }
 
     /**
@@ -160,7 +198,7 @@ class Octopus_Html_Form_Field_Radio extends Octopus_Html_Form_Field {
         $opt->addClass('radio');
         $opt->addClass(to_css_class('value' . $value));
 
-        if ($this->isRequired) {
+        if ($this->isRequired()) {
             $opt->addClass('required');
         }
 

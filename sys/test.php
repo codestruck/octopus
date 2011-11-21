@@ -26,7 +26,7 @@ END;
         array_unshift($argv, $what);
     }
 
-	$extraArgs = implode(' ', $argv);
+    $extraArgs = implode(' ', $argv);
 
     $phpUnit = trim(`which phpunit`);
     if (!$phpUnit) {

@@ -2,9 +2,27 @@
 
 class Octopus_Model_Field_String extends Octopus_Model_Field {
 
+    public function __construct($field, $modelClass, $options) {
+        parent::__construct($field, $modelClass, $options);
+        $this->defaultOptions['form'] = 'true';
+    }
+
     public function migrate($schema, $table) {
-        // TODO: What about large string fields?
-        $table->newTextSmall($this->getFieldName());
+
+        $length = $this->getLength();
+
+        if ($length <= 255) {
+        	$table->newTextSmall($this->getFieldName(), $length);
+        } else {
+        	$table->newTextLarge($this->getFieldName());
+        }
+
+    }
+
+    public function getLength() {
+    	$len = $this->getOption('length', null);
+    	if ($len !== null) return $len;
+    	return $this->getOption('size', 250);
     }
 
     public function restrict($expression, $operator, $value, &$selectStatement, &$params, $model) {

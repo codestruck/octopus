@@ -37,6 +37,31 @@
 
     }
 
+    /**
+     * Tries to provide some sort of default site name. By default, the
+     * site.name setting uses this if it not set in the site's settings.yaml
+     * file.
+     */
+    function guess_site_name() {
+
+    	$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+    	if (!$host) return '';
+
+    	$parts = explode('.', $host);
+    	$count = count($parts);
+
+    	$name = '';
+
+    	if ($count > 1) {
+    		$name = $parts[$count - 2];
+    	} else {
+    		$name = $parts[0];
+    	}
+
+    	return humanize($name);
+
+    }
+
     function octopus_api_key($scope = '') {
 
         $sessionKey = 'OCTOPUS_API_KEY';

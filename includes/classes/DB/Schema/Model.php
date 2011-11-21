@@ -25,6 +25,15 @@ class Octopus_DB_Schema_Model {
 
         foreach($model->getFields() as $field) {
             $field->migrate($schema, $table);
+            $field->migrateIndexes($schema, $table);
+        }
+
+        foreach ($model->getIndexes() as $index) {
+            if (is_array($index)) {
+                $table->newIndex('INDEX', implode('_', $index), $index);
+            } else {
+                $table->newIndex($index);
+            }
         }
 
         $table->create();

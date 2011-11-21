@@ -7,6 +7,32 @@
 class StringTests extends PHPUnit_Framework_TestCase
 {
 
+	/**
+	 * @dataProvider getFormatMoneyTests
+	 */
+	function testFormatMoney($input, $expected) {
+
+		$this->assertEquals($expected, format_money($input));
+
+	}
+
+	function getFormatMoneyTests() {
+
+		return array(
+
+			array('', ''),
+			array('0', '$0.00'),
+			array('1', '$1.00'),
+			array('2.4', '$2.40'),
+			array('1234.56', '$1,234.56'),
+			array('.99999', '$0.99'),
+			array('not a number', 'not a number'),
+			array(null, ''),
+
+		);
+
+	}
+
     function testGlobToRegex() {
 
         $tests = array(

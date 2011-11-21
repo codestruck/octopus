@@ -93,14 +93,14 @@ class Octopus_Request {
 
         foreach($info['potential_names'] as $class) {
 
-        	if (class_exists($class)) {
-        		return $this->controllerClass = $class;
-        		break;
-        	}
+            if (class_exists($class)) {
+            	return $this->controllerClass = $class;
+            	break;
+            }
 
         }
 
-    	self::requireOnce($info['file']);
+        self::requireOnce($info['file']);
 
         foreach($info['potential_names'] as $class) {
             if (class_exists($class)) {
