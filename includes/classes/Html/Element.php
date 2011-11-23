@@ -331,6 +331,13 @@ class Octopus_Html_Element {
         return $this;
     }
 
+    /**
+     * @return Boolean Whether this element is the given tag.
+     */
+    public function is($tag) {
+    	return strcasecmp($tag, $this->_tag) === 0;
+    }
+
     public function setAttribute($key, $value) {
 
         $alreadySet = isset($this->_attributes[$key]);

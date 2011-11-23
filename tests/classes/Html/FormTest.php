@@ -63,8 +63,10 @@ class FormTest extends Octopus_Html_TestCase {
             $html = $form->render(true);
             $html = str_replace("\n", '', $html);
             $html = str_replace('<input type="hidden" name="__octopus_form_buttons_submitted" value="1" />', '', $html);
-            $html = preg_replace('#<form[^>]*><div[^>]*>#', '', $html);
+            $html = preg_replace('#<form[^>]*>#i', '', $html);
+            $html = preg_replace('#<div[^>]*>#', '', $html);
             $html = preg_replace('#</(div|form)>#', '', $html);
+            $html = preg_replace('#<input type="hidden" name="__octform"[^>]*>#i', '', $html);
 
             $this->assertHtmlEquals($test['expected'], $html, var_export($test['args'], true));
         }
@@ -81,7 +83,7 @@ class FormTest extends Octopus_Html_TestCase {
         $this->assertEquals($values, $form->getValues());
 
         $form->setValues(array());
-        $this->assertEquals(array(), $form->getValues());
+        $this->assertEquals(array('foo' => ''), $form->getValues());
 
     }
 
@@ -105,7 +107,7 @@ class FormTest extends Octopus_Html_TestCase {
         $this->assertHtmlEquals(
 <<<END
 <form id="testForm" method="post" action="whatever.php" novalidate>
-    <input type="hidden" name="__octopus_form_testForm_submitted" value="1" />
+    <input type="hidden" name="__octform" value="55687d6488f5f10ecc530988989cffce" />
     <div id="nameField" class="field name text required">
         <label for="nameInput">Name:</label>
         <input type="text" id="nameInput" class="name text required" name="name" value="Joe Blow" autofocus required />
@@ -134,7 +136,7 @@ END
         $this->assertHtmlEquals(
 <<<END
 <form id="testForm" method="post" enctype="multipart/form-data" novalidate>
-    <input type="hidden" name="__octopus_form_testForm_submitted" value="1" />
+    <input type="hidden" name="__octform" value="55687d6488f5f10ecc530988989cffce" />
     <div id="imageField" class="field image file">
         <label for="imageInput">Image:</label>
         <input type="file" id="imageInput" class="image file" name="image" />
@@ -158,7 +160,7 @@ END
         $expected = array(
 
             'open_tag' => '<form id="toArray" method="post" novalidate>
-<input type="hidden" name="__octopus_form_toArray_submitted" value="1" />',
+<input type="hidden" name="__octform" value="8f3200ce8fbb7b4398a90f191447fd83" />',
             'close_tag' => '</form>',
             'attributes' => 'id="toArray" method="post" novalidate',
             'id' => 'toArray',
@@ -210,7 +212,7 @@ END
                 'method' => 'post',
                 'novalidate' => 'novalidate',
                 'open_tag' => '<form id="toArray" method="post" novalidate>
-<input type="hidden" name="__octopus_form_toArray_submitted" value="1" />',
+<input type="hidden" name="__octform" value="8f3200ce8fbb7b4398a90f191447fd83" />',
                 'close_tag' => '</form>',
                 'fields' => array(),
                 'valid' => true,
@@ -259,7 +261,7 @@ END
                 'method' => 'post',
                 'novalidate' => 'novalidate',
                 'open_tag' => '<form id="noOverwrite" method="post" novalidate>
-<input type="hidden" name="__octopus_form_noOverwrite_submitted" value="1" />',
+<input type="hidden" name="__octform" value="a68639c0ac6716e230449329f219c0c7" />',
                 'close_tag' => '</form>',
                 'valid' => true,
                 'errors' => array(),
@@ -299,23 +301,24 @@ END
         $form = new Octopus_Html_Form('wasSubmitted', 'post');
         $form->add('foo');
         $this->assertFalse($form->wasSubmitted());
-
+        $form = new Octopus_Html_Form('wasSubmitted', 'post');
 
         $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_POST['__octopus_form_wasSubmitted_submitted'] = 1;
-        $form = new Octopus_Html_Form('wasSubmitted', 'post');
+        $_POST['__octform'] = $form->getSignature();
+
+        $this->assertEquals('post', $form->method);
         $form->add('foo');
         $this->assertFalse($form->reset()->wasSubmitted(), 'should be false w/ wrong request method');
 
         $_POST['foo'] = 'bar';
         $form = new Octopus_Html_Form('wasSubmitted', 'post');
-        $_POST['__octopus_form_wasSubmitted_submitted'] = 1;
+        $_POST['__octform'] = $form->getSignature();
         $form->add('foo');
         $this->assertFalse($form->reset()->wasSubmitted(), 'should be false w/ wrong request method, even if data is present');
 
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $form = new Octopus_Html_Form('wasSubmitted', 'post');
-        $_POST['__octopus_form_wasSubmitted_submitted'] = 1;
+        $_POST['__octform'] = $form->getSignature();
         $form->add('foo');
         $this->assertTrue($form->reset()->wasSubmitted(), 'should be true w/ proper request method');
 
@@ -342,7 +345,7 @@ END
 
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $_POST['foo'] = 'bar';
-        $_POST['__octopus_form_wasSubmitted_submitted'] = 1;
+        $_POST['__octform'] = $form->getSignature();
 
         $this->assertTrue($form->wasSubmitted());
 
@@ -397,11 +400,13 @@ END
 
         $user_id = 99;
         $form = new Octopus_Html_Form('security_test');
+        $unsecureSig = $form->getSignature();
+
         $form->secure($user_id);
         $form->add('name');
 
         $_POST['name'] = 'foo';
-        $_POST['__octopus_form_security_test_submitted'] = 1;
+        $_POST['__octform'] = $unsecureSig;
         $_SERVER['REQUEST_METHOD'] = 'POST';
 
         $this->assertTrue($form->submitted());
@@ -412,17 +417,30 @@ END
     function testSecurityTokenInvalid() {
 
         $user_id = 99;
+        $action = 'security_test';
+
         $form = new Octopus_Html_Form('security_test');
-        $form->secure($user_id);
+        $form->secure($user_id + 1, $action);
+        $badUserSig = $form->getSignature();
+
+        $form = new Octopus_Html_Form('security_test');
+        $form->secure($user_id, $action . 'changed');
+        $badActionSig = $form->getSignature();
+
+        $form = new Octopus_Html_Form('security_test');
+        $form->secure($user_id, $action);
         $form->add('name');
 
         $_POST['name'] = 'foo';
-        $_POST['__security_token'] = get_security_token($user_id, 'security_test') . 'ALTERED';
-        $_POST['__octopus_form_security_test_submitted'] = 1;
         $_SERVER['REQUEST_METHOD'] = 'POST';
 
-        $this->assertTrue($form->submitted());
-        $this->assertFalse($form->validate());
+        $_POST['__octform'] = $badUserSig;
+		$this->assertTrue($form->submitted(), 'form is submitted even when validation fails');
+	    $this->assertFalse($form->validate(), 'validation fails when user id changes');
+
+        $_POST['__octform'] = $badActionSig;
+        $this->assertTrue($form->submitted(), 'form is submitted even when validation will fail');
+        $this->assertFalse($form->validate(), 'validation fails when action changes');
 
     }
 
@@ -430,14 +448,13 @@ END
 
         $user_id = 99;
         $form = new Octopus_Html_Form('security_test');
-        $this->assertEquals('', $form->getSecurityTokenFieldName(), 'Unsecured forms should not have a security token field name.');
+        $this->assertEquals('b51a9bb4a2a9275242a197b331b299cf', $form->getSignature());
 
         $form->secure($user_id);
         $form->add('name');
 
         $_POST['name'] = 'foo';
-        $_POST[$form->getSecurityTokenFieldName()] = get_security_token($user_id, 'security_test');
-        $_POST['__octopus_form_security_test_submitted'] = 1;
+        $_POST['__octform'] = $form->getSignature();
         $_SERVER['REQUEST_METHOD'] = 'POST';
 
         $this->assertTrue($form->submitted());
@@ -464,6 +481,44 @@ END
 
         $form->submit(array('name' => ''));
         $this->assertFalse($form->validate(), 'form fails validation after invalid data passed to submit()');
+
+    }
+
+    function testMetaFieldIncludedInOpenTag() {
+
+    	$form = new Octopus_Html_form('metaFieldsInOpenTag');
+    	$form->method = 'post';
+    	$form->action = 'test-action';
+    	$form->secure(1);
+
+    	$sig = $form->getSignature();
+
+    	$ar = $form->toArray();
+
+    	$this->assertHtmlEquals(
+    		<<<END
+ <form id="metaFieldsInOpenTag" method="post" action="test-action" novalidate>
+ <input type="hidden" name="__octform" value="$sig" />
+END
+ 			,
+ 			$ar['open_tag']
+	  	);
+
+    }
+
+    function testSimulateSubmissionOnSecureForm() {
+
+    	$form = new Octopus_Html_Form('simulateSubmissionOnSecureForm');
+    	$form->secure(10);
+    	$form->add('name');
+
+    	$form->submit(array('name' => 'foo'));
+    	$this->assertTrue($form->wasSubmitted(), 'form is marked as submitted');
+    	$this->assertTrue($form->validate(), 'form validates');
+
+		$form = new Octopus_Html_Form('simulateSubmissionOnSecureForm');
+    	$form->secure(10);
+    	$form->add('name');
 
     }
 

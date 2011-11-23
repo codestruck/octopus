@@ -39,13 +39,13 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
 
         if (is_array($id)) {
             // We're receiving a row of data
-            $this->_setData($id);
+            $this->internalSetData($id);
         } else if (is_numeric($id)) {
             $this->_id = $id;
         } else if ($id) {
             $item = self::get($id);
             if ($item) {
-                $this->_setData($item);
+                $this->internalSetData($item);
             }
         }
     }
@@ -191,7 +191,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         $row = $s->fetchRow();
 
         if ($row) {
-            $this->_setData($row);
+            $this->internalSetData($row, true, false);
         }
 
     }
@@ -234,32 +234,49 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         return isset($this->data[$field]) ? $this->data[$field] : $default;
     }
 
+    /**
+     * @return Boolean Whether the contents fo the given field have been changed
+     * since this model was loaded or last saved.
+     */
     public function isFieldDirty($fieldName) {
+
+    	if ($fieldName instanceof Octopus_Model_Field) {
+    		$fieldName = $fieldName->getFieldName();
+    	}
+
         return !empty($this->touchedFields[$fieldName]);
     }
 
 
     public function setData($data) {
 
+    	$this->internalSetData($data, false);
+
+    }
+
+    protected function internalSetData($data, $setPrimaryKey = true, $overwrite = true) {
+
+    	if ($setPrimaryKey) {
+
+			$pk = $this->getPrimaryKey();
+
+	        if (isset($data[$pk])) {
+	            $this->id = $data[$pk];
+	        }
+	    }
+
         foreach($this->getFields() as $field) {
+
+        	if (!$overwrite && $this->isFieldDirty($field)) {
+        		continue;
+        	}
+
             $field->loadValue($this, $data);
         }
 
-    }
-
-    protected function _setData($data) {
-
-        $pk = $this->getPrimaryKey();
-        if (isset($data[$pk])) {
-            $this->id = $data[$pk];
-        }
-        unset($data[$pk]);
-
-        $this->setData($data);
-
         $this->dataLoaded = true;
-    }
 
+    }
 
     public function save() {
 
@@ -305,6 +322,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
 
         foreach ($fields as $field) {
             $field = $workingFields[] = (is_string($field) ? $this->getField($field) : $field);
+            if ($field->getFieldName() == 'shipping_address') enable_dump_r();
             $field->save($this, $i);
         }
 
@@ -487,6 +505,10 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
             $index--;
         }
         return null;
+    }
+
+    public function getIndexes() {
+        return isset($this->indexes) ? $this->indexes : array();
     }
 
     /**

@@ -5,29 +5,17 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     private $_rules = array();
     private $_buttonsDiv = null;
 
-    private $_values = null;
     private $_validationResult = null;
-    private $_securityUserID = null;
-    private $_securityAction = null;
-    private $_securityField = null;
+
+    private $_signature = null;
     private $_securityToken = null;
 
-    private $_submittedField = null;
-    private $_hiddenSubmissionInput = null;
-
-    // Internally tracks submission state. If null, the postback
-    // is checked for the internal 'submitted' field
-    private $_wasSubmitted = null;
+    private $_submittedValues = null;
 
     private $errorList = null;
 
     private $sectionStack = array();
     private $currentSection = null;
-
-    /**
-     * Custom template to use when rendering this form.
-     */
-    public $template = null;
 
     public function __construct($id, $attributes = null) {
 
@@ -49,16 +37,11 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         }
 
         parent::__construct('form', $attributes);
-
-
-        $this->_submittedField = '__octopus_form_' . $this->id . '_submitted';
-        $this->_hiddenSubmissionInput = $el = new Octopus_Html_Element('input', array('type' => 'hidden'));
-        $el->name = $this->_submittedField;
-        $el->value = 1;
-        $this->append($el);
-
     }
 
+    /**
+     * Adds a field or element to this form.
+     */
     public function &add($typeOrElement, $name = null, $label = null, $attributes = null) {
 
         $field = null;
@@ -68,11 +51,14 @@ class Octopus_Html_Form extends Octopus_Html_Element {
             $field = $typeOrElement;
             $this->currentSection->append($field);
         } else {
+
             $field = Octopus_Html_Form_Field::create($typeOrElement, $name, $label, $attributes);
+
             if ($field) {
-                $wrapper = $this->wrapField($field);
-                $this->currentSection->append($wrapper);
+                $field->wrapper = $field->wrap();
+                $this->currentSection->append($field->wrapper ? $field->wrapper : $field);
             }
+
         }
 
         if ($field->type == 'file') {
@@ -106,88 +92,120 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     }
 
     /**
-     * Adds a security token to this form to ensure it is only valid for the
-     * given user and action for a limited amount of time.
+     * @return String A hash used to verify that:
+     *	1) This form was the one that was submitted
+     *	2) (Optionally) The user submitting the form is the user the form
+     *     was originally served to.
      */
-    public function secure($user_id, $action = null) {
+    public function getSignature() {
 
-        if ($action === null) {
-            $action = $this->id;
+    	if (!$this->_signature) {
+
+	    	$id = $this->id;
+	    	$method = strtolower($this->getAttribute('method', 'get'));
+
+	    	// Not secure, but used by wasSubmitted() to check if this
+	    	// form was actually submitted
+			$this->_signature = md5($id . '|' . $method);
+
+    	}
+
+    	$result = $this->_signature;
+    	if ($this->_securityToken) {
+    		$result .= '|' . $this->_securityToken;
+    	}
+
+    	return $result;
+    }
+
+    /**
+     * @return Mixed If a form submission has been made, the contents of
+     * the __octform field, or false if there is no available signature.
+     */
+    protected function getSubmittedSignature() {
+
+    	if (is_array($this->_submittedValues) && isset($this->_submittedValues['__octform'])) {
+    		return $this->_submittedValues['__octform'];
+    	}
+
+    	$values = $this->getSubmittedValues();
+
+    	if (isset($values['__octform'])) {
+    		return $values['__octform'];
+    	}
+
+    	return false;
+
+    }
+
+    /**
+     * @return Array Values posted to this form. getValues() takes this array
+     * and filters it to only those values that have corresponding form
+     * fields.
+     */
+    private function getSubmittedValues() {
+
+    	$requestMethod = isset($_SERVER['REQUEST_METHOD']) ? strtolower($_SERVER['REQUEST_METHOD']) : 'get';
+    	$formMethod = strtolower($this->getAttribute('method', 'get'));
+
+    	if ($requestMethod !== $formMethod) {
+    		return array();
+    	}
+
+        switch($requestMethod) {
+
+            case 'get':
+                return $_GET;
+
+            default:
+                return $_POST;
         }
 
-        $this->_securityUserID = $user_id;
-        $this->_securityAction = $action;
+    }
 
-        $this->setSecurityToken(get_security_token($user_id, $action));
+    /**
+	 * Modifies the signature of this form such that it is only valid for
+	 * the given user.
+	 * @param $user Mixed One of:
+	 *		- Number, e.g. a user ID
+	 *		- Octopus_Model, in which case the ID will be used.
+     */
+    public function secure($user, $action = null) {
+
+    	$id = null;
+
+    	if ($user instanceof Octopus_Model) {
+    		$id = $user->id;
+    		if (!$id) {
+    			throw new Octopus_Exception("Can't secure a form using an unsaved model.");
+    		}
+    	} else if (is_object($user) || is_array($user)) {
+    		throw new Octopus_Exception("Invalid argument passed to " . __METHOD__);
+    	} else {
+    		$id = $user;
+    	}
+
+    	if ($action === null) {
+
+    		// Compose action from form attributes
+    		$id = $this->id;
+    		$method = strtolower($this->getAttribute('method', 'get'));
+    		$action = $this->action;
+
+    		$action = "$id|$method|$action";
+    	}
+
+    	$this->_securityToken = get_security_token($id, $action);
 
         return $this;
     }
 
-    public function isSecured() {
-        return !!$this->getSecurityToken();
-    }
-
     /**
-     * @return String The name of the field being used to store the security
-     * token for this form. If the form hasn't been secured, returns an empty
-     * string.
+     * @return Boolean Whether this form has been secured by calling secure()
      */
-    public function getSecurityTokenFieldName() {
-        return $this->_securityField ? $this->_securityField->name : '';
+    public function isSecured() {
+        return !!$this->_securityToken;
     }
-
-    public function getSecurityToken() {
-        if ($this->_securityField) {
-            return $this->_securityField->val();
-        }
-    }
-
-    private function setSecurityToken($token) {
-
-        if ($token) {
-
-            if (!$this->_securityField) {
-                $this->_securityField = new Octopus_Html_Form_Field('input', 'hidden', '__octsec', '', null);
-
-                // Don't really need class or id
-                unset($this->_securityField->id);
-                unset($this->_securityField->class);
-
-                $this->add($this->_securityField);
-            }
-
-            $this->_securityField->val($token);
-
-        } else {
-
-            if ($this->_securityField) {
-                $this->_securityField->remove();
-                $this->_securityField = null;
-            }
-
-        }
-    }
-
-    private function verifySecurityToken() {
-
-        if (!$this->_securityField) {
-            return true;
-        }
-
-        if ($this->_securityUserID !== null) {
-
-            $values = $this->getValues();
-            $token = isset($values[$this->_securityField->name]) ? $values[$this->_securityField->name] : false;
-
-            if (!$token || !verify_security_token($token, $this->_securityUserID, $this->_securityAction)) {
-                return false;
-            }
-        }
-
-        return true;
-
-    }
-
 
     /**
      * Adds a validation rule to this form.
@@ -368,50 +386,33 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      */
     public function getValues() {
 
-        if ($this->_values !== null) {
-            return $this->_values;
-        }
-
-        $method = strtolower($this->getAttribute('method', 'get'));
-
-        switch($method) {
-
-            case 'get':
-                $sourceArray =& $_GET;
-                break;
-
-            default:
-                $sourceArray =& $_POST;
-                break;
-        }
+    	$this->loadSubmittedValues();
 
         $values = array();
 
         foreach($this->children() as $child) {
-            self::getValuesRecursive($child, $sourceArray, $values);
+            self::getValuesRecursive($child, $values);
         }
 
-        $this->setValues($values);
-
-        return $this->_values;
+        return $values;
     }
 
     /**
-     * Scans through the form and fills an array with actual data meant for
+     * Scans through the form and fills an array with the contents of
      * the form.
      */
-    private static function getValuesRecursive($el, &$sourceArray, &$values) {
+    private static function getValuesRecursive($el, &$values) {
 
         if (!$el || !($el instanceof Octopus_Html_Element)) {
             return;
         }
 
         if ($el instanceof Octopus_Html_Form_Field) {
-            $el->readValue($sourceArray, $values);
+            $el->readValue($values);
         }
 
         foreach($el->children() as $child) {
-            self::getValuesRecursive($child, $sourceArray, $values);
+            self::getValuesRecursive($child, $values);
         }
 
     }
@@ -419,9 +420,18 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     /**
      * Sets the value of a single field in this form.
      */
-    public function setValue($field, $value) {
-        $field = $this->getField($field);
+    public function setValue($fieldName, $value) {
+
+    	$this->loadSubmittedValues();
+
+        $field = $this->getField($fieldName);
+
+        if (!$field) {
+        	throw new Octopus_Exception("Field not found: $fieldName");
+        }
+
         $field->val($value);
+
         return $this;
     }
 
@@ -430,25 +440,20 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      */
     public function setValues($values) {
 
+    	// Don't re-initialize this form from submitted values
+    	$this->_submittedValues = array();
+
         if (class_exists('Octopus_Model') && $values instanceof Octopus_Model) {
             $values = $values->toArray();
         } else if (is_object($values)) {
             $values = get_object_vars($values);
         }
 
-        // Don't overwrite the security token when setting values.
-        $token = $this->getSecurityToken();
-
-        $this->_values = $values;
         $this->_validationResult = null;
 
         foreach($this->children() as $child) {
             $this->setValuesRecursive($child, $values);
         }
-
-        $this->setSecurityToken($token);
-
-        $this->_submitted = null;
 
         return $this;
     }
@@ -459,8 +464,10 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      */
     public function submit(Array $values) {
 
-        $this->setValues($values);
-        $this->_submitted = true;
+    	$values['__octform'] = $this->getSignature();
+
+    	$this->setValues($values);
+    	$this->_submittedValues = $values;
 
         return $this;
     }
@@ -472,20 +479,27 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         }
 
         if ($el instanceof Octopus_Html_Form_Field) {
-
-            $name = preg_replace('/\[\]$/', '', $el->name);
-
-            if (isset($values[$name])) {
-                $el->val($values[$name]);
-            } else {
-                $el->val(null);
-            }
-
+        	$el->loadValue($values);
         }
 
         foreach($el->children() as $child) {
             $this->setValuesRecursive($child, $values);
         }
+
+    }
+
+    private function loadSubmittedValues() {
+
+    	if ($this->_submittedValues !== null) {
+    		return;
+    	}
+
+    	if ($this->_submittedValues === null) {
+    		// Submitted values haven't been loaded into the form yet, so
+    		// do that before retrieving them.
+    		$this->_submittedValues = $this->getSubmittedValues();
+    		$this->setValues($this->_submittedValues);
+    	}
 
     }
 
@@ -514,7 +528,7 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         $result = array();
         self::attributesToArray($this->getAttributes(), $result);
 
-        $result['open_tag'] = '<form ' . $result['attributes'] . '>';
+        $result['open_tag'] = '<form ' . $result['attributes'] . ">\n" . $this->getSignatureFieldHtml();
 
         // TODO: Do all this an a 'real' meta field
         if ($this->_hiddenSubmissionInput) {
@@ -602,34 +616,32 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         $result = new StdClass();
         $result->errors = array();
 
-    	if ($this->verifySecurityToken()) {
+        if ($this->validateSecurityToken()) {
 
-            foreach($this->children() as $c) {
-                $this->validateRecursive($c, $values, $result);
-            }
+	        foreach($this->children() as $c) {
+	            $this->validateRecursive($c, $values, $result);
+	        }
 
-            foreach($this->_rules as $r) {
+	        foreach($this->_rules as $r) {
 
-                $ruleResult = $r->validate($this, $values);
+	            $ruleResult = $r->validate($this, $values);
 
-                if ($ruleResult === true) {
-                    continue;
-                } else if ($ruleResult === false) {
-                    $result->errors[] = $r->getMessage($this, $values);
-                } else if (is_string($ruleResult)) {
-                    $result->errors[] = $ruleResult;
-                } else if (is_array($ruleResult)) {
-                    foreach($ruleResult as $err) {
-                        $result->errors[] = $err;
-                    }
-                }
+	            if ($ruleResult === true) {
+	                continue;
+	            } else if ($ruleResult === false) {
+	                $result->errors[] = $r->getMessage($this, $values);
+	            } else if (is_string($ruleResult)) {
+	                $result->errors[] = $ruleResult;
+	            } else if (is_array($ruleResult)) {
+	                foreach($ruleResult as $err) {
+	                    $result->errors[] = $err;
+	                }
+	            }
 
-            }
-
-        } else {
-        	$result->errors[] = 'This form has expired';
-        }
-
+	        }
+		} else {
+			$result->errors[] = 'This form has expired.';
+		}
 
         $result->success = (count($result->errors) == 0);
 
@@ -789,38 +801,10 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         }
     }
 
-    /**
-     * For fields added like add('type', 'name', array()), wraps in a div and
-     * adds a label.
-     */
-    protected function wrapField($field) {
-
-        if ($field->type == 'hidden') {
-            return $field;
-        }
-
-        $label = new Octopus_Html_Element('label');
-        $field->addLabel($label);
-
-        $wrapper = new Octopus_Html_Element('div');
-        $wrapper->id = $field->wrapperId;
-        $wrapper->addClass('field', $field->wrapperClass);
-
-        if ($field->type == 'checkbox') {
-
-            // HACK: Checkboxes are usually like [x] Label rather than Label [x]
-
-
-            $wrapper->append($field);
-            $wrapper->append($label);
-        } else {
-            $wrapper->append($label);
-            $wrapper->append($field);
-        }
-
-        $field->wrapper = $wrapper;
-
-        return $wrapper;
+    public function &renderContent() {
+    	// Include the signature field in the rendered content.
+		$result = $this->getSignatureFieldHtml() . "\n" . parent::renderContent();
+		return $result;
     }
 
     private function validateRecursive(&$el, &$values, &$result) {
@@ -888,22 +872,59 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      */
     public function wasSubmitted() {
 
-        if ($this->_submitted !== null) {
-            return $this->_submitted;
-        }
+    	if ($this->_submittedValues) {
+    		return true;
+    	}
 
-        $actualMethod = strtolower(isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'get');
-        $thisMethod = strtolower($this->getAttribute('method', 'get'));
+    	// The form signature has 2 parts: The first is an unsecure hash
+    	// of the id/method/action, the second is the actual security
+    	// token used by secure(). To check for submission, we only
+    	// need to look at the first part. The validate() function
+    	// handles validating the secure() call.
 
-        if ($actualMethod != $thisMethod) {
-            return false;
-        }
+    	$submittedSig = $this->getSubmittedSignature();
+    	if (!$submittedSig) {
+    		return false;
+    	}
+    	$submittedSig = explode('|', $submittedSig);
+    	$submittedSig = array_shift($submittedSig);
+    	if (!$submittedSig) return false;
 
-        return ($actualMethod( $this->_submittedField ) == 1);
+    	$sig = explode('|', $this->getSignature());
+    	$sig = array_shift($sig);
+
+    	return $sig === $submittedSig;
     }
 
     public function submitted() {
         return $this->wasSubmitted();
+    }
+
+    /**
+     * @return Bool True if the form is unsecured or was submitted with a valid
+     * security token, false otherwise.
+     */
+    protected function validateSecurityToken() {
+
+    	if (!$this->_securityToken) {
+    		return true;
+    	}
+
+    	$sig = $this->getSubmittedSignature();
+    	if (!$sig) {
+    		return false;
+    	}
+
+    	$sig = explode('|', $sig);
+    	$submittedToken = array_pop($sig);
+
+    	return $submittedToken === $this->_securityToken;
+    }
+
+    private function getSignatureFieldHtml() {
+    	return <<<END
+<input type="hidden" name="__octform" value="{$this->getSignature()}" />
+END;
     }
 
 }

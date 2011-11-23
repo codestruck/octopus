@@ -1,31 +1,13 @@
 <?php
 
-class Schemab extends Octopus_Model {
-    protected $fields = array(
-        'title',
-        'display_order' => array(
-            'type' => 'numeric',
-        ),
-        'cost' => array(
-            'type' => 'numeric',
-            'decimal_places' => 2,
-        ),
-        'lowcost' => array(
-            'type' => 'numeric',
-            'decimal_places' => 2,
-            'precision' => 4,
-        ),
-    );
-}
-
 /**
  * @group Model
  * @group schema
  */
 class ModelSchemaTest extends PHPUnit_Framework_TestCase
 {
+
     function testDefaultText() {
-        Octopus_DB_Schema_Model::makeTable('Schemab');
 
         $r = new Octopus_DB_Schema_Reader('schemabs');
         $fields = $r->getFields();
@@ -35,7 +17,6 @@ class ModelSchemaTest extends PHPUnit_Framework_TestCase
     }
 
     function testNumeric() {
-        Octopus_DB_Schema_Model::makeTable('Schemab');
 
         $r = new Octopus_DB_Schema_Reader('schemabs');
         $fields = $r->getFields();
@@ -45,7 +26,6 @@ class ModelSchemaTest extends PHPUnit_Framework_TestCase
     }
 
     function testDecimalDefaultPrecision() {
-        Octopus_DB_Schema_Model::makeTable('Schemab');
 
         $r = new Octopus_DB_Schema_Reader('schemabs');
         $fields = $r->getFields();
@@ -55,13 +35,37 @@ class ModelSchemaTest extends PHPUnit_Framework_TestCase
     }
 
     function testDecimalPrecision() {
-        Octopus_DB_Schema_Model::makeTable('Schemab');
 
         $r = new Octopus_DB_Schema_Reader('schemabs');
         $fields = $r->getFields();
 
         $this->assertEquals('decimal', $fields['lowcost']['type']);
         $this->assertEquals('4,2', $fields['lowcost']['size']);
+    }
+
+    function testIndexProperty() {
+
+        $r = new Octopus_DB_Schema_Reader('schemacs');
+        $fields = $r->getFields();
+
+        $this->assertEquals('MUL', $fields['title']['index']);
+        $this->assertEquals('MUL', $fields['display_order']['index']);
+        $this->assertEquals('MUL', $fields['one']['index']);
+
+        $indexes = $r->getIndexes();
+        $this->assertEquals(5, count($indexes));
+
+    }
+
+    function testIndexAttributes() {
+
+        $r = new Octopus_DB_Schema_Reader('schemads');
+        $fields = $r->getFields();
+
+        $indexes = $r->getIndexes();
+
+        $this->assertEquals('UNIQUE', $fields['title']['index']);
+        $this->assertEquals('MUL', $fields['display_order']['index']);
     }
 
 }

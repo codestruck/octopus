@@ -108,15 +108,21 @@ if (!function_exists('fuzzy_date')) {
         );
         $parts = array();
 
+        $microseconds = $seconds - floor($seconds);
+
         foreach($counts as $name => $count) {
             $parts[$name] = floor($seconds / $count);
             $seconds -= ($parts[$name] * $count);
         }
         $parts['seconds'] = $seconds;
+        $parts['microseconds'] = $microseconds * 1000000;
 
         return $parts;
     }
 
+    /**
+     * Given a length of time in seconds (or microseconds)
+     */
     function format_time_span($seconds, $fuzzy = false) {
 
         $parts = get_time_span_parts($seconds);
@@ -135,9 +141,18 @@ if (!function_exists('fuzzy_date')) {
                 continue;
             }
 
+            if ($name === 'microseconds') {
 
-            if ($resultLen) $result .= ':';
-            $result .= sprintf('%02d', $count);
+            	if ($count) {
+            		if ($resultLen) $result .= ':';
+            		$m = round($count / 1000000.0, 3) * 1000;
+            		$result .= sprintf('%03d', $m);
+            	}
+
+            } else {
+            	if ($resultLen) $result .= ':';
+            	$result .= sprintf('%02d', $count);
+            }
 
         }
 

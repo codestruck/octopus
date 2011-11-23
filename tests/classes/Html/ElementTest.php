@@ -5,6 +5,14 @@
  */
 class ElementTests extends Octopus_Html_TestCase {
 
+	function testIsTag() {
+
+		$e = new Octopus_Html_Element('blockquote');
+		$this->assertTrue($e->is('blockquote'));
+		$this->assertFalse($e->is('div'));
+
+	}
+
     function testSingleTagRender() {
 
         $e = new Octopus_Html_Element('img', array('src' => 'test.png', 'alt' => 'Alt Text'));

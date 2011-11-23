@@ -937,12 +937,11 @@ END;
         $close = '';
 
         if ($column->isSortable($this->getDataSource())) {
-            $html .= '<a href="' . $this->getSortingUrl($column) . '">';
-            $close .= '</a>';
+            $html .= '<a href="' . $this->getSortingUrl($column) . '"><span class="sortMarker">';
+            $close .= '</span></a>';
         }
 
-        $html .= htmlspecialchars($column->title());
-
+        $html .= h($column->title());
 
         $th->append($html . $close);
     }

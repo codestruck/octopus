@@ -279,7 +279,7 @@ ADD PRIMARY KEY (`test_id`)
         $this->assertArrayHasKey('test_id', $fields);
         $this->assertArrayHasKey('test_name', $fields);
         $this->assertEquals('NOT NULL AUTO_INCREMENT', $fields['test_id']['options']);
-        $this->assertEquals('PRIMARY KEY', $fields['test_id']['index']);
+        $this->assertEquals('PRIMARY', $fields['test_id']['index']);
 
     }
 
@@ -343,7 +343,7 @@ ADD COLUMN `test_id` int(10) NOT NULL AUTO_INCREMENT, ADD PRIMARY KEY (`test_id`
         $this->assertArrayHasKey('test_id', $fields);
         $this->assertArrayHasKey('test_name', $fields);
         $this->assertEquals('NOT NULL AUTO_INCREMENT', $fields['test_id']['options']);
-        $this->assertEquals('PRIMARY KEY', $fields['test_id']['index']);
+        $this->assertEquals('PRIMARY', $fields['test_id']['index']);
 
     }
 

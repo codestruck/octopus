@@ -40,7 +40,6 @@ class Octopus_DB_Schema_Writer {
     }
 
     function newKey($fieldName, $autoincrement = false) {
-
         $auto = $autoincrement ? ' AUTO_INCREMENT' : '';
         $this->newField($fieldName, 'int', 10, 'NOT NULL' . $auto);
     }
@@ -141,16 +140,6 @@ class Octopus_DB_Schema_Writer {
             return false;
         }
 
-/*        $field = $info['field'];
-
-        if (isset($this->indexes[ $field ]) && empty($current['index'])) {
-            return false;
-        }
-
-        if (!isset($this->indexes[ $field ]) && !empty($current['index'])) {
-            return false;
-        }*/
-
         return true;
     }
 
@@ -166,6 +155,16 @@ class Octopus_DB_Schema_Writer {
             return false;
         }
 
+        if (isset($this->indexes[ $field]) && !empty($current['index'])) {
+            $parts = explode(' ', $this->indexes[ $field]);
+            $desired = $parts[0];
+            $current = $current['index'];
+
+            if ($desired != $current) {
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -177,19 +176,6 @@ class Octopus_DB_Schema_Writer {
             $sql = sprintf("CHANGE `%s` `%s` %s %s", $info['field'], $info['field'], $info['type'], $info['options']);
         }
 
-/*        $field = $info['field'];
-        if (!empty($current['index']) && !in_array($field, $this->hasIndexes)) {
-            if ($current['index'] == 'PRIMARY KEY') {
-                $sql .= sprintf(', DROP %s', $current['index']);
-            } else {
-                $sql .= sprintf(', DROP INDEX `%s`', $field);
-            }
-        }
-
-        if (empty($current['index']) && !empty($this->indexes[ $field ])) {
-                $sql .= ', ADD ' . $this->indexes[ $field ];
-        }
-*/
         return $sql;
     }
 
@@ -219,15 +205,18 @@ class Octopus_DB_Schema_Writer {
                 $sql .= sprintf('DROP INDEX `%s`', $indexName);
             }
 
-/*            if ($current['index'] == 'PRIMARY KEY') {
-                $sql .= sprintf('DROP %s', $current['index']);
-            } else {
-                $sql .= sprintf('DROP INDEX `%s`', $field);
-            }*/
-        }
+        } else if (empty($current['index']) && !empty($this->indexes[ $field ])) {
+            $sql .= 'ADD ' . $this->indexes[ $field ];
+        } else if (isset($this->indexes[ $field]) && !empty($current['index'])) {
+            $parts = explode(' ', $this->indexes[ $field]);
+            $desired = $parts[0];
+            $current = $current['index'];
 
-        if (empty($current['index']) && !empty($this->indexes[ $field ])) {
-                $sql .= 'ADD ' . $this->indexes[ $field ];
+            if ($desired != $current) {
+                $indexName = $this->getIndexName($field);
+                $sql .= sprintf('DROP INDEX `%s`', $indexName);
+                $sql .= ', ADD ' . $this->indexes[ $field ];
+            }
         }
 
         return $sql;
@@ -256,8 +245,8 @@ class Octopus_DB_Schema_Writer {
         $sql = sprintf("DROP COLUMN `%s`", $field);
 
         if (!empty($info['index'])) {
-            if ($info['index'] == 'PRIMARY KEY') {
-                $sql .= sprintf(', DROP %s', $info['index']);
+            if ($info['index'] == 'PRIMARY') {
+                $sql .= ', DROP PRIMARY KEY';
             } else {
                 $sql .= sprintf(', DROP INDEX `%s`', $field);
             }
