@@ -933,8 +933,8 @@ END;
      */
     protected function fillHeaderCell($th, $column) {
 
-        $html = '<span class="sortMarker">';
-        $close = '</span>';
+        $html = '';
+        $close = '';
 
         if ($column->isSortable($this->getDataSource())) {
             $html .= '<a href="' . $this->getSortingUrl($column) . '"><span class="sortMarker">';
