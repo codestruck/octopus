@@ -4,7 +4,7 @@
  * Helper for paginating data. Wraps another Octopus_DataSource and serves
  * as a limited view of it. Also handles rendering pagination links.
  */
-class Octopus_Paginate implements Octopus_DataSource {
+class Octopus_Paginate {
 
     public static $defaults = array(
 

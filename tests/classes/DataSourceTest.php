@@ -43,7 +43,7 @@ class DataSourceTest extends PHPUnit_Framework_TestCase {
 
 		$this->assertEquals(array($array[1], $array[0]), $ds->getArray(), "multi-col sort works");
 
-		$ds = $ds->clearSorting();
+		$ds = $ds->unsort();
 		$this->assertEquals($array, $ds->getArray(), "clearSorting works");
 
 	}
@@ -60,14 +60,14 @@ class DataSourceTest extends PHPUnit_Framework_TestCase {
 
 		$this->assertEquals(array($array[1]), $ds->getArray());
 
-		$ds = $ds->unfilter('name');
+		$ds = $ds->unfilter();
 		$this->assertEquals($array, $ds->getArray());
 
 		$ds = $ds->filter('name', 'joe blow');
 		$this->assertEquals(1, count($ds));
 		$this->assertEquals(array($array[0]), $ds->getArray());
 
-		$ds = $ds->clearFilters();
+		$ds = $ds->unfilter();
 		$this->assertEquals($array, $ds->getArray());
 
 	}
@@ -90,27 +90,6 @@ class DataSourceTest extends PHPUnit_Framework_TestCase {
 		);
 
 	}
-
-	function xtestResultSetSort() {
-
-		Octopus_DB_Schema_Model::makeTable('DataSourceTestModel');
-		$db = Octopus_DB::singleton();
-		$db->query('TRUNCATE TABLE data_source_test_models');
-
-		$joe = new DataSourceTestModel(array('name' => 'joe blow', 'age' => 40));
-		$jane = new DataSourceTestModel(array('name' => 'jane blow', 'age' => 40));
-
-		$rs = DataSourceTestModel::all();
-		$ds = new Octopus_DataSource_ResultSet($rs);
-
-		$rs->sort('name');
-		$this->assertSqlEquals(
-			'SELECT * FROM data_source_test_models ORDER BY `name` ASC',
-			$ds->getItems()->getSql()
-		);
-
-	}
-
 
 }
 

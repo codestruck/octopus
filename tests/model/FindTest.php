@@ -12,6 +12,42 @@ class FindTest extends Octopus_DB_TestCase {
         parent::__construct('model/find-data.xml');
     }
 
+    function testUnfilter() {
+
+    	$posts = FindPost::find('title', 'foo')->where('active', 1)->orderBy('title');
+    	$this->assertSqlEquals(
+	    	'SELECT * FROM find_posts ORDER BY `find_posts`.`title` ASC',
+	    	$posts->unfilter()
+	    );
+
+    }
+
+    function testIsSortedBy() {
+
+    	$posts = FindPost::all()->orderBy('title desc', 'author');
+
+    	$this->assertTrue($posts->isSortedBy('title', $asc, $index), 'should be sorted by title');
+    	$this->assertFalse($asc);
+    	$this->assertEquals(0, $index);
+
+    	$this->assertTrue($posts->isSortedBy('author', $asc, $index));
+    	$this->assertTrue($asc);
+    	$this->assertEquals(1, $index);
+
+    }
+
+    function testUnsort() {
+
+    	$posts = FindPost::all()->orderBy('title');
+    	$posts = $posts->unsort();
+
+    	$this->assertSqlEquals(
+	    	'SELECT * FROM find_posts',
+	    	$posts
+	    );
+
+    }
+
     function testOrderByRand() {
 
     	$posts = FindPost::all()->orderBy('RAND()');
@@ -232,7 +268,7 @@ END;
     function testDataSourceImplementation() {
 
         Octopus::loadClass('Octopus_DataSource');
-        
+
         $posts = FindPost::find('author.name LIKE', '*Hinz');
         $this->assertInstanceOf('Octopus_DataSource', $posts, 'ResultSet implements datasource');
 

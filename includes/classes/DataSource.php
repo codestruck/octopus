@@ -13,16 +13,23 @@ interface Octopus_DataSource extends Countable, Iterator {
 	function filter($field, $value);
 
 	/**
-	 * @return Octopus_DataSource A datasource derived from this one with any
-	 * filters on the given field removed.
-	 */
-	function unfilter($field);
-
-	/**
 	 * @return Octopus_DataSource A datasource derived from this one with
 	 * all filters removed.
 	 */
-	function clearFilters();
+	function unfilter();
+
+	/**
+	 * @return Octopus_DataSource A datasource derived from this one with a
+	 * new limit applied. This should not affect the number returned by
+	 * count().
+	 */
+	function limit($start, $count = null);
+
+	/**
+	 * @return Octopus_DataSource A datasource derived from this one with all
+	 * limits remove.
+	 */
+	function unlimit();
 
 	/**
 	 * @return Boolean Whether this datasource is sorted by the given field.
@@ -48,17 +55,10 @@ interface Octopus_DataSource extends Countable, Iterator {
 	function sort($field, $asc = true, $replace = true);
 
 	/**
-	 * Removes any sorting on the given field.
-	 * @return Octopus_DataSource A datasource derived from this one with
-	 * any sorting on $field removed.
-	 */
-	function unsort($field);
-
-	/**
 	 * @return Octopus_DataSource A datasource derived from this one with all
 	 * sorting removed.
 	 */
-	function clearSorting();
+	function unsort();
 
 }
 

@@ -1019,21 +1019,15 @@ END;
     }
 
     /**
-     * @return Number The # of records in this ResultSet.
-     * @param $considerLimit Boolean Whether If true, and the resultset has
-     * been limited using limit(), then the result of count() will be at
-     * most the # of records the resultset is limited to.
+     * @return Number The # of records in this ResultSet, disregarding any
+     * limits.
      */
-    public function count($considerLimit = true) {
+    public function count() {
 
-        $s = $this->buildSelect();
-        $count = $s->numRows();
+    	$rs = $this->unlimit();
+        $s = $rs->buildSelect();
+        return $s->numRows();
 
-        if ($considerLimit && $this->_maxRecords !== null) {
-        	return min($this->_maxRecords, $count);
-        }
-
-        return $count;
     }
 
     // }}}
@@ -1077,7 +1071,17 @@ END;
 
     // Octopus_DataSource Implementation
 
-    public function sort($col, $asc = true) {
+    public function unfilter() {
+
+    	return new Octopus_Model_ResultSet(
+    		$this->_modelClass,
+    		null,
+    		$this->_orderBy
+	    );
+
+    }
+
+    public function sort($col, $asc = true, $replace = true) {
         return $this->sort($col, $asc);
     }
 
@@ -1085,8 +1089,32 @@ END;
         return $this->where($field, $value);
     }
 
-    public function getItems($start = 0, $count = 0) {
-        return $this->limit($start, $count);
+    public function isSortedBy($field, &$asc = null, &$index = 0) {
+
+    	if (!isset($this->_orderBy[$field])) {
+    		return false;
+    	}
+
+    	$index = 0;
+    	foreach($this->_orderBy as $k => $v) {
+    		if ($k == $field) {
+
+    			if (is_string($v) && strcasecmp($v, 'desc') === 0) {
+    				$v = false;
+    			}
+
+    			$asc = !!$v;
+
+    			return true;
+    		}
+    		$index++;
+    	}
+
+    	return false;
+    }
+
+    public function unsort() {
+    	return $this->orderBy();
     }
 
 

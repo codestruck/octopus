@@ -33,18 +33,7 @@ class Octopus_DataSource_Array implements Octopus_DataSource {
 		return new Octopus_DataSource_Array($this->array, $this->sorting, $newFilters, $this->start, $this->limit);
 	}
 
-	public function unfilter($field) {
-
-		if (isset($this->filters[$field])) {
-			$newFilters = $this->filters;
-			unset($newFilters[$field]);
-			return new Octopus_DataSource_Array($this->array, $this->sorting, $newFilters, $this->start, $this->limit);
-		}
-
-		return $this;
-	}
-
-	public function clearFilters() {
+	public function unfilter() {
 
 		if (empty($this->filters)) {
 			return $this;
@@ -65,6 +54,25 @@ class Octopus_DataSource_Array implements Octopus_DataSource {
 		}
 
 		return $result;
+	}
+
+	public function limit($start, $count = null) {
+
+		if ($this->start == $start && $this->count === $count) {
+			return $this;
+		}
+
+		return new Octopus_DataSource_Array($this->array, $this->sorting, $this->filters, $start, $count);
+	}
+
+	public function unlimit() {
+
+		if ($this->start === 0 && $this->count === null) {
+			return $this;
+		}
+
+		return new Octopus_DataSource_Array($this->array, $this->sorting, $this->filters, 0, null);
+
 	}
 
 	public function isSortedBy($field, &$asc = null, &$index = 0) {
@@ -101,20 +109,7 @@ class Octopus_DataSource_Array implements Octopus_DataSource {
 		return new Octopus_DataSource_Array($this->array, $newSorting, $this->filters, $this->start, $this->limit);
 	}
 
-	public function unsort($field) {
-
-		if (!isset($this->sorting[$field])) {
-			return $this;
-		}
-
-		$newSorting = $this->sorting;
-		unset($newSorting[$field]);
-
-		return new Octopus_DataSource_Array($this->array, $newSorting, $this->filters, $this->start, $this->limit);
-
-	}
-
-	public function clearSorting() {
+	public function unsort() {
 
 		if (empty($this->sorting)) {
 			return $this;
