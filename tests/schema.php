@@ -3,6 +3,17 @@
 function run_creates() {
     $db = Octopus_DB::singleton();
 
+    $sql = "CREATE TABLE IF NOT EXISTS settings (
+
+                `name` varchar(100) NOT NULL,
+                `value` text,
+                PRIMARY KEY (`name`)
+
+            );
+            ";
+
+    $db->query($sql);
+
     // FindTest
     $sql = "CREATE TABLE find_posts (
             `find_post_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -104,6 +115,12 @@ function run_creates() {
     Octopus_DB_Schema_Model::makeTable('CommentUser');
     Octopus_DB_Schema_Model::makeTable('Boat');
     Octopus_DB_Schema_Model::makeTable('Car');
+
+    Octopus_DB_Schema_Model::makeTable('Schemab');
+    Octopus_DB_Schema_Model::makeTable('Schemac');
+    Octopus_DB_Schema_Model::makeTable('Schemad');
+
+    Octopus_DB_Schema_Model::makeTable('HtmlTablePerson');
 
     // NonStandard
     $sql = "CREATE TABLE IF NOT EXISTS nonstandard (
@@ -233,5 +250,11 @@ function run_drops() {
     $db->query('DROP TABLE IF EXISTS boats');
 
     $db->query('DROP TABLE IF EXISTS triggers');
+
+    $db->query('DROP TABLE IF EXISTS schemabs');
+    $db->query('DROP TABLE IF EXISTS schemacs');
+    $db->query('DROP TABLE IF EXISTS schemads');
+
+    $db->query('DROP TABLE IF EXISTS html_table_persons');
 
 }

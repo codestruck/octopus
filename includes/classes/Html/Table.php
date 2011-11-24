@@ -439,14 +439,20 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         }
 
         foreach($toApply as $id => $value) {
+        	if ($value === '') {
+        		unset($toApply[$id]);
+        		continue;
+        	}
             $filter = $this->getFilter($id);
             if (!$filter) continue;
             $filter->val($value);
         }
 
         $ds = $this->_originalDataSource;
-        foreach($this->_filters as $filter) {
-            $ds = $filter->apply($ds);
+        foreach($this->_filters as $key => $filter) {
+            if (isset($toApply[$key])) {
+	            $ds = $filter->apply($ds);
+	        }
         }
 
         $this->internalSetDataSource($ds, false);
@@ -892,12 +898,11 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         $close = '';
 
         if ($column->isSortable($this->getDataSource())) {
-            $html .= '<a href="' . $this->getSortingUrl($column) . '">';
-            $close .= '</a>';
+            $html .= '<a href="' . $this->getSortingUrl($column) . '"><span class="sortMarker">';
+            $close .= '</span></a>';
         }
 
-        $html .= htmlspecialchars($column->title());
-
+        $html .= h($column->title());
 
         $th->append($html . $close);
     }

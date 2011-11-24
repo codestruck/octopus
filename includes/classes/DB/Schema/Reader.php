@@ -29,7 +29,7 @@ class Octopus_DB_Schema_Reader {
             }
 
             if ($result['Key'] == 'PRI') {
-                $result['Key'] = 'PRIMARY KEY';
+                $result['Key'] = 'PRIMARY';
             }
 
             if ($result['Key'] == 'UNI') {

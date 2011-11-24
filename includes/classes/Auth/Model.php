@@ -460,7 +460,7 @@ END;
 
         $user = $this->_get($criteria);
 
-        if ($user) {
+        if ($user && $user->password) {
 
             if (strlen($user->password) == 40) {
 
