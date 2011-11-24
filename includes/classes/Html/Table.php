@@ -438,14 +438,20 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         }
 
         foreach($toApply as $id => $value) {
+        	if ($value === '') {
+        		unset($toApply[$id]);
+        		continue;
+        	}
             $filter = $this->getFilter($id);
             if (!$filter) continue;
             $filter->val($value);
         }
 
         $ds = $this->_originalDataSource;
-        foreach($this->_filters as $filter) {
-            $ds = $filter->apply($ds);
+        foreach($this->_filters as $key => $filter) {
+            if (isset($toApply[$key])) {
+	            $ds = $filter->apply($ds);
+	        }
         }
 
         $this->internalSetDataSource($ds, false);

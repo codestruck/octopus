@@ -311,30 +311,41 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
     protected function setSelectedValue($newValue) {
 
         $values = is_array($newValue) ? $newValue : array($newValue);
+        $multiple = $this->isMultipleSelect();
 
-        if (!$this->isMultipleSelect() && count($values) > 1) {
+        if (!$multiple && count($values) > 1) {
         	$values = array_slice($value, 0, 1);
         }
 
         $changed = false;
+		$somethingSelected = false;
 		$options = $this->getOptions();
+
 
         foreach($options as $optionVal => $o) {
 
             $o->selected = false;
 
-	        foreach($values as $value) {
+            if ($multiple || !$somethingSelected) {
 
-		        if ($value instanceof Octopus_Model) {
-		            $value = $value->id;
-		        }
+		        foreach($values as $value) {
 
-	            if ($optionVal == $value && !$o->selected) {
-	                $o->selected = true;
-	                $changed = true;
-	            }
+			        if ($value instanceof Octopus_Model) {
+			            $value = $value->id;
+			        }
 
-        	}
+		            if ($optionVal == $value) {
+
+		            	if (!$o->selected) {
+		            		$changed = true;
+		            	}
+
+		            	$o->selected = true;
+		            	$somethingSelected = true;
+		            }
+
+	        	}
+	        }
 
 	    }
 
