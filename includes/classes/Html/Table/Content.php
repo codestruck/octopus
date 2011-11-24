@@ -31,11 +31,14 @@ class Octopus_Html_Table_Content extends Octopus_Html_Element {
             $content = self::applyFunction($this->options['function'], $value, $obj, $notUsed, $this, false);
             $this->html($content);
 
+            $html = $content;
+        } else {
+        	$html = $this->render(true);
         }
 
         $pattern = '/\{\$([a-z0-9_\.\|\>\(\)-]+)\}/i';
 
-        $html = $this->render(true);
+
 
         $this->_currentObj = $obj;
         $html = preg_replace_callback($pattern, array($this, 'replaceCallback'), $html);

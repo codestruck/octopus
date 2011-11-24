@@ -212,4 +212,61 @@ class Boat extends Octopus_Model {
     );
 }
 
-?>
+class Schemab extends Octopus_Model {
+    protected $fields = array(
+        'title',
+        'display_order' => array(
+            'type' => 'numeric',
+        ),
+        'cost' => array(
+            'type' => 'numeric',
+            'decimal_places' => 2,
+        ),
+        'lowcost' => array(
+            'type' => 'numeric',
+            'decimal_places' => 2,
+            'precision' => 4,
+        ),
+    );
+}
+
+class Schemac extends Octopus_Model {
+    protected $indexes = array('display_order', 'title', array('one', 'two'));
+    protected $fields = array(
+        'title',
+        'display_order' => array(
+            'type' => 'numeric',
+        ),
+        'one',
+        'two',
+    );
+}
+
+class Schemad extends Octopus_Model {
+    protected $fields = array(
+        'title' => array(
+            'index' => 'unique',
+        ),
+        'display_order' => array(
+            'type' => 'numeric',
+            'index' => true,
+        ),
+
+    );
+}
+
+class HtmlTablePerson extends Octopus_Model {
+
+    protected $fields = array(
+        'name' => array(
+            'sortable' => false,
+            'filter' => true
+        ),
+        'age' => array('type' => 'numeric')
+    );
+
+    public function method_uppercase($str) {
+        return strtoupper($str);
+    }
+
+}

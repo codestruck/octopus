@@ -26,28 +26,6 @@ class SettingsTest extends Octopus_DB_TestCase {
         $this->deleteTestDir();
     }
 
-    function createTables(&$db) {
-
-        $db->query("
-
-            CREATE TABLE IF NOT EXISTS settings (
-
-                `name` varchar(100) NOT NULL,
-                `value` text,
-                PRIMARY KEY (`name`)
-
-            );
-
-
-        ");
-
-    }
-
-    function dropTables(&$db) {
-
-        //$db->query('DROP TABLE IF EXISTS settings');
-
-    }
 
     function testReadFromDB() {
 

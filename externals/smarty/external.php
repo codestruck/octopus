@@ -65,9 +65,10 @@ class Octopus_Smarty extends Octopus_Base {
         $security_policy->php_functions = array();
         $security_policy->php_modifiers = array();
 
-        $siteDir = get_option('SITE_DIR');
-        $theme = get_option('site.theme');
-        $octopusDir = get_option('OCTOPUS_DIR');
+        $app = Octopus_App::singleton();
+        $siteDir = $app->SITE_DIR;
+        $octopusDir = $app->OCTOPUS_DIR;
+        $theme = $app->getTheme();
 
         $security_policy->secure_dir = array(
 
