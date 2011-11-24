@@ -1,132 +1,252 @@
 <?php
 
-Octopus::loadClass('Octopus_DataSource');
-
+/**
+ * Implementation of Octopus_DataSource that wraps an array and provides
+ * paged access to it.
+ */
 class Octopus_DataSource_Array implements Octopus_DataSource {
-	
-	private $parent;
+
 	private $array;
+	private $filters = array();
+	private $sorting = array();
+	private $start = 0;
+	private $limit = null;
+	private $workingArray = null;
+	private $workingArraySorted = false;
+	private $iteratorIndex = -1;
 
-	private $sorted = false;
-	private $sortField = null;
-	private $sortAsc = true;
-
-	public function __construct(Array $array, $parent = null) {
-		$this->parent = $parent;
+	public function __construct($array, $sorting = array(), $filters = array(), $start = 0, $limit = null) {
 		$this->array = $array;
+		$this->sorting = $sorting;
+		$this->filters = $filters;
 	}
 
 	public function count() {
-		return count($this->array);
+		return count($this->getWorkingArray());
+	}
+
+	public function filter($field, $value) {
+
+		$newFilters = $this->filters;
+		$newFilters[$field] = $value;
+
+		return new Octopus_DataSource_Array($this->array, $this->sorting, $newFilters, $this->start, $this->limit);
+	}
+
+	public function unfilter($field) {
+
+		if (isset($this->filters[$field])) {
+			$newFilters = $this->filters;
+			unset($newFilters[$field]);
+			return new Octopus_DataSource_Array($this->array, $this->sorting, $newFilters, $this->start, $this->limit);
+		}
+
+		return $this;
+	}
+
+	public function clearFilters() {
+
+		if (empty($this->filters)) {
+			return $this;
+		}
+
+		return new Octopus_DataSource_Array($this->array, $this->sorting, array(), $this->start, $this->limit);
+
 	}
 
 	/**
-	 * @return A new DataSource with the given filter applied.
+	 * @return Array The actual filtered, sorted, and limited array.
 	 */
-	public function filter($field, $value) {
-		
-		$filteredArray = array();
-		foreach($this->array as $item) {
-			if (isset($item[$field])) {
-				
-				if ($item[$field] == $value) {
-					$filteredArray[] = $item;
-				}
+	public function getArray() {
 
-			}
+		$result = array();
+		foreach($this as $item) {
+			$result[] = $item;
 		}
-
-		$result = new Octopus_DataSource_Array($filteredArray, $this);
-		$result->sorted = $this->sorted;
-		$result->sortField = $this->sortField;
-		$result->sortAsc = $this->sortAsc;
 
 		return $result;
 	}
 
-	/**
-	 * @return Iterator of at most $count items starting at $start.
-	 * @param $start Number Start index (zero-based)
-	 * @param $count Number Max number of items to fetch
-	 */
-	public function getItems($start = 0, $count = 0) {
-		
-		if ($this->sortField && !$this->sorted) {
-			// Sort!
-			usort($this->array, array($this, $this->sortAsc ? 'compareItems' : 'compareItemsInverted'));
-			$this->sorted = true;
+	public function isSortedBy($field, &$asc = null, &$index = 0) {
+
+		if (!isset($this->sorting[$field])) {
+			return false;
 		}
 
-		if ($count == 0) {
-			$count = count($this->array); 
-		}
-
-		$result = array();
 		$index = 0;
-		$currentCount = 0;
 
-		foreach($this->array as $item) {
+		foreach($this->sorting as $f => $a) {
 
-			if ($currentCount >= $count) {
-				break;
-			}
-
-			if ($index >= ($start + $count)) {
-				break;
-			} else if ($index >= $start) {
-				$result[] = $item;
-				$currentCount++;
+			if ($f == $field) {
+				$asc = $a;
+				return true;
 			}
 
 			$index++;
+
+		}
+
+		return false; // should never reach here
+	}
+
+	public function sort($field, $asc = true, $replace = true) {
+
+		$sorting = $replace ? array() : $this->sorting;
+		$newSorting = array($field => $asc);
+
+		foreach($sorting as $key => $value) {
+			$newSorting[$key] = $value;
+		}
+
+		return new Octopus_DataSource_Array($this->array, $newSorting, $this->filters, $this->start, $this->limit);
+	}
+
+	public function unsort($field) {
+
+		if (!isset($this->sorting[$field])) {
+			return $this;
+		}
+
+		$newSorting = $this->sorting;
+		unset($newSorting[$field]);
+
+		return new Octopus_DataSource_Array($this->array, $newSorting, $this->filters, $this->start, $this->limit);
+
+	}
+
+	public function clearSorting() {
+
+		if (empty($this->sorting)) {
+			return $this;
+		}
+
+		return new Octopus_DataSource_Array($this->array, array(), $this->filters, $this->start, $this->limit);
+
+	}
+
+	public function current() {
+		$ar = $this->getWorkingArray();
+		return $ar[$this->iteratorIndex + $this->start];
+	}
+
+	public function key() {
+		return $this->iteratorIndex;
+	}
+
+	public function next() {
+		$this->iteratorIndex++;
+	}
+
+	public function rewind() {
+		$this->iteratorIndex = 0;
+	}
+
+	public function valid() {
+
+		if ($this->iteratorIndex < 0) {
+			return false;
+		}
+
+		if ($this->iteratorIndex + $this->start >= count($this->getWorkingArray(false))) {
+			return false;
+		}
+
+		if ($this->limit !== null && $this->iteratorIndex >= $this->limit) {
+			return false;
+		}
+
+		return true;
+	}
+
+	protected function &getWorkingArray($sort = true) {
+
+		if ($this->workingArray === null) {
+
+			$this->workingArray = $this->applyFilters($this->array, $this->filters);
+
+		}
+
+		if ($sort && !$this->workingArraySorted) {
+			$this->sortArray($this->workingArray);
+		}
+
+		return $this->workingArray;
+
+	}
+
+	private function &applyFilters($array, $filters) {
+
+		if (empty($filters)) {
+			return $array;
+		}
+
+		$result = array();
+		foreach($array as $item) {
+
+			$include = true;
+
+			foreach($filters as $key => $value) {
+
+				if (!isset($item[$key])) {
+					$include = false;
+					break;
+				}
+
+				if ($item[$key] != $value) {
+					$include = false;
+					break;
+				}
+
+			}
+
+			if ($include) $result[] = $item;
 		}
 
 		return $result;
 	}
 
 	/**
-	 * @return A new DataSource sorted in the given way.
+	 * Sorts the given array using the sorting for this datasource.
 	 */
-	public function sort($field, $asc = true) {
-		
-		if (is_string($asc)) {
-			if (strcasecmp($asc, 'asc') === 0) {
-				$asc = true;
-			} else if (strcasecmp($asc, 'desc') === 0) {
-				$asc = false;
-			}
+	protected function sortArray(&$ar) {
+
+		if (empty($this->sorting)) {
+			return;
 		}
 
-		$result = new Octopus_DataSource_Array($this->array, $this);
-		$result->sorted = false;
-		$result->sortField = $field;
-		$result->sortAsc = $asc;
-
-		return $result;
-	}
-
-	private function compareItemsInverted($x, $y) {
-		return $this->compareItems($y, $x);
+		usort($ar, array($this, 'compareItems'));
 	}
 
 	private function compareItems($x, $y) {
-		
-		$x = isset($x[$this->sortField]) ? $x[$this->sortField] : null;
-		$y = isset($y[$this->sortField]) ? $y[$this->sortField] : null;
 
-		if ($x === null && $y === null) {
-			return false;
-		} else if ($x === null) {
-			return -1; 
-		} else if ($y === null) {
-			return 1;
+		foreach($this->sorting as $field => $asc) {
+
+			$xVal = isset($x[$field]) ? $x[$field] : null;
+			$yVal = isset($y[$field]) ? $y[$field] : null;
+
+			$result = self::compareValues($xVal, $yVal);
+			if (!$asc) $result *= -1;
+
+			if ($result) {
+				return $result;
+			}
 		}
 
-		if (is_string($x) || is_string($y)) {
-			return strcasecmp($x, $y);
+		return 0;
+
+	}
+
+	private function compareValues($x, $y) {
+
+		if ($x === $y) {
+			return 0;
 		}
 
-		return $x - $y;
+		if (is_numeric($x) && is_numeric($y)) {
+			return $x - $y;
+		}
+
+		return strcasecmp(trim($x), trim($y));
 	}
 
 }
