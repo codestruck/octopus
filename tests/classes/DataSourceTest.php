@@ -91,6 +91,31 @@ class DataSourceTest extends PHPUnit_Framework_TestCase {
 
 	}
 
+	function testArrayLimit() {
+
+		$array = array(
+			array('id' => 1, 'name' => 'joe blow', 'age' => 21),
+			array('id' => 2, 'name' => 'jane blow', 'age' => 21),
+			array('id' => 3, 'name' => 'somebody else', 'age' => 44)
+		);
+
+		$ds = new Octopus_DataSource_Array($array);
+
+		$l = $ds->limit(0, 2);
+		$this->assertEquals(array_slice($array, 0, 2), $l->getArray());
+
+		$l = $l->unlimit();
+		$this->assertEquals($array, $l->getArray());
+
+		$l = $ds->limit(2);
+		$this->assertEquals(array_slice($array, 2, 1), $l->getArray());
+
+		$l = $l->limit(1, 5);
+		$this->assertEquals(array_slice($array, 1), $l->getArray());
+
+
+	}
+
 }
 
 ?>

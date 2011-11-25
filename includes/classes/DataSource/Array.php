@@ -19,6 +19,8 @@ class Octopus_DataSource_Array implements Octopus_DataSource {
 		$this->array = $array;
 		$this->sorting = $sorting;
 		$this->filters = $filters;
+		$this->start = $start;
+		$this->limit = $limit;
 	}
 
 	public function count() {
@@ -58,7 +60,7 @@ class Octopus_DataSource_Array implements Octopus_DataSource {
 
 	public function limit($start, $count = null) {
 
-		if ($this->start == $start && $this->count === $count) {
+		if ($this->start === $start && $this->limit === $count) {
 			return $this;
 		}
 
@@ -67,7 +69,7 @@ class Octopus_DataSource_Array implements Octopus_DataSource {
 
 	public function unlimit() {
 
-		if ($this->start === 0 && $this->count === null) {
+		if ($this->start === 0 && $this->limit === null) {
 			return $this;
 		}
 

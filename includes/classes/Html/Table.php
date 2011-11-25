@@ -1,7 +1,7 @@
 <?php
 
 /**
- *
+ * A sortable, pageable, and filterable <table>.
  */
 class Octopus_Html_Table extends Octopus_Html_Element {
 
@@ -88,7 +88,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         /**
          * # of records per page.
          */
-        'pageSize' => 20,
+        'pageSize' => 4,
 
         /**
          * Pages to show around the current one.
@@ -145,15 +145,13 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
     private $_dataSource = null;
     private $_originalDataSource = null;
-    private $_pager = null;
-    private $_currentPage = 1;
+    private $_pagination = null;
 
     private $_shouldInitFromEnvironment = true;
 
     private $_columns = array();
     private $_sortColumns = array();
     private $_filters = array();
-    private $_pagerOptions = null;
 
     private $_queryString = null;
 
@@ -171,22 +169,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         parent::__construct('table', $attrs);
 
         $this->_options = array_merge(self::$defaultOptions, $options);
-        $o =& $this->_options;
-
-        $this->_pagerOptions = array(
-            'perPage' => $o['pageSize'],
-            'urlVar' => $o['pageArg'],
-            'delta' => $o['pagerDelta'],
-            'firstPageText' => $o['firstPageLinkText'],
-            'lastPageText' => $o['lastPageLinkText'],
-            'firstPagePre' => '',
-            'firstPagePost' => '',
-            'lastPagePre' => '',
-            'lastPagePost' => '',
-            'nextImg' => $o['nextPageLinkText'],
-            'prevImg' => $o['prevPageLinkText'],
-            'curPageLinkClassName' => 'current',
-        );
+        $this->_pagination = new Octopus_Html_Pagination($this->_options);
     }
 
     /**
@@ -197,7 +180,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      * column.
      * @param $options Any extra options.
      */
-    function addColumn($id, $title = null, $function = null, $options = null) {
+    public function addColumn($id, $title = null, $function = null, $options = null) {
 
         $column = null;
 
@@ -369,8 +352,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     public function getPageCount() {
-        $p = $this->getPager();
-        return $p->getPageCount();
+        return $this->_pagination->getPageCount();
     }
 
     public function setPage($page) {
@@ -579,8 +561,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      * @return Number The total # of records.
      */
     public function count() {
-    	$p = $this->getPager();
-    	return $p->getTotalItemCount();
+    	$ds = $this->getDataSource();
+    	return $ds ? $ds->count() : 0;
     }
 
     public function isSorted() {
@@ -592,7 +574,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      * @return Mixed The data being shown in the table.
      */
     public function &getData() {
-        return $this->getPager();
+        return $this->_pagination->getItems();
     }
 
     public function &getDataSource() {
@@ -603,25 +585,20 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         return $this->_dataSource;
     }
 
+    /**
+     * Sets the Octopus_DataSource this table uses to retrieve data for display.
+     */
     public function setDataSource($dataSource) {
         return $this->internalSetDataSource($dataSource, true);
     }
 
     private function internalSetDataSource($dataSource, $isOriginal) {
 
-        if (is_array($dataSource)) {
-            Octopus::loadClass('Octopus_DataSource_Array');
-            $dataSource = new Octopus_DataSource_Array($dataSource);
-        }
-
-        if (!$dataSource instanceof Octopus_DataSource) {
-            throw new Octopus_Exception("Table data sources must implement Octopus_DataSource");
-        }
-
-        $this->_dataSource = $dataSource;
+    	$this->_pagination->setDataSource($dataSource);
+        $this->_dataSource = $this->_pagination->getDataSource();
 
         if ($isOriginal) {
-            $this->_originalDataSource = $dataSource;
+            $this->_originalDataSource = $this->_dataSource;
         }
 
         return $this->resetData();
@@ -1059,15 +1036,6 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         $this->setPage($page);
     }
 
-    protected function getPager() {
-
-    	if ($this->_pager) {
-    		return $this->_pager;
-    	}
-
-    	return $this->_pager = new Octopus_Paginate();
-    }
-
     /**
      * Hook to tweak a row before it is loaded up with junk.
      */
@@ -1129,23 +1097,22 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
     protected function renderBody(&$array = null) {
 
-        $pager = $this->getPager();
+		$columnCount = count($this->_columns);
 
-        if (!count($pager)) {
-            $td = new Octopus_Html_Element('td', array('class' => 'emptyNotice'));
+        if ($this->isEmpty()) {
+            $td = new Octopus_Html_Element('td', array('class' => 'emptyNotice', 'colspan' => $columnCount));
             $td->html($this->_options['emptyContent']);
             return '<tbody class="emptyNotice"><tr>' . $td . '</tr></tbody>';
         }
 
         $html = '<tbody>';
 
-        $columnCount = count($this->_columns);
-
+        // Reuse tr and td objects for each row because we can
         $tr = new Octopus_Html_Element('tr');
         $td = new Octopus_Html_Element('td');
 
         $rowIndex = 1;
-        foreach($pager as $row) {
+        foreach($this->getData() as $row) {
 
             $tr->reset();
             $this->prepareBodyRow($tr, $row, $rowIndex);
@@ -1272,10 +1239,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     protected function renderPager() {
-
-    	$p = $this->getPager();
-    	return $p->render(true);
-
+    	return $this->_pagination->render(true);
     }
 
     /**
