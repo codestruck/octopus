@@ -19,6 +19,12 @@ class DataSourceTest extends PHPUnit_Framework_TestCase {
 		);
 
 		$ds = new Octopus_DataSource_Array($array);
+
+		$this->assertTrue($ds->isSortable('id'), 'id is sortable');
+		$this->assertTrue($ds->isSortable('name'), 'name is sortable');
+		$this->assertTrue($ds->isSortable('age'), 'age is sortable');
+		$this->assertFalse($ds->isSortable('fake_col'), 'non-existant column is not sortable');
+
 		$ds = $ds->sort('name', true);
 		$this->assertEquals(array($array[1], $array[0]), $ds->getArray());
 
