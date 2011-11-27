@@ -13,6 +13,11 @@ class Octopus_Html_Pagination extends Octopus_Html_Element {
     	'class' => 'pager',
 
     	/**
+    	 * CSS class used to mark the link to the current page.
+    	 */
+    	'currentClass' => 'current',
+
+    	/**
     	 * URL of the current page. If null, REQUEST_URI is used.
     	 */
     	'currentUrl' => null,
@@ -28,9 +33,23 @@ class Octopus_Html_Pagination extends Octopus_Html_Element {
     	'emptyClass' => 'empty',
 
     	/**
+    	 * Class added to the pager when it is on the first page.
+    	 */
+    	'firstPageClass' => 'first-page',
+
+    	/**
+    	 * Class added to the pager when it is on the last page.
+    	 */
+    	'lastPageClass' => 'last-page',
+
+    	/**
     	 * Largest allowed value for the 'pageSize' option.
     	 */
     	'maxPageSize' => 50,
+
+    	'nextLinkClass' => 'next',
+
+    	'nextLinkText' => 'Next',
 
         /**
          * QueryString arg used to specify the page.
@@ -41,6 +60,18 @@ class Octopus_Html_Pagination extends Octopus_Html_Element {
          * # of items to show per page.
          */
         'pageSize' => 10,
+
+        'prevLinkClass' => 'prev',
+
+        'prevLinkText' => 'Previous',
+
+        /**
+         * Text content for spacers placed between two paging links to indicate
+         * there are more pages between them, e.g.:
+         *
+         *	1 2 3 4 <sep> 9 10
+         */
+        'separatorText' => '&hellip;'
 
     );
 
@@ -101,11 +132,8 @@ class Octopus_Html_Pagination extends Octopus_Html_Element {
     	$this->dataSource = $ds;
     	$this->limitedDataSource = null;
 
-    	if ($this->getPageCount()) {
-    		$this->removeClass($this->options['emptyClass']);
-    	} else {
-    		$this->addClass($this->options['emptyClass']);
-    	}
+    	$this->updateCss();
+
     }
 
     /**
@@ -146,8 +174,19 @@ class Octopus_Html_Pagination extends Octopus_Html_Element {
     	if ($this->page != $page) {
     		$this->page = $page;
     		$this->limitedDataSource = null;
+    		$this->updateCss();
     	}
 
+    }
+
+    public function getPreviousPage() {
+    	$page = $this->getCurrentPage() - 1;
+		return max($page, 0);
+    }
+
+    public function getNextPage() {
+    	$page = $this->getCurrentPage() + 1;
+    	return min($page, $this->getPageCount() - 1);
     }
 
     /**
@@ -186,6 +225,7 @@ class Octopus_Html_Pagination extends Octopus_Html_Element {
     		$this->pageSize = $size;
     		$this->limitedDataSource = null;
     		$this->setCurrentPage(0);
+    		$this->updateCss();
     	}
 
     }
@@ -239,25 +279,17 @@ class Octopus_Html_Pagination extends Octopus_Html_Element {
     }
 
     /**
+     * @param Number $page Page index to link to (1-based).
+     * @param mixed $curretUrl URL to modify to generate the paging link.
      * @return String The URL to the given page.
      */
     public function getPageUrl($page, $currentUrl = null) {
 
-        if (!$currentUrl) $currentUrl = $_SERVER['REQUEST_URI'];
+        if ($currentUrl === null) $currentUrl = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
 
-        $qPos = strpos($currentUrl, '?');
+        $arg = $this->options['pageArg'];
 
-        if ($qPos === false) {
-            return $url . "?$arg=" . rawurlencode($page);
-        }
-
-        $qs = substr($currentUrl, $qPos + 1);
-        $args = array();
-        parse_str($qs, $args);
-
-        $args[$arg] = $page;
-
-        return substr($currentUrl, $qPos) . '?' . http_build_query($args);
+        return u($currentUrl, array($arg => $page));
     }
 
     /**
@@ -268,6 +300,77 @@ class Octopus_Html_Pagination extends Octopus_Html_Element {
     	$ds = $this->getDataSource();
     	return $ds ? count($ds) : 0;
 
+    }
+
+    public function render($return = false) {
+
+    	$this->createPagingLinks();
+
+    	return parent::render($return);
+
+    }
+
+    /**
+     * Generates the list of paging links and appends them to the pager.
+     */
+    protected function createPagingLinks() {
+
+    	$o =& $this->options;
+
+    	$this->clear();
+
+    	$nums = $this->getPageNumbers();
+    	if (empty($nums)) {
+    		return;
+    	}
+
+    	$prev = $this->createPagingLink($this->getPreviousPage() + 1, $o['prevLinkText'], $o['prevLinkClass']);
+    	$this->append($prev);
+
+    	$lastNum = null;
+    	foreach($nums as $num) {
+
+    		if ($lastNum !== null && $lastNum < $num - 1) {
+    			$sep = $this->createSeparator($lastNum, $num);
+    			if ($sep) $this->append($sep);
+    		}
+
+    		$link = $this->createPagingLink($num);
+    		$this->append($link);
+
+    		$lastNum = $num;
+
+    	}
+
+    	$next = $this->createPagingLink($this->getNextPage() + 1, $o['nextLinkText'], $o['nextLinkClass']);
+    	$this->append($next);
+
+    }
+
+    protected function createPagingLink($page, $text = null, $class = '') {
+
+		if (!$class && $page == $this->getCurrentPage() + 1) {
+    		$class = $this->options['currentClass'];
+    	}
+
+    	$l = new Octopus_Html_Element('a');
+    	if ($class) $l->addClass($class);
+    	$l->text($text === null ? $page : $text);
+    	$l->href = $this->getPageUrl($page);
+
+    	return $l;
+
+    }
+
+    /**
+     * Creates a an element to put between two paging links to indicate there
+     * are more pages between them.
+     */
+    protected function createSeparator($prevPage, $nextPage) {
+    	$el = new Octopus_Html_Element('span');
+    	$el->addClass('sep');
+    	$el->html('&hellip;');
+    	return $el;
     }
 
     /**
@@ -289,6 +392,32 @@ class Octopus_Html_Pagination extends Octopus_Html_Element {
     	$this->readQueryString = true;
 
     	return $page ? $page : 0;
+    }
+
+    private function updateCss() {
+
+    	$pageCount = $this->getPageCount();
+    	$page = $this->getCurrentPage();
+    	$o =& $this->options;
+
+    	if ($pageCount) {
+    		$this->removeClass($o['emptyClass']);
+    	} else {
+    		$this->addClass($o['emptyClass']);
+    	}
+
+    	if ($pageCount && $page == 0) {
+    		$this->addClass($o['firstPageClass']);
+    	} else {
+    		$this->removeClass($o['firstPageClass']);
+    	}
+
+    	if ($pageCount && $page == $pageCount - 1) {
+    		$this->addClass($o['lastPageClass']);
+    	} else {
+    		$this->removeClass($o['lastPageClass']);
+    	}
+
     }
 
 }

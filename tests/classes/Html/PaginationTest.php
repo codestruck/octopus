@@ -7,6 +7,7 @@ class PaginationTest extends Octopus_App_TestCase {
 		parent::setUp();
 
 		unset($_GET['page']);
+		unset($_SERVER['REQUEST_URI']);
 
 	}
 
@@ -272,6 +273,65 @@ END
 			$p->getPageNumbers()
 		);
 
+	}
+
+	function testBasicRendering() {
+
+		$data = array();
+		for($i = 0; $i < 100; $i++) {
+			$data[] = array('id' => $i, 'name' => 'foo');
+		}
+
+		$p = new Octopus_Html_Pagination();
+		$p->setDataSource($data);
+
+		$this->assertHtmlEquals(
+			<<<END
+<div class="pager first-page">
+	<a href="?page=1" class="prev">Previous</a>
+	<a href="?page=1" class="current">1</a>
+	<a href="?page=2">2</a>
+	<a href="?page=3">3</a>
+	<a href="?page=4">4</a>
+	<a href="?page=5">5</a>
+	<span class="sep">&hellip;</span>
+	<a href="?page=9">9</a>
+	<a href="?page=10">10</a>
+	<a href="?page=2" class="next">Next</a>
+</div>
+END
+			,
+			$p->render(true)
+		);
+
+	}
+
+	function testChangeUrlArgs() {
+
+		$_SERVER['REQUEST_URI'] = '/foo/bar?x=y&active=1';
+
+		$data = array();
+		for($i = 0; $i < 3; $i++) {
+			$data[] = array('id' => $i, 'name' => 'foo');
+		}
+
+		$p = new Octopus_Html_Pagination();
+		$p->setPageSize(1);
+		$p->setDataSource($data);
+
+		$this->assertHtmlEquals(
+			<<<END
+<div class="pager first-page">
+	<a href="/foo/bar?x=y&amp;active=1&amp;page=1" class="prev">Previous</a>
+	<a href="/foo/bar?x=y&amp;active=1&amp;page=1" class="current">1</a>
+	<a href="/foo/bar?x=y&amp;active=1&amp;page=2">2</a>
+	<a href="/foo/bar?x=y&amp;active=1&amp;page=3">3</a>
+	<a href="/foo/bar?x=y&amp;active=1&amp;page=2" class="next">Next</a>
+</div>
+END
+			,
+			$p->render(true)
+		);
 	}
 
 }
