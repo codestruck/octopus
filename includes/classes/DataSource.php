@@ -32,6 +32,12 @@ interface Octopus_DataSource extends Countable, Iterator {
 	function unlimit();
 
 	/**
+	 * @return Boolean Whether this datasource can be sorted by the given
+	 * field.
+	 */
+	function isSortable($field);
+
+	/**
 	 * @return Boolean Whether this datasource is sorted by the given field.
 	 * @param String $field Field to check.
 	 * @param Boolean $asc If the field is sorted, gets set to true if

@@ -12,6 +12,15 @@ class FindTest extends Octopus_DB_TestCase {
         parent::__construct('model/find-data.xml');
     }
 
+    function testIsSortable() {
+
+    	$posts = FindPost::all();
+
+    	$this->assertTrue($posts->isSortable('title'), 'title is sortable');
+    	$this->assertFalse($posts->isSortable('fake_field', 'not sortable by non-existant field'));
+
+    }
+
     function testUnfilter() {
 
     	$posts = FindPost::find('title', 'foo')->where('active', 1)->orderBy('title');

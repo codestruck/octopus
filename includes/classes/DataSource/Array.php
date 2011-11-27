@@ -77,6 +77,20 @@ class Octopus_DataSource_Array implements Octopus_DataSource {
 
 	}
 
+	public function isSortable($field) {
+
+		foreach($this->array as $item) {
+
+			if (isset($item[$field])) {
+				return true;
+			}
+
+		}
+
+		return false;
+
+	}
+
 	public function isSortedBy($field, &$asc = null, &$index = 0) {
 
 		if (!isset($this->sorting[$field])) {

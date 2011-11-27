@@ -1089,6 +1089,10 @@ END;
         return $this->where($field, $value);
     }
 
+    public function isSortable($field) {
+    	return !!$this->getModelField($field);
+    }
+
     public function isSortedBy($field, &$asc = null, &$index = 0) {
 
     	if (!isset($this->_orderBy[$field])) {
