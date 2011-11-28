@@ -182,12 +182,19 @@ function smarty_function_image($params, $template)
 
     }
 
+    $includeMTime = true;
+
     if ($action) {
 
         $width = isset($imageAttrs['width']) ? $imageAttrs['width'] : null;
         $height = isset($imageAttrs['height']) ? $imageAttrs['height'] : null;
 
-        $file = _octopus_smarty_modify_image($file, $action, $width, $height, $constrain, $cacheDir, $imageAttrs);
+        $modifiedFile = _octopus_smarty_modify_image($file, $action, $width, $height, $constrain, $cacheDir, $imageAttrs);
+
+        if ($modifiedFile != $file) {
+        	$file = $modifiedFile;
+        	$includeMTime = false; // mtime is already part of file name, and adding it again makes tests more complicated
+        }
 
     } else if (!$isRemote) {
 
@@ -208,7 +215,7 @@ function smarty_function_image($params, $template)
         }
     }
 
-	$imageAttrs['src'] = _octopus_smarty_get_file_url($file, $dirs, $urlBase);
+	$imageAttrs['src'] = _octopus_smarty_get_file_url($file, $dirs, $urlBase, $includeMTime);
 
     if (!empty($params['ignoredims'])) {
         unset($imageAttrs['width']);
@@ -395,7 +402,10 @@ function _octopus_smarty_get_file_url($file, $dirs, $urlBase, $includeModTime = 
 
         $url = $urlBase . $dir . $file;
 
+        //dump_r($originalFile, filemtime($originalFile));
+
         if ($includeModTime) {
+        	clearstatcache();
             $url .= '?' . filemtime($originalFile);
         }
 
@@ -490,7 +500,7 @@ function _octopus_smarty_modify_image($file, $action, $width, $height, $constrai
     /* Cached file name uses:
      *
      * 1. Mod time of original file
-     * 2. md5 of original file name + mod time
+     * 2. md5 of original file name
      * 3. action
      * 4. widthxheight
      * 5. constraint
@@ -500,7 +510,7 @@ function _octopus_smarty_modify_image($file, $action, $width, $height, $constrai
      */
 
     $mtime = filemtime($file);
-    $hash = md5($file . $mtime);
+    $hash = md5($file);
     $ext = image_type_to_extension($size[2]);
     if ($ext === '.jpeg') $ext = '.jpg';
 
