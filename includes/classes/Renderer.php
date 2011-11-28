@@ -192,6 +192,10 @@ class Octopus_Renderer {
             $result['HEAD'] = "<head>{$result['HEAD_CONTENT']}</head>";
         }
 
+        $result['DEV'] = $this->app->DEV;
+        $result['LIVE'] = $this->app->LIVE;
+        $result['STAGING'] = $this->app->STAGING;
+
         return $result;
     }
 
