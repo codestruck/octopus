@@ -62,6 +62,16 @@ class RouterTest extends PHPUnit_Framework_TestCase {
 
 	}
 
+	function testRootAlias() {
+
+		$r = new Octopus_Router();
+		$r->alias('/', '/home');
+
+		$this->assertEquals('/home', $r->resolve('/'));
+		$this->assertEquals('/products', $r->resolve('/products'));
+
+	}
+
 }
 
 ?>

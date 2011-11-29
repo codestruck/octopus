@@ -2,6 +2,25 @@
 
 class AppTests extends Octopus_App_TestCase {
 
+	function testAutoAliasSlashToHome() {
+
+		$app = $this->getApp();
+
+		$r = $app->getRouter();
+		$this->assertEquals('home', $r->resolve('/'));
+
+	}
+
+	function testAlias() {
+
+		$app = $this->getApp();
+		$app->alias('/products/view/{$id}', '/products/{$id}', array('id' => '\d+'));
+
+		$req = $app->createRequest('/products/90');
+		$this->assertEquals('products/view/90', $req->getResolvedPath());
+
+	}
+
     function testGetTheme() {
 
         $app = $this->startApp();
