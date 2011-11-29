@@ -103,9 +103,29 @@ abstract class Octopus_Html_Table_Filter {
         return $this->type;
     }
 
+    public function label(/* $label */) {
+    	$args = func_get_args();
+    	if (count($args)) {
+    		return $this->setLabel($args[0]);
+    	} else {
+    		return $this->getLabel();
+    	}
+    }
+
+    public function setLabel($label) {
+    	$this->label = $label;
+    	return $this;
+    }
+
+    public function getLabel() {
+    	return $this->label;
+    }
+
     public function createLabelElement() {
 
-        if (!$this->label) {
+    	$text = $this->getLabel();
+
+        if (!$text) {
             return;
         }
 
