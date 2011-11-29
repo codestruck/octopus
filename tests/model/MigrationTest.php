@@ -402,7 +402,7 @@ END
                 'type' => 'int',
                 'size' => 10,
                 'options' => 'NOT NULL',
-                'index' => 'MUL'
+                'index' => 'INDEX'
             ),
 
             'birth_date' => array(
@@ -496,7 +496,7 @@ END
                 'type' => 'int',
                 'size' => 10,
                 'options' => 'NOT NULL',
-                'index' => 'MUL'
+                'index' => 'INDEX'
             )
         );
         $this->assertColsMatch($expectedCols, 'migrate_test_dogs');
@@ -523,13 +523,13 @@ END
                 'type' => 'int',
                 'size' => 10,
                 'options' => 'NOT NULL',
-                'index' => 'MUL'
+                'index' => 'INDEX'
             ),
             'migrate_test_category_id' => array(
                 'type' => 'int',
                 'size' => 10,
                 'options' => 'NOT NULL',
-                'index' => 'MUL'
+                'index' => 'INDEX'
             )
         );
         $this->assertColsMatch($expectedCols, 'migrate_test_category_migrate_test_person_join');
