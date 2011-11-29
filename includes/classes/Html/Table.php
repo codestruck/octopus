@@ -450,7 +450,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         $ds = $this->_originalDataSource;
         foreach($this->_filters as $key => $filter) {
             if (isset($toApply[$key])) {
-	            $ds = $filter->apply($ds);
+	            $ds = $filter->apply($ds, $this);
 	        }
         }
 
