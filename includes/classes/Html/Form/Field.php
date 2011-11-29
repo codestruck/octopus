@@ -24,6 +24,7 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
 
     private $_label = null;
     private $_labelElements = array();
+    private $_niceName = null;
 
     private $_longDesc = '';
     private $_longDescLabelElements = array();
@@ -166,6 +167,22 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
     }
 
     /**
+     * Validates that input in this field is at most $length characters long.
+     */
+    public function maxLength($length, $message = null) {
+    	return $this->addRule(new Octopus_Html_Form_Field_Rule_Length(null, $length, $message));
+    }
+
+    /**
+     * Validates that input in this field is at least $length characters long.
+     * Note: To catch zero-length input, use required() in addition to
+     * minLength().
+     */
+    public function minLength($length, $message = null) {
+    	return $this->addRule(new Octopus_Html_Form_Field_Rule_Length($length, null, $message));
+    }
+
+    /**
      * Validates input against one of a known set of data formats, e.g.
      * email, zip code, etc.
      */
@@ -217,6 +234,45 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
     public function mustPass($callback, $message = null) {
         $rule = new Octopus_Html_Form_Field_Rule_Callback($callback, $message);
         return $this->addRule($rule);
+    }
+
+    /**
+     * Gets/sets the "nice" name of this field. This is the name used to
+     * refer to the field in error messages, etc. By default, this is the
+     * same as label(), but with any trailing colons removed.
+     */
+    public function niceName(/* $name */) {
+
+    	$args = func_get_args();
+    	if (count($args) === 0) {
+    		return $this->getNiceName();
+    	} else {
+    		return $this->setNiceName($args[0]);
+    	}
+
+    }
+
+    /**
+     * @return String A nice name you can use to refer to this field in e.g.,
+     * error messages.
+     */
+    public function getNiceName() {
+
+    	if ($this->_niceName !== null) {
+    		return $this->_niceName;
+    	}
+
+    	return preg_replace('/:\s*$/', '', $this->label());
+    }
+
+    /**
+     * @param Mixed $name New nice name to set. If null, the nice name will be
+     * adapted from the current label.
+     * @return Octopus_Html_Form_Field This field, for method chaining.
+     */
+    public function setNiceName($name) {
+    	$this->_niceName = $name;
+    	return $this;
     }
 
     /**
