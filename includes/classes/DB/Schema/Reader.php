@@ -28,14 +28,6 @@ class Octopus_DB_Schema_Reader {
                 $options[] = strtoupper($result['Extra']);
             }
 
-            if ($result['Key'] == 'PRI') {
-                $result['Key'] = 'PRIMARY';
-            }
-
-            if ($result['Key'] == 'UNI') {
-                $result['Key'] = 'UNIQUE';
-            }
-
             $size = '';
 
             if (preg_match('/[^\(]+\(([^\(]+)\)/', $result['Type'], $matches)) {
@@ -53,7 +45,7 @@ class Octopus_DB_Schema_Reader {
             $info['type'] = trim($type);
             $info['size'] = trim($size);
             $info['options'] = trim(implode(' ', $options));
-            $info['index'] = trim($result['Key']);
+            $info['index'] = $this->getColumnIndex($field);
 
             $fields[ $field ] = $info;
 
@@ -74,6 +66,28 @@ class Octopus_DB_Schema_Reader {
         }
 
         return $indexes;
+
+    }
+
+    private function getColumnIndex($field) {
+
+        $indexes = $this->getIndexes();
+        foreach ($indexes as $index) {
+            if ($index['Column_name'] == $field) {
+
+                if ($index['Key_name'] === 'PRIMARY') {
+                    return $index['Key_name'];
+                }
+
+                if ($index['Non_unique'] == 0) {
+                    return 'UNIQUE';
+                }
+
+                return 'INDEX';
+            }
+        }
+
+        return '';
 
     }
 

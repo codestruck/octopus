@@ -48,9 +48,9 @@ class ModelSchemaTest extends PHPUnit_Framework_TestCase
         $r = new Octopus_DB_Schema_Reader('schemacs');
         $fields = $r->getFields();
 
-        $this->assertEquals('MUL', $fields['title']['index']);
-        $this->assertEquals('MUL', $fields['display_order']['index']);
-        $this->assertEquals('MUL', $fields['one']['index']);
+        $this->assertEquals('INDEX', $fields['title']['index']);
+        $this->assertEquals('INDEX', $fields['display_order']['index']);
+        $this->assertEquals('INDEX', $fields['one']['index']);
 
         $indexes = $r->getIndexes();
         $this->assertEquals(5, count($indexes));
@@ -65,7 +65,7 @@ class ModelSchemaTest extends PHPUnit_Framework_TestCase
         $indexes = $r->getIndexes();
 
         $this->assertEquals('UNIQUE', $fields['title']['index']);
-        $this->assertEquals('MUL', $fields['display_order']['index']);
+        $this->assertEquals('INDEX', $fields['display_order']['index']);
     }
 
 }

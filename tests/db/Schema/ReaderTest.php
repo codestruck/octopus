@@ -14,7 +14,10 @@ class Octopus_DB_Schema_Reader_Test extends PHPUnit_Framework_TestCase
 
         $sql = "CREATE TABLE test (
 `test_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-`test_name` VARCHAR( 128 ) NOT NULL
+`test_name` VARCHAR( 128 ) NOT NULL,
+`test_uname` VARCHAR( 128 ) NOT NULL,
+INDEX (`test_name`),
+UNIQUE (`test_uname`)
 )
 ";
         $db->query($sql);
@@ -32,7 +35,7 @@ class Octopus_DB_Schema_Reader_Test extends PHPUnit_Framework_TestCase
         $r = new Octopus_DB_Schema_Reader('test');
         $fields = $r->getFields();
 
-        $this->assertEquals(2, count($fields));
+        $this->assertEquals(3, count($fields));
 
         $this->assertArrayHasKey('test_id', $fields);
         $this->assertArrayHasKey('test_name', $fields);
@@ -48,6 +51,19 @@ class Octopus_DB_Schema_Reader_Test extends PHPUnit_Framework_TestCase
 
         $this->assertEquals('1', $indexes[0]['Seq_in_index']);
         $this->assertEquals('PRIMARY', $indexes[0]['Key_name']);
+        $this->assertEquals('1', $indexes[1]['Seq_in_index']);
+        $this->assertEquals('test_uname', $indexes[1]['Key_name']);
+        $this->assertEquals('1', $indexes[2]['Seq_in_index']);
+        $this->assertEquals('test_name', $indexes[2]['Key_name']);
+    }
+
+    function testReadFieldsWithIndex() {
+        $r = new Octopus_DB_Schema_Reader('test');
+        $fields = $r->getFields();
+
+        $this->assertEquals('PRIMARY', $fields['test_id']['index']);
+        $this->assertEquals('INDEX', $fields['test_name']['index']);
+        $this->assertEquals('UNIQUE', $fields['test_uname']['index']);
     }
 
 }
