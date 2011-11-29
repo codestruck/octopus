@@ -129,14 +129,14 @@ class Octopus_Html_Table_Paginate {
         if (count($pagerData['page_numbers']) > 1) {
 
             if ($pagerData['currentPage'] > 2) {
-                $link = new Octopus_Html_Element('a');
+                $link = new Octopus_Html_Element('a', array('class' => 'first'));
                 $link->href = self::getUrlForPaging($options) . $options['pageArg'] . '=1';
                 $link->html($options['firstPageLinkText']);
                 $elements[] = $link;
             }
 
             if ($pagerData['currentPage'] > 1) {
-                $link = new Octopus_Html_Element('a');
+                $link = new Octopus_Html_Element('a', array('class' => 'prev'));
                 $link->href = self::getUrlForPaging($options) . $options['pageArg'] . '=' . ($pagerData['currentPage'] - 1);
                 $link->html($options['prevPageLinkText']);
                 $elements[] = $link;
@@ -158,14 +158,14 @@ class Octopus_Html_Table_Paginate {
             }
 
             if ($pagerData['currentPage'] < $pagerData['totalPages']) {
-                $link  = new Octopus_Html_Element('a');
+                $link  = new Octopus_Html_Element('a', array('class' => 'next'));
                 $link->href = self::getUrlForPaging($options) . $options['pageArg'] . '=' . ($pagerData['currentPage'] + 1);
                 $link->html($options['nextPageLinkText']);
                 $elements[] = $link;
             }
 
             if ($pagerData['currentPage'] < $pagerData['totalPages'] && $pagerData['currentPage'] + 1 < $pagerData['totalPages']) {
-                $link  = new Octopus_Html_Element('a');
+                $link  = new Octopus_Html_Element('a', array('class' => 'last'));
                 $link->href = self::getUrlForPaging($options) . $options['pageArg'] . '=' . $pagerData['totalPages'];
                 $link->html($options['lastPageLinkText']);
                 $elements[] = $link;
