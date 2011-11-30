@@ -15,6 +15,10 @@ class Octopus {
     private static $classDirs = array();
     private static $controllerDirs = array();
 
+    // YAY WE GET TO KEEP OUR OWN LIST OF WHAT FILES WE'VE REQUIRE_ONCE'D!!!
+    // See the note on requireOnce() for why this exists
+    private static $alreadyLoaded = array();
+
     /**
      * Adds a directory to be scanned for classes.
      */
@@ -254,9 +258,31 @@ class Octopus {
      */
     public static function loadModel() {}
 
-    private static function requireOnce($file, $vars = array()) {
-        extract($vars);
-        require_once($file);
+    /**
+     * A require_once wrapper. Ok, look: I know this looks insane, but
+     * require_once + class autoloading + case-insensitive filesystems = insanity.
+     * But really, don't use this. It's used internally to support autoloading
+     * and controller discovery. Use require_once. I don't care.
+     * @param String $__file The file to require
+     * @param Mixed $__vars any variables to make available before requiring
+     * the file.
+     */
+    public static function requireOnce($__file, $__vars = null) {
+
+        $__normalFile = strtolower($__file);
+        if (isset(self::$alreadyLoaded[$__normalFile])) {
+        	return;
+        }
+
+        self::$alreadyLoaded[$__normalFile] = true;
+        unset($__normalFile);
+
+        if ($__vars) {
+	        extract($__vars);
+	    }
+	    unset($__vars);
+
+        require_once($__file);
     }
 
     private static function loadExternalFile($name, $file, $version) {

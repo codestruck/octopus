@@ -72,16 +72,12 @@ class Octopus_Renderer {
                 $dir = $app->getOption($dir);
                 $file = $dir . 'themes/' . $theme . '/theme.php';
                 if (is_file($file)) {
-                    self::requireOnce($file);
+                    Octopus::requireOnce($file);
                 }
             }
 
         }
 
-    }
-
-    private static function requireOnce($file) {
-        require_once($file);
     }
 
     /**

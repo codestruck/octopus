@@ -88,7 +88,7 @@ class Octopus_Request {
         $info = $this->internalGetControllerInfo();
         if (empty($info) || empty($info['potential_names'])) return false;
 
-        self::requireOnce($info['file']);
+        Octopus::requireOnce($info['file']);
 
         foreach($info['potential_names'] as $class) {
             if (class_exists($class)) {
@@ -99,9 +99,6 @@ class Octopus_Request {
         return $this->controllerClass = false;
     }
 
-    private static function requireOnce($file) {
-        require_once($file);
-    }
 
     /**
      * @return String Full path to the controller file, or false if it can't
