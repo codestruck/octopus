@@ -310,6 +310,10 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
      */
     protected function setSelectedValue($newValue) {
 
+    	if ($newValue instanceof Octopus_Model_ResultSet) {
+    		$newValue = $newValue->map('id');
+    	}
+
         $values = is_array($newValue) ? $newValue : array($newValue);
         $multiple = $this->isMultipleSelect();
 
