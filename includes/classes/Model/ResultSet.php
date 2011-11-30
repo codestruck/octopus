@@ -722,6 +722,19 @@ END;
             return $this->_select;
         }
 
+        if (is_array($fields)) {
+
+        	foreach($fields as $index => $name) {
+
+        		// Allow using 'id' as an alias for primary key
+        		if ($name === 'id') {
+        			$fields[$index] = $this->getModelPrimaryKey();
+        		}
+
+        	}
+
+        }
+
         $s = new Octopus_DB_Select();
         $s->table($this->getModelTableName(), $fields);
 

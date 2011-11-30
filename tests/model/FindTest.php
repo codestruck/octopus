@@ -12,6 +12,16 @@ class FindTest extends Octopus_DB_TestCase {
         parent::__construct('model/find-data.xml');
     }
 
+    function testMapID() {
+
+    	$posts = FindPost::all();
+    	$ids = $posts->map('id');
+
+    	$this->assertTrue(is_array($ids), 'map returns array');
+    	$this->assertEquals(count($posts), count($ids), 'same # of elements in ids array');
+
+    }
+
     function testOrderByRand() {
 
     	$posts = FindPost::all()->orderBy('RAND()');
