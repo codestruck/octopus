@@ -57,7 +57,7 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
 
         foreach($args as $options) {
 
-            if (empty($options)) {
+            if (is_array($options) && !count($options)) {
                 continue;
             }
 
