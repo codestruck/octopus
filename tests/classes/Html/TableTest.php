@@ -142,12 +142,59 @@ class TableTest extends Octopus_App_TestCase {
     function setUp() {
         parent::setUp();
 
-        $_SESSION = array();
-        $_GET = array();
-        $_POST = array();
+        foreach($_SESSION as $key => $value) {
+        	unset($_SESSION[$key]);
+        }
+
+		foreach($_GET as $key => $value) {
+        	unset($_GET[$key]);
+        }
+
+		foreach($_POST as $key => $value) {
+        	unset($_POST[$key]);
+        }
     }
 
-    function donttestModifierFunctionIsOnModel() {
+    function testActionLinksGetGoodClassNames() {
+
+    	$table = new Octopus_Html_Table('actionTest');
+    	$table->addColumns(array(
+    		'actions' => array(
+    			'view person' => array(
+    				'url' => '/view/{$id}'
+	    		)
+	    	)
+	    ));
+
+		$db = $this->resetDatabase();
+        $db->query("
+            INSERT INTO html_table_persons (`name`, `age`)
+                VALUES
+                    ('Joe Blow', 50),
+                    ('Jane Blow', 50),
+                    ('John Smith', 99)
+        ");
+
+        $table->setDataSource(HtmlTablePerson::all());
+
+        $html = $table->render(true);
+
+        Octopus::loadExternal('simplehtmldom');
+        $dom = str_get_dom($html);
+
+        $actions = $dom->find('a.action');
+        $this->assertEquals(3, count($actions));
+
+        foreach($actions as $a) {
+        	$this->assertEquals('action view-person', $a->class);
+        }
+
+    }
+
+    function testModifierFunctionIsOnModel() {
+
+    	return $this->markTestSkipped("WTF?");
+
         $table = new Octopus_Html_Table('id');
         $table->setDataSource(HtmlTablePerson::all());
         $table->addColumn('name', 'Name', 'method_uppercase');
@@ -156,11 +203,14 @@ class TableTest extends Octopus_App_TestCase {
             <<<END
 <table id="id" border="0" cellpadding="0" cellspacing="0"><thead><tr><th class="name firstCell sortable"><a href="?sort=name">Name</a></th></tr></thead><tbody><tr class="odd"><td class="name firstCell">JOE BLOW</td></tr><tr class="even"><td class="name firstCell">JANE BLOW</td></tr><tr class="odd"><td class="name firstCell">JOHN SMITH</td></tr></tbody><tfoot><tr><td class="pager" colspan="1"><div class="pagerLinks"></div><div class="pagerLoc"> Showing 1 to 3 of 3 </div></td></tr></tfoot></table>
 END
-            , $table->render(true));
+            , $table->render(true)
+        );
 
     }
 
-    function donttestFunctionErrorNotEscaped() {
+    function testFunctionErrorNotEscaped() {
+
+    	return $this->markTestSkipped("Why is this failing?");
 
         $table = new Octopus_Html_Table('id');
         $table->setDataSource(HtmlTablePerson::all());
@@ -174,7 +224,7 @@ END
 
     }
 
-    function dontTestResultSetAsSelectFilterDataSource() {
+    function testResultSetAsSelectFilterDataSource() {
 
         $db = $this->resetDatabase();
         $db->query("
@@ -202,7 +252,9 @@ END
 
     }
 
-    function dontTestPostActions() {
+    function testPostActions() {
+
+    	return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $table = new Octopus_Html_Table('postActions');
         $table->addColumn('name');
@@ -235,7 +287,9 @@ END
 
     }
 
-    function dontTestPageWrittenToSession() {
+    function testPageWrittenToSession() {
+
+		return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $table = new Octopus_Html_Table('selectFilter', array('redirectCallback' => false));
         $table->addColumn('name');
@@ -253,7 +307,10 @@ END
         $this->assertEquals(5, $_SESSION[$page]);
     }
 
-    function dontTestSortingWrittenToSession() {
+    function testSortingWrittenToSession() {
+
+    	$this->markTestSkipped('sort() is currently private -- should it be?');
+    	return;
 
         $table = new Octopus_Html_Table('selectFilter', array('pager' => false, 'redirectCallback' => false));
         $table->addColumn('name');
@@ -267,7 +324,7 @@ END
         $this->assertEquals('!age', $_SESSION[$sort]);
     }
 
-    function dontTestFilterWrittenToSession() {
+    function testFilterWrittenToSession() {
 
         $table = new Octopus_Html_Table('selectFilter', array('pager' => false, 'redirectCallback' => false));
         $table->addColumn('name');
@@ -286,7 +343,7 @@ END
         );
     }
 
-    function dontTestInitFilterFromSession() {
+    function testInitFilterFromSession() {
 
         $db = $this->resetDatabase();
         $db->query("
@@ -318,7 +375,7 @@ END
 
     }
 
-    function dontTestInitFilterFromQueryString() {
+    function testInitFilterFromQueryString() {
 
         $db = $this->resetDatabase();
         $db->query("
@@ -426,7 +483,9 @@ END
 
     }
 
-    function dontTestEmptyTable() {
+    function testEmptyTable() {
+
+		return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $table = new Octopus_Html_Table('empty', array('pager' => false));
         $table->addColumn('name');
@@ -453,7 +512,7 @@ END;
         $this->assertHtmlEquals($expected, $table);
     }
 
-    function dontTestSetFilters() {
+    function testSetFilters() {
 
         $table = new Octopus_Html_Table('setFilters', array('redirectCallback' => false));
         $table->addColumn('name');
@@ -474,7 +533,9 @@ END;
         $this->assertEquals(array(), $table->getFilterValues());
     }
 
-    function dontTestRenderFilters() {
+    function testRenderFilters() {
+
+		return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $table = new Octopus_Html_Table('renderFilters', array('pager' => false, 'redirectCallback' => false));
         $table->addColumn('name');
@@ -516,7 +577,9 @@ END;
 
     }
 
-    function dontTestTextFilter() {
+    function testTextFilter() {
+
+    	$this->markTestSkipped("WTF is wrong with this?");
 
         $table = new Octopus_Html_Table('textFilter', array('redirectCallback' => false));
         $table->addColumn('name');
@@ -564,7 +627,7 @@ END;
 
     }
 
-    function dontTestSelectFilter() {
+    function testSelectFilter() {
 
         $db = $this->resetDatabase();
         $db->query("
@@ -594,7 +657,7 @@ END;
 
     }
 
-    function dontTestCompactAddColumnsFormat() {
+    function testCompactAddColumnsFormat() {
 
         $table = new Octopus_Html_Table('compactAddColumns');
         $table->addColumns(array(
@@ -664,7 +727,9 @@ END;
 
     }
 
-    function dontTestEscapeHtml() {
+    function testEscapeHtml() {
+
+		return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $table = new Octopus_Html_Table('escape');
         $table->addColumn('name');
@@ -682,7 +747,9 @@ END;
 
     }
 
-    function dontTestMethodOnObject() {
+    function testMethodOnObject() {
+
+    	return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $table = new Octopus_Html_Table('methodOnObject');
         $table->addColumn('name');
@@ -709,7 +776,9 @@ END;
         return $value * 2;
     }
 
-    function dontTestFunctionWith3Args() {
+    function testFunctionWith3Args() {
+
+    	return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $table = new Octopus_Html_Table('threeArgs');
         $table->addColumn('name');
@@ -727,7 +796,9 @@ END;
         );
     }
 
-    function dontTest2ArgBuiltInFunctions() {
+    function test2ArgBuiltInFunctions() {
+
+    	return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $val = '  3  ';
 
@@ -761,7 +832,9 @@ END;
 
     }
 
-    function dontTestGlobalFunction() {
+    function testGlobalFunction() {
+
+    	return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $table = new Octopus_Html_Table('func', array('pager' => false));
         $table->addColumn('name');
@@ -782,7 +855,9 @@ END;
 
     }
 
-    function dontTestSimpleTable() {
+    function testSimpleTable() {
+
+    	return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $expected = <<<END
 <table id="simpleTable" border="0" cellpadding="0" cellspacing="0">
@@ -823,7 +898,9 @@ END;
 
     }
 
-    function dontTestComplexTable() {
+    function testComplexTable() {
+
+    	return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $expected = <<<END
 <table id="complexTable" border="0" cellpadding="0" cellspacing="0">
@@ -881,7 +958,7 @@ END;
 
     }
 
-    function dontTestColumnSorting() {
+    function testColumnSorting() {
 
         $col = new Octopus_Html_Table_Column('test', array('sortable' => true), null);
 
@@ -944,7 +1021,9 @@ END;
         return $db;
     }
 
-    function dontTestResultSetSorting() {
+    function testResultSetSorting() {
+
+    	return $this->markTestSkipped("sort() is private on table -- should it be?");
 
         $db = $this->resetDatabase();
 
@@ -970,8 +1049,8 @@ END;
 <table id="resultSetSorting" border="0" cellpadding="0" cellspacing="0">
     <thead>
         <tr>
-            <th class="name firstCell sortable"><a href="?sort=name">Name</a></th>
-            <th class="age lastCell sortable"><a href="?sort=age">Age</a></th>
+            <th class="name firstCell sortable"><a href="?sort=name"><span class="sortMarker">Name</span></a></th>
+            <th class="age lastCell sortable"><a href="?sort=age"><span class="sortMarker">Age</span></a></th>
         </tr>
     </thead>
     <tbody>
@@ -999,8 +1078,8 @@ END;
 <table id="resultSetSorting" border="0" cellpadding="0" cellspacing="0">
     <thead>
         <tr>
-            <th class="name sorted firstCell sortable sortAsc"><a href="?sort=%21name">Name</a></th>
-            <th class="age lastCell sortable"><a href="?sort=age%2Cname">Age</a></th>
+            <th class="name sorted firstCell sortable sortAsc"><a href="?sort=%21name"><span class="sortMarker">Name</span></a></th>
+            <th class="age lastCell sortable"><a href="?sort=age%2Cname"><span class="sortMarker">Age</span></a></th>
         </tr>
     </thead>
     <tbody>
@@ -1029,8 +1108,8 @@ END;
 <table id="resultSetSorting" border="0" cellpadding="0" cellspacing="0">
     <thead>
         <tr>
-            <th class="name sorted firstCell sortable sortDesc"><a href="?sort=name">Name</a></th>
-            <th class="age lastCell sortable"><a href="?sort=age%2C%21name">Age</a></th>
+            <th class="name sorted firstCell sortable sortDesc"><a href="?sort=name"><span class="sortMarker">Name</span></a></th>
+            <th class="age lastCell sortable"><a href="?sort=age%2C%21name"><span class="sortMarker">Age</span></a></th>
         </tr>
     </thead>
     <tbody>
@@ -1053,7 +1132,9 @@ END;
         );
     }
 
-    function dontTestPaging() {
+    function testPaging() {
+
+    	return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $table = new Octopus_Html_Table('paging');
         $table->addColumn('name');
@@ -1182,7 +1263,9 @@ END;
 
     }
 
-    function xtestImageActionsAndToggles() {
+    function testImageActionsAndToggles() {
+
+    	return $this->markTestSkipped("Need to implement image actions and toggles?");
 
         $expected = <<<END
 <table id="complexTable" border="0" cellpadding="0" cellspacing="0">
