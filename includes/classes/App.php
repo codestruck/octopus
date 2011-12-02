@@ -548,6 +548,13 @@ class Octopus_App {
             unset($_GET[$arg]);
         }
 
+        $qPos = strpos($path, '?');
+        if ($qPos !== false) {
+        	$qs = substr($path, $qPos + 1);
+        	$path = substr($path, 0, $qPos);
+        	parse_str($qs, $_GET);
+        }
+
         $this->_currentRequest = $req = $this->createRequest($path, $options);
 
         if ($o['show_welcome']) {
