@@ -186,7 +186,7 @@ class TableTest extends Octopus_App_TestCase {
         $this->assertEquals(3, count($actions));
 
         foreach($actions as $a) {
-        	$this->assertEquals('action view-person', $a->class);
+        	$this->assertEquals('action view_person', $a->class);
         }
 
     }
