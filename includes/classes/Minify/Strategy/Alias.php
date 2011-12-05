@@ -9,7 +9,16 @@
  */
 class Octopus_Minify_Strategy_Alias extends Octopus_Minify_Strategy {
 
+	private $finder;
 	private $aliases = array();
+
+	/**
+	 * Creates a new aliaser that uses $findCallback to locate files physically
+	 * on the filesystem.
+	 */
+	public function __construct($findCallback) {
+		$this->finder = $findCallback;
+	}
 
 	/**
 	 * Adds an alias for $files.
@@ -23,6 +32,39 @@ class Octopus_Minify_Strategy_Alias extends Octopus_Minify_Strategy {
 		$result = array();
 
 		$aliases = $this->aliases;
+
+		// Locate all the files in question
+
+		foreach($aliases as $index => &$a) {
+
+			foreach($a['files'] as $fileIndex => $file) {
+				$file = call_user_func($this->finder, $file);
+				if (!$file) {
+					// One of the files needed to match the alias
+					// could not be found, so the alias is
+					// invalid
+					return $result;
+				}
+				$a['files'][$fileIndex] = $file;
+			}
+
+			// If the file being aliased in does not exist, does that matter?
+			$alias = call_user_func($this->finder, $a['alias']);
+			if ($alias) {
+				$a['alias'] = $alias;
+			}
+
+		}
+		unset($a);
+
+		foreach($files as $index => $file) {
+			$file = call_user_func($this->finder, $file);
+			if (!$file) {
+				unset($files[$index]);
+			}
+		}
+
+		// Cull out any aliases that require files that were not provided
 
 		while($aliases && $files) {
 

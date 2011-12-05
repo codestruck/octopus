@@ -266,7 +266,9 @@ CHANGE `test_name` `test_name` text NOT NULL\n";
         $sql = $w->toSql();
 
         $test = "ALTER TABLE `test`
-CHANGE `test_id` `test_id` int(10) NOT NULL AUTO_INCREMENT, ADD PRIMARY KEY (`test_id`)\n";
+CHANGE `test_id` `test_id` int(10) NOT NULL AUTO_INCREMENT,
+ADD PRIMARY KEY (`test_id`)
+";
 
         $this->assertEquals($test, $sql);
 
@@ -277,7 +279,7 @@ CHANGE `test_id` `test_id` int(10) NOT NULL AUTO_INCREMENT, ADD PRIMARY KEY (`te
         $this->assertArrayHasKey('test_id', $fields);
         $this->assertArrayHasKey('test_name', $fields);
         $this->assertEquals('NOT NULL AUTO_INCREMENT', $fields['test_id']['options']);
-        $this->assertEquals('PRIMARY KEY', $fields['test_id']['index']);
+        $this->assertEquals('PRIMARY', $fields['test_id']['index']);
 
     }
 
@@ -298,7 +300,9 @@ PRIMARY KEY (`test_id`)
         $sql = $w->toSql();
 
         $test = "ALTER TABLE `test`
-CHANGE `test_id` `test_id` int(10) NOT NULL, DROP PRIMARY KEY\n";
+CHANGE `test_id` `test_id` int(10) NOT NULL,
+DROP INDEX `PRIMARY`
+";
 
         $this->assertEquals($test, $sql);
         $w->create();
@@ -339,7 +343,7 @@ ADD COLUMN `test_id` int(10) NOT NULL AUTO_INCREMENT, ADD PRIMARY KEY (`test_id`
         $this->assertArrayHasKey('test_id', $fields);
         $this->assertArrayHasKey('test_name', $fields);
         $this->assertEquals('NOT NULL AUTO_INCREMENT', $fields['test_id']['options']);
-        $this->assertEquals('PRIMARY KEY', $fields['test_id']['index']);
+        $this->assertEquals('PRIMARY', $fields['test_id']['index']);
 
     }
 
@@ -492,7 +496,7 @@ END;
 
     }
 
-    function ztestDropUniqueMultiKey()
+    function testDropUniqueMultiKey()
     {
 
         $this->db->query('DROP TABLE IF EXISTS translation_values');
@@ -508,24 +512,43 @@ END;
         $d = new Octopus_DB_Schema();
         $t = $d->newTable('translation_values');
         $t->newKey('keyword_id');
-//        $t->newIndex('UNIQUE', null, array('keyword_id', 'lang'));
         $t->newTextSmall('lang');
         $sql = $t->toSql();
         $t->create();
 
-        $reader = new Octopus_DB_Schema_Reader('translation_values');
-
         $expected = <<<END
 ALTER TABLE `translation_values`
-CHANGE `keyword_id` keyword_id int(10) NOT NULL, DROP PRIMARY KEY,
-DROP COLUMN `value`,
-CHANGE `lang` lang varchar(250) NOT NULL, DROP PRIMARY KEY
+DROP INDEX `keyword_id`,
+DROP COLUMN `value`
 
 END;
         $this->assertEquals($expected, $sql);
 
+        $query = $this->db->query('SHOW INDEXES in translation_values');
+        $this->assertEquals(0, $query->numRows());
+
+    }
+
+    function testIndexesUnchanged()
+    {
+
+        $table = 'index_unchanged';
+        $this->db->query('DROP TABLE IF EXISTS ' . $table);
+
+        $d = new Octopus_DB_Schema();
+
+        $t = $d->newTable($table);
+        $t->newKey('id', true);
+        $t->newIndex('id');
+        $t->create();
+
+        $t = $d->newTable($table);
+        $t->newKey('id', true);
+        $t->newIndex('id');
+        $sql = $t->toSql();
+
+        $this->assertEquals('', $sql);
+
     }
 
 }
-
-?>

@@ -4,6 +4,10 @@ class MigrateTestPerson extends Octopus_Model {
 
     protected $fields = array(
         'name',
+        'name_short' => array('type' => 'text', 'length' => 50),
+        'name_short_size' => array('type' => 'text', 'size' => 50),
+        'name_long' => array('type' => 'text', 'size' => 260),
+        'name_really_long' => array('type' => 'text', 'length' => PHP_INT_MAX),
         'age' => array('type' => 'number'),
         'birth_date' => array( 'type' => 'datetime'),
         'just_date' => array('type' => 'date'),
@@ -347,7 +351,7 @@ END
                 'type' => 'int',
                 'size' => '10',
                 'options' => 'NOT NULL AUTO_INCREMENT',
-                'index' => 'PRIMARY KEY'
+                'index' => 'PRIMARY'
             ),
 
             'name' => array(
@@ -356,6 +360,36 @@ END
                 'options' => 'NOT NULL',
                 'index' => ''
             ),
+
+			'name_short' => array(
+                'type' => 'varchar',
+                'size' => '50',
+                'options' => 'NOT NULL',
+                'index' => ''
+            ),
+
+			'name_short_size' => array(
+                'type' => 'varchar',
+                'size' => '50',
+                'options' => 'NOT NULL',
+                'index' => ''
+            ),
+
+			'name_long' => array(
+                'type' => 'text',
+                'size' => '',
+                'options' => 'NOT NULL',
+                'index' => ''
+            ),
+
+			'name_really_long' => array(
+                'type' => 'text',
+                'size' => '',
+                'options' => 'NOT NULL',
+                'index' => ''
+            ),
+
+
 
             'age' => array(
                 'type' => 'bigint',
@@ -368,7 +402,7 @@ END
                 'type' => 'int',
                 'size' => 10,
                 'options' => 'NOT NULL',
-                'index' => 'MUL'
+                'index' => 'INDEX'
             ),
 
             'birth_date' => array(
@@ -450,7 +484,7 @@ END
                 'type' => 'int',
                 'size' => 10,
                 'options' => 'NOT NULL AUTO_INCREMENT',
-                'index' => 'PRIMARY KEY'
+                'index' => 'PRIMARY'
             ),
             'name' => array(
                 'type' => 'varchar',
@@ -462,7 +496,7 @@ END
                 'type' => 'int',
                 'size' => 10,
                 'options' => 'NOT NULL',
-                'index' => 'MUL'
+                'index' => 'INDEX'
             )
         );
         $this->assertColsMatch($expectedCols, 'migrate_test_dogs');
@@ -472,7 +506,7 @@ END
                 'type' => 'int',
                 'size' => 10,
                 'options' => 'NOT NULL AUTO_INCREMENT',
-                'index' => 'PRIMARY KEY'
+                'index' => 'PRIMARY'
             ),
             'name' => array(
                 'type' => 'varchar',
@@ -485,20 +519,20 @@ END
         $this->assertColsMatch($expectedCols, 'migrate_test_categories');
 
         $expectedCols = array(
-            'category_id' => array(
-                'type' => 'int',
-                'size' => 10,
-                'options' => 'NOT NULL',
-                'index' => 'MUL'
-            ),
             'migrate_test_person_id' => array(
                 'type' => 'int',
                 'size' => 10,
                 'options' => 'NOT NULL',
-                'index' => 'MUL'
+                'index' => 'INDEX'
+            ),
+            'migrate_test_category_id' => array(
+                'type' => 'int',
+                'size' => 10,
+                'options' => 'NOT NULL',
+                'index' => 'INDEX'
             )
         );
-        $this->assertColsMatch($expectedCols, 'category_migrate_test_person_join');
+        $this->assertColsMatch($expectedCols, 'migrate_test_category_migrate_test_person_join');
     }
 
     function assertColsMatch($expectedCols, $table) {
@@ -512,12 +546,10 @@ END
         foreach($cols as $id => $col) {
 
             if (!isset($expectedCols[$id])) {
-                dump_r($col);
                 $this->assertTrue(false, "Unexpected column `$id` found");
             }
 
             if (empty($expectedCols[$id])) {
-                dump_r($col);
                 $this->assertTrue(false, "Lazy programmer needs to fill in details for `$id`");
             }
 

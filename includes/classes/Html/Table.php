@@ -86,6 +86,12 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         'pager' => 'default',
 
         /**
+         * A function to generate the text for the pager location block.
+         * Receives 3 arguments: current page, page count, and the table.
+         */
+        'pagerLocationTextCallback' => null,
+
+        /**
          * # of records per page.
          */
         'pageSize' => 20,
@@ -438,14 +444,20 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         }
 
         foreach($toApply as $id => $value) {
+        	if ($value === '') {
+        		unset($toApply[$id]);
+        		continue;
+        	}
             $filter = $this->getFilter($id);
             if (!$filter) continue;
             $filter->val($value);
         }
 
         $ds = $this->_originalDataSource;
-        foreach($this->_filters as $filter) {
-            $ds = $filter->apply($ds);
+        foreach($this->_filters as $key => $filter) {
+            if (isset($toApply[$key])) {
+	            $ds = $filter->apply($ds, $this);
+	        }
         }
 
         $this->internalSetDataSource($ds, false);
@@ -699,7 +711,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     /**
      * @return Array Full pager data for this table.
      */
-    private function getPagerData($key = null) {
+    protected function getPagerData($key = null) {
 
         $this->initFromEnvironment();
 
@@ -745,11 +757,19 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      */
     protected function renderLocationDiv() {
 
+    	$o =& $this->_options;
         $p = $this->getPagerData();
+
+        $func = $o['pagerLocationTextCallback'];
+        if ($func && is_callable($func)) {
+        	$text = call_user_func($func, $p['currentPage'], $p['totalPages'], $this);
+        } else {
+        	$text = "Showing {$p['from']} to {$p['to']} of {$p['totalItems']}";
+        }
 
         return <<<END
             <div class="pagerLoc">
-            Showing {$p['from']} to {$p['to']} of {$p['totalItems']}
+            	$text
             </div>
 END;
     }
@@ -937,12 +957,11 @@ END;
         $close = '';
 
         if ($column->isSortable($this->getDataSource())) {
-            $html .= '<a href="' . $this->getSortingUrl($column) . '">';
-            $close .= '</a>';
+            $html .= '<a href="' . $this->getSortingUrl($column) . '"><span class="sortMarker">';
+            $close .= '</span></a>';
         }
 
-        $html .= htmlspecialchars($column->title());
-
+        $html .= h($column->title());
 
         $th->append($html . $close);
     }
@@ -980,6 +999,12 @@ END;
         $sort = $base . 'sort';
         $page = $base . 'page';
         $filter = $base . 'filter';
+    }
+
+    protected function renderPagingLinks() {
+
+		return Octopus_Html_Table_Paginate::makeLinks($this->getPagerData(), $this->_options);
+
     }
 
     private function redirect($uri) {
@@ -1229,10 +1254,6 @@ END;
 
     protected function renderFilters() {
 
-        if (empty($this->_filters)) {
-            return '';
-        }
-
         $td = new Octopus_Html_Element('td');
         $td->attr('class', 'filters')
             ->attr('colspan', count($this->getColumns()));
@@ -1243,6 +1264,26 @@ END;
             $parent = new Octopus_Html_Element('form', array('class' => 'filterForm', 'method' => 'get', 'action' => ''));
             $td->append($parent);
         }
+
+        $this->appendFilterElements($parent);
+
+        if (count($parent->children()) == 0) {
+        	// no filter controls
+        	return '';
+        }
+
+        if ($this->_options['clearFiltersLinkText']) {
+            $clear = new Octopus_Html_Element('a', array('class' => 'clearFilters', 'href' => $this->getClearFiltersUrl()), $this->_options['clearFiltersLinkText']);
+            $parent->append($clear);
+        }
+
+        return '<thead class="filters"><tr>' . $td . '</tr></thead>';
+    }
+
+    /**
+     * Appends all filter elements to the given container.
+     */
+    protected function appendFilterElements(Octopus_Html_Element $parent) {
 
         $index = 0;
         $count = count($this->_filters);
@@ -1265,12 +1306,6 @@ END;
             $index++;
         }
 
-        if ($this->_options['clearFiltersLinkText']) {
-            $clear = new Octopus_Html_Element('a', array('class' => 'clearFilters', 'href' => $this->getClearFiltersUrl()), $this->_options['clearFiltersLinkText']);
-            $parent->append($clear);
-        }
-
-        return '<thead class="filters"><tr>' . $td . '</tr></thead>';
     }
 
     protected function renderHeader() {
@@ -1311,8 +1346,7 @@ END;
 
         $p = $this->getPagerData();
 
-        $html = Octopus_Html_Table_Paginate::makeLinks($p, $this->_options);
-
+        $html = $this->renderPagingLinks();
         $html .= $this->renderLocationDiv();
 
         return $html;

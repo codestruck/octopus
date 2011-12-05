@@ -46,6 +46,9 @@ class Octopus_Html_Page {
 
     protected $options;
 
+    private $scriptDirs = array();
+    private $cssDirs = array();
+
     protected $css = array();
     protected $scripts = array();
     protected $vars = array();
@@ -89,6 +92,14 @@ class Octopus_Html_Page {
         	}
 
         }
+
+        $this->addJavascriptDir($this->options['ROOT_DIR'], 0);
+        $this->addJavascriptDir($this->options['SITE_DIR'], 0);
+        $this->addJavascriptDir($this->options['OCTOPUS_DIR'], PHP_INT_MAX);
+
+        $this->addCssDir($this->options['ROOT_DIR'], 0);
+        $this->addCssDir($this->options['SITE_DIR'], 0);
+        $this->addCssDir($this->options['OCTOPUS_DIR'], PHP_INT_MAX);
 
         $this->setMeta('Content-type', 'text/html; charset=UTF-8');
     }
@@ -650,12 +661,11 @@ class Octopus_Html_Page {
     public function addJavascriptAlias($files, $alias) {
 
     	if (!$this->javascriptAliaser) {
-    		Octopus::loadClass('Octopus_Minify_Strategy_Alias');
-    		$this->javascriptAliaser = new Octopus_Minify_Strategy_Alias();
+    		$this->javascriptAliaser = new Octopus_Minify_Strategy_Alias(array($this, 'findJavascriptFile'));
     		$this->addJavascriptMinifier($this->javascriptAliaser);
     	}
 
-    	$files = array_map(array($this, 'getPhysicalPathAllowMissing'), $files);
+    	$files = array_map(array($this, 'getJavascriptPhysicalPathAllowMissing'), $files);
 
     	$this->javascriptAliaser->addAlias($files, $alias);
 
@@ -727,20 +737,7 @@ class Octopus_Html_Page {
             $file = false;
             $this->scripts[] = compact('file', 'content', 'attributes', 'section', 'weight', 'index');
         } else {
-
-            $content = trim($content);
-            $file = false;
-
-            if (preg_match('#^(https?)?://#i', $content)) {
-                $file = $content;
-            } else if ($content) {
-                $file = $this->getPhysicalPathAllowMissing($content);
-            }
-
-            if (!$file) {
-            	return $this;
-            }
-
+        	$file = trim($content);
             $this->scripts[$file] = compact('file', 'attributes', 'section', 'weight', 'index');
         }
 
@@ -748,10 +745,45 @@ class Octopus_Html_Page {
     }
 
     /**
+ 	 * Adds a directory to be searched for Javascript files.
+     */
+    public function addJavascriptDir($dir, $weight = 0) {
+
+    	$this->scriptDirs[] = array(
+    		'path' => end_in('/', $dir),
+    		'weight' => $weight
+	    );
+
+	    usort($this->scriptDirs, array('Octopus_Html_Page', 'compareWeights'));
+
+	    return $this;
+    }
+
+    /**
+     * Looks through all the directories registered with addCssDir() for $file.
+     * @param String $file File to locate.
+     * @return Mixed The full physical path to $file if found, otherwise
+     * false.
+     */
+    public function findCssFile($file) {
+    	return $this->getPhysicalPath($file, $this->cssDirs);
+    }
+
+	/**
+     * Looks through all the directories registered with addJavascriptDir() for $file.
+     * @param String $file File to locate.
+     * @return Mixed The full physical path to $file if found, otherwise
+     * false.
+     */
+    public function findJavascriptFile($file) {
+    	return $this->getPhysicalPath($file, $this->scriptDirs);
+    }
+
+    /**
      * @return Mixed Full physical path to the given file, or false if it does
      * not exist.
      */
-    public function getPhysicalPath($file, $useFileFinder = true, $ifMissing = false) {
+    private function getPhysicalPath($file, Array $dirs, $useFileFinder = true, $ifMissing = false) {
 
         if ($useFileFinder && is_callable($this->options['fileFinder'])) {
             $found = call_user_func($this->options['fileFinder'], $file, $this->options, $this);
@@ -771,22 +803,25 @@ class Octopus_Html_Page {
             return $file;
         }
 
-        foreach(array('SITE_DIR', 'OCTOPUS_DIR', 'ROOT_DIR') as $dir) {
+        foreach($dirs as $dir) {
 
-            $dir = $this->options[$dir];
-
-            $full = $dir . ltrim($file, '/');
+            $full = $dir['path'] . ltrim($file, '/');
 
             if (is_file($full)) {
             	return $full;
             }
+
         }
 
         return $ifMissing;
     }
 
-    private function getPhysicalPathAllowMissing($file) {
-    	$result = $this->getPhysicalPath($file, true, false);
+    private function getJavascriptPhysicalPathAllowMissing($file) {
+    	return $this->getPhysicalPathAllowMissing($file, $this->scriptDirs);
+    }
+
+    private function getPhysicalPathAllowMissing($file, Array $dirs) {
+    	$result = $this->getPhysicalPath($file, $dirs, true, false);
     	if ($result !== false) return $result;
     	return $this->options['ROOT_DIR'] . ltrim($file, '/');
     }
@@ -810,7 +845,7 @@ class Octopus_Html_Page {
 
         if (starts_with($file, $root)) {
         	$file = substr($file, strlen($root));
-        	$file = '/' . ltrim($file, '/');
+        	$file = start_in('/', $file);
         }
 
         // HACK: When installed locally, SoleCMS defines ROOT_DIR as
@@ -825,7 +860,7 @@ class Octopus_Html_Page {
         }
 
         // Fall back to just URL_BASE/file
-        return ($this->options['URL_BASE'] ? $this->options['URL_BASE'] : '/') . ltrim($file, '/');
+        return $this->u($file);
     }
 
     /**
@@ -847,6 +882,17 @@ class Octopus_Html_Page {
             }
         } else {
             $scripts = $this->scripts;
+        }
+
+        // For local JS files, figure out where they are
+        foreach($scripts as &$script) {
+
+        	if (!$script['file']) {
+        		continue;
+        	}
+
+        	$script['file'] = $this->getPhysicalPathAllowMissing($script['file'], $this->scriptDirs);
+
         }
 
         usort($scripts, array('Octopus_Html_Page', 'compareWeights'));
@@ -948,12 +994,6 @@ class Octopus_Html_Page {
 
         $index = self::counter();
 
-
-        if (!preg_match('#^(https?)?://#i', $file)) {
-            $file = $this->getPhysicalPathAllowMissing($file);
-        }
-
-
         $info = compact('file', 'attributes', 'weight', 'index');
         if ($ie) $info['ie'] = $ie;
 
@@ -965,9 +1005,8 @@ class Octopus_Html_Page {
     public function addCssAlias($urls, $alias) {
 
     	if (!$this->cssAliaser) {
-    		Octopus::loadClass('Octopus_Minify_Strategy_Alias');
-    		$this->cssAliaser = new Octopus_Minify_Strategy_Alias();
-    		$this->addCssMinfier($this->cssAliaser);
+    		$this->cssAliaser = new Octopus_Minify_Strategy_Alias(array($this, 'findCssFile'));
+    		$this->addCssMinifier($this->cssAliaser);
     	}
 
     	$this->cssAliaser->addAlias($urls, $alias);
@@ -996,10 +1035,25 @@ class Octopus_Html_Page {
         }
 
         $index = self::counter();
+        $file = false;
 
-        $this->css[] = compact('content', 'attributes', 'weight', 'index');
+        $this->css[] = compact('file', 'content', 'attributes', 'weight', 'index');
 
         return $this;
+    }
+
+    /**
+     * Adds a directory to be searched for CSS files.
+     */
+    public function addCssDir($dir, $weight = 0) {
+
+    	$this->cssDirs[] = array(
+    		'path' => end_in('/', $dir),
+    		'weight' => $weight
+	    );
+	    usort($this->cssDirs, array('Octopus_Html_Page', 'compareWeights'));
+
+	    return $this;
     }
 
     /**
@@ -1017,12 +1071,20 @@ class Octopus_Html_Page {
         $css = $this->css;
         usort($css, array('Octopus_Html_Page', 'compareWeights'));
 
+        foreach($css as &$item) {
+
+        	if (empty($item['file'])) {
+        		continue;
+        	}
+
+        	$item['file'] = $this->getPhysicalPathAllowMissing($item['file'], $this->cssDirs);
+        }
+
         $css = $this->minify('css', $css);
 
         foreach($css as &$item) {
         	$item['file'] = $this->getUrlForFile($item['file']);
         }
-
 
         return $css;
     }

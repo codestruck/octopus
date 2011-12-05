@@ -637,6 +637,19 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
         $this->assertEquals(9999.99, $post->cost);
     }
 
+    function testLazyLoadDoesntOverwriteData() {
 
+    	$post = new Minpost();
+    	$post->title = "foo";
+    	$post->display_order = 5;
+    	$post->save();
+
+    	$post = new Minpost($post->id);
+    	$post->title = "bar";
+
+    	$this->assertEquals(5, $post->display_order);
+    	$this->assertEquals("bar", $post->title);
+
+    }
 
 }

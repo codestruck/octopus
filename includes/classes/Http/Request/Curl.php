@@ -5,6 +5,7 @@ class Octopus_Http_Request_Curl extends Octopus_Http_Request_Base {
     public function request($url, $data = null, $args = array()) {
 
         $this->args = array_merge($this->defaults, $args);
+        $args =& $this->args;
 
         list($host, $port, $path, $secure, $protocol) = $this->parseUrl($url, $data);
         $url = $protocol . '://' . $host . $path;
@@ -17,7 +18,7 @@ class Octopus_Http_Request_Curl extends Octopus_Http_Request_Base {
         curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($handle, CURLOPT_FOLLOWLOCATION, false);
 
-        if (strtolower($this->args['method']) == 'post') {
+        if (strtolower($args['method']) == 'post') {
             curl_setopt($handle, CURLOPT_POST, true);
 
             if ($data) {
@@ -31,29 +32,29 @@ class Octopus_Http_Request_Curl extends Octopus_Http_Request_Base {
 
         }
 
-        if ($this->args['http_version'] === '1.0') {
+        if ($args['http_version'] === '1.0') {
             curl_setopt($handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
         } else {
             curl_setopt($handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
         }
+        unset($args['http_version']);
 
-        if (isset($this->args['User-Agent'])) {
-            curl_setopt($handle, CURLOPT_USERAGENT, $this->args['User-Agent']);
+        if (isset($args['User-Agent'])) {
+            curl_setopt($handle, CURLOPT_USERAGENT, $args['User-Agent']);
         }
+        unset($args['User-Agent']);
 
-        if (isset($this->args['Accept-Encoding'])) {
-            curl_setopt($handle, CURLOPT_ENCODING, $this->args['Accept-Encoding']);
+        if (isset($args['Accept-Encoding'])) {
+            curl_setopt($handle, CURLOPT_ENCODING, $args['Accept-Encoding']);
         }
+        unset($args['Accept-Encoding']);
 
-        $headerOpts = array(
-            'Accept',
-        );
 
         $request_headers = array();
 
-        foreach($headerOpts as $opt) {
-            if (isset($this->args[$opt])) {
-                $request_headers[$opt] = $this->args[$opt];
+        foreach($args as $opt => $value) {
+            if (!in_array($opt, $this->reservedOpts)) {
+                $request_headers[$opt] = $value;
             }
         }
 
@@ -64,8 +65,11 @@ class Octopus_Http_Request_Curl extends Octopus_Http_Request_Base {
         $this->headers = array();
         $this->raw_headers = '';
 
+        curl_setopt($handle, CURLINFO_HEADER_OUT, true);
+
         $body = curl_exec($handle);
         $info = curl_getinfo($handle);
+
         curl_close($handle);
 
         list($headers, $empty_body) = $this->splitResponse($this->raw_headers);

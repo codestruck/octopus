@@ -1,11 +1,9 @@
 <?php
 
-require_once 'PHPUnit/Extensions/OutputTestCase.php';
-
 /**
  * TestCase that creates its own sitedir to work within.
  */
-abstract class Octopus_App_TestCase extends PHPUnit_Extensions_OutputTestCase {
+abstract class Octopus_App_TestCase extends PHPUnit_Framework_TestCase {
 
     private $app;
     private $testRootDir;

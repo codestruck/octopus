@@ -4,9 +4,9 @@ Octopus::loadExternal('phpass');
 
 abstract class Octopus_Auth_Model extends Octopus_Model {
 
-	/**
-	 *
-	 */
+    /**
+     *
+     */
     public $cookieName;
 
     /**
@@ -46,13 +46,13 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
         $auth = $this->getAuthRecord();
 
         if (!$auth) {
-        	return false;
+            return false;
         }
 
         $pass = false;
 
         if ($this->validateAuthRecord($auth)) {
-        	$pass = $this->recordStillExistsAndIsActive($auth);
+            $pass = $this->recordStillExistsAndIsActive($auth);
         }
 
         if (!$pass) {
@@ -64,25 +64,25 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
             $d->where('realm = ?', $this->getRealm());
             $d->execute();
 
-			return false;
+    		return false;
         }
 
         // User is auth'd
 
         if (!$this->id) {
 
-        	// This is a new user record, being re-initialized from a cookie.
-        	// So, load the user's data.
+            // This is a new user record, being re-initialized from a cookie.
+            // So, load the user's data.
 
-        	$user = $this->_get($auth['user_id']);
+            $user = $this->_get($auth['user_id']);
 
-	        if (!$user) {
-	        	throw new Octopus_Exception("User record disappeared!");
-	        }
+            if (!$user) {
+            	throw new Octopus_Exception("User record disappeared!");
+            }
 
-	        $this->id = $user->id;
-	        $this->setData($user);
-	    }
+            $this->id = $user->id;
+            $this->setData($user);
+        }
 
 
         $this->afterAuth();
@@ -102,7 +102,7 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
      * @param $password String New password
      * @param $save Mixed Whether to save the record after changing the password
      * If null, the record will be saved if it has previously been saved (it
-	 * has an id).
+     * has an id).
      */
     public function changePassword($password, $save = null) {
 
@@ -114,7 +114,7 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
         if ($save === null) $save = $this->id;
 
         if ($save) {
-        	return $this->save();
+            return $this->save();
         }
 
         return true;
@@ -125,7 +125,7 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
      * @return bool Whether the combo is valid.
      */
     public function checkLogin($username, $password) {
-    	return !!$this->getUserForLogin($username, $password);
+        return !!$this->getUserForLogin($username, $password);
     }
 
     /**
@@ -137,27 +137,27 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
      */
     public function login($username, $password, $remember = false) {
 
-    	if (!trim($username)) {
-    		// Don't allow logins w/ blank user names
-    		return false;
-    	}
+        if (!trim($username)) {
+        	// Don't allow logins w/ blank user names
+        	return false;
+        }
 
-    	$this->cleanOutUserAuthTable();
+        $this->cleanOutUserAuthTable();
 
-    	$user = $this->getUserForLogin($username, $password);
-    	if (!$user) {
-    		return false;
-    	}
+        $user = $this->getUserForLogin($username, $password);
+        if (!$user) {
+        	return false;
+        }
 
-    	// The username/pass checks out!
+        // The username/pass checks out!
 
-    	// Swap the logged in user in for whatever the previous data was
-    	$this->id = $user->id;
-    	$this->setData($user);
-    	$this->resetDirtyState();
+        // Swap the logged in user in for whatever the previous data was
+        $this->id = $user->id;
+        $this->setData($user);
+        $this->resetDirtyState();
 
-    	// Make a record of the login in the user_auth table
-       	$hash = md5(uniqid(rand(), true));
+        // Make a record of the login in the user_auth table
+           $hash = md5(uniqid(rand(), true));
         $ip = get_user_ip();
 
         $i = new Octopus_DB_Insert();
@@ -178,19 +178,19 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
 
     public function logout() {
 
-    	$hash = $this->getAuthHash();
-    	$this->setAuthHash(null);
+        $hash = $this->getAuthHash();
+        $this->setAuthHash(null);
 
         if ($hash) {
 
-	        $d = new Octopus_DB_Delete();
-	        $d->comment('Octopus_Auth_Model::logout');
-	        $d->table('user_auth');
-	        $d->where('auth_hash = ?', $hash);
-	        $d->where('realm = ?', $this->getRealm());
-	        $d->execute();
+            $d = new Octopus_DB_Delete();
+            $d->comment('Octopus_Auth_Model::logout');
+            $d->table('user_auth');
+            $d->where('auth_hash = ?', $hash);
+            $d->where('realm = ?', $this->getRealm());
+            $d->execute();
 
-	    }
+        }
     }
 
     /**
@@ -202,14 +202,14 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
         $this->setPassword($password, $save);
 
         if (!$sendEmail || !$this->email) {
-        	return true;
+            return true;
         }
 
         // TODO: Use an email templating system
 
-	    $settings = Octopus_Settings::singleton();
-	    $from = $settings->get('info_email');
-	    $site_name = $settings->get('site_name');
+        $settings = Octopus_Settings::singleton();
+        $from = $settings->get('info_email');
+        $site_name = $settings->get('site_name');
 
         $subject = 'Password Reset on ' . $site_name;
 
@@ -263,60 +263,60 @@ END;
     }
 
     protected function getRealm() {
-    	return $this->realm ? $this->realm : get_class($this);
+        return $this->realm ? $this->realm : get_class($this);
     }
 
     /**
      * Adds a filter to the given criteria array that will make it only match
      * users that are currently active (or inactive, depending on what
-	 * $active is set to).
+     * $active is set to).
      */
     private function addActiveFilter(&$criteria, $active = true) {
 
-    	$activeField = $this->getActiveField();
+        $activeField = $this->getActiveField();
 
-    	if ($activeField) {
-    		$criteria[$activeField] = $active ? 1 : 0;
-    		return;
-    	}
+        if ($activeField) {
+        	$criteria[$activeField] = $active ? 1 : 0;
+        	return;
+        }
 
-    	$hiddenField = $this->getHiddenField();
+        $hiddenField = $this->getHiddenField();
 
-    	if ($hiddenField) {
-    		$criteria[$hiddenField] = $active ? 0 : 1;
-    		return;
-    	}
+        if ($hiddenField) {
+        	$criteria[$hiddenField] = $active ? 0 : 1;
+        	return;
+        }
 
-    	throw new Octopus_Exception("Auth model " . get_class($this) . " does not have a 'hidden' or 'active' field.");
+        throw new Octopus_Exception("Auth model " . get_class($this) . " does not have a 'hidden' or 'active' field.");
 
     }
 
     private function addUserNameFilter(&$criteria, $username) {
 
-    	$candidates = $this->usernameField;
-    	if (!$candidates) {
-    		throw new Octopus_Exception("User name field not configured for auth model " . get_class($this));
-    	}
+        $candidates = $this->usernameField;
+        if (!$candidates) {
+        	throw new Octopus_Exception("User name field not configured for auth model " . get_class($this));
+        }
 
-    	if (!is_array($candidates)) $candidates = array($candidates);
+        if (!is_array($candidates)) $candidates = array($candidates);
 
-    	$items = array();
+        $items = array();
 
-    	foreach($candidates as $f) {
+        foreach($candidates as $f) {
 
-    		$f = $this->getField($f);
-    		if (!$f) continue;
+        	$f = $this->getField($f);
+        	if (!$f) continue;
 
-    		if (!empty($items)) $items[] = 'OR';
+        	if (!empty($items)) $items[] = 'OR';
 
-    		$items[] = array($f->getFieldName() => $username);
-    	}
+        	$items[] = array($f->getFieldName() => $username);
+        }
 
-    	if (empty($items)) {
-    		throw new Octopus_Exception("No valid user name field was found on auth model " . get_class($this));
-    	}
+        if (empty($items)) {
+        	throw new Octopus_Exception("No valid user name field was found on auth model " . get_class($this));
+        }
 
-    	$criteria[] = $items;
+        $criteria[] = $items;
 
     }
 
@@ -336,8 +336,8 @@ END;
 
     private function clearPasswordSalt() {
 
-    	$field = $this->getField('password_salt');
-    	if ($field) $this->password_salt = '';
+        $field = $this->getField('password_salt');
+        if ($field) $this->password_salt = '';
 
     }
 
@@ -347,19 +347,19 @@ END;
      */
     protected function getAuthHash() {
 
-    	$h =& self::$authHashes;
-    	$realm = $this->getRealm();
+        $h =& self::$authHashes;
+        $realm = $this->getRealm();
 
-    	if ($this->id && isset($h[$realm]) && isset($h[$realm][$this->id])) {
-    		return $h[$realm][$this->id];
-    	}
+        if ($this->id && isset($h[$realm]) && isset($h[$realm][$this->id])) {
+        	return $h[$realm][$this->id];
+        }
 
-    	if ($this->cookieName) {
+        if ($this->cookieName) {
 
-    		$hash = Octopus_Cookie::get($this->cookieName);
-    		if ($hash) return $hash;
+        	$hash = Octopus_Cookie::get($this->cookieName);
+        	if ($hash) return $hash;
 
-    	}
+        }
 
         if (empty($this->cookieName)) {
             throw new Octopus_Exception("Cookie name has not been configured on auth class " . get_class($this));
@@ -370,44 +370,44 @@ END;
 
     protected function setAuthHash($hash, $remember = false) {
 
-    	if (empty($this->cookieName)) {
-    		throw new Octopus_Exception("Cookie name has not been configured on auth class " . get_class($this));
-    	}
+        if (empty($this->cookieName)) {
+        	throw new Octopus_Exception("Cookie name has not been configured on auth class " . get_class($this));
+        }
 
-		$h =& self::$authHashes;
-    	$realm = $this->getRealm();
+    	$h =& self::$authHashes;
+        $realm = $this->getRealm();
 
-    	if ($hash) {
+        if ($hash) {
 
-	    	if ($this->id) {
+        	if ($this->id) {
 
-	    		if (!isset($h[$realm])) {
-	    			$h[$realm] = array();
-	    		}
+        		if (!isset($h[$realm])) {
+        			$h[$realm] = array();
+        		}
 
-	    		$h[$realm][$this->id] = $hash;
+        		$h[$realm][$this->id] = $hash;
 
-	    	}
+        	}
 
-	        $expire = $remember ? time() + ($this->rememberDays * 24 * 60 * 60) : 0;
-	       	Octopus_Cookie::set($this->cookieName, $hash, $expire, $this->cookiePath, null, $this->cookieSsl);
+            $expire = $remember ? time() + ($this->rememberDays * 24 * 60 * 60) : 0;
+           	Octopus_Cookie::set($this->cookieName, $hash, $expire, $this->cookiePath, null, $this->cookieSsl);
 
             // set a cookie to trigger ssl redirect if we set secure only auth cookie
             if ($this->cookieSsl) {
                 Octopus_Cookie::set('probably_signed_in', '1', $expire, $this->cookiePath, null, false);
             }
 
-	    } else {
+        } else {
 
-    		if ($this->cookieName) {
-	    		Octopus_Cookie::destroy($this->cookieName);
-	    	}
+        	if ($this->cookieName) {
+        		Octopus_Cookie::destroy($this->cookieName);
+        	}
 
-	    	if ($this->id && isset($h[$realm])) {
-	    		unset($h[$realm][$this->id]);
-	    	}
+        	if ($this->id && isset($h[$realm])) {
+        		unset($h[$realm][$this->id]);
+        	}
 
-    	}
+        }
 
     }
 
@@ -420,8 +420,8 @@ END;
         $hash = $this->getAuthHash();
 
         if (!$hash) {
-        	// No login cookie exists
-        	return false;
+            // No login cookie exists
+            return false;
         }
 
         $s = new Octopus_DB_Select();
@@ -436,14 +436,14 @@ END;
     }
 
     private function getLogger() {
-    	$dir = get_option('LOG_DIR');
-    	if (!$dir) $dir = get_option('OCTOPUS_PRIVATE_DIR');
+        $dir = get_option('LOG_DIR');
+        if (!$dir) $dir = get_option('OCTOPUS_PRIVATE_DIR');
         return new Octopus_Logger_File($dir . 'auth.log');
     }
 
     private function getPasswordSalt() {
-    	$field = $this->getField('password_salt');
-    	return $field ? $this->password_salt : '';
+        $field = $this->getField('password_salt');
+        return $field ? $this->password_salt : '';
     }
 
     /**
@@ -452,15 +452,15 @@ END;
      */
     private function getUserForLogin($username, $password) {
 
-    	$checker = new PasswordHash($this->password_algo_strength, $this->portable_passwords);
+        $checker = new PasswordHash($this->password_algo_strength, $this->portable_passwords);
 
-    	$criteria = array();
-    	$this->addUserNameFilter($criteria, $username);
-    	$this->addActiveFilter($criteria);
+        $criteria = array();
+        $this->addUserNameFilter($criteria, $username);
+        $this->addActiveFilter($criteria);
 
-    	$user = $this->_get($criteria);
+        $user = $this->_get($criteria);
 
-    	if ($user) {
+        if ($user && $user->password) {
 
             if (strlen($user->password) == 40) {
 
@@ -482,33 +482,33 @@ END;
 
             }
 
-    	} else {
+        } else {
 
             // take just as long when the username doesn't exist
             $fake_hash = '$P$BBxLPQY.19uT3gfbn66ik2Lv.lA5Rc.';
             $checker->CheckPassword('foobar', $fake_hash);
 
             return false;
-    	}
+        }
 
     }
 
     private function recordStillExistsAndIsActive($auth) {
 
-    	$criteria = array(
-	    	$this->getPrimaryKey() => $auth['user_id'],
-	    );
-	    $this->addActiveFilter($criteria);
+        $criteria = array(
+        	$this->getPrimaryKey() => $auth['user_id'],
+        );
+        $this->addActiveFilter($criteria);
 
-    	$s = new Octopus_DB_Select();
-    	$s->comment(__METHOD__);
-    	$s->table($this->getTableName(), array($this->getPrimaryKey()));
+        $s = new Octopus_DB_Select();
+        $s->comment(__METHOD__);
+        $s->table($this->getTableName(), array($this->getPrimaryKey()));
 
-    	foreach($criteria as $key => $value) {
-    		$s->where("$key = ?", $value);
-    	}
+        foreach($criteria as $key => $value) {
+        	$s->where("$key = ?", $value);
+        }
 
-    	return !!$s->getOne();
+        return !!$s->getOne();
     }
 
     /**
@@ -516,7 +516,7 @@ END;
      */
     private function updateAuthRecord($hash) {
 
-    	$ip = get_user_ip();
+        $ip = get_user_ip();
         $hostname = gethostbyaddr($ip);
 
         $u = new Octopus_DB_Update();
@@ -527,9 +527,9 @@ END;
         $u->set('auth_hostname', $hostname);
 
         // TODO: Should this clear the user agent if it is not set?
-	    if (isset($_SERVER['HTTP_USER_AGENT'])) {
-	        $u->set('user_agent', $_SERVER['HTTP_USER_AGENT']);
-	    }
+        if (isset($_SERVER['HTTP_USER_AGENT'])) {
+            $u->set('user_agent', $_SERVER['HTTP_USER_AGENT']);
+        }
 
         $u->where('auth_hash = ?', $hash);
         $u->where('realm = ?', $this->getRealm());
@@ -543,8 +543,8 @@ END;
      */
     protected function validateAuthRecord($auth) {
 
-    	$pass = true;
-    	$log = $this->getLogger();
+        $pass = true;
+        $log = $this->getLogger();
 
         if (empty($auth['user_id']) || $auth['user_id'] < 1) {
             $pass = false;
@@ -552,7 +552,7 @@ END;
         }
 
         if ($this->id > 0 && intval($this->id) !== intval($auth['user_id'])) {
-        	return false;
+            return false;
         }
 
         $rememberSeconds = ($this->rememberDays * 24 * 60 * 60);

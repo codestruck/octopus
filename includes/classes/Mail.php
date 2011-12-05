@@ -7,7 +7,7 @@ class Octopus_Mail {
 
     public function __construct() {
 
-    	Octopus::loadExternal('htmlmimemail');
+        Octopus::loadExternal('htmlmimemail');
 
         $this->mailHandler = new htmlMimeMail();
 

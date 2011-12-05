@@ -12,9 +12,8 @@
  */
 function smarty_function_url($params, $template) {
 
-
     $default = isset($params['default']) ? $params['default'] : array();
-    $path = $params['path'];
+    $path = isset($params['path']) ? $params['path'] : $_SERVER['REQUEST_URI'];
     $sep = isset($params['sep']) ? $params['sep'] : '&amp;';
     $forceEnding = isset($params['ending']) ? $params['ending'] : false;
 
@@ -28,12 +27,21 @@ function smarty_function_url($params, $template) {
     unset($params['path']);
     unset($params['sep']);
 
-    $args = array_merge($default, $params);
+    $args = array();
+
+    $qPos = strpos($path, '?');
+    if ($qPos !== false) {
+    	parse_str(substr($path, $qPos + 1), $args);
+    	$path = substr($path, 0, $qPos);
+    }
+
+    $args = array_merge($args, $default, $params);
 
     $url = $path;
 
     if (count($args)) {
-        $url .= '?' . octopus_http_build_query($args, $sep);
+        $query = octopus_http_build_query($args, $sep);
+        if ($query) $url .= "?$query";
     }
 
     if ($forceEnding) {

@@ -31,7 +31,7 @@ function get_security_url($url, $user_id, $action = 'default_action', $field = '
     return sprintf('%s%s%s=%s', $url, $sep, $field, $token);
 }
 
-function verify_security_token($token, $user_id, $action = 'defualt_action') {
+function verify_security_token($token, $user_id, $action = 'default_action') {
     $timeval = get_security_timeval();
 
     if (security_hash($timeval . $user_id . $action) == $token) {

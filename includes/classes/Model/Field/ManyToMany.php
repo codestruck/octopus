@@ -2,82 +2,143 @@
 
 class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
 
+    private $joinTableName = null;
+    private $joinedModelClass = null;
+
     public function save($model, $sqlQuery) {
+
         $values = $model->getInternalValue($this->getFieldName());
         if (is_array($values) && $model->exists()) {
             $this->handleRelation('removeAll', null, $model);
             $this->handleRelation('add', $values, $model);
         }
+
     }
 
+    /**
+     * @return Octopus_Model_ResultSet
+     */
     public function accessValue($model, $saving = false) {
 
         $type = camel_case(singularize($this->field));
-        $key = pluralize(strtolower(get_class($model)));
+        $key = $this->getOption('field', pluralize(strtolower(get_class($model))));
         $value = $model->id;
 
         $search = array($key => $value);
 
-
-        $resultSet = new Octopus_Model_ResultSet($type, $search);
+        $resultSet = new Octopus_Model_ResultSet($this->getJoinedModelClass(), $search);
         $resultSet->escaped = $model->escaped;
+
         return $resultSet;
     }
 
     public function migrate($schema, $table) {
 
-        $tableA = singularize($this->getFieldName());
-        $tableB = singularize($table->tableName);
+        $joinTable = $schema->newTable($this->getJoinTableName());
 
-        $joinTable = $schema->newTable($this->getJoinTableName($tableA, $tableB));
+        $modelKey = $this->getModelKey();
+        $joinKey = $this->getJoinedKey();
 
-        $colA = to_id($tableA);
-        $colB = to_id($tableB);
-
-        $joinTable->newKey($colA);
-        $joinTable->newIndex($colA);
-        $joinTable->newKey($colB);
-        $joinTable->newIndex($colB);
+        $joinTable->newKey($modelKey);
+        $joinTable->newIndex($modelKey);
+        $joinTable->newKey($joinKey);
+        $joinTable->newIndex($joinKey);
         $joinTable->create();
     }
 
+    /**
+     *
+     */
     public function restrict($expression, $operator, $value, &$s, &$params, $model) {
 
-        $type = strtolower(get_class($model));
-        $joinTable = $this->getJoinTableName(array($this->field, $type));
-        $s->innerJoin($joinTable, to_id($type), array());
+        $joinTable = $this->getJoinTableName();
+        $s->innerJoin($joinTable, $this->getModelKey(), array());
+        $foreignKey = $this->getJoinedKey();
 
-        $foreignKey = to_id($this->field);
-
-        $sql = $this->defaultRestrict(array($joinTable, $foreignKey), $operator, $this->getDefaultSearchOperator(), $value, $s, $params, $model);
-        return $sql;
+        return $this->defaultRestrict(array($joinTable, $foreignKey), $operator, $this->getDefaultSearchOperator(), $value, $s, $params, $model);
     }
 
     public function getFieldName() {
         return pluralize($this->field);
     }
 
-    public function getJoinTableName() {
+    /**
+     * @return String The name of the model class that is joined by this
+     * field. For example, if a field 'categories' was defined on the model
+     * 'Product', this would return 'Category'.
+     */
+    public function getJoinedModelClass() {
 
-        $tables = func_get_args();
-        if (count($tables) === 1) $tables = array_shift($tables);
-        if (!is_array($tables)) $tables = array($tables);
+        if ($this->joinedModelClass) {
+        	return $this->joinedModelClass;
+        }
 
-        sort($tables);
-        return sprintf('%s_%s_join', $tables[0], $tables[1]);
+        $class = $this->getOption('model');
+        if (!$class) $class = $this->getOption('class', camel_case(singularize($this->getFieldName()), true));
+        return $this->joinedModelClass = $class;
+
     }
 
+    /**
+     * @return String The key in the join table used by the left side of this
+     * many-to-many relationship. For the relationship "categories" on Product,
+     * this would return "product_id".
+     */
+    protected function getModelKey() {
+        return to_id($this->getModelClass());
+    }
+
+    /**
+     * @return String The key in the join table used by the target of this
+     * many-to-many relationship. For the relationship "categories" on
+     * Product, this would return "category_id".
+     */
+    protected function getJoinedKey() {
+        return to_id($this->getJoinedModelClass());
+    }
+
+    /**
+     * @return String Third table used to join objects in a many-to-many
+     * relationship.
+     */
+    public function getJoinTableName() {
+
+        if ($this->joinTableName) {
+        	return $this->joinTableName;
+        }
+
+        $thisModel = singularize(underscore($this->getModelClass()));
+        $joinedModel = singularize(underscore($this->getOption('model', $this->getFieldName())));
+
+        $customTable = $this->getOption('model', false);
+        $customField = $this->getOption('field', false);
+        $relation = $this->getOption('relation', false);
+        if ($customTable && $customField && !$relation) {
+            throw Octopus_Exception('you must set relation option on custom manyToMany fields');
+        }
+
+        if ($relation) {
+            $tables = array(singularize(underscore($joinedModel)), $thisModel);
+            sort($tables);
+            return $this->joinTableName = sprintf('%s_%s_%s_join', $tables[0], $tables[1], $relation);
+        }
+
+        $tables = array($thisModel, $joinedModel);
+        sort($tables);
+
+        return $this->joinTableName = sprintf('%s_%s_join', $tables[0], $tables[1]);
+    }
+
+    /**
+     * Handles an add or remove call for this field.
+     * @param $action One of "add", "remove" or "removeAll"
+     * @param $obj Object being added or removed
+     * @param $model Model to/from which $obj is being added/removed
+     */
     public function handleRelation($action, $obj, $model) {
 
-        //delete next row?
-        $type = strtolower(get_class($model));
-        $joinTable = $this->getJoinTableName(array($this->field, $type));
-
-        if ($action == 'removeAll') {
-            $d = new Octopus_DB_Delete();
-            $d->table($joinTable);
-            $d->where($model->getPrimaryKey() . ' = ?', $model->id);
-            $d->execute();
+        if ($action === 'removeAll') {
+            $this->clearJoinTableEntries($model);
             return;
         }
 
@@ -94,26 +155,44 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
             return;
         }
 
-        if (!is_object($obj) && is_numeric($obj)) {
-            $class = ucfirst($this->field);
-            $obj = new $class($obj);
-        } else {
-            // TODO: always save? Check for dirty state?
-            $obj->save();
+        $joinedClass = $this->getJoinedModelClass();
+
+        if (is_object($obj)) {
+
+            if ($obj instanceof $joinedClass) {
+            	// Save changes before adding
+            	$obj->save();
+            }
+            if (!($obj instanceof $joinedClass)) {
+            	$name = $this->getFieldName();
+            	$actualClass = get_class($obj);
+            	throw new Octopus_Model_Exception("Many-to-many relation $name only supports $joinedClass ($actualClass provided).");
+            }
+
+        } else if (is_numeric($obj)) {
+
+            // Handle IDs being passed in
+            $obj = new $joinedClass($obj);
         }
 
-        $type = strtolower(get_class($model));
-        $joinTable = $this->getJoinTableName(array($this->field, $type));
+        $this->clearJoinTableEntries($model, $obj);
 
-        $d = new Octopus_DB_Delete();
-        $d->table($joinTable);
-        $d->where($model->getPrimaryKey() . ' = ?', $model->id);
-        $d->where($obj->getPrimaryKey() . ' = ?', $obj->id);
-        $d->execute();
+        if ($action === 'add') {
 
-        if ($action == 'add') {
+            if (!$model->id) {
+            	$modelClass = $this->getModelClass();
+            	$fieldName = $this->getFieldName();
+            	throw new Octopus_Model_Exception("$modelClass needs to be saved before calling $action on it ($fieldName)");
+            }
+
+            if (!$obj->id) {
+            	$modelClass = $this->getModelClass();
+            	$fieldName = $this->getFieldName();
+            	throw new Octopus_Model_Exception("$joinedClass needs to be saved before calling $action ($modelClass.$fieldName)");
+            }
+
             $i = new Octopus_DB_Insert();
-            $i->table($joinTable);
+            $i->table($this->getJoinTableName());
             $i->set($model->getPrimaryKey(), $model->id);
             $i->set($obj->getPrimaryKey(), $obj->id);
             $i->execute();
@@ -121,23 +200,51 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
 
     }
 
+    /**
+     * @return Boolean Whether $obj is present on $model
+     */
     public function checkHas($obj, $model) {
 
-        $type = strtolower(get_class($model));
-        $table = $this->getJoinTableName(array($this->field, $type));
+        if (!is_numeric($obj)) {
 
-        if (is_object($obj)) {
-            $obj = $obj->id;
+        	$joinedClass = $this->getJoinedModelClass();
+
+        	if (!$obj instanceof $joinedClass) {
+        		return false;
+        	}
+
+        	$id = $obj->id;
+
+        } else {
+        	$id = $obj;
         }
 
         $s = new Octopus_DB_Select();
-        $s->table($table);
-        $s->where(to_id($this->field) . ' = ?', $obj);
-        $s->where(to_id($type) . ' = ?', $model->id);
-        $query = $s->query();
-        return $query->numRows() > 0;
+        $s->table($this->getJoinTableName());
+        $s->where($this->getModelKey() . ' = ?', $model->id);
+        $s->where($this->getJoinedKey() . ' = ?', $id);
 
+        $query = $s->query();
+
+        return $query->numRows() > 0;
     }
+
+    /**
+     * Removes all rows in the join table for the given model instance.
+     */
+    private function clearJoinTableEntries($model, $other = null) {
+
+        $d = new Octopus_DB_Delete();
+        $d->table($this->getJoinTableName());
+        $d->where($model->getPrimaryKey() . ' = ?', $model->id);
+
+        if ($other) {
+            $d->where($other->getPrimaryKey() . ' = ?', $other->id);
+        }
+
+        $d->execute();
+    }
+
 
 }
 

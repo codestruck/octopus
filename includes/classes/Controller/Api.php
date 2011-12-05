@@ -62,7 +62,7 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
         $data = parent::__execute($action, $args);
 
         $dumped_content = get_dumped_content();
-        
+
         if (!empty($dumped_content)) {
             if ($data === null) {
                 $data = $dumped_content;

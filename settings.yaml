@@ -2,7 +2,11 @@
 
 site.name:
   desc: The name of this website.
-  default: My Awesome Project Octopus Site
+  default_func: guess_site_name
+
+site.slogan:
+	desc: This site's slogan (sometimes displayed in the header).
+	default: An Octopus app
 
 site.theme.*:
   desc: The theme to use. To set the theme for a specific path, use the setting site.theme.your.path
@@ -10,3 +14,7 @@ site.theme.*:
 
 site.default_password_length:
   default: 12
+
+site.min_password_length:
+    desc: Minimum number of characters required for passwords.
+    default: 4

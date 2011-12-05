@@ -16,8 +16,7 @@ abstract class Octopus_Model_Field {
         'updated' => array( 'type' => 'datetime'),
         'active' => array( 'type' => 'boolean'),
         'order' => array( 'type' => 'order'),
-        'slug' => array('type' => 'slug')
-
+        'slug' => array('type' => 'slug'),
     );
 
     /**
@@ -27,17 +26,26 @@ abstract class Octopus_Model_Field {
         'text' => 'string',
         'bool' => 'boolean',
         'number' => 'numeric',
+        // 'file' => 'virtual',
     );
 
     private static $helperFieldTypes = array(
-    	'money' => array('type' => 'numeric', 'decimal_places' => 2),
-        'currency' => array('type' => 'numeric', 'decimal_places' => 2)
-	);
+        'money' => array('type' => 'numeric', 'decimal_places' => 2),
+        'currency' => array('type' => 'numeric', 'decimal_places' => 2),
+        'file' => array('type' => 'virtual', 'form_type' => 'file'),
+    );
 
     public function __construct($field, $modelClass, $options) {
         $this->field = $field;
         $this->modelClass = $modelClass;
         $this->options = $options;
+    }
+
+    /**
+     * @return String The model class this field is defined on.
+     */
+    public function getModelClass() {
+        return $this->modelClass;
     }
 
     public static function getField($name, $modelClass, $options) {
@@ -47,19 +55,21 @@ abstract class Octopus_Model_Field {
         }
 
         $type = isset($options['type']) ? $options['type'] : 'string';
+        $originalType = $type;
 
         if (isset(self::$fieldTypeAliases[$type])) {
-        	$type = self::$fieldTypeAliases[$type];
+            $type = self::$fieldTypeAliases[$type];
         }
 
         if (isset(self::$helperFieldTypes[$type])) {
-        	$help = self::$helperFieldTypes[$type];
-        	if (isset($help['type'])) $type = $help['type'];
-        	$options = array_merge($help, $options);
+            $help = self::$helperFieldTypes[$type];
+            if (isset($help['type'])) $type = $help['type'];
+            $options = array_merge($help, $options);
         }
 
         $class = 'Octopus_Model_Field_' . camel_case($type, true);
         $options['type'] = $type;
+        $options['original_type'] = $originalType;
 
         return new $class($name, $modelClass, $options);
     }
@@ -90,7 +100,6 @@ abstract class Octopus_Model_Field {
     }
 
     public function save($model, $sqlQuery) {
-
         $sqlQuery->set($this->getFieldName(), $this->accessValue($model, true));
     }
 
@@ -99,9 +108,7 @@ abstract class Octopus_Model_Field {
     }
 
     public function setValue($model, $value) {
-
         $model->setInternalValue($this->getFieldName(), $value);
-
     }
 
     /**
@@ -110,10 +117,10 @@ abstract class Octopus_Model_Field {
      * (e.g. HasOne)
      */
     public function loadValue(Octopus_Model $model, $row) {
-    	$name = $this->getFieldName();
-    	if (isset($row[$name])) {
-    		$this->setValue($model, $row[$name]);
-    	}
+        $name = $this->getFieldName();
+        if (isset($row[$name])) {
+        	$this->setValue($model, $row[$name]);
+        }
     }
 
     public function getFieldName() {
@@ -154,7 +161,7 @@ abstract class Octopus_Model_Field {
         if ($index === 'unique') {
             $table->newIndex('UNIQUE', $this->getFieldName());
         } else if ($index === 'fulltext') {
-        	$table->newIndex('FULLTEXT', $this->getFieldName());
+            $table->newIndex('FULLTEXT', $this->getFieldName());
         } else if ($index == 'index' || $index === true) {
             $table->newIndex($this->getFieldName());
         }
@@ -344,13 +351,13 @@ abstract class Octopus_Model_Field {
     }
 
     /**
-     * Adds controls for this field to an Octopus_Html_Form.
+     * Adds controls for this field to a form.
      */
-    public function addToForm($form) {
+    public function addToForm(Octopus_Html_Form $form) {
 
-        if (!$this->getOption('form', true)) {
-            return;
-        }
+    	if (!$this->shouldAddToForm()) {
+    		return;
+    	}
 
         $field = $form->add('text', $this->getFieldName());
 
@@ -364,15 +371,22 @@ abstract class Octopus_Model_Field {
 
     }
 
-    public function addToTable($table) {
+    /**
+     * Adds a column for this field to a table.
+     */
+    public function addToTable(Octopus_Html_Table $table) {
 
-        if (!$this->getOption('table', true)) {
-            return;
-        }
+    	if (!$this->shouldAddToTable()) {
+    		return;
+    	}
 
         $table->addColumn($this->getFieldName());
     }
 
+    /**
+     * Form validation callback used to verify that the contents of this field
+     * are unique.
+     */
     public function validateUniqueness($value, $data, $formField) {
 
         $modelClass = $this->modelClass;
@@ -398,6 +412,32 @@ abstract class Octopus_Model_Field {
 
     public function restrictFreetext($model, $text) {
         return new Octopus_Model_Restriction_Field($model, $this->getFieldname() . ' LIKE', $text);
+    }
+
+    protected function shouldAddToForm() {
+
+    	$defaultValue = !in_array(
+	    	$this->getFieldName(),
+	    	array(
+	    		'created',
+	    		'updated',
+	    		'password',
+		    )
+		);
+
+    	return !!$this->getOption('form', $defaultValue);
+    }
+
+    protected function shouldAddToTable() {
+
+    	$defaultValue = !in_array(
+	    	$this->getFieldName(),
+	    	array(
+	    		'password',
+		    )
+		);
+
+    	return !!$this->getOption('table', $defaultValue);
     }
 
 }

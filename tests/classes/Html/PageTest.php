@@ -2,6 +2,41 @@
 
 class PageTest extends Octopus_App_TestCase {
 
+	function testAddScriptDir() {
+
+		$dir = $this->getSiteDir() . to_slug(__METHOD__);
+		mkdir($dir);
+		touch($dir . '/test.js');
+
+		$page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
+		$page->addJavascriptDir($dir);
+
+		$page->addJavascript('/test.js');
+
+		$files = $page->getJavascriptFiles();
+		$file = array_shift($files);
+
+		$this->assertEquals('/subdir/site/' . basename($dir) . '/test.js', $file['file'], 'Test file is found in added dir');
+	}
+
+	function testAddCssDir() {
+
+		$dir = $this->getSiteDir() . to_slug(__METHOD__);
+		mkdir($dir);
+		touch($dir . '/test.css');
+
+		$page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
+		$page->addCssDir($dir);
+
+		$page->addCss('/test.css');
+
+		$files = $page->getCssFiles();
+		$file = array_shift($files);
+
+		$this->assertEquals('/subdir/site/' . basename($dir) . '/test.css', $file['file'], 'Test file is found in added dir');
+	}
+
+
     function testSetTitle() {
 
         $page = new Octopus_Html_Page();
@@ -702,6 +737,10 @@ END
             'URL_BASE' => '/subdir/'
         ));
 
+        $dir = $this->getSiteDir() . 'script/';
+        mkdir($dir);
+        touch($dir . 'global.js');
+
         $page->addJavascriptAlias(
             array(
                 'http://jquery.com/jquery.js',
@@ -730,6 +769,11 @@ END
 
         $page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
 
+        touch($this->getSiteDir() . 'a.js');
+        touch($this->getSiteDir() . 'b.js');
+        touch($this->getSiteDir() . 'c.js');
+        touch($this->getSiteDir() . 'd.js');
+
         $page->addJavascript('/a.js');
         $page->addJavascript('/b.js');
         $page->addJavascript('/c.js');
@@ -741,7 +785,7 @@ END
         $this->assertHtmlEquals(
             <<<END
 <script type="text/javascript" src="/subdir/abd.js"></script>
-<script type="text/javascript" src="/subdir/c.js"></script>
+<script type="text/javascript" src="/subdir/site/c.js"></script>
 END
             ,
             $page->renderJavascript(true)
@@ -756,6 +800,10 @@ END
         $page->addJavascript('/a.js');
         $page->addJavascript('/b.js');
         $page->addJavascript('/c.js', -1000);
+
+        touch($this->getRootDir() . 'a.js');
+        touch($this->getRootDir() . 'b.js');
+        touch($this->getRootDir() . 'c.js');
 
         $page->addJavascriptAlias(array('/c.js', '/b.js'), '/cb.js');
 
@@ -779,6 +827,10 @@ END
         $page->addJavascript('/c.js');
         $page->addJavascriptAlias(array('/a.js', '/c.js'), '/ac.js');
 
+        touch($this->getRootDir() . 'a.js');
+        touch($this->getRootDir() . 'b.js');
+        touch($this->getRootDir() . 'c.js');
+
         $files = $page->getJavascriptFiles();
         $this->assertEquals(2, count($files), '# of javascript files');
 
@@ -795,6 +847,11 @@ END
         $page = new Octopus_Html_Page(array(
             'URL_BASE' => '/subdir/'
         ));
+
+        $dir = $this->getSiteDir() . 'css/';
+        mkdir($dir);
+        touch($dir . 'styles.css');
+
 
         $page->addCssAlias(
             array(

@@ -40,7 +40,7 @@ END
     }
 
     function testContentType() {
-        
+
         $r = new Octopus_Response(true);
         $this->assertEquals('text/html', $r->contentType(), 'default to text/html content type');
 
@@ -50,7 +50,7 @@ END
     }
 
     function testStop() {
-        
+
         $r = new Octopus_Response(true);
         $r->contentType('application/json');
         $r->append(json_encode(true));

@@ -15,40 +15,44 @@ class Octopus {
     private static $classDirs = array();
     private static $controllerDirs = array();
 
+    // YAY WE GET TO KEEP OUR OWN LIST OF WHAT FILES WE'VE REQUIRE_ONCE'D!!!
+    // See the note on requireOnce() for why this exists
+    private static $alreadyLoaded = array();
+
     /**
      * Adds a directory to be scanned for classes.
      */
     public static function addClassDir($dir, $prepend = false) {
-    	if ($prepend) {
-    		array_unshift(self::$classDirs, $dir);
-    	} else {
-    		array_push(self::$classDirs, $dir);
-    	}
+        if ($prepend) {
+        	array_unshift(self::$classDirs, $dir);
+        } else {
+        	array_push(self::$classDirs, $dir);
+        }
     }
 
     public static function removeClassDir($dir) {
-    	$index = array_search($dir, self::$classDirs);
-    	if ($index !== false) {
-	    	unset(self::$classDirs[$index]);
-	    }
+        $index = array_search($dir, self::$classDirs);
+        if ($index !== false) {
+        	unset(self::$classDirs[$index]);
+        }
     }
 
     /**
      * Adds a directory to be scanned for controllers.
      */
     public static function addControllerDir($dir, $prepend = false) {
-    	if ($prepend) {
-    		array_unshift(self::$controllerDirs, $dir);
-    	} else {
-    		array_push(self::$controllerDirs, $dir);
-    	}
+        if ($prepend) {
+        	array_unshift(self::$controllerDirs, $dir);
+        } else {
+        	array_push(self::$controllerDirs, $dir);
+        }
     }
 
     public static function removeControllerDir($dir) {
-    	$index = array_search($dir, self::$controllerDirs);
-    	if ($index !== false) {
-	    	unset(self::$controllerDirs[$index]);
-	    }
+        $index = array_search($dir, self::$controllerDirs);
+        if ($index !== false) {
+        	unset(self::$controllerDirs[$index]);
+        }
     }
 
     public static function autoLoadClass($class) {
@@ -170,8 +174,8 @@ class Octopus {
         }
 
         if ($debug) {
-        	$exists = array_map('is_file', $tried);
-        	dump_r($class, $tried, $exists);
+            $exists = array_map('is_file', $tried);
+            dump_r($class, $tried, $exists);
         }
 
         return false;
@@ -188,7 +192,7 @@ class Octopus {
         $class = preg_replace('/_*Controller$/', '', $class);
 
         if ($checkExists && class_exists($class)) {
-        	return true;
+            return true;
         }
 
         $tries = $debug ? array() : null;
@@ -210,7 +214,7 @@ class Octopus {
         }
 
         if ($debug) {
-        	dump_r($class, $tries);
+            dump_r($class, $tries);
         }
 
         return false;
@@ -228,27 +232,25 @@ class Octopus {
         }
         self::$externals[$name] = true;
 
-        $dir = '';
+        // First, look in site dir
+        foreach(array('SITE_DIR', 'OCTOPUS_DIR') as $key) {
 
-        if (class_exists('Octopus_App') && Octopus_App::isStarted()) {
-            $dir = Octopus_App::singleton()->getOption('OCTOPUS_EXTERNALS_DIR');
-        } else if (defined('OCTOPUS_EXTERNALS_DIR')) {
-            $dir = OCTOPUS_EXTERNALS_DIR;
+            $dir = get_option($key);
+            if (!$dir || !is_dir($dir)) {
+            	continue;
+            }
+
+            $externalsDir = $dir . "externals/{$name}/";
+            $file = $externalsDir . 'external.php';
+
+            if (is_file($file)) {
+            	self::loadExternalFile($name, $file, $version);
+            	return true;
+            }
+
         }
 
-        $EXTERNAL_DIR = "{$dir}{$name}/";
-
-        $file = "{$EXTERNAL_DIR}external.php";
-        if (!is_file($file)) {
-            $file = ROOT_DIR . 'site/externals/' . $name . '/external.php';
-        }
-
-        require_once($file);
-
-        $func = "external_{$name}";
-        if (function_exists($func)) {
-            $func($version);
-        }
+        throw new Octopus_Exception("External not found: $name");
     }
 
     /**
@@ -256,8 +258,45 @@ class Octopus {
      */
     public static function loadModel() {}
 
-    private static function requireOnce($file) {
-        require_once($file);
+    /**
+     * A require_once wrapper. Ok, look: I know this looks insane, but
+     * require_once + class autoloading + case-insensitive filesystems = insanity.
+     * But really, don't use this. It's used internally to support autoloading
+     * and controller discovery. Use require_once. I don't care.
+     * @param String $__file The file to require
+     * @param Mixed $__vars any variables to make available before requiring
+     * the file.
+     */
+    public static function requireOnce($__file, $__vars = null) {
+
+        $__normalFile = strtolower($__file);
+        if (isset(self::$alreadyLoaded[$__normalFile])) {
+        	return;
+        }
+
+        self::$alreadyLoaded[$__normalFile] = true;
+        unset($__normalFile);
+
+        if ($__vars) {
+	        extract($__vars);
+	    }
+	    unset($__vars);
+
+        require_once($__file);
+    }
+
+    private static function loadExternalFile($name, $file, $version) {
+
+    	self::requireOnce($file, array('EXTERNAL_DIR' => dirname($file) . '/'));
+    	self::callExternalFunction($name, $version);
+
+    }
+
+    private static function callExternalFunction($external, $version) {
+        $func = 'external_' . $external;
+        if (function_exists($func)) {
+        	$func($version);
+        }
     }
 }
 

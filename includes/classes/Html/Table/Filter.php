@@ -53,12 +53,11 @@ abstract class Octopus_Html_Table_Filter {
         $this->type = $type;
         $this->id = $id;
 
-        $this->label = ($label === null ? humanize($id) . ':' : $label);
-
         $options = $this->initializeOptions($options);
         $this->options = array_merge(self::$defaults, $options);
 
         $this->element = $this->createElement();
+        $this->label = ($label === null ? $this->element->label() : $label);
     }
 
     public function __call($name, $arguments) {
@@ -68,9 +67,12 @@ abstract class Octopus_Html_Table_Filter {
 
     /**
      * Executes this filter against the given data source.
-     * @return Mixed A filtered data source.
+     * @param Mixed $dataSource Data source being displayed
+     * @param Octopus_Html_Table $table The table being filtered.
+     * @return Mixed A filtered data source, or $dataSource if it doesn't need
+     * to be filtered.
      */
-    public function apply($dataSource) {
+    public function apply($dataSource, $table) {
 
         if (class_exists('Octopus_Model_ResultSet') && $dataSource instanceof Octopus_Model_ResultSet) {
             return $this->applyToResultSet($dataSource);
@@ -101,9 +103,29 @@ abstract class Octopus_Html_Table_Filter {
         return $this->type;
     }
 
+    public function label(/* $label */) {
+    	$args = func_get_args();
+    	if (count($args)) {
+    		return $this->setLabel($args[0]);
+    	} else {
+    		return $this->getLabel();
+    	}
+    }
+
+    public function setLabel($label) {
+    	$this->label = $label;
+    	return $this;
+    }
+
+    public function getLabel() {
+    	return $this->label;
+    }
+
     public function createLabelElement() {
 
-        if (!$this->label) {
+    	$text = $this->getLabel();
+
+        if (!$text) {
             return;
         }
 
@@ -192,11 +214,17 @@ abstract class Octopus_Html_Table_Filter {
             $label = null;
         }
 
-        if (!isset(self::$registry[$type])) {
-            throw new Octopus_Exception("Filter type not registered: $type");
-        }
+        if (isset(self::$registry[$type])) {
+        	$class = self::$registry[$type];
+        } else {
 
-        $class = self::$registry[$type];
+        	$class = 'Octopus_Html_Table_Filter_' . camel_case($type, true);
+
+        	if (!class_exists($class)) {
+            	throw new Octopus_Exception("Filter type not registered: $type");
+            }
+
+	    }
 
         return new $class($type, $id, $label, $options);
     }
@@ -205,10 +233,5 @@ abstract class Octopus_Html_Table_Filter {
         self::$registry[$type] = $class;
     }
 }
-
-Octopus_Html_Table_Filter::register('text', 'Octopus_Html_Table_Filter_Text');
-Octopus_Html_Table_Filter::register('search', 'Octopus_Html_Table_Filter_Search');
-Octopus_Html_Table_Filter::register('select', 'Octopus_Html_Table_Filter_Select');
-Octopus_Html_Table_Filter::register('checkbox', 'Octopus_Html_Table_Filter_Checkbox');
 
 ?>

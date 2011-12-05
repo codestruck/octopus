@@ -16,7 +16,7 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpa
     private $_criteria;
     private $_orderBy;
     private $_select;
-    private $query;
+    protected $query;
 
     private $_currentQuery = null;
     private $_current = null;
@@ -197,9 +197,13 @@ END;
 END;
 
             foreach($fields as $f) {
+                $value = $d[$f->getFieldName()];
+                if (is_object($value)) {
+                    $value = '[Object]';
+                }
                 $html .=
                     '<td>' .
-                    h($d[$f->getFieldName()]).
+                    h($value).
                     '</td>';
 
             }
@@ -275,11 +279,11 @@ END;
      */
     public function whereSql($sql, $params = array()) {
 
-    	if (!is_array($params)) {
-    		$args = func_get_args();
-    		array_shift($args);
-    		$params = $args;
-    	}
+        if (!is_array($params)) {
+        	$args = func_get_args();
+        	array_shift($args);
+        	$params = $args;
+        }
 
         $result = $this->where(array($sql => $params));
 
@@ -352,6 +356,12 @@ END;
         }
 
         return $sql;
+    }
+
+    public function getNormalizedSql() {
+        $params = array();
+        $sql = $this->getSql($params);
+        return normalize_sql($sql, $params);
     }
 
     /**
@@ -609,9 +619,9 @@ END;
 
         foreach($criteria as $arg) {
 
-        	if ($arg instanceof Octopus_Model) {
-        		$arg = array('id' => $arg->id);
-        	}
+            if ($arg instanceof Octopus_Model) {
+            	$arg = array('id' => $arg->id);
+            }
 
             if ($arg instanceof Octopus_Model_ResultSet) {
                 $result = $this->createChild($arg->_criteria, null, $conjunction);
@@ -647,6 +657,9 @@ END;
 
         if (!$this->_modelInstance) {
             $class = $this->getModel();
+            if (!class_exists($class)) {
+                throw new Octopus_Model_Exception("Model class not found: $class");
+            }
             $this->_modelInstance = new $class();
         }
 
@@ -675,6 +688,12 @@ END;
 
         foreach($orderBy as $fieldName => $dir) {
 
+        	// Special-case 'RAND()',
+        	if (strcasecmp('RAND()', $fieldName) === 0) {
+        		$s->orderBy('RAND()');
+        		continue;
+        	}
+
             $info = Octopus_Model_Restriction_Field::parseFieldExpression($fieldName, $this->getModelInstance());
             extract($info);
 
@@ -701,6 +720,19 @@ END;
 
         if (!$recreate && $this->_select) {
             return $this->_select;
+        }
+
+        if (is_array($fields)) {
+
+        	foreach($fields as $index => $name) {
+
+        		// Allow using 'id' as an alias for primary key
+        		if ($name === 'id') {
+        			$fields[$index] = $this->getModelPrimaryKey();
+        		}
+
+        	}
+
         }
 
         $s = new Octopus_DB_Select();
@@ -796,9 +828,10 @@ END;
     }
 
     /**
-     * Runs the backing query and
+     * Executes the SQL query backing this ResultSet.
+     * @return Octopus_DB_Result
      */
-    private function &query($new = false) {
+    protected function &query($new = false) {
 
         if ($this->query && !$new) {
             return $this->query;
@@ -1006,14 +1039,14 @@ END;
      */
     public function count($considerLimit = true) {
 
-    	$s = $this->buildSelect();
-    	$count = $s->numRows();
+        $s = $this->buildSelect();
+        $count = $s->numRows();
 
-    	if ($considerLimit && $this->_maxRecords !== null) {
-    		return min($this->_maxRecords, $count);
-    	}
+        if ($considerLimit && $this->_maxRecords !== null) {
+        	return min($this->_maxRecords, $count);
+        }
 
-    	return $count;
+        return $count;
     }
 
     // }}}

@@ -14,16 +14,18 @@ class Octopus_Model_Field_Datetime extends Octopus_Model_Field {
             $this->defaultOptions = array(
                 'onSave' => '_setNow',
             );
+        } else {
+            $this->defaultOptions['form'] = true;
         }
 
         $this->defaultOptions['date_format'] = 'Y-m-d H:i:s';
     }
 
- 	public function setValue($model, $value) {
- 		$value  = $this->parseDateTime($value);
- 		$value = $this->formatDateTime($value);
- 		return parent::setValue($model, $value);
- 	}
+     public function setValue($model, $value) {
+     	$value  = $this->parseDateTime($value);
+     	$value = $this->formatDateTime($value);
+     	return parent::setValue($model, $value);
+     }
 
     public function migrate($schema, $table) {
         $table->newDateTime($this->getFieldName());
@@ -41,7 +43,7 @@ class Octopus_Model_Field_Datetime extends Octopus_Model_Field {
     }
 
     protected function getDateFormat() {
-    	return $this->getOption('date_format', 'Y-m-d H:i:s');
+        return $this->getOption('date_format', 'Y-m-d H:i:s');
     }
 
     /**
@@ -49,22 +51,22 @@ class Octopus_Model_Field_Datetime extends Octopus_Model_Field {
      */
     protected function parseDateTime($str) {
 
-    	if ($str === '0000-00-00 00:00:00' ||
-    		$str === '0000-00-00' ||
-    		$str === null ||
-    		$str === false ||
-    		$str === '') {
-    		return '';
-    	}
+        if ($str === '0000-00-00 00:00:00' ||
+        	$str === '0000-00-00' ||
+        	$str === null ||
+        	$str === false ||
+        	$str === '') {
+        	return '';
+        }
 
-    	if (is_numeric($str)) {
-    		// $str is already a timestamp
-    		return $str;
-    	}
+        if (is_numeric($str)) {
+        	// $str is already a timestamp
+        	return $str;
+        }
 
-    	$value = strtotime($str);
-    	if ($value === false) throw new Octopus_Model_Exception("Invalid datetime value: $str");
-    	return $value;
+        $value = strtotime($str);
+        if ($value === false) throw new Octopus_Model_Exception("Invalid datetime value: $str");
+        return $value;
 
     }
 
@@ -73,19 +75,19 @@ class Octopus_Model_Field_Datetime extends Octopus_Model_Field {
      */
     protected function formatDateTime($value) {
 
-    	if (!is_numeric($value)) {
-    		$value = $this->parseDateTime($value);
-    	}
+        if (!is_numeric($value)) {
+        	$value = $this->parseDateTime($value);
+        }
 
-    	if (!$value) {
-    		return '';
-    	}
+        if (!$value) {
+        	return '';
+        }
 
-    	return date($this->getDateFormat(), $value);
+        return date($this->getDateFormat(), $value);
     }
 
     public function _setNow() {
-    	return $this->formatDateTime(time());
+        return $this->formatDateTime(time());
     }
 
 }

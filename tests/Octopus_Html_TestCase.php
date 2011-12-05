@@ -22,9 +22,60 @@ abstract class Octopus_Html_TestCase extends PHPUnit_Framework_TestCase {
             $strict =  !!$message;
         }
 
+        $expected = self::normalizeHtml($expected, $strict);
+        $actual = self::normalizeHtml($actual, $strict);
+
+        if ($expected != $actual) {
+
+        	$len = min(strlen($expected), strlen($actual));
+
+        	for($i = 0; $i < $len; $i++) {
+
+        		if ($expected[$i] != $actual[$i]) {
+
+        			$around = 23;
+        			$start = max(0, $i - $around);
+        			$end = min($len, $i+$around);
+
+        			$expectedExcerpt = substr($expected, $start, $end - $start);
+        			$actualExcerpt = substr($actual, $start, $end - $start);
+
+        			$arrow = str_repeat('-', $i - $start) . '^';
+
+
+        			if ($start > 0) {
+        				$expectedExcerpt = '...' . $expectedExcerpt;
+        				$actualExcerpt = '...' . $actualExcerpt;
+        				$arrow = '---' . $arrow;
+        			}
+
+        			if ($end < $len) {
+        				$expectedExcerpt .= '...';
+        				$actualExcerpt .= '...';
+        			}
+
+
+        			dump_r(
+<<<END
+Strings differ at position $i:
+Expected:   $expectedExcerpt
+Actual:     $actualExcerpt
+            $arrow
+
+END
+
+	        		);
+	        		break;
+
+        		}
+
+        	}
+
+        }
+
         $testCase->assertEquals(
-            self::normalizeHtml($expected, $strict),
-            self::normalizeHtml($actual, $strict),
+            $expected,
+            $actual,
             $message
         );
     }

@@ -51,8 +51,8 @@ class Octopus_Html_Header extends Octopus_Html_Page {
 
 
     function useTinyMce() {
-        $this->addJavascript('/scripts/tiny_mce/tiny_mce.js');
-        $this->addJavascript('/scripts/tinyMceInit.js');
+        $this->addJavascript(URL_BASE . 'admin/scripts/tiny_mce/tiny_mce.js');
+        $this->addJavascript(URL_BASE . 'admin/scripts/tinyMceInit.js');
     }
 
     function useManageTable() {
@@ -60,9 +60,9 @@ class Octopus_Html_Header extends Octopus_Html_Page {
     }
 
     function useTabs() {
-        $this->addJavascript('../includes/js/jquery/jquery.blockUI.js');
-        $this->addJavascript('../includes/js/sg_tabs.js');
-        $this->addCss('../includes/css/tabs.css');
+        $this->addJavascript(URL_BASE . 'includes/js/jquery/jquery.blockUI.js');
+        $this->addJavascript(URL_BASE . 'includes/js/sg_tabs.js');
+        $this->addCss(URL_BASE . 'includes/css/tabs.css');
         $this->addJavascript(JS_JQUERY_UI);
         $this->addCss(CSS_JQUERY_UI);
     }

@@ -29,9 +29,9 @@ class Octopus_Http_Request_Sockets extends Octopus_Http_Request_Base {
             'Accept-Encoding',
         );
 
-        foreach($headerOpts as $opt) {
-            if (isset($this->args[$opt])) {
-                $request .= "$opt: {$this->args[$opt]}\r\n";
+        foreach($this->args as $opt => $value) {
+            if (!in_array($opt, $this->reservedOpts)) {
+                $request .= "$opt: {$value}\r\n";
             }
         }
 

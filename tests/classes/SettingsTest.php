@@ -26,28 +26,6 @@ class SettingsTest extends Octopus_DB_TestCase {
         $this->deleteTestDir();
     }
 
-    function createTables(&$db) {
-
-        $db->query("
-
-            CREATE TABLE IF NOT EXISTS settings (
-
-                `name` varchar(100) NOT NULL,
-                `value` text,
-                PRIMARY KEY (`name`)
-
-            );
-
-
-        ");
-
-    }
-
-    function dropTables(&$db) {
-
-        //$db->query('DROP TABLE IF EXISTS settings');
-
-    }
 
     function testReadFromDB() {
 
@@ -170,6 +148,28 @@ END
         }
 
         $this->assertNotEquals(0, $tests, 'No tests were run!');
+
+    }
+
+    function testArrayAccess() {
+
+        $settings = new Octopus_Settings();
+        $settings->addFromYaml(<<<END
+site_lang:
+  default: en-us
+site_name:
+  default: Default Site Name
+END
+        );
+
+        $this->assertTrue(isset($settings['site_lang']), 'site_lang is set');
+        $this->assertEquals('en-us', $settings['site_lang']);
+
+        $settings['site_lang'] = 'fr';
+        $this->assertEquals('fr', $settings->get('site_lang'));
+
+        unset($settings['site_lang']);
+        $this->assertEquals('en-us', $settings['site_lang']);
 
     }
 
@@ -334,6 +334,26 @@ END
             $this->assertEquals($expected, $settings->get($input), "Failed on $input");
 
         }
+
+    }
+
+    function defaultSettingValueFunction() {
+    	return $this->defaultUsingFunctionValue;
+    }
+    private $defaultUsingFunctionValue;
+
+    function testFunctionForDefault() {
+
+		$settings = new Octopus_Settings();
+		$settings->addFromArray(array(
+			'some.setting' => array('default_func' => array($this, 'defaultSettingValueFunction'))
+		));
+
+		$this->defaultUsingFunctionValue = 42;
+		$this->assertEquals(42, $settings->get('some.setting'));
+
+		$settings->set('some.setting', '99');
+		$this->assertEquals(99, $settings->get('some.setting'));
 
     }
 
