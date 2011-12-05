@@ -72,16 +72,12 @@ class Octopus_Renderer {
                 $dir = $app->getOption($dir);
                 $file = $dir . 'themes/' . $theme . '/theme.php';
                 if (is_file($file)) {
-                    self::requireOnce($file);
+                    Octopus::requireOnce($file);
                 }
             }
 
         }
 
-    }
-
-    private static function requireOnce($file) {
-        require_once($file);
     }
 
     /**
@@ -193,6 +189,10 @@ class Octopus_Renderer {
             $result['HEAD_CONTENT'] = $p->renderHead(true, false);
             $result['HEAD'] = "<head>{$result['HEAD_CONTENT']}</head>";
         }
+
+        $result['DEV'] = $this->app->DEV;
+        $result['LIVE'] = $this->app->LIVE;
+        $result['STAGING'] = $this->app->STAGING;
 
         return $result;
     }

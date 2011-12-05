@@ -353,6 +353,57 @@ END
 
     }
 
+    function testDontPassQueryStringAsActionToBeforeAndAfter() {
+
+    	$GLOBALS['OCTOPUS_TEST_CASE'] = $this;
+    	$GLOBALS['_BEFORE_CALLED'] = false;
+    	$GLOBALS['_AFTER_CALLED'] = false;
+
+    	$app = $this->getApp();
+    	$this->createControllerFile(
+	    	'DontPassQsInAction',
+	    	<<<END
+	    	<?php
+
+	    	class DontPassQsInActionController extends Octopus_Controller {
+
+	    		public function _before(\$action, \$args) {
+	    			global \$OCTOPUS_TEST_CASE;
+	    			global \$_BEFORE_CALLED;
+
+	    			\$OCTOPUS_TEST_CASE->assertEquals('test', \$action);
+	    			\$_BEFORE_CALLED = true;
+	    		}
+
+	    		public function testAction() {
+
+	    		}
+
+	    		public function _after(\$action, \$args, \$result) {
+
+					global \$OCTOPUS_TEST_CASE;
+	    			global \$_AFTER_CALLED;
+
+	    			\$OCTOPUS_TEST_CASE->assertEquals('test', \$action);
+	    			\$_AFTER_CALLED = true;
+
+	    		}
+
+	    	}
+
+
+	    	?>
+END
+	   	);
+
+	   	$resp = $app->getResponse('/dont-pass-qs-in-action/test?foo=bar', true);
+	   	$this->assertTrue($GLOBALS['_BEFORE_CALLED'], '_before not called');
+	   	$this->assertTrue($GLOBALS['_AFTER_CALLED'], '_after not called');
+
+
+
+    }
+
 
     function testViewNotFoundReturns404() {
 

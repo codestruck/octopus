@@ -622,7 +622,17 @@ class Octopus_Html_Element {
         }
     }
 
-    private function addContent($item, $prepend) {
+    /**
+     * Manages actually inserting content into this element, either at the
+     * beginning or the end.
+     */
+    protected function addContent($item, $prepend) {
+
+    	// This is so count($el->children()) is always zero, even when
+    	// empty strings have been appended
+    	if ($item === null || $item === '') {
+    		return;
+    	}
 
         if ($this->_content === null) {
             $this->_content = array();

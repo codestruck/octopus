@@ -67,7 +67,7 @@ class Octopus_Html_Table_Column {
             $this->addContent($this->options['content']);
         }
 
-        $this->addClass($id);
+        $this->addClass(to_css_class($id));
     }
 
     public function addAction($id, $label = null, $url = null, $options = null) {

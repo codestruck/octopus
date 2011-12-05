@@ -529,4 +529,26 @@ END;
 
     }
 
+    function testIndexesUnchanged()
+    {
+
+        $table = 'index_unchanged';
+        $this->db->query('DROP TABLE IF EXISTS ' . $table);
+
+        $d = new Octopus_DB_Schema();
+
+        $t = $d->newTable($table);
+        $t->newKey('id', true);
+        $t->newIndex('id');
+        $t->create();
+
+        $t = $d->newTable($table);
+        $t->newKey('id', true);
+        $t->newIndex('id');
+        $sql = $t->toSql();
+
+        $this->assertEquals('', $sql);
+
+    }
+
 }
