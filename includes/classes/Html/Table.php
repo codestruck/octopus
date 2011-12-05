@@ -143,15 +143,19 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
     private $_options;
 
+    // Original data source passed to setDataSource()
     private $_dataSource = null;
-    private $_originalDataSource = null;
-    private $_pagination = null;
+
+    private $_pager = null;
+    private $_pagerInitialized = false;
 
     private $_shouldInitFromEnvironment = true;
 
     private $_columns = array();
     private $_sortColumns = array();
-    private $_filters = array();
+
+    private $_filters = array(); // Octopus_Html_Table_Filter objects, keyed on ID
+    private $_filterValues = array(); // Actual values passed to filter()
 
     private $_queryString = null;
 
@@ -169,7 +173,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         parent::__construct('table', $attrs);
 
         $this->_options = array_merge(self::$defaultOptions, $options);
-        $this->_pagination = new Octopus_Html_Pagination($this->_options);
+        $this->_pager = new Octopus_Html_Pager($this->_options);
     }
 
     /**
@@ -338,33 +342,47 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     public function getPageSize() {
-        return $this->_options['pageSize'];
+    	$p = $this->getPager();
+    	return $p->getPageSize();
     }
 
     public function setPageSize($size) {
-        $this->_options['pageSize'] = $this->_pagerOptions['perPage'] = $size;
-        return $this->resetData();
+    	$p = $this->getPager();
+    	$p->setPageSize($size);
+    	return $this;
     }
 
     public function getPage() {
-        $this->initFromEnvironment();
-        return $this->_currentPage;
-    }
-
-    public function getPageCount() {
-        return $this->_pagination->getPageCount();
+    	$p = $this->getPager();
+    	return $p->getCurrentPage();
     }
 
     public function setPage($page) {
 
-        $this->_currentPage = $page;
+    	$p = $this->getPager();
 
+    	$p->setCurrentPage($page);
         $this->rememberState();
-        $this->resetData();
         $this->dontInitFromEnvironment();
 
         return $this;
     }
+
+    /**
+     * @return Octopus_Html_Pager
+     */
+    public function getPager() {
+
+    	$this->initFromEnvironment();
+
+    	return $this->_pager;
+    }
+
+    public function getPageCount() {
+    	$p = $this->getPager();
+    	return $p->getPageCount();
+    }
+
 
     public function nextPage() {
         $page = $this->getPage();
@@ -391,6 +409,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      */
     public function filter() {
 
+    	// Ensure that any filters from the querystring or session are applied
+    	// before we add any more
         $this->initFromEnvironment();
 
         $args = func_get_args();
@@ -401,7 +421,6 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         }
 
         $filterID = null;
-        $toApply = array();
 
         foreach($args as $arg) {
 
@@ -409,36 +428,27 @@ class Octopus_Html_Table extends Octopus_Html_Element {
                 if ($filterID === null) {
                     $filterID = $arg;
                 } else {
-                    $toApply[$filterID] = $arg;
+
+                	if ($arg !== null) {
+                    	$this->_filterValues[$filterID] = $arg;
+                    }
+
                     $filterID = null;
                 }
                 continue;
             }
 
             foreach($arg as $id => $value) {
-                $toApply[$id] = $value;
+
+            	if ($value === null) {
+            		continue;
+            	}
+
+                $this->_filterValues[$id] = $value;
             }
         }
 
-        foreach($toApply as $id => $value) {
-        	if ($value === '') {
-        		unset($toApply[$id]);
-        		continue;
-        	}
-            $filter = $this->getFilter($id);
-            if (!$filter) continue;
-            $filter->val($value);
-        }
-
-        $ds = $this->_originalDataSource;
-        foreach($this->_filters as $key => $filter) {
-            if (isset($toApply[$key])) {
-	            $ds = $filter->apply($ds);
-	        }
-        }
-
-        $this->internalSetDataSource($ds, false);
-        $this->rememberState();
+        $this->applyFilters();
 
         return $this;
     }
@@ -452,7 +462,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
             $filter->clear();
         }
 
-        $this->internalSetDataSource($this->_originalDataSource, true);
+        $this->dontInitFromEnvironment();
+        $this->invalidate();
 
         $this->rememberState();
 
@@ -481,7 +492,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
         $qs[$this->_options['clearFiltersArg']] = 1;
 
-        return $uri . '?' . http_build_query($qs);
+        return $uri . '?' . octopus_http_build_query($qs, '&');
     }
 
     public function render($return = false) {
@@ -512,9 +523,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      * that have been added. Clears the data source.
      */
     public function reset() {
-        parent::reset();
 
-        $this->resetData();
+        parent::reset();
 
         foreach($this->_columns as $c) {
             $c->sort(false);
@@ -574,38 +584,35 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      * @return Mixed The data being shown in the table.
      */
     public function &getData() {
-        return $this->_pagination->getItems();
+    	$p = $this->getPager();
+    	$items = $p->getItems();
+    	return $items;
     }
 
-    public function &getDataSource() {
+    /**
+     * @return Mixed The current data source being displayed in this table, or
+     * null if none is being displayed.
+     */
+    public function getDataSource() {
 
-        // Make sure filters are applied before returning data source
-        $this->initFromEnvironment();
+    	$p = $this->getPager();
+    	return $p->getDataSource();
 
-        return $this->_dataSource;
     }
 
     /**
      * Sets the Octopus_DataSource this table uses to retrieve data for display.
+     * @param Mixed $dataSource An array or an Octopus_DataSource.
      */
     public function setDataSource($dataSource) {
-        return $this->internalSetDataSource($dataSource, true);
-    }
 
-    private function internalSetDataSource($dataSource, $isOriginal) {
+    	$this->_pagerInitialized = true;
+    	$p = $this->getPager();
 
-    	$this->_pagination->setDataSource($dataSource);
-        $this->_dataSource = $this->_pagination->getDataSource();
+    	$p->setDataSource($dataSource);
+    	$this->_dataSource = $p->getDataSource(); // Pager automatically converts e.g. arrays to DataSources
+    	$this->_pagerInitialized = false;
 
-        if ($isOriginal) {
-            $this->_originalDataSource = $this->_dataSource;
-        }
-
-        return $this->resetData();
-    }
-
-    protected function resetData() {
-        $this->_pagerData = null;
         return $this;
     }
 
@@ -622,7 +629,13 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         return $this;
     }
 
-    private function sort(/* lots of different ways */) {
+    /**
+     * Manually sorts this table. Generally speaking, you want to use
+     * setDefaultSorting() rather than this method, because calling this will
+     * override any sorting in the querystring (e.g., /whatever?sort=age gets
+     * overwritten when you call sort('name')).
+     */
+    public function sort(/* lots of different ways */) {
 
         $this->initFromEnvironment();
 
@@ -643,6 +656,20 @@ class Octopus_Html_Table extends Octopus_Html_Element {
                 $this->_sortColumns[] = $col;
             }
         }
+
+        $ds = $this->getDataSource();
+
+        if ($ds) {
+
+        	$ds = $ds->unsort();
+
+	        foreach(array_reverse($this->_sortColumns) as $col) {
+	        	$ds = $col->applySorting($ds);
+	        }
+
+	        $this->setDataSource($ds);
+
+	   	}
 
         $this->rememberState();
 
@@ -722,6 +749,53 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     /**
+     * Applies any filters set on this table to the table's data source. Then
+     * sorts it.
+     */
+    protected function applyFiltersAndSorting() {
+
+    	$ds = $this->getOriginalDataSource();
+
+    	if (!$ds) {
+    		return;
+    	}
+
+    	foreach($this->_filterValues as $id => $value) {
+
+            $filter = $this->getFilter($id);
+            if (!$filter) continue;
+
+            $filter->val($value);
+            $ds = $filter->apply($ds);
+
+        }
+
+    	foreach(array_reverse($this->_sortColumns) as $col) {
+
+    		$ds = $col->applySorting($ds);
+
+    	}
+
+        $this->updateDataSource($ds);
+    }
+
+    /**
+     * Replaces the current data source with $ds, optionally resetting the page
+     * as well.
+     */
+    protected function updateDataSource(Octopus_DataSource $ds, $resetPage = true) {
+
+    	$p = $this->getPager();
+    	$page = $p->getCurrentPage();
+    	$p->setDataSource($ds);
+
+    	if (!$resetPage) {
+	    	$p->setCurrentPage($page);
+	    }
+
+    }
+
+    /**
      * Writes the current state of the table to the session.
      */
     protected function rememberState() {
@@ -735,6 +809,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         $_SESSION[$sort] = self::buildSortString($this->_sortColumns);
         $_SESSION[$page] = $this->getPage();
         $_SESSION[$filter] = $this->internalGetFilterValues();
+
     }
 
     /**
@@ -781,27 +856,40 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         return $result;
     }
 
-    protected function &internalGetFilterValues($source = null) {
+    /**
+     * @param mixed $source Array of values to scan for filter values (e.g.
+	 * $_GET). If null, the current state of the table's filters is used.
+     * @return Array Filter values, where keys are filter ids and values are
+     * the values being filtered.
+     */
+    protected function internalGetFilterValues($source = null) {
 
         $values = array();
+
         foreach($this->_filters as $f) {
+
             if ($source !== null) {
+
                 if (isset($source[$f->id])) {
                     $values[$f->id] = $source[$f->id];
                 }
-            } else {
-                $val = $f->val();
 
-                if (trim($val) !== '') {
-                    $values[$f->id] = $val;
-                }
+            } else if (!$f->isEmpty()) {
+
+				$values[$f->id] = $f->val();
+
             }
+
         }
 
         return $values;
     }
 
-    public function &getFilterValues() {
+    /**
+     * @return Array An array where keys are filter ids and values are the
+     * values being used to filter on that id.
+     */
+    public function getFilterValues() {
         $this->initFromEnvironment();
         $values = $this->internalGetFilterValues();
         return $values;
@@ -912,7 +1000,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
     public function getSessionKeys($uri, &$sort, &$page, &$filter) {
 
-        $base = 'octopus-table-' . to_slug($uri) . '-' . $this->id . '-';
+        $base = 'octopus-table-' . substr(to_slug($uri), 0, 100) . '-' . $this->id . '-';
 
         $sort = $base . 'sort';
         $page = $base . 'page';
@@ -943,6 +1031,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         }
         $this->dontInitFromEnvironment();
 
+        print_backtrace();
+
         $useSession = $this->_options['useSession'];
         $sortArg = $this->_options['sortArg'];
         $pageArg = $this->_options['pageArg'];
@@ -970,6 +1060,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
         $sort = null;
         $page = null;
+
+        dump_r($sessionFilterKey, $_SESSION[$sessionFilterKey]);
 
         $filterValues = $this->internalGetFilterValues($qs);
         if (empty($filterValues) && isset($_SESSION[$sessionFilterKey])) {
@@ -1034,6 +1126,14 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
         // This needs to be called last or it won't be applied
         $this->setPage($page);
+    }
+
+    /**
+     * Tells the pager it needs to re-apply filters and sorting the next time
+     * it is asked for.
+     */
+    protected function resetPager() {
+    	$this->_pagerInitialized = false;
     }
 
     /**
@@ -1239,7 +1339,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     protected function renderPager() {
-    	return $this->_pagination->render(true);
+    	$p = $this->getPager();
+    	return $p->render(true);
     }
 
     /**

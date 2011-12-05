@@ -1,6 +1,6 @@
 <?php
 
-class PaginationTest extends Octopus_App_TestCase {
+class PagerTest extends Octopus_App_TestCase {
 
 	function setUp() {
 
@@ -13,7 +13,7 @@ class PaginationTest extends Octopus_App_TestCase {
 
 	function testEmpty() {
 
-		$p = new Octopus_Html_Pagination(
+		$p = new Octopus_Html_Pager(
 			array(
 				'pageSize' => 10
 			)
@@ -36,7 +36,7 @@ END
 
 	function testSinglePage() {
 
-		$p = new Octopus_Html_Pagination(array('pageSize' => 10));
+		$p = new Octopus_Html_Pager(array('pageSize' => 10));
 
 		$testData =
 			array(
@@ -67,7 +67,7 @@ END
 
 	function testMultiPageNav() {
 
-		$p = new Octopus_Html_Pagination(array('pageSize' => 5));
+		$p = new Octopus_Html_Pager(array('pageSize' => 5));
 
 		$testData =
 			array(
@@ -112,7 +112,7 @@ END
 
 	function testChangePageSize() {
 
-		$p = new Octopus_Html_Pagination(array('pageSize' => 5));
+		$p = new Octopus_Html_Pager(array('pageSize' => 5));
 
 		$testData =
 			array(
@@ -157,7 +157,7 @@ END
 
 		$_GET['page'] = 2;
 
-		$p = new Octopus_Html_Pagination(array('pageSize' => 5));
+		$p = new Octopus_Html_Pager(array('pageSize' => 5));
 		$this->assertEquals(0, $p->getCurrentPage(), '0 initially');
 
 		$testData =
@@ -188,7 +188,7 @@ END
 
 	function testGetPageNumbers() {
 
-		$p = new Octopus_Html_Pagination(array('pageSize' => 1));
+		$p = new Octopus_Html_Pager(array('pageSize' => 1));
 
 		$data = array();
 		for($i = 0; $i < 1000; $i++) {
@@ -282,7 +282,7 @@ END
 			$data[] = array('id' => $i, 'name' => 'foo');
 		}
 
-		$p = new Octopus_Html_Pagination();
+		$p = new Octopus_Html_Pager();
 		$p->setDataSource($data);
 
 		$this->assertHtmlEquals(
@@ -315,7 +315,7 @@ END
 			$data[] = array('id' => $i, 'name' => 'foo');
 		}
 
-		$p = new Octopus_Html_Pagination();
+		$p = new Octopus_Html_Pager();
 		$p->setPageSize(1);
 		$p->setDataSource($data);
 

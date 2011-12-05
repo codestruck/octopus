@@ -145,6 +145,7 @@ class TableTest extends Octopus_App_TestCase {
         $_SESSION = array();
         $_GET = array();
         $_POST = array();
+        unset($_SERVER['REQUEST_URI']);
     }
 
     function donttestModifierFunctionIsOnModel() {
@@ -350,8 +351,6 @@ END
 
     function testInitSortFromQueryString() {
 
-        disable_dump_r();
-
         $db = $this->resetDatabase();
         $db->query("
             INSERT INTO html_table_persons (`name`, `age`)
@@ -380,8 +379,6 @@ END
         );
 
         $table->reset();
-
-        enable_dump_r();
 
         $_GET['sort'] = '!age,name';
         $table->setDataSource(HtmlTablePerson::all());

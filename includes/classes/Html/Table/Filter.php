@@ -101,6 +101,18 @@ abstract class Octopus_Html_Table_Filter {
         return $this->type;
     }
 
+    /**
+     * @return Boolean Whether this filter is empty (doesn't have a value and
+     * should not be used to filter data in a table).
+     */
+    public function isEmpty() {
+
+    	$val = $this->val();
+    	if ($val === null) return true;
+
+    	return trim($val) === '';
+    }
+
     public function createLabelElement() {
 
         if (!$this->label) {

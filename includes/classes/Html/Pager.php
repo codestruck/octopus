@@ -3,7 +3,7 @@
 /**
  *
  */
-class Octopus_Html_Pagination extends Octopus_Html_Element {
+class Octopus_Html_Pager extends Octopus_Html_Element {
 
     public static $defaults = array(
 

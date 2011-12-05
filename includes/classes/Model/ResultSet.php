@@ -1082,7 +1082,20 @@ END;
     }
 
     public function sort($col, $asc = true, $replace = true) {
-        return $this->sort($col, $asc);
+
+        if ($replace) {
+        	return $this->orderBy(array($col => $asc));
+        } else {
+			$newOrderBy = array($col => $asc);
+			if ($this->_orderBy) {
+				foreach($this->_orderBy as $c => $a) {
+					if (!isset($newOrderBy[$c])) {
+						$newOrderBy[$c] = $a;
+					}
+				}
+			}
+			return $this->orderBy($newOrderBy);
+        }
     }
 
     public function filter($field, $value) {
