@@ -16,8 +16,12 @@ class Octopus_Minify_Strategy_Alias extends Octopus_Minify_Strategy {
 	 * Creates a new aliaser that uses $findCallback to locate files physically
 	 * on the filesystem.
 	 */
-	public function __construct($findCallback) {
-		$this->finder = $findCallback;
+	public function __construct($findCallback = null) {
+		$this->finder = $findCallback ? $findCallback : array($this, 'defaultFindCallback');
+	}
+
+	public function defaultFindCallback($file) {
+		return $file;
 	}
 
 	/**
