@@ -93,15 +93,7 @@ class Octopus_Html_Page {
 
         }
 
-        $this->addJavascriptDir($this->options['ROOT_DIR'], 0);
-        $this->addJavascriptDir($this->options['SITE_DIR'], 0);
-        $this->addJavascriptDir($this->options['OCTOPUS_DIR'], PHP_INT_MAX);
-
-        $this->addCssDir($this->options['ROOT_DIR'], 0);
-        $this->addCssDir($this->options['SITE_DIR'], 0);
-        $this->addCssDir($this->options['OCTOPUS_DIR'], PHP_INT_MAX);
-
-        $this->setMeta('Content-type', 'text/html; charset=UTF-8');
+        $this->reset();
     }
 
     public function __call($name, $args) {
@@ -122,6 +114,38 @@ class Octopus_Html_Page {
 
     private static function counter() {
         return self::$counter++;
+    }
+
+    /**
+     * Resets this page to its original state. Removes everything that has
+     * been added to it.
+     */
+    public function reset() {
+
+    	$this->scriptDirs = array();
+    	$this->cssDirs = array();
+
+    	$this->css = array();
+    	$this->scripts = array();
+    	$this->vars = array();
+    	$this->meta = array();
+    	$this->links = array();
+
+    	$this->fullTitle = null;
+    	$this->title = null;
+    	$this->subtitles = array();
+    	$this->titleSeparator = ' | ';
+    	$this->breadcrumbs = array();
+
+        $this->addJavascriptDir($this->options['ROOT_DIR'], 0);
+        $this->addJavascriptDir($this->options['SITE_DIR'], 0);
+        $this->addJavascriptDir($this->options['OCTOPUS_DIR'], PHP_INT_MAX);
+
+        $this->addCssDir($this->options['ROOT_DIR'], 0);
+        $this->addCssDir($this->options['SITE_DIR'], 0);
+        $this->addCssDir($this->options['OCTOPUS_DIR'], PHP_INT_MAX);
+
+        $this->setMeta('Content-type', 'text/html; charset=UTF-8');
     }
 
     public function combineJavascript() {
@@ -760,6 +784,29 @@ class Octopus_Html_Page {
     }
 
     /**
+     * @return Array Directories to be searched for js files added via
+     * addJavascriptDir()
+     */
+    public function getJavascriptDirs() {
+    	$result = array();
+    	foreach($this->scriptDirs as $d) {
+    		$result[] = $d['path'];
+    	}
+    	return $result;
+    }
+
+    /**
+     * Removes a custom javascript directory added via addJavascriptDir().
+     */
+    public function removeJavascriptDir($dir) {
+    	foreach($this->scriptDirs as $index => $scriptDir) {
+    		if ($scriptDir['path'] == $dir) {
+    			unset($this->scriptDirs[$index]);
+    		}
+    	}
+    }
+
+    /**
      * Looks through all the directories registered with addCssDir() for $file.
      * @param String $file File to locate.
      * @return Mixed The full physical path to $file if found, otherwise
@@ -1054,6 +1101,29 @@ class Octopus_Html_Page {
 	    usort($this->cssDirs, array('Octopus_Html_Page', 'compareWeights'));
 
 	    return $this;
+    }
+
+    /**
+     * @return Array Directories to be searched for CSS files added via
+     * addCssDir()
+     */
+    public function getCssDirs() {
+    	$result = array();
+    	foreach($this->cssDirs as $d) {
+    		$result[] = $d['path'];
+    	}
+    	return $result;
+    }
+
+	/**
+     * Removes a custom css directory added via addCssDir().
+     */
+    public function removeCssDir($dir) {
+    	foreach($this->cssDirs as $index => $cssDir) {
+    		if ($cssDir['path'] == $dir) {
+    			unset($this->cssDirs[$index]);
+    		}
+    	}
     }
 
     /**
