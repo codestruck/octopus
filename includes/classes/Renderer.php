@@ -344,11 +344,11 @@ class Octopus_Renderer {
         $app = $request->getApp();
 
         $searchDirs = array(
-            $app->getSetting('SITE_DIR') . 'views/',
-            $app->getSetting('OCTOPUS_DIR') . 'views/'
+            $app->SITE_DIR . 'views/',
+            $app->OCTOPUS_DIR . 'views/'
         );
 
-        $extensions = $app->getSetting('view_extensions');
+        $extensions = $app->view_extensions;
 
         $result = array();
 
