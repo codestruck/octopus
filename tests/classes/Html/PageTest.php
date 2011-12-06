@@ -2,6 +2,26 @@
 
 class PageTest extends Octopus_App_TestCase {
 
+	function testAddScriptOverridesExisting() {
+
+		$page = new Octopus_Html_Page();
+		$page->addJavascript('/some/script.js');
+		$page->addJavascript('/some/script.js', 200);
+
+		$this->assertEquals(
+			array(
+				array(
+					'file' => '/some/script.js',
+					'attributes' => array(),
+					'section' => '',
+					'weight' => 200
+			)),
+			$this->unsetIndexes($page->getJavascriptFiles())
+		);
+
+	}
+
+
 	function testAddScriptDir() {
 
 		$dir = $this->getSiteDir() . to_slug(__METHOD__);
