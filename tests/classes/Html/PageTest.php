@@ -2,6 +2,25 @@
 
 class PageTest extends Octopus_App_TestCase {
 
+	function testNoScriptWeightDoesNotOverrideExisting() {
+
+		$page = new Octopus_Html_Page();
+		$page->addJavascript('/some/script.js', 200);
+		$page->addJavascript('/some/script.js');
+
+		$this->assertEquals(
+			array(
+				array(
+					'file' => '/some/script.js',
+					'attributes' => array(),
+					'section' => '',
+					'weight' => 200
+			)),
+			$this->unsetIndexes($page->getJavascriptFiles())
+		);
+
+	}
+
 	function testAddScriptOverridesExisting() {
 
 		$page = new Octopus_Html_Page();

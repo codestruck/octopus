@@ -749,10 +749,6 @@ class Octopus_Html_Page {
             $section = '';
         }
 
-        if (!$weight) {
-            $weight = 0;
-        }
-
         // index is used to help sort items with the same weight - items added
         // first get sorted before those added later
         $index = self::counter();
@@ -761,8 +757,22 @@ class Octopus_Html_Page {
             $file = false;
             $this->scripts[] = compact('file', 'content', 'attributes', 'section', 'weight', 'index');
         } else {
+
         	$file = trim($content);
-            $this->scripts[$file] = compact('file', 'attributes', 'section', 'weight', 'index');
+
+        	if (isset($this->scripts[$file])) {
+
+        		// Selectively overwrite stuff
+        		$js =& $this->scripts[$file];
+        		$js['attributes'] = array_merge($js['attributes'], $attributes);
+        		$js['section'] = $section ? $section : $js['section'];
+        		$js['weight'] = $weight === null ? $js['weight'] : $weight;
+
+
+        	} else {
+        		if (!$weight) $weight = 0;
+	            $this->scripts[$file] = compact('file', 'attributes', 'section', 'weight', 'index');
+	        }
         }
 
         return $this;
