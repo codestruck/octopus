@@ -47,21 +47,16 @@ class Octopus_Html_Table_Filter_Select extends Octopus_Html_Table_Filter {
 
     }
 
-    protected function applyToResultSet($resultSet) {
-        $val = $this->val();
-        if ($val || $val === 0) {
-            return $resultSet->where(array($this->id => $val));
-        } else {
-            return $resultSet;
-        }
-    }
-
     protected function createElement() {
 
         $attribs = isset($this->options['attributes']) ? $this->options['attributes'] : null;
 
         $el = Octopus_Html_Form_Field::create('select', $this->id, $attribs);
         $el->name = $this->id;
+
+        if (isset($this->options['options'])) {
+        	$el->addOptions($this->options['options']);
+        }
 
         $this->emptyOption = new Octopus_Html_Element('option', array('value' => ''), 'Choose One');
         $el->prepend($this->emptyOption);
@@ -76,13 +71,6 @@ class Octopus_Html_Table_Filter_Select extends Octopus_Html_Table_Filter {
             // Allow passing just the options in
             $htmlOptions = $options;
             $options = array('options' => $htmlOptions);
-        }
-
-
-        if (isset($options['options'])) {
-            if (!isset($options['attributes'])) $options['attributes'] = array();
-            $options['attributes']['options'] = $options['options'];
-            unset($options['options']);
         }
 
         $options = parent::initializeOptions($options);

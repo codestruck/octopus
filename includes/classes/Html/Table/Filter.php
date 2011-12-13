@@ -186,7 +186,7 @@ abstract class Octopus_Html_Table_Filter {
 
     protected function &initializeOptions(&$options) {
 
-        if (is_string($options)) {
+        if (is_callable($options)) {
             // Allow passing just a function
             $options = array('function' => $options);
         }
