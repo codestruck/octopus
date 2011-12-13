@@ -191,7 +191,7 @@ abstract class Octopus_Model_Field {
             return $value;
         } else if (method_exists($model, $func)) {
             return $model->$func($model, $value);
-        } else if (function_exists($func)) {
+        } else if (is_callable($func)) {
             return call_user_func($func, $model, $value);
         }
     }
