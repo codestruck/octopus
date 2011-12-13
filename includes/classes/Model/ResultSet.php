@@ -199,7 +199,11 @@ END;
             foreach($fields as $f) {
                 $value = $d[$f->getFieldName()];
                 if (is_object($value)) {
-                    $value = '[Object]';
+                	try {
+                    	$value = trim($value->__toString());
+                    } catch (Exception $ex) {
+                    	$value = "<Exception during __toString: $ex>";
+                    }
                 }
                 $html .=
                     '<td>' .
