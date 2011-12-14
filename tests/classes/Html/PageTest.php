@@ -2,6 +2,53 @@
 
 class PageTest extends Octopus_App_TestCase {
 
+	function testTitleHtmlEscaped() {
+
+		$page = new Octopus_Html_Page();
+		$page->setTitle('< this should be escaped & stuff >');
+
+		$this->assertHtmlEquals(
+			<<<END
+<title>&lt; this should be escaped &amp; stuff &gt;</title>
+END
+			,
+			$page->renderTitle(true)
+		);
+
+	}
+
+	function testFullTitleHtmlEscaped() {
+
+		$page = new Octopus_Html_Page();
+		$page->setFullTitle('< this should be escaped & stuff >');
+
+		$this->assertHtmlEquals(
+			<<<END
+<title>&lt; this should be escaped &amp; stuff &gt;</title>
+END
+			,
+			$page->renderTitle(true)
+		);
+
+	}
+
+
+	function testBreadcrumbTitleStuffHtmlEscaped() {
+
+		$page = new Octopus_Html_Page();
+		$page->addBreadcrumb('/', '<Home>');
+		$page->setTitle('<Title>');
+
+		$this->assertHtmlEquals(
+			<<<END
+<title>&lt;Title&gt; | &lt;Home&gt;</title>
+END
+			,
+			$page->renderTitle(true)
+		);
+
+	}
+
     function testSetTitle() {
 
         $page = new Octopus_Html_Page();
