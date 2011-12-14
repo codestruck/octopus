@@ -5,14 +5,15 @@
  */
 class Octopus_Html_Table_Filter_Search extends Octopus_Html_Table_Filter_Text {
 
-    protected function applyToResultSet($resultSet) {
+    public function apply($dataSource, $table) {
 
         $val = $this->val();
+
         if (!$val) {
-            return $resultSet;
+            return;
         }
 
-        return $resultSet->matching($val);
+        return $dataSource->matching($val);
     }
 
     protected function createElement() {

@@ -456,7 +456,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         $ds = $this->_originalDataSource;
         foreach($this->_filters as $key => $filter) {
             if (isset($toApply[$key])) {
-	            $ds = $filter->apply($ds, $this);
+	            $filteredDS = $filter->apply($ds, $this);
+	            if ($filteredDS !== null) $ds = $filteredDS;
 	        }
         }
 
@@ -1315,7 +1316,7 @@ END;
 
         $html .= $this->renderFilters();
 
-        $html .= '<thead><tr>';
+        $html .= '<thead class="columns"><tr>';
 
         $th = new Octopus_Html_Element('th');
 

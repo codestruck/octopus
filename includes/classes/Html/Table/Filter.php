@@ -14,28 +14,12 @@ abstract class Octopus_Html_Table_Filter {
         'attributes' => array(),
 
         /**
-         * Function used to actually filter results. Receives 2 arguments:
-         * the filter text and the datasource being filtered.
+         * Function used to actually filter results. Receives 3 arguments:
+         * the Octopus_Html_Table_Filter object, the datasource being filtered,
+         * and the Octopus_Html_Table the filter is a part of. Should return
+         * the filtered datasource, or null to not filter.
          */
         'function' => null,
-
-        /**
-         * Function to apply if the data source is a result set. If not
-         * specified, the 'function' key is used instead.
-         */
-        'function_resultset' => null,
-
-        /**
-         * Function to apply if the data source is an array. If not
-         * specified, the 'function' key is used instead.
-         */
-        'function_array' => null,
-
-        /**
-         * Function to apply if the data source is a sql string. If not
-         * specified, the 'function' key is used instead.
-         */
-        'function_sql' => null,
 
     );
 
@@ -69,27 +53,18 @@ abstract class Octopus_Html_Table_Filter {
      * Executes this filter against the given data source.
      * @param Mixed $dataSource Data source being displayed
      * @param Octopus_Html_Table $table The table being filtered.
-     * @return Mixed A filtered data source, or $dataSource if it doesn't need
-     * to be filtered.
+     * @return Mixed A filtered data source, or null if it doesn't need to be
+     * filtered.
      */
     public function apply($dataSource, $table) {
 
-        if (class_exists('Octopus_Model_ResultSet') && $dataSource instanceof Octopus_Model_ResultSet) {
-            return $this->applyToResultSet($dataSource);
-        } else if (is_array($dataSource)) {
-            return $this->applyToArray($dataSource);
-        } else if (is_string($dataSource)) {
-            return $this->applyToSql($dataSource);
-        } else if ($dataSource) {
-            throw new Octopus_Exception('Unsupported dataSource: ' . $dataSource);
-        } else {
-            return $dataSource;
-        }
+    	if (is_callable($this->options['function'])) {
+    		return call_user_func($this->options['function'], $this, $dataSource, $table);
+    	}
 
-    }
-
-    protected function callFunction($func, &$data) {
-        return call_user_func($func, $this, $data);
+    	if (class_exists('Octopus_Model_ResultSet') && $dataSource instanceof Octopus_Model_ResultSet) {
+    		return $dataSource->where($this->id, $this->val());
+    	}
     }
 
     /**
@@ -130,52 +105,6 @@ abstract class Octopus_Html_Table_Filter {
         }
 
         return new Octopus_Html_Element('label', array('class' => 'filterLabel', 'for' => $this->element->id), $this->label);
-    }
-
-    /**
-     * Executes this filter against a result set.
-     */
-    protected function applyToResultSet($resultSet) {
-
-        if (isset($this->options['function_resultset'])) {
-            return $this->callFunction($this->options['function_resultset'], $resultSet);
-        } else if (isset($this->options['function'])) {
-            return $this->callFunction($this->options['function'], $resultSet);
-        }
-
-        return $this->defaultApplyToResultSet($resultSet);
-    }
-
-    protected function defaultApplyToResultSet($resultSet) {
-        return $resultSet->where($this->id, $this->val());
-    }
-
-    /**
-     * Executes this filter against an array.
-     */
-    protected function &applyToArray(&$ar) {
-
-        if (isset($this->options['function_array'])) {
-            return $this->callFunction($this->options['function_array'], $array);
-        } else if (isset($this->options['function'])) {
-            return $this->callFunction($this->options['function'], $array);
-        }
-
-        throw new Octopus_Exception("applyToArray is not implemented, and neither the 'function' or 'function_array' options contain a callable function.");
-    }
-
-    /**
-     * Executes this filter against raw SQL.
-     */
-    protected function applyToSql($sql) {
-
-        if (isset($this->options['function_sql'])) {
-            return $this->callFunction($this->options['function_sql'], $sql);
-        } else if (isset($this->options['function'])) {
-            return $this->callFunction($this->options['function'], $sql);
-        }
-
-        throw new Octopus_Exception("applyToSql is not implemented, and neither the 'function' or 'function_sql' options contain a callable function.");
     }
 
     /**
