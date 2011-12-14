@@ -188,6 +188,11 @@ class Octopus_Renderer {
             // Extra tags and metadata
             $result['HEAD_CONTENT'] = $p->renderHead(true, false);
             $result['HEAD'] = "<head>{$result['HEAD_CONTENT']}</head>";
+
+            $result['TITLE'] = $p->getTitle();
+            $result['FULL_TITLE'] = $p->getFullTitle();
+
+            $result['PAGE'] = $p;
         }
 
         $result['DEV'] = $this->app->DEV;
