@@ -343,6 +343,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     public function getFilter($id) {
+    	$this->initFromEnvironment();
         return isset($this->_filters[$id]) ? $this->_filters[$id] : null;
     }
 
