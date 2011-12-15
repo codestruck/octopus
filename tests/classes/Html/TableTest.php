@@ -627,6 +627,67 @@ END;
 
     }
 
+    function testFilterResultSetHook() {
+
+		$db = $this->resetDatabase();
+        $db->query("
+            INSERT INTO html_table_persons (`name`, `age`)
+                VALUES
+                    ('Joe Blow', 50),
+                    ('Jane Blow', 50),
+                    ('John Smith', 99)
+        ");
+
+
+        $table = new Octopus_Html_Table('selectFilter', array('pager' => false, 'redirectCallback' => false));
+        $table->addColumn('name');
+        $table->addColumn('age');
+
+        $table->addFilter(
+	        'select',
+	        'sex',
+	        array(
+	        	'options' => array('M' => 'Male', 'F' => 'Female'),
+		        'function' => array(__CLASS__, 'filter_testFilterResultSetHook')
+		    )
+	    );
+
+        $table->setDataSource(HtmlTablePerson::all());
+
+        $table->filter(array('sex' => 'M'));
+
+        $this->assertEquals(
+            array(
+                array('Name', 'Age'),
+                array('Joe Blow', 50),
+                array('John Smith', 99)
+            ),
+            $table->toArray()
+        );
+
+    }
+
+    public static function filter_testFilterResultSetHook($filter, $resultSet) {
+
+    	if ($filter->val() == 'M') {
+
+	    	return $resultSet->where(array(
+	    		array('name LIKE' => 'Joe*'),
+	    		'OR',
+	    		array('name LIKE' => 'John*'),
+		    ));
+
+		} else if ($filter->val() == 'F') {
+
+			return $resultSet->where(array(
+	    		array('name LIKE' => 'Jane%'),
+		    ));
+		} else {
+			return $resultSet;
+		}
+
+    }
+
     function testSelectFilter() {
 
         $db = $this->resetDatabase();

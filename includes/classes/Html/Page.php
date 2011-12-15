@@ -1425,7 +1425,7 @@ END;
 
     public function renderTitle($return = false) {
 
-        $html = '<title>' . $this->getFullTitle() . '</title>';
+        $html = '<title>' . h($this->getFullTitle()) . '</title>';
 
         if ($return) {
             return $html;
