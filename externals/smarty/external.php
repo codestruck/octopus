@@ -123,7 +123,7 @@ class Octopus_Smarty {
      */
     public function render($templateFile, $data = array()) {
     	$template = $this->createTemplate($templateFile, $data);
-    	return $tpl->fetch();
+    	return $template->fetch();
     }
 
     /**
