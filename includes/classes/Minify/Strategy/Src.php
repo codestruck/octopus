@@ -8,63 +8,53 @@
 class Octopus_Minify_Strategy_Src extends Octopus_Minify_Strategy {
 
 
-    public function getMinifiedUrls($urls, $options = array()) {
+	public function minify($files, $options = array()) {
 
-        $result = array();
-        $dirs = $this->getDirectoriesToSearch($options);
+		$result = array();
 
-        foreach($urls as $url) {
+		foreach($files as $file) {
 
-            if (!$this->looksLikeLocalFile($url)) {
-                continue;
-            }
+			if (!$this->looksLikeLocalFile($file)) {
+				continue;
+			}
 
-            foreach($dirs as $dir) {
+			$minifiedFile = $this->getMinifiedFile($file);
 
-                $file = $dir . ltrim($url, '/');
-                $minifiedFile = $this->getMinifiedFile($file);
+			if ($minifiedFile) {
+				$result[$minifiedFile] = array($file);
+			}
+		}
 
-                if ($minifiedFile) {
-                    $minifiedUrl = $this->getUrlForFile($minifiedFile);
-                    $result[$minifiedUrl] = array($url);
-                    break;
-                }
+		return $result;
+	}
 
-            }
-        }
+	private function getMinifiedFile($file) {
 
-        return $result;
-    }
+		$info = pathinfo($file);
+		$info['filename'] = preg_replace('/_src$/i', '', $info['filename']);
+		$info['extension'] = empty($info['extension']) ? '' : '.' . $info['extension'];
 
-    private function getMinifiedFile($file) {
+		$file = "{$info['dirname']}/{$info['filename']}{$info['extension']}";
+		$src =  "{$info['dirname']}/{$info['filename']}_src{$info['extension']}";
 
-        $info = pathinfo($file);
-        $info['filename'] = preg_replace('/_src$/i', '', $info['filename']);
-        $info['extension'] = empty($info['extension']) ? '' : '.' . $info['extension'];
+		$fileExists = is_file($file);
+		$srcExists = is_file($src);
 
-        $file = "{$info['dirname']}/{$info['filename']}{$info['extension']}";
-        $src =  "{$info['dirname']}/{$info['filename']}_src{$info['extension']}";
+		if ($fileExists && $srcExists) {
 
-        $fileExists = is_file($file);
-        $srcExists = is_file($src);
+			$fileTime = filemtime($file);
+			$srcTime = filemtime($src);
 
-        if ($fileExists && $srcExists) {
+			return ($srcTime >= $fileTime ? $src : $file);
 
-            $fileTime = filemtime($file);
-            $srcTime = filemtime($src);
-
-            return ($srcTime >= $fileTime ? $src : $file);
-
-        } else if ($fileExists) {
-            return $file;
-        } else if ($srcExists) {
-            return $src;
-        } else {
-            return false;
-        }
-    }
-
-
+		} else if ($fileExists) {
+			return $file;
+		} else if ($srcExists) {
+			return $src;
+		} else {
+			return false;
+		}
+	}
 
 }
 

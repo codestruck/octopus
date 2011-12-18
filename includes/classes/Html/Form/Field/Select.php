@@ -57,7 +57,7 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
 
         foreach($args as $options) {
 
-            if (empty($options)) {
+            if (is_array($options) && !count($options)) {
                 continue;
             }
 
@@ -309,6 +309,10 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
      * @param $newValue mixed The value / values to select.
      */
     protected function setSelectedValue($newValue) {
+
+    	if ($newValue instanceof Octopus_Model_ResultSet) {
+    		$newValue = $newValue->map('id');
+    	}
 
         $values = is_array($newValue) ? $newValue : array($newValue);
         $multiple = $this->isMultipleSelect();

@@ -14,3 +14,7 @@ site.theme.*:
 
 site.default_password_length:
   default: 12
+
+site.min_password_length:
+    desc: Minimum number of characters required for passwords.
+    default: 4

@@ -299,7 +299,7 @@ END;
     	$expected = <<<END
 <img src="$fileUrl?[MTIME]" width="10" height="5" />
 <img src="$fileUrl?[MTIME]" width="100" height="75" />
-<img src="/cache/smarty_image/[MTIME]_[MD5]_r_10x5_.{$info['extension']}?[MTIME]" width="6" height="5" />
+<img src="/cache/smarty_image/[MTIME]_[MD5]_r_10x5_.{$info['extension']}" width="6" height="5" />
 END;
 
     	$this->assertSmartyEquals($expected, $test, '', true, true);
@@ -319,23 +319,33 @@ END;
 
     	// NOTE: Octopus_Image_Mode_Resize does not let you resize something w/ a different
     	// aspect ratio, so resizing a 100x75 image to 10x5 results in a 6x5 image.
-
+    	clearstatcache();
     	$mtime = filemtime($file);
     	$expected = <<<END
-<img src="/cache/smarty_image/{$mtime}_[MD5]_r_10x5_.{$info['extension']}?$mtime" width="6" height="5" />
+<img src="/cache/smarty_image/{$mtime}_[MD5]_r_10x5_.{$info['extension']}" width="6" height="5" />
 END;
 
     	$this->assertSmartyEquals($expected, $test, '', true);
 
+    	$md5 = md5($file);
+    	$resizedMTime = filemtime($this->getCacheDir() . "smarty_image/{$mtime}_{$md5}_r_10x5_.{$info['extension']}");
+    	$this->assertTrue(!!$resizedMTime, 'get mtime of cache file');
+
     	sleep(2);
+    	clearstatcache();
 
     	$this->assertSmartyEquals($expected, $test, '', true);
 
-    	touch($file);
+    	$this->assertEquals($resizedMTime, filemtime($this->getCacheDir() . "smarty_image/{$mtime}_{$md5}_r_10x5_.{$info['extension']}"), 'mtime on cache file not changed');
 
+    	sleep(2);
+
+    	touch($file);
+    	clearstatcache();
     	$mtime = filemtime($file);
+
     	$expected = <<<END
-<img src="/cache/smarty_image/{$mtime}_[MD5]_r_10x5_.{$info['extension']}?$mtime" width="6" height="5" />
+<img src="/cache/smarty_image/{$mtime}_[MD5]_r_10x5_.{$info['extension']}" width="6" height="5" />
 END;
 
     	$this->assertSmartyEquals($expected, $test, '', true);
@@ -359,7 +369,7 @@ END;
     	$expected = <<<END
 <img src="$fileUrl?[MTIME]" width="10" height="5" />
 <img src="$fileUrl?[MTIME]" width="100" height="75" />
-<img src="/cache/smarty_image/[MTIME]_[MD5]_c_10x5_.{$info['extension']}?[MTIME]" width="10" height="5" />
+<img src="/cache/smarty_image/[MTIME]_[MD5]_c_10x5_.{$info['extension']}" width="10" height="5" />
 END;
 
     	$this->assertSmartyEquals($expected, $test, '', true, true);
@@ -387,7 +397,7 @@ END;
     		$expected = <<<END
 <img src="$fileUrl?[MTIME]" width="10" height="5" />
 <img src="$fileUrl?[MTIME]" width="100" height="75" />
-<img src="/cache/smarty_image/[MTIME]_[MD5]_{$actionFileName}_10x5_.{$info['extension']}?[MTIME]" width="10" height="5" />
+<img src="/cache/smarty_image/[MTIME]_[MD5]_{$actionFileName}_10x5_.{$info['extension']}" width="10" height="5" />
 END;
 
     		$this->assertSmartyEquals($expected, $test, '', true, true);
@@ -419,7 +429,7 @@ END;
     		$expected = <<<END
 <img src="$fileUrl?[MTIME]" width="10" height="5" />
 <img src="$fileUrl?[MTIME]" width="100" height="75" />
-<img src="/cache/smarty_image/[MTIME]_[MD5]_{$actionFileName}_10x5_.{$info['extension']}?[MTIME]" width="6" height="5" />
+<img src="/cache/smarty_image/[MTIME]_[MD5]_{$actionFileName}_10x5_.{$info['extension']}" width="6" height="5" />
 END;
 
     		$this->assertSmartyEquals($expected, $test, '', true, true);
@@ -475,7 +485,7 @@ END;
 
     	$expected = <<<END
 <img src="$fileUrl?[MTIME]" width="100" height="75" />
-<img src="/cache/smarty_image/[MTIME]_[MD5]_r_10x5_.{$info['extension']}?[MTIME]" width="6" height="5" />
+<img src="/cache/smarty_image/[MTIME]_[MD5]_r_10x5_.{$info['extension']}" width="6" height="5" />
 END;
 
     	$this->assertSmartyEquals($expected, $test, '', true, true);
@@ -552,7 +562,7 @@ END;
 {image file="$file" width="50" height="10" constrain="$constrain" resize="true"}
 END;
     		$expected = <<<END
-<img src="/cache/smarty_image/[MTIME]_[MD5]_r_50x10_{$constrainFileName}.{$info['extension']}?[MTIME]" width="{$dims['width']}" height="{$dims['height']}" />
+<img src="/cache/smarty_image/[MTIME]_[MD5]_r_50x10_{$constrainFileName}.{$info['extension']}" width="{$dims['width']}" height="{$dims['height']}" />
 END;
 
     		$this->assertSmartyEquals($expected, $test, "constrain: $constrain", true, true);
@@ -578,7 +588,7 @@ END;
 		$test = "{image file=\"$remoteImage\" width=100 action=resize}";
 
 		$expected = <<<END
-<img src="/cache/smarty_image/[MTIME]_[MD5]_r_100x35_.png?[MTIME]" width="101" height="35" />
+<img src="/cache/smarty_image/[MTIME]_[MD5]_r_100x35_.png" width="101" height="35" />
 END;
 
 		$this->assertSmartyEquals($expected, $test, 'remote image resize', true, true);

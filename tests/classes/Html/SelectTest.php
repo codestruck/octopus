@@ -2,6 +2,20 @@
 
 class SelectTest extends Octopus_Html_TestCase {
 
+	function testOptionsMultipleArgs() {
+
+		$form = new Octopus_Html_Form('select');
+		$sel = $form->add('select', 'foo');
+
+		$sel->addOptions('', 'One', 'Two', 'Three');
+
+		$this->assertEquals(
+			array('', 'One', 'Two', 'Three'),
+			array_keys($sel->getOptions())
+		);
+
+	}
+
     function testAddToForm() {
 
         $form = new Octopus_Html_Form('select');

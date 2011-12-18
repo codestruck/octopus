@@ -63,6 +63,10 @@
         return $page->setFullTitle($fullTitle);
     }
 
+    function add_breadcrumb($url, $text) {
+    	$page = Octopus_Html_Page::singleton();
+    	$page->addBreadcrumb($url, $text);
+    }
 
 
     /**

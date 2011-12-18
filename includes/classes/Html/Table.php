@@ -86,9 +86,15 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         'pager' => 'default',
 
         /**
+         * A function to generate the text for the pager location block.
+         * Receives 3 arguments: current page, page count, and the table.
+         */
+        'pagerLocationTextCallback' => null,
+
+        /**
          * # of records per page.
          */
-        'pageSize' => 4,
+        'pageSize' => 20,
 
         /**
          * Pages to show around the current one.
@@ -143,20 +149,19 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
     private $_options;
 
+    private $_columns = array();
+
     // Original data source passed to setDataSource()
-    private $_dataSource = null;
+    private $_originalDataSource = null;
+
+    private $_sorting = array();
+    private $_filters = array(); // Octopus_Html_Table_Filter objects, keyed on ID
+    private $_page = 1;
 
     private $_pager = null;
-    private $_pagerInitialized = false;
+    private $_resetPager = false;
 
-    private $_shouldInitFromEnvironment = true;
-
-    private $_columns = array();
-    private $_sortColumns = array();
-
-    private $_filters = array(); // Octopus_Html_Table_Filter objects, keyed on ID
-    private $_filterValues = array(); // Actual values passed to filter()
-
+    private $_sessionKeys = array();
     private $_queryString = null;
 
     public function __construct($id, $options = array()) {
@@ -174,6 +179,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
         $this->_options = array_merge(self::$defaultOptions, $options);
         $this->_pager = new Octopus_Html_Pager($this->_options);
+
+        $this->initFromEnvironment();
     }
 
     /**
@@ -196,8 +203,14 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
         $this->_columns[$column->id] = $column;
 
-        return $column;
+        // Ensure that, as we add columns, they get sorting state data applied to them
+        $this->applySortingToColumns();
 
+        $this->rememberState('sorting');
+
+        $this->invalidate();
+
+        return $column;
     }
 
     protected function createColumn($id, $title, $function, $options) {
@@ -275,7 +288,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     /**
      * Adds one or more columns to this table.
      */
-    function addColumns(/* polymorphic */) {
+    public function addColumns(/* polymorphic */) {
 
         $args = func_get_args();
         foreach($args as $arg) {
@@ -316,15 +329,48 @@ class Octopus_Html_Table extends Octopus_Html_Element {
             $filter = Octopus_Html_Table_Filter::create($type, $id, $label, $options);
         }
 
-        if ($filter) {
-            $this->_filters[$filter->id] = $filter;
+        if (!$filter) {
+        	return;
         }
+
+        if (isset($this->_filters[$filter->id])) {
+        	$filter->val($this->_filters[$filter->id]);
+        }
+
+        $this->_filters[$filter->id] = $filter;
+
+        $this->rememberState();
+
+        // This new filter might correspond to a value previously passed to
+        // filter(), so ensure data is requeried.
+        $this->invalidate();
 
         return $filter;
     }
 
+    /**
+     * Removes a filter from this table.
+     */
+    public function removeFilter($id) {
+
+    	if (isset($this->_filters[$id])) {
+
+    		unset($this->_filters[$id]);
+    		$this->rememberState();
+    		$this->invalidate();
+
+    	}
+
+    	return $this;
+
+    }
+
+    /**
+     * @return Mixed Either an Octopus_Html_Table_Filter or false if none is
+     * found.
+     */
     public function getFilter($id) {
-        return isset($this->_filters[$id]) ? $this->_filters[$id] : null;
+        return isset($this->_filters[$id]) ? $this->_filters[$id] : false;
     }
 
     /**
@@ -341,6 +387,21 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         return $this->_columns;
     }
 
+    /**
+     * Removes the column with the given ID from this table.
+     */
+    public function removeColumn($id) {
+
+    	unset($this->_columns[$id]);
+
+    	$this->rememberState();
+
+    	$this->invalidate();
+
+    	return $this;
+
+    }
+
     public function getPageSize() {
     	$p = $this->getPager();
     	return $p->getPageSize();
@@ -354,16 +415,18 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
     public function getPage() {
     	$p = $this->getPager();
-    	return $p->getCurrentPage();
+    	return $p->getPage();
     }
 
     public function setPage($page) {
 
     	$p = $this->getPager();
 
-    	$p->setCurrentPage($page);
+    	// NOTE: pager tracks page # even between datasource changes, so it is
+    	// safe to rely on it to keep track of the table's page #.
+    	$p->setPage($page);
+
         $this->rememberState();
-        $this->dontInitFromEnvironment();
 
         return $this;
     }
@@ -373,9 +436,13 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      */
     public function getPager() {
 
-    	$this->initFromEnvironment();
+    	if (!$this->_resetPager) {
+    		return $this->_pager;
+    	}
 
-    	return $this->_pager;
+    	// The pager's datasource needs to be rebuilt
+    	return $this->_pager->setDataSource($this->getFilteredAndSortedDataSource());
+
     }
 
     public function getPageCount() {
@@ -409,10 +476,6 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      */
     public function filter() {
 
-    	// Ensure that any filters from the querystring or session are applied
-    	// before we add any more
-        $this->initFromEnvironment();
-
         $args = func_get_args();
 
         // let $table->filter(false) == $table->unfilter()
@@ -420,6 +483,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
             return $this->unfilter();
         }
 
+        $values = array();
         $filterID = null;
 
         foreach($args as $arg) {
@@ -430,7 +494,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
                 } else {
 
                 	if ($arg !== null) {
-                    	$this->_filterValues[$filterID] = $arg;
+                    	$values[$filterID] = $arg;
                     }
 
                     $filterID = null;
@@ -444,11 +508,16 @@ class Octopus_Html_Table extends Octopus_Html_Element {
             		continue;
             	}
 
-                $this->_filterValues[$id] = $value;
+                $this->values[$id] = $value;
             }
         }
 
-        $this->applyFilters();
+        foreach($values as $key => $value) {
+        	$filter = $this->getFilter($key);
+        	if ($filter) $filter->val($value);
+        }
+
+        $this->rememberState();
 
         return $this;
     }
@@ -461,9 +530,6 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         foreach($this->_filters as $filter) {
             $filter->clear();
         }
-
-        $this->dontInitFromEnvironment();
-        $this->invalidate();
 
         $this->rememberState();
 
@@ -496,8 +562,6 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     public function render($return = false) {
-
-        $this->initFromEnvironment();
 
         if ($this->isEmpty()) {
             $this->addClass($this->_options['emptyClass']);
@@ -536,13 +600,12 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         }
 
         $this->forgetState();
-
-        $this->_shouldInitFromEnvironment = true;
     }
 
     /**
      * @return Array An array of arrays where each member is a row in the table.
      * Items in each row array will contain the rendered content for that cell.
+     * The first row in the result will contain column headers.
      */
     public function &toArray() {
 
@@ -560,7 +623,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     public function isEmpty() {
-        return $this->count() == 0;
+        return !$this->count();
     }
 
     public function hasRows() {
@@ -576,14 +639,21 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     public function isSorted() {
-        $this->initFromEnvironment();
         return !!count($this->_sortColumns);
     }
 
     /**
      * @return Mixed The data being shown in the table.
+     * @deprecated Use getItems()
      */
     public function &getData() {
+    	return $this->getItems();
+    }
+
+    /**
+     * @return Mixed The actual data being shown in the table.
+     */
+    public function &getItems() {
     	$p = $this->getPager();
     	$items = $p->getItems();
     	return $items;
@@ -594,10 +664,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      * null if none is being displayed.
      */
     public function getDataSource() {
-
     	$p = $this->getPager();
     	return $p->getDataSource();
-
     }
 
     /**
@@ -606,12 +674,11 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      */
     public function setDataSource($dataSource) {
 
-    	$this->_pagerInitialized = true;
     	$p = $this->getPager();
 
     	$p->setDataSource($dataSource);
-    	$this->_dataSource = $p->getDataSource(); // Pager automatically converts e.g. arrays to DataSources
-    	$this->_pagerInitialized = false;
+    	$this->_originalDataSource = $p->getDataSource(); // Pager automatically converts e.g. arrays to DataSources
+    	$this->invalidate();
 
         return $this;
     }
@@ -634,42 +701,23 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      * setDefaultSorting() rather than this method, because calling this will
      * override any sorting in the querystring (e.g., /whatever?sort=age gets
      * overwritten when you call sort('name')).
+     * @see setDefaultSorting
      */
     public function sort(/* lots of different ways */) {
 
-        $this->initFromEnvironment();
-
         $args = func_get_args();
-        $this->resolveSortColumnArgs($args, $newSortingArgs);
 
-        // $newSortingArgs is now an array in the form
-        // array( 'column id' => 'ASC' or 'DESC')
-
-        $this->_sortColumns = array();
-
-        foreach($newSortingArgs as $id => $dir) {
-
-            $col = $this->getColumn($id);
-
-            if ($col) {
-                $col->sort($dir);
-                $this->_sortColumns[] = $col;
-            }
+        // Let sort(false) == unsort()
+        if (count($args) === 1 && $args[0] === false) {
+        	return $this->unsort();
         }
 
-        $ds = $this->getDataSource();
+        $this->_sorting = $this->resolveSortColumnArgs($args, $newSortingArgs);
 
-        if ($ds) {
+        // $newSortingArgs is now an array in the form
+        // array( 'column id' => true or false)
 
-        	$ds = $ds->unsort();
-
-	        foreach(array_reverse($this->_sortColumns) as $col) {
-	        	$ds = $col->applySorting($ds);
-	        }
-
-	        $this->setDataSource($ds);
-
-	   	}
+        $this->applySortingToColumns();
 
         $this->rememberState();
 
@@ -677,9 +725,59 @@ class Octopus_Html_Table extends Octopus_Html_Element {
             $this->setPage(1);
         }
 
+        $this->invalidate();
+
         return $this;
     }
 
+    /**
+     * Removes any sorting applied to this table
+     */
+    public function unsort() {
+    	$this->_sorting = array();
+    	$this->applySorting();
+    	$this->rememberState();
+        if ($this->_options['resetPageOnSort']) {
+            $this->setPage(1);
+        }
+
+        $this->invalidate();
+
+        return $this;
+    }
+
+    /**
+     * Ensures that the state of individual column objects reflects the actual
+     * sorting state of the table.
+     */
+    private function applySortingToColumns() {
+
+    	$seen = array();
+
+    	foreach($this->_columns as $col) {
+    		$col->unsort();
+    	}
+
+    	foreach($this->_sorting as $id => $dir) {
+
+    		if (!isset($this->_columns[$id])) {
+    			continue;
+    		}
+
+    		$col = $this->_columns[$id];
+    		$col->sort($dir);
+    	}
+    }
+
+    /**
+     * Takes the mishmash of arguments passed to sort(), and returns an array
+     * in a the format:
+     *
+     *	array('column_id' => true, 'column_id' => false)
+     *
+     * Where true means sort ascending and false means sort descending.
+     *
+     */
     private function resolveSortColumnArgs($args, &$cols = null) {
 
         if ($cols === null) {
@@ -710,13 +808,36 @@ class Octopus_Html_Table extends Octopus_Html_Element {
                 $col = substr($col,1);
             }
 
-            $cols[$col] = $asc ? OCTOPUS_SORT_ASC : OCTOPUS_SORT_DESC;
+            $cols[$col] = !!$asc;
         }
 
+        return $cols;
     }
 
     private function debugging() {
         return !empty($this->_options['debug']);
+    }
+
+    /**
+     * Returns HTML for a div describing the current position in the table.
+     */
+    protected function renderLocationDiv() {
+
+    	$o =& $this->_options;
+        $p = $this->getPagerData();
+
+        $func = $o['pagerLocationTextCallback'];
+        if ($func && is_callable($func)) {
+        	$text = call_user_func($func, $p['currentPage'], $p['totalPages'], $this);
+        } else {
+        	$text = "Showing {$p['from']} to {$p['to']} of {$p['totalItems']}";
+        }
+
+        return <<<END
+            <div class="pagerLoc">
+            	$text
+            </div>
+END;
     }
 
     /**
@@ -752,15 +873,15 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      * Applies any filters set on this table to the table's data source. Then
      * sorts it.
      */
-    protected function applyFiltersAndSorting() {
+    protected function getFilteredAndSortedDataSource() {
 
-    	$ds = $this->getOriginalDataSource();
+    	$ds = $this->_originalDataSource;
 
     	if (!$ds) {
     		return;
     	}
 
-    	foreach($this->_filterValues as $id => $value) {
+    	foreach($this->_filters as $id => $value) {
 
             $filter = $this->getFilter($id);
             if (!$filter) continue;
@@ -770,45 +891,39 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
         }
 
-    	foreach(array_reverse($this->_sortColumns) as $col) {
+        foreach($this->_sorting as $id => $dir) {
 
-    		$ds = $col->applySorting($ds);
+        	if (!isset($this->_columns[$id])) {
+        		continue;
+        	}
 
-    	}
+        	$col = $this->_columns[$id];
+        	$ds = $col->applySorting($ds);
 
-        $this->updateDataSource($ds);
-    }
+        }
 
-    /**
-     * Replaces the current data source with $ds, optionally resetting the page
-     * as well.
-     */
-    protected function updateDataSource(Octopus_DataSource $ds, $resetPage = true) {
-
-    	$p = $this->getPager();
-    	$page = $p->getCurrentPage();
-    	$p->setDataSource($ds);
-
-    	if (!$resetPage) {
-	    	$p->setCurrentPage($page);
-	    }
-
+        return $ds;
     }
 
     /**
      * Writes the current state of the table to the session.
      */
-    protected function rememberState() {
+    protected function rememberState($what = null) {
 
-        if (!$this->_options['useSession']) {
-            return false;
+    	if (!$what || $what === 'sorting') {
+        	$sortingKey = $this->getSessionKey('sorting');
+        	if ($sortingKey) $_SESSION[$sortingKey] = $this->getSortString();
         }
 
-        $this->getSessionKeys($this->getRequestURI(false), $sort, $page, $filter);
+        if (!$what || $what === 'page') {
+        	$pageKey = $this->getSessionKey('page');
+        	if ($pageKey) $_SESSION[$pageKey] = $this->getPage();
+        }
 
-        $_SESSION[$sort] = self::buildSortString($this->_sortColumns);
-        $_SESSION[$page] = $this->getPage();
-        $_SESSION[$filter] = $this->internalGetFilterValues();
+        if (!$what || $what === 'filters') {
+        	$filtersKey = $this->getSessionKey('filters');
+        	if ($filtersKey) $_SESSION[$filtersKey] = $this->getFilterValues();
+        }
 
     }
 
@@ -817,135 +932,113 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      */
     protected function forgetState($what = null) {
 
-        $this->_queryString = null;
-        $this->getSessionKeys($this->getRequestURI(false), $sort, $page, $filter);
+    	if ($what === null) $what = array('sorting', 'page', 'filters');
+    	if (!is_array($what)) $what = array($what);
 
-        if ($what === null || $what == 'sort') unset($_SESSION[$sort]);
-        if ($what === null || $what == 'page') unset($_SESSION[$page]);
-        if ($what === null || $what == 'filter') unset($_SESSION[$filter]);
+    	foreach($what as $key) {
+    		$key = $this->getSessionKey($what);
+    		unset($_SESSION[$key]);
+    	}
+
     }
 
     /**
-     * @return String Comma-delimited string describing current sorting.
+     * @return String Comma-delimited string describing current sorting. Used
+     * to store the sorting in the querystring. Format of the string is:
+     *
+     *		col1,!col2,col3
+     *
+     * "!" means to invert sorting.
      */
-    private function buildSortString($sorting) {
+    protected function getSortString($sorting = null) {
 
         $result = '';
 
         $ds = $this->getDataSource();
+        if ($sorting === null) $sorting = $this->_sorting;
 
-        foreach($sorting as $key => $value) {
+        foreach($sorting as $id => $dir) {
 
-            if (is_string($key)) {
-                $col = $this->getColumn($key);
-                $asc = $value;
-            } else {
-                $col = $value;
-                $asc = $col->isSortedAsc($ds);
-            }
+        	if (!isset($this->_columns[$id])) {
+        		continue;
+        	}
 
-            if (!$col->isSortable($ds)) {
-                continue;
-            }
+        	$col = $this->_columns[$id];
 
-            if ($result) $result .= ',';
+        	if (!$col->isSortable($ds)) {
+        		continue;
+        	}
 
-            $result .= ($asc ? '' : '!') . $col->id;
+        	if ($result) $result .= ',';
+
+        	$result .= ($col->isSortedDesc($ds) ? '!' : '') . $col->id;
         }
 
         return $result;
     }
 
     /**
-     * @param mixed $source Array of values to scan for filter values (e.g.
-	 * $_GET). If null, the current state of the table's filters is used.
-     * @return Array Filter values, where keys are filter ids and values are
-     * the values being filtered.
-     */
-    protected function internalGetFilterValues($source = null) {
-
-        $values = array();
-
-        foreach($this->_filters as $f) {
-
-            if ($source !== null) {
-
-                if (isset($source[$f->id])) {
-                    $values[$f->id] = $source[$f->id];
-                }
-
-            } else if (!$f->isEmpty()) {
-
-				$values[$f->id] = $f->val();
-
-            }
-
-        }
-
-        return $values;
-    }
-
-    /**
      * @return Array An array where keys are filter ids and values are the
-     * values being used to filter on that id.
+     * values being used to filter on that id. The resulting array will only
+     * contain values for filters that have already been added via addFilter().
+     * @see addFilter
      */
     public function getFilterValues() {
-        $this->initFromEnvironment();
-        $values = $this->internalGetFilterValues();
+
+        $values = array();
+        foreach($this->_filters as $key => $value) {
+        	if (isset($this->_filters[$key])) {
+        		$values[$key] = $value;
+        	}
+        }
+
         return $values;
     }
 
     /**
      * @return String The URL to use to sort on the given column.
      */
-    protected function getSortingUrl($column) {
+    protected function getSortingUrl(Octopus_Html_Table_Column $column) {
 
-        $ds = $this->getDataSource();
-        if (!$column->isSortable($ds)) {
+        $dataSource = $this->getDataSource();
+
+        if (!$column->isSortable($dataSource)) {
             return '';
         }
 
         $newSorting = array($column->id => true);
-        $first = true;
 
+        foreach($this->_sorting as $id => $dir) {
 
-        foreach($this->_sortColumns as $col) {
+        	if (!isset($this->_columns[$id])) {
+        		continue;
+        	}
 
-            if (count($newSorting) >= $this->_options['maxSortColumns']) {
-                break;
-            }
+        	if ($id == $column->id) {
 
-            if ($column == $col) {
+        		if (count($newSorting) === 1) {
 
-                if ($first) {
+		            // Clicking on the thing that is already primarily sorted
+		            // inverts the sort order of that column.
+	        		$newSorting[$id] = !$newSorting[$id];
 
-                    // Clicking on the thing that is already primarily sorted
-                    // inverts the sort order of that column.
-                    $newSorting[$col->id] = !$col->isSortedAsc($ds);
+	        	}
 
-                }
+        	} else {
+        		$newSorting[$id] = $dir;
+        	}
 
-            } else {
-                $newSorting[$col->id] = $col->isSortedAsc($ds);
-            }
-
-            $first = false;
         }
 
         $qs = $this->getQueryString();
         $arg = $this->_options['sortArg'];
-
-        if (empty($newSorting)) {
-            unset($qs[$arg]);
-        } else {
-            $qs[$arg] = self::buildSortString($newSorting);
-        }
+        $qs[$arg] = $this->getSortString($newSorting);
 
         if ($this->_options['resetPageOnSort']) {
             unset($qs[$this->_options['pageArg']]);
         }
 
-        $qs = http_build_query($qs);
+        $qs = octopus_http_build_query($qs, '&');
 
         $url = $this->getRequestURI(false);
         if ($qs) $url .= '?' . $qs;
@@ -998,15 +1091,6 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         return $uri;
     }
 
-    public function getSessionKeys($uri, &$sort, &$page, &$filter) {
-
-        $base = 'octopus-table-' . substr(to_slug($uri), 0, 100) . '-' . $this->id . '-';
-
-        $sort = $base . 'sort';
-        $page = $base . 'page';
-        $filter = $base . 'filter';
-    }
-
     private function redirect($uri) {
 
         $callback = $this->_options['redirectCallback'];
@@ -1016,105 +1100,165 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         return true;
     }
 
-    private function dontInitFromEnvironment() {
-        $this->_shouldInitFromEnvironment = false;
+    /**
+     * If the table's current filters, sorting state, and page are not in the
+     * querystring of the current page, redirects the user to a new URL that
+     * includes all that information. This ensures that the state of the table
+     * is always bookmarkable. To disable this functionality, set the
+     * redirectCallback option to false.
+     */
+    protected function ensureQueryStringMatchesTableState() {
+
+    	if (empty($this->_options['redirectCallback'])) {
+    		return;
+    	}
+
+    	$sortArg = $this->_options['sortArg'];
+    	$pageArg = $this->_option['pageArg'];
+
+        $actual = $expected = $this->getQueryString();
+
+        $sorting = $this->getSortString();
+
+        if ($sorting) {
+            $expected[$sortArg] = $sort;
+        } else {
+            unset($expected[$sortArg]);
+        }
+
+        $page = $this->getPage();
+
+        if ($page && $page != 1) { // don't redirect to page=1
+            $expected[$pageArg] = $page;
+        } else {
+            unset($expected[$pageArg]);
+        }
+
+        $filterValues = $this->getFilterValues();
+
+        foreach($filterValues as $key => $val) {
+            $expected[$key] = $val;
+        }
+
+        ksort($expected);
+        ksort($actual);
+
+        if (array_diff_key($expected, $actual) || array_diff($expected, $actual)) {
+            $newUri = $uri;
+            $expected = http_build_query($expected);
+            if ($expected) $newUri .= '?' . $expected;
+            $this->redirect($newUri);
+        }
     }
 
     /**
      * Looks at external factors, like querystring args and session data,
      * and restores the table's state.
      */
-    private function initFromEnvironment() {
+    protected function initFromEnvironment() {
 
-        if (!$this->_shouldInitFromEnvironment) {
-            return;
-        }
-        $this->dontInitFromEnvironment();
+        $this->initFiltersFromEnvironment();
+        $this->initSortingFromEnvironment();
+        $this->initPageFromEnvironment();
 
-        print_backtrace();
+        $this->ensureQueryStringMatchesTableState();
+    }
 
-        $useSession = $this->_options['useSession'];
-        $sortArg = $this->_options['sortArg'];
-        $pageArg = $this->_options['pageArg'];
+    /**
+     * @return Mixed The key used to track $thing in $_SESSION, or false if
+     * you're not supposed to use the session.
+     */
+    protected function getSessionKey($thing) {
 
-        $uri = $this->getRequestURI(false);
+    	if (!$this->_options['useSession']) {
+    		return false;
+    	}
+
+    	$keys =& $this->_sessionKeys;
+
+    	if (isset($keys[$thing])) {
+    		return $keys[$thing];
+    	}
+
+    	if (!isset($keys['base'])) {
+    		$uri = $this->getRequestURI(false);
+    		$keys['base'] = 'octopus-table-' . substr(to_slug($uri), 0, 100) . '-' . $this->id . '-';
+    	}
+
+    	return ($keys[$thing] = $keys['base'] . $thing);
+    }
+
+    /**
+     * Uses the session and querystring to set initial filter values.
+     */
+    protected function initFiltersFromEnvironment() {
+
         $qs = $this->getQueryString();
-        $this->getSessionKeys($uri, $sessionSortKey, $sessionPageKey, $sessionFilterKey);
 
+ 		// First, check if the user has clicked the 'clear filters' link.
         $clearFiltersArg = $this->_options['clearFiltersArg'];
-        if (isset($qs[$clearFiltersArg]) && $qs[$clearFiltersArg]) {
+
+        if ($clearFiltersArg && !empty($qs[$clearFiltersArg])) {
 
             $this->clearFilters();
             unset($qs[$clearFiltersArg]);
 
             if ($this->_options['resetSortingOnClearFilters']) {
                 $this->sort(false);
+                $sortArg = $this->_options['sortArg'];
                 unset($qs[$sortArg]);
             }
 
-            $qs = http_build_query($qs);
-            if ($qs) $uri .= '?' . $qs;
-            $this->redirect($uri);
-            return;
+            return $this->reloadWithNewArgs($qs);
+
         }
 
-        $sort = null;
-        $page = null;
+        // Next, apply any filters in the querystring / session
+        $filterValues = array();
 
-        dump_r($sessionFilterKey, $_SESSION[$sessionFilterKey]);
-
-        $filterValues = $this->internalGetFilterValues($qs);
-        if (empty($filterValues) && isset($_SESSION[$sessionFilterKey])) {
-            $filterValues = $this->internalGetFilterValues($_SESSION[$sessionFilterKey]);
+        $sessionKey = $this->getSessionKey('filters');
+        if ($sessionKey && isset($_SESSION[$sessionKey]) && is_array($_SESSION[$sessionKey])) {
+        	$filterValues = $_SESSION[$sessionKey];
         }
 
+        $filterValues = array_merge($filterValues, $qs);
         $this->unfilter()->filter($filterValues);
+
+    }
+
+    /**
+     * Checks the querystring and session for the page we're supposed to be
+     * on.
+     */
+    protected function initPageFromEnvironment() {
+
+        $qs = $this->getQueryString();
+        $pageArg = $this->_options['pageArg'];
+
+        if (isset($qs[$pageArg])) {
+            $page = $qs[$pageArg];
+        } else if (($sessionKey = $this->getSessionKey('page')) && isset($_SESSION[$sessionKey])) {
+            $page = $_SESSION[$sessionKey];
+        }
+
+        $this->setPage($page);
+    }
+
+    /**
+     * Reads the querystring and session to see if the table's sorting needs
+     * to be updated.
+     */
+    protected function initSortingFromEnvironment() {
+
+        $qs = $this->getQueryString();
+        $sortArg = $this->_options['sortArg'];
+        $useSession = $this->_options['useSession'];
+        $sessionSortKey = $this->getSessionKey('sorting');
 
         if (isset($qs[$sortArg])) {
             $sort = rawurldecode($qs[$sortArg]);
         } else if ($useSession && isset($_SESSION[$sessionSortKey])) {
             $sort = $_SESSION[$sessionSortKey];
-        }
-
-        if (isset($qs[$pageArg])) {
-            $page = $qs[$pageArg];
-        } else if ($useSession && isset($_SESSION[$sessionPageKey])) {
-
-            // Ensure that changing the sorting resets the page.
-            if (!isset($qs[$sortArg])) {
-                $page = $_SESSION[$sessionPageKey];
-            }
-        }
-
-        // Ensure the current page's URL reflects the actual state
-        if ($this->_options['redirectCallback']) {
-            $actual = $expected = $qs;
-
-            if ($sort) {
-                $expected[$sortArg] = $sort;
-            } else {
-                unset($expected[$sortArg]);
-            }
-
-            if ($page && $page != 1) { // don't redirect to page=1
-                $expected[$pageArg] = $page;
-            } else {
-                unset($expected[$pageArg]);
-            }
-
-            foreach($filterValues as $key => $val) {
-                $expected[$key] = $val;
-            }
-
-            ksort($expected);
-            ksort($actual);
-
-            if (array_diff_key($expected, $actual) || array_diff($expected, $actual)) {
-                $newUri = $uri;
-                $expected = http_build_query($expected);
-                if ($expected) $newUri .= '?' . $expected;
-                $this->redirect($newUri);
-            }
         }
 
         if ($sort) {
@@ -1124,16 +1268,27 @@ class Octopus_Html_Table extends Octopus_Html_Element {
             $this->sort($this->getDefaultSorting());
         }
 
-        // This needs to be called last or it won't be applied
-        $this->setPage($page);
     }
 
     /**
-     * Tells the pager it needs to re-apply filters and sorting the next time
-     * it is asked for.
+     * Called when the page, filters, or sorting changes. Forces the datasource
+     * that provides the current page of data to be rebuilt.
      */
-    protected function resetPager() {
-    	$this->_pagerInitialized = false;
+    protected function invalidate() {
+    	$this->_resetPager = true;
+    }
+
+    /**
+     * Reloads the current page, changing the querystring arguments.
+     */
+    protected function reloadWithNewArgs($args) {
+
+    	$uri = $this->getRequestURI(false);
+
+		$qs = octopus_http_build_query($qs, '&');
+        if ($qs) $uri .= '?' . $qs;
+
+        $this->redirect($uri);
     }
 
     /**
@@ -1264,10 +1419,6 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
     protected function renderFilters() {
 
-        if (empty($this->_filters)) {
-            return '';
-        }
-
         $td = new Octopus_Html_Element('td');
         $td->attr('class', 'filters')
             ->attr('colspan', count($this->getColumns()));
@@ -1278,6 +1429,26 @@ class Octopus_Html_Table extends Octopus_Html_Element {
             $parent = new Octopus_Html_Element('form', array('class' => 'filterForm', 'method' => 'get', 'action' => ''));
             $td->append($parent);
         }
+
+        $this->appendFilterElements($parent);
+
+        if (count($parent->children()) == 0) {
+        	// no filter controls
+        	return '';
+        }
+
+        if ($this->_options['clearFiltersLinkText']) {
+            $clear = new Octopus_Html_Element('a', array('class' => 'clearFilters', 'href' => $this->getClearFiltersUrl()), $this->_options['clearFiltersLinkText']);
+            $parent->append($clear);
+        }
+
+        return '<thead class="filters"><tr>' . $td . '</tr></thead>';
+    }
+
+    /**
+     * Appends all filter elements to the given container.
+     */
+    protected function appendFilterElements(Octopus_Html_Element $parent) {
 
         $index = 0;
         $count = count($this->_filters);
@@ -1300,12 +1471,6 @@ class Octopus_Html_Table extends Octopus_Html_Element {
             $index++;
         }
 
-        if ($this->_options['clearFiltersLinkText']) {
-            $clear = new Octopus_Html_Element('a', array('class' => 'clearFilters', 'href' => $this->getClearFiltersUrl()), $this->_options['clearFiltersLinkText']);
-            $parent->append($clear);
-        }
-
-        return '<thead class="filters"><tr>' . $td . '</tr></thead>';
     }
 
     protected function renderHeader() {
@@ -1315,7 +1480,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
         $html .= $this->renderFilters();
 
-        $html .= '<thead><tr>';
+        $html .= '<thead class="columns"><tr>';
 
         $th = new Octopus_Html_Element('th');
 
@@ -1339,6 +1504,11 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     protected function renderPager() {
+
+    	if (!$this->_options['pager']) {
+    		return '';
+    	}
+
     	$p = $this->getPager();
     	return $p->render(true);
     }

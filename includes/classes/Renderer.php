@@ -54,7 +54,7 @@ class Octopus_Renderer {
      */
     public function render(Octopus_Controller $controller, Array $data, Octopus_Request $request, Octopus_Response $response) {
 
-        $this->loadTheme($request);
+        $this->applyTheme($request, $data);
 
         $viewContent = $this->renderView($controller, $request, $response, $data);
         $templateContent = $this->renderTemplate($controller, $request, $response, $viewContent, $data);
@@ -62,26 +62,54 @@ class Octopus_Renderer {
 
     }
 
-    protected function loadTheme(Octopus_Request $request) {
+    /**
+     * Gives themes a chance to hook into the rendering process. Looks for and
+     * loads the 'theme.php' file in the current theme's directory, and adds
+     * the theme's directory as potential paths for js and css files.
+     */
+    protected function applyTheme(Octopus_Request $request, &$data) {
 
         $app = $this->app;
         $theme = $app->getTheme($request);
-        if ($theme) {
 
-            foreach(array('SITE_DIR', 'OCTOPUS_DIR') as $dir) {
-                $dir = $app->getOption($dir);
-                $file = $dir . 'themes/' . $theme . '/theme.php';
-                if (is_file($file)) {
-                    self::requireOnce($file);
-                }
-            }
-
+        if (!$theme) {
+        	return;
         }
 
-    }
+        $dirs = array($app->getOption('SITE_DIR'), $app->getOption('OCTOPUS_DIR'));
 
-    private static function requireOnce($file) {
-        require_once($file);
+        $page = Octopus_Html_Page::singleton();
+
+        // In case theme was changed, remove any existing theme directories
+        // being searched for js / css files and re-add
+        foreach($dirs as $dir) {
+
+        	$themesDir = $dir . 'themes/';
+
+        	foreach($page->getJavascriptDirs() as $jsDir) {
+        		if (starts_with($jsDir, $themesDir)) {
+        			$page->removeJavascriptDir($jsDir);
+        		}
+        	}
+
+			foreach($page->getCssDirs() as $cssDir) {
+        		if (starts_with($cssDir, $themesDir)) {
+        			$page->removeCssDir($cssDir);
+        		}
+        	}
+
+        	$themeDir = $themesDir . $theme;
+        	$page->addJavascriptDir($themeDir);
+        	$page->addCssDir($themeDir);
+        }
+
+        foreach($dirs as $dir) {
+        	$themeDotPHP = $dir . 'themes/' . $theme . '/theme.php';
+        	if (is_file($themeDotPHP)) {
+        		Octopus::requireOnce($themeDotPHP);
+        	}
+        }
+
     }
 
     /**
@@ -131,11 +159,11 @@ class Octopus_Renderer {
      * extra keys:
      *
      *    _GET -		$_GET
-     *  _POST -    	$_POST
+     *    _POST -    	$_POST
      *
      *    QS - 		$_GET as a string with no '?' at the beginning.
      *    FULL_QS	-	$_GET as a string with a '?' at the beginning.
-     *     QS_AND -	Character to use to build on FULL_QS (if FULL_QS is
+     *    QS_AND -	Character to use to build on FULL_QS (if FULL_QS is
      *              not '', this is '&'. Otherwise, it is '?').
      *
      *    URL_BASE -	Prefix for the app's public root.
@@ -192,7 +220,16 @@ class Octopus_Renderer {
             // Extra tags and metadata
             $result['HEAD_CONTENT'] = $p->renderHead(true, false);
             $result['HEAD'] = "<head>{$result['HEAD_CONTENT']}</head>";
+
+            $result['TITLE'] = $p->getTitle();
+            $result['FULL_TITLE'] = $p->getFullTitle();
+
+            $result['PAGE'] = $p;
         }
+
+        $result['DEV'] = $this->app->DEV;
+        $result['LIVE'] = $this->app->LIVE;
+        $result['STAGING'] = $this->app->STAGING;
 
         return $result;
     }
@@ -344,11 +381,11 @@ class Octopus_Renderer {
         $app = $request->getApp();
 
         $searchDirs = array(
-            $app->getSetting('SITE_DIR') . 'views/',
-            $app->getSetting('OCTOPUS_DIR') . 'views/'
+            $app->SITE_DIR . 'views/',
+            $app->OCTOPUS_DIR . 'views/'
         );
 
-        $extensions = $app->getSetting('view_extensions');
+        $extensions = $app->view_extensions;
 
         $result = array();
 

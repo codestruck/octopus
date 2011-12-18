@@ -199,7 +199,11 @@ END;
             foreach($fields as $f) {
                 $value = $d[$f->getFieldName()];
                 if (is_object($value)) {
-                    $value = '[Object]';
+                	try {
+                    	$value = trim($value->__toString());
+                    } catch (Exception $ex) {
+                    	$value = "<Exception during __toString: $ex>";
+                    }
                 }
                 $html .=
                     '<td>' .
@@ -720,6 +724,19 @@ END;
 
         if (!$recreate && $this->_select) {
             return $this->_select;
+        }
+
+        if (is_array($fields)) {
+
+        	foreach($fields as $index => $name) {
+
+        		// Allow using 'id' as an alias for primary key
+        		if ($name === 'id') {
+        			$fields[$index] = $this->getModelPrimaryKey();
+        		}
+
+        	}
+
         }
 
         $s = new Octopus_DB_Select();

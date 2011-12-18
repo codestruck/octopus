@@ -108,6 +108,31 @@ class FormFieldTest extends Octopus_Html_TestCase {
 
     }
 
+    function testFieldNiceName() {
+
+    	$form = new Octopus_Html_Form('niceName');
+
+    	$foo = $form->add('foo');
+    	$this->assertEquals('Foo', $foo->niceName());
+
+    	$foo = $form->add('foo_bar');
+    	$this->assertEquals('Foo Bar', $foo->niceName());
+
+    	$foo = $form->add('foo2')->niceName('Custom name');
+    	$this->assertEquals('Custom name', $foo->niceName());
+
+    	$foo = $form->add('foo3')->label('Custom name with colon:');
+    	$this->assertEquals('Custom name with colon', $foo->niceName());
+
+    	$foo = $form->add('foo4')->niceName('Should not change with label')->label('whatever');
+    	$this->assertEquals('Should not change with label', $foo->niceName());
+
+    	$foo = $form->add('foo5')->label('First label');
+    	$this->assertEquals('First label', $foo->niceName());
+    	$foo->label('Change label updates nice name');
+    	$this->assertEquals('Change label updates nice name', $foo->niceName());
+
+    }
 
 
 }

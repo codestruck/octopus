@@ -565,6 +565,15 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
         }
 
+        // Slight HACK: render hidden fields as part of the open tag. I can't
+        // think of a reason you wouldn't want to do this?
+        foreach($result['fields'] as $key => $field) {
+        	if ($field['type'] == 'hidden') {
+        		unset($result['fields'][$key]);
+        		$result['open_tag'] .= "\n" . $field['html'];
+        	}
+        }
+
         return $result;
 
     }
