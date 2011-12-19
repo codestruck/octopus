@@ -1166,7 +1166,7 @@ class Octopus_Html_Page {
         	$item['file'] = $this->getUrlForFile($item['file']);
         }
 
-        $css = $this->minify($css);
+        $css = $this->minify('css', $css);
 
         return $css;
     }
