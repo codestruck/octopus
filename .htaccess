@@ -12,6 +12,11 @@ AddDefaultCharset UTF-8
     # Block access to _private
     RewriteRule "^(.*/)?_private/" - [F,L]
 
+    # Block settings.yaml
+    RewriteRule "^(.*/)?settings.yaml" - [F,L]
+
+
+    # TODO Remove PW-specific stuff
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^ui(\.php)?/?(.*) /pricewaiter/index$2 [R=301,L]
