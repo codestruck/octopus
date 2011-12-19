@@ -26,6 +26,131 @@ class AppTests extends Octopus_App_TestCase {
 
     }
 
+    function testRespectSmartyTemplateDirInAppOptions() {
+
+    	// SoleCMS passes the 'template_dir' option to Octopus_App's constructor
+    	// to make sure that templates in the site's templates/ dir are rendered
+
+    	$dir = sys_get_temp_dir();
+    	$app = $this->startApp(array('template_dir' => $dir));
+
+    	Octopus::loadExternal('smarty');
+    	$smarty = Octopus_Smarty::trusted();
+
+    	$this->assertEquals(array($dir), $smarty->getTemplateDir());
+
+    }
+
+    function testFindJavascriptInThemeDir() {
+
+    	$app = $this->getApp();
+    	$settings = $app->getSettings();
+
+    	$fooThemeDir = $this->getSiteDir() . 'themes/foo/';
+    	$barThemeDir = $this->getSiteDir() . 'themes/bar/';
+
+    	mkdir($fooThemeDir, 0777, true);
+    	mkdir($fooThemeDir . 'templates/html/', 0777, true);
+    	mkdir($barThemeDir, 0777, true);
+    	mkdir($barThemeDir . 'templates/html/', 0777, true);
+
+    	touch($fooThemeDir . 'test.js');
+    	touch($barThemeDir . 'test.js');
+
+    	file_put_contents($fooThemeDir . 'templates/html/page.tpl', '{$HEAD}');
+    	file_put_contents($barThemeDir . 'templates/html/page.tpl', '{$HEAD}');
+
+    	$page = Octopus_Html_Page::singleton();
+    	$page->addJavascript('/test.js');
+
+    	$settings->set('site.theme', 'foo');
+
+    	$resp = $app->getResponse('/whatever/blah', true);
+    	$this->assertHtmlEquals(
+	    	<<<END
+<head>
+	<title></title>
+	<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+	<script type="text/javascript" src="/site/themes/foo/test.js"></script>
+</head>
+END
+			,
+			$resp->getContent()
+		);
+
+		$settings->set('site.theme', 'bar');
+		Octopus_Smarty::singleton()->reset();
+
+    	$resp = $app->getResponse('/whatever/blah', true);
+    	$this->assertHtmlEquals(
+	    	<<<END
+<head>
+	<title></title>
+	<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+	<script type="text/javascript" src="/site/themes/bar/test.js"></script>
+</head>
+END
+			,
+			$resp->getContent()
+		);
+
+    }
+
+    function testFindCssInThemeDir() {
+
+    	$app = $this->getApp();
+    	$settings = $app->getSettings();
+
+    	$fooThemeDir = $this->getSiteDir() . 'themes/foo/';
+    	$barThemeDir = $this->getSiteDir() . 'themes/bar/';
+
+    	mkdir($fooThemeDir, 0777, true);
+    	mkdir($fooThemeDir . 'templates/html/', 0777, true);
+    	mkdir($barThemeDir, 0777, true);
+    	mkdir($barThemeDir . 'templates/html/', 0777, true);
+
+    	touch($fooThemeDir . 'test.css');
+    	touch($barThemeDir . 'test.css');
+
+    	file_put_contents($fooThemeDir . 'templates/html/page.tpl', '{$HEAD}');
+    	file_put_contents($barThemeDir . 'templates/html/page.tpl', '{$HEAD}');
+
+    	$page = Octopus_Html_Page::singleton();
+    	$page->reset();
+    	$page->addCss('/test.css');
+    	$settings->set('site.theme', 'foo');
+
+    	$resp = $app->getResponse('/whatever/blah', true);
+    	$this->assertHtmlEquals(
+	    	<<<END
+<head>
+	<title></title>
+	<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+	<link href="/site/themes/foo/test.css" rel="stylesheet" type="text/css" media="all" />
+</head>
+END
+			,
+			$resp->getContent()
+		);
+
+		$settings->set('site.theme', 'bar');
+		Octopus_Smarty::singleton()->reset();
+
+    	$resp = $app->getResponse('/whatever/blah', true);
+    	$this->assertHtmlEquals(
+	    	<<<END
+<head>
+	<title></title>
+	<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+	<link href="/site/themes/bar/test.css" rel="stylesheet" type="text/css" media="all" />
+</head>
+END
+			,
+			$resp->getContent()
+		);
+
+    }
+
     function errorHandler($num, $str) {
         $this->errorHandlerCalled = $num;
         if ($this->prevErrorHandler) {
