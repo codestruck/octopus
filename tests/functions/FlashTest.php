@@ -42,6 +42,7 @@ class FlashTests extends PHPUnit_Framework_TestCase
 
         set_flash('message 5');
         $flash = render_flash();
+        $this->assertEquals('', $flash);
     }
 
     function testRenderSuccessType() {
@@ -53,6 +54,7 @@ class FlashTests extends PHPUnit_Framework_TestCase
 
         set_flash('message 6', 'success');
         $flash = render_flash();
+        $this->assertEquals('', $flash);
     }
 
     function testRenderCustomType() {
@@ -64,6 +66,7 @@ class FlashTests extends PHPUnit_Framework_TestCase
 
         set_flash('message 7', 'custom');
         $flash = render_flash();
+        $this->assertEquals('', $flash);
     }
 
     function testRenderJustCustomType() {
@@ -75,6 +78,7 @@ class FlashTests extends PHPUnit_Framework_TestCase
 
         set_flash('message 7', 'custom');
         $flash = render_flash('custom');
+        $this->assertEquals('', $flash);
     }
 
     function testRenderSkipCustomType() {
@@ -83,6 +87,7 @@ class FlashTests extends PHPUnit_Framework_TestCase
 
         set_flash('message 7', 'custom');
         $flash = render_flash('success');
+        $this->assertEquals('', $flash);
     }
 
 
