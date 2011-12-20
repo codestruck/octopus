@@ -21,7 +21,7 @@ class Octopus_DB_Helper {
         $this->values = array();
         $this->rawValues = array();
 
-        $this->db =& Octopus_DB::singleton();
+        $this->db = Octopus_DB::singleton();
 
     }
 

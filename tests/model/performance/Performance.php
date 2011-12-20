@@ -45,7 +45,7 @@ $sql = "CREATE TABLE perfs (
                 )
                 ";
 
-$db =& Octopus_DB::singleton();
+$db = Octopus_DB::singleton();
 $db->query($sql);
 
 function getTime() {

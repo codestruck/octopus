@@ -77,7 +77,7 @@ class AuthModelTest extends PHPUnit_Framework_TestCase
         $user = new AuthModelTestUser();
         $user->logout();
 
-        $db =& Octopus_DB::singleton();
+        $db = Octopus_DB::singleton();
         $db->query('TRUNCATE auth_model_test_users');
         $db->query('TRUNCATE no_password_salt_users');
         $db->query('TRUNCATE no_cookie_defined_users');

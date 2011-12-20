@@ -6,7 +6,7 @@ class Octopus_DB_Replace {
 
         $fields = $this->getFields();
         $schema = new Octopus_DB_Schema();
-        $db =& Octopus_DB::singleton();
+        $db = Octopus_DB::singleton();
 
         foreach ($fields as $field) {
 

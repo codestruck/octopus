@@ -39,7 +39,7 @@ class Ram extends Octopus_Model {
 Octopus_DB_Schema_Model::makeTable('Ram');
 Octopus_DB_Schema_Model::makeTable('Foo');
 
-$db =& Octopus_DB::singleton();
+$db = Octopus_DB::singleton();
 $db->query('TRUNCATE TABLE `rams`', true);
 
 

@@ -9,7 +9,7 @@ class Octopus_DB_LiveSelectJoin_Test extends PHPUnit_Framework_TestCase
     public function __construct()
     {
 
-        $this->db =& Octopus_DB::singleton();
+        $this->db = Octopus_DB::singleton();
 
         $sql = "DROP TABLE IF EXISTS apples";
         $this->db->query($sql);

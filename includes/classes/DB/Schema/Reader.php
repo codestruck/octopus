@@ -4,7 +4,7 @@ class Octopus_DB_Schema_Reader {
 
     function Octopus_DB_Schema_Reader($tableName) {
         $this->tableName = $tableName;
-        $this->db =& Octopus_DB::singleton();
+        $this->db = Octopus_DB::singleton();
     }
 
     function getFields() {

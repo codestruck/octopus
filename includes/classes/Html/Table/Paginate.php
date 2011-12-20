@@ -74,7 +74,7 @@ class Octopus_Html_Table_Paginate {
 
     public function getSqlData() {
         $sql = $this->dataSource;
-        $db =& Octopus_DB::singleton();
+        $db = Octopus_DB::singleton();
 
         $countSql = preg_replace('/select[ ]+\*[ ]+from/i', 'SELECT COUNT(*) FROM', $sql);
         $total = $db->getOne($countSql);

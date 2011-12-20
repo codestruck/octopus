@@ -8,7 +8,7 @@ class Octopus_DB_Schema_Test extends PHPUnit_Framework_TestCase
 
     function setUp()
     {
-        $db =& Octopus_DB::singleton();
+        $db = Octopus_DB::singleton();
         $db->query('DROP TABLE IF EXISTS `new_table`');
         $db->query('DROP TABLE IF EXISTS `renamed_table`');
     }

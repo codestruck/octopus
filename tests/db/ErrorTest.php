@@ -8,7 +8,7 @@ class Octopus_DB_Error_Test extends Octopus_App_TestCase
 
     function __construct()
     {
-        $this->db =& Octopus_DB::singleton();
+        $this->db = Octopus_DB::singleton();
     }
 
     function setUp()

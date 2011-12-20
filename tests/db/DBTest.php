@@ -18,9 +18,9 @@ class Octopus_DB_Test extends PHPUnit_Framework_TestCase
     function testSingleton()
     {
 
-        $db =& Octopus_DB::singleton();
+        $db = Octopus_DB::singleton();
         $db->handle = null;
-        $db =& Octopus_DB::singleton();
+        $db = Octopus_DB::singleton();
 
         $this->assertTrue($db->driver->handle !== null);
     }
@@ -28,8 +28,8 @@ class Octopus_DB_Test extends PHPUnit_Framework_TestCase
     function testSingletonEquality()
     {
 
-        $db =& Octopus_DB::singleton();
-        $db2 =& Octopus_DB::singleton();
+        $db = Octopus_DB::singleton();
+        $db2 = Octopus_DB::singleton();
 
         $this->assertTrue($db === $db2);
     }
