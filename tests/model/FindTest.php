@@ -251,7 +251,7 @@ END;
     function testHasOneCriteria() {
 
         $posts = FindPost::all();
-        $posts = $posts->where('author.name LIKE', '*Hinz');
+        $posts = $posts->where('author.name LIKE', '% Hinz');
 
         $this->assertEquals(3, count($posts));
 
@@ -269,8 +269,8 @@ END;
 
     function testMultipleHasOneCriteria() {
 
-        $mattPosts = FindPost::find('author.name LIKE', '*Hinz');
-        $mikePosts = FindPost::find('author.name LIKE', '*Estes');
+        $mattPosts = FindPost::find('author.name LIKE', '% Hinz');
+        $mikePosts = FindPost::find('author.name LIKE', '% Estes');
 
         $this->assertEquals(3, count($mattPosts));
         $this->assertEquals(2, count($mikePosts));
@@ -288,7 +288,7 @@ END;
 
         Octopus::loadClass('Octopus_DataSource');
 
-        $posts = FindPost::find('author.name LIKE', '*Hinz');
+        $posts = FindPost::find('author.name LIKE', '%Hinz');
         $this->assertInstanceOf('Octopus_DataSource', $posts, 'ResultSet implements datasource');
 
     }
@@ -502,9 +502,9 @@ END;
         $fooExpr = '/Case Test - Foo/i';
 
         $test = 'Find w/o array, mixed case, no explicit LIKE';
-        $posts = FindPost::find('title', '* Foo');
+        $posts = FindPost::find('title', '% Foo');
         $this->assertSqlEquals(
-            "SELECT * FROM find_posts WHERE `find_posts`.`title` = '* Foo'",
+            "SELECT * FROM find_posts WHERE `find_posts`.`title` = '% Foo'",
             $posts,
             $test
         );
@@ -512,7 +512,7 @@ END;
         $this->assertTitlesMatch($fooExpr, $posts, $test);
 
         $test = 'Find w/o array, mixed case, explicit LIKE';
-        $posts = FindPost::find('title LIKE', '* Foo');
+        $posts = FindPost::find('title LIKE', '% Foo');
         $this->assertSqlEquals(
             "SELECT * FROM find_posts WHERE `find_posts`.`title` LIKE '% Foo'",
             $posts,
@@ -522,9 +522,9 @@ END;
         $this->assertTitlesMatch($fooExpr, $posts, $test);
 
         $test = 'Find w/ array, mixed case, no explicit LIKE';
-        $posts = FindPost::find(array('title' => '* Foo'));
+        $posts = FindPost::find(array('title' => '% Foo'));
         $this->assertSqlEquals(
-            "SELECT * FROM find_posts WHERE `find_posts`.`title` = '* Foo'",
+            "SELECT * FROM find_posts WHERE `find_posts`.`title` = '% Foo'",
             $posts,
             $test
         );
@@ -532,7 +532,7 @@ END;
         $this->assertTitlesMatch($fooExpr, $posts, $test);
 
         $test = 'Find w/ array, mixed case, explicit LIKE';
-        $posts = FindPost::find(array('title LIKE' => '* Foo'));
+        $posts = FindPost::find(array('title LIKE' => '% Foo'));
         $this->assertSqlEquals(
             "SELECT * FROM find_posts WHERE `find_posts`.`title` LIKE '% Foo'",
             $posts,
@@ -687,7 +687,7 @@ END;
         $tests = array(
             '=',
             '!=',
-            'LIKE' => '%$1%',
+            'LIKE',
             '<',
             '<=',
             '>',

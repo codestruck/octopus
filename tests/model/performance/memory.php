@@ -83,7 +83,7 @@ function addRow2($data) {
 function addRow3($data) {
 
     $sql = "SELECT * FROM rams WHERE `rams`.`name` = {$data[1]}";
-    $db =& Octopus_DB::singleton();
+    $db = Octopus_DB::singleton();
     $query = $db->query($sql, true);
     if ($query->fetchRow()) {
         debug('-');

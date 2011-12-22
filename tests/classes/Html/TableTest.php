@@ -1329,7 +1329,7 @@ END;
 
     function testImageActionsAndToggles() {
 
-    	return $this->markTestSkipped();
+    	return $this->markTestSkipped("Need to implement image actions and toggles?");
 
         $expected = <<<END
 <table id="complexTable" border="0" cellpadding="0" cellspacing="0">

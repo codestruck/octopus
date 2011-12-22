@@ -199,7 +199,7 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
     public function resetPassword($save = null, $sendEmail = true) {
 
         $password = make_password(8);
-        $this->setPassword($password, $save);
+        $this->changePassword($password, $save);
 
         if (!$sendEmail || !$this->email) {
             return true;

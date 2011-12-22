@@ -38,8 +38,6 @@ class Octopus_Model_Field_String extends Octopus_Model_Field {
             }
         }
 
-        $op = strtoupper($operator);
-
         return parent::restrict($expression, $operator, $value, $selectStatement, $params, $model);
     }
 

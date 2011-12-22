@@ -21,7 +21,7 @@ class Octopus_DB extends Octopus_Base {
      */
     public static function &singleton() {
 
-        $obj =& Octopus_Base::base_singleton(get_class());
+        $obj = Octopus_Base::base_singleton(get_class());
 
         if ($obj->driver->handle === null) {
             $obj->driver->connect();

@@ -10,7 +10,7 @@ class Octopus_DB_LiveInsert_Test extends PHPUnit_Framework_TestCase
     function setUp()
     {
 
-        $this->db =& Octopus_DB::singleton();
+        $this->db = Octopus_DB::singleton();
 
         $sql = "DROP TABLE IF EXISTS test";
         $this->db->query($sql);

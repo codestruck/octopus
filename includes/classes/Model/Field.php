@@ -411,7 +411,7 @@ abstract class Octopus_Model_Field {
     }
 
     public function restrictFreetext($model, $text) {
-        return new Octopus_Model_Restriction_Field($model, $this->getFieldname() . ' LIKE', $text);
+        return new Octopus_Model_Restriction_Field($model, $this->getFieldname() . ' LIKE', wildcardify($text));
     }
 
     protected function shouldAddToForm() {

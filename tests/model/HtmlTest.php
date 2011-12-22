@@ -58,7 +58,7 @@ class ModelHtmlTest extends Octopus_App_TestCase {
 
         parent::setUp();
 
-        $db =& Octopus_DB::singleton();
+        $db = Octopus_DB::singleton();
         $db->query('TRUNCATE htmls');
 
         $str = '<p>some <strong>strings</strong> have <a href="http://cnn.com/" class="linkClass">links</a>.</p>';

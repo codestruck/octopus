@@ -7,7 +7,7 @@
 class Octopus_DB_Schema_Reader_Test extends PHPUnit_Framework_TestCase
 {
     function setUp() {
-        $db =& Octopus_DB::singleton();
+        $db = Octopus_DB::singleton();
 
         $sql = "DROP TABLE IF EXISTS test";
         $db->query($sql);
@@ -24,7 +24,7 @@ UNIQUE (`test_uname`)
     }
 
     function tearDown() {
-        $db =& Octopus_DB::singleton();
+        $db = Octopus_DB::singleton();
 
         $sql = "DROP TABLE IF EXISTS test";
         $db->query($sql);
