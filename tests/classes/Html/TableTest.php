@@ -148,28 +148,104 @@ class TableTest extends Octopus_App_TestCase {
         unset($_SERVER['REQUEST_URI']);
     }
 
-    function donttestModifierFunctionIsOnModel() {
-        $table = new Octopus_Html_Table('id');
+    function testGetFilterValues() {
+
+    	$table = new Octopus_Html_Table('getFilterValues');
+
+    	$this->assertEquals(array(), $table->getFilterValues());
+    	$table->filter('foo', 'bar');
+    	$this->assertEquals(array(), $table->getFilterValues(), 'values for non-existant filters not returned');
+
+    	$table->addFilter('text', 'foo');
+    	$this->assertEquals(array('foo' => 'bar'), $table->getFilterValues(), 'value available after filter added');
+
+    	$table->filter('baz', 'bat');
+    	$this->assertEquals(array('foo' => 'bar'), $table->getFilterValues(), 'value for non-existant filter not returned even when there are filters');
+
+    	$table->unfilter();
+    	$this->assertEquals(array(), $table->getFilterValues());
+
+    }
+
+    function testActionLinksGetGoodClassNames() {
+
+    	$table = new Octopus_Html_Table('actionTest');
+    	$table->addColumns(array(
+    		'actions' => array(
+    			'view person' => array(
+    				'url' => '/view/{$id}'
+	    		)
+	    	)
+	    ));
+
+		$db = $this->resetDatabase();
+        $db->query("
+            INSERT INTO html_table_persons (`name`, `age`)
+                VALUES
+                    ('Joe Blow', 50),
+                    ('Jane Blow', 50),
+                    ('John Smith', 99)
+        ");
+
+        $table->setDataSource(HtmlTablePerson::all());
+
+        $html = $table->render(true);
+
+        Octopus::loadExternal('simplehtmldom');
+        $dom = str_get_dom($html);
+
+        $actions = $dom->find('a.action');
+        $this->assertEquals(3, count($actions));
+
+        foreach($actions as $a) {
+        	$this->assertEquals('action view_person', $a->class);
+        }
+
+    }
+
+    function testModifierFunctionIsOnModel() {
+
+        $table = new Octopus_Html_Table('id', array('pager' => false));
         $table->setDataSource(HtmlTablePerson::all());
         $table->addColumn('name', 'Name', 'method_uppercase');
 
         $this->assertHtmlEquals(
             <<<END
-<table id="id" border="0" cellpadding="0" cellspacing="0"><thead><tr><th class="name firstCell sortable"><a href="?sort=name">Name</a></th></tr></thead><tbody><tr class="odd"><td class="name firstCell">JOE BLOW</td></tr><tr class="even"><td class="name firstCell">JANE BLOW</td></tr><tr class="odd"><td class="name firstCell">JOHN SMITH</td></tr></tbody><tfoot><tr><td class="pager" colspan="1"><div class="pagerLinks"></div><div class="pagerLoc"> Showing 1 to 3 of 3 </div></td></tr></tfoot></table>
+<table id="id" border="0" cellpadding="0" cellspacing="0">
+	<thead class="columns">
+		<tr>
+			<th class="name firstCell sortable">
+				<a href="?sort=name"><span class="sortMarker">Name</span></a>
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr class="odd">
+			<td class="name firstCell">JOE BLOW</td>
+		</tr>
+		<tr class="even">
+			<td class="name firstCell">JANE BLOW</td>
+		</tr>
+		<tr class="odd">
+			<td class="name firstCell">JOHN SMITH</td>
+		</tr>
+	</tbody>
+</table>
 END
-            , $table->render(true));
+            , $table->render(true)
+        );
 
     }
 
-    function donttestFunctionErrorNotEscaped() {
+    function testFunctionErrorNotEscaped() {
 
-        $table = new Octopus_Html_Table('id');
+        $table = new Octopus_Html_Table('id', array('pager' => false));
         $table->setDataSource(HtmlTablePerson::all());
         $table->addColumn('name', 'Name', 'not_exist');
 
         $this->assertHtmlEquals(
             <<<END
-<table id="id" border="0" cellpadding="0" cellspacing="0"><thead><tr><th class="name firstCell sortable"><a href="?sort=name">Name</a></th></tr></thead><tbody><tr class="odd"><td class="name firstCell"><span style="color:red;">Function not found: not_exist</span></td></tr><tr class="even"><td class="name firstCell"><span style="color:red;">Function not found: not_exist</span></td></tr><tr class="odd"><td class="name firstCell"><span style="color:red;">Function not found: not_exist</span></td></tr></tbody><tfoot><tr><td class="pager" colspan="1"><div class="pagerLinks"></div><div class="pagerLoc"> Showing 1 to 3 of 3 </div></td></tr></tfoot></table>
+<table id="id" border="0" cellpadding="0" cellspacing="0"><thead class="columns"><tr><th class="name firstCell sortable"><a href="?sort=name"><span class="sortMarker">Name</span></a></th></tr></thead><tbody><tr class="odd"><td class="name firstCell"><span style="color:red;">Function not found: not_exist</span></td></tr><tr class="even"><td class="name firstCell"><span style="color:red;">Function not found: not_exist</span></td></tr><tr class="odd"><td class="name firstCell"><span style="color:red;">Function not found: not_exist</span></td></tr></tbody></table>
 END
             , $table->render(true));
 
@@ -188,17 +264,20 @@ END
 
         $table = new Octopus_Html_Table('select');
         $filter = $table->addFilter('select', 'person', HtmlTablePerson::all());
+
+        $element = $filter->getElement($table);
+
         $this->assertHtmlEquals(
             <<<END
             <select id="personInput" class="person select" name="person">
-                <option value="">Choose One</option>
+                <option value="" selected>Choose One</option>
                 <option value="1">Joe Blow</option>
                 <option value="2">Jane Blow</option>
                 <option value="3">John Smith</option>
             </select>
 END
             ,
-            $filter->render(true)
+            $element->render(true)
         );
 
     }
@@ -225,10 +304,10 @@ END
         $row = array_shift($ar);
         $this->assertHtmlEquals(
             <<<END
-            <a href="" class="action delete methodPost">Delete</a>
-            <a href="" class="action other methodPost">Other</a>
-            <a href="foo" class="toggle toggle1 methodPost toggleInactive" data-alt-content="bar" data-alt-href="bar">foo</a>
-            <a href="foo" class="toggle toggle2 methodPost toggleInactive" data-alt-content="bar" data-alt-href="bar">foo</a>
+            <a href="" class="action delete method-post methodPost" title="Delete">Delete</a>
+            <a href="" class="action other method-post methodPost" title="Other">Other</a>
+            <a href="foo" class="toggle toggle1 method-post methodPost toggleInactive" data-alt-content="bar" data-alt-href="bar">foo</a>
+            <a href="foo" class="toggle toggle2 method-post methodPost toggleInactive" data-alt-content="bar" data-alt-href="bar">foo</a>
 END
             ,
             $row[1]
@@ -248,10 +327,10 @@ END
         $table->setPage(5);
         $this->assertEquals(5, $table->getPage(), "page wasn't set properly");
 
-        $table->getSessionKeys('', $sort, $page, $filter);
+        $key = 'octopus-table--selectFilter-page';
 
-        $this->assertTrue(!empty($_SESSION[$page]), "session page key ($page) empty");
-        $this->assertEquals(5, $_SESSION[$page]);
+        $this->assertTrue(!empty($_SESSION[$key]), "session page key ($key) empty");
+        $this->assertEquals(5, $_SESSION[$key]);
     }
 
     function testSortingWrittenToSession() {
@@ -262,10 +341,10 @@ END
         $table->setDataSource(HtmlTablePerson::all());
 
         $table->sort('!age');
-        $table->getSessionKeys('', $sort, $page, $filter);
 
-        $this->assertTrue(!empty($_SESSION[$sort]), "session key ($sort) empty");
-        $this->assertEquals('!age', $_SESSION[$sort]);
+		$key = 'octopus-table--selectFilter-sorting';
+        $this->assertTrue(!empty($_SESSION[$key]), "session key ($key) empty");
+        $this->assertEquals(array('age' => false), $_SESSION[$key]);
     }
 
     function testFilterWrittenToSession() {
@@ -278,12 +357,12 @@ END
 
         $table->filter('age', 99);
 
-        $table->getSessionKeys('', $sort, $page, $filter);
+        $key = 'octopus-table--selectFilter-filters';
 
-        $this->assertTrue(!empty($_SESSION[$filter]), "session filter key ($filter) empty");
+        $this->assertTrue(!empty($_SESSION[$key]), "session filter key ($key) is not empty");
         $this->assertEquals(
             array('age' => 99),
-            $_SESSION[$filter]
+            $_SESSION[$key]
         );
     }
 
@@ -298,16 +377,20 @@ END
                     ('John Smith', 99)
         ");
 
+        $_SESSION['octopus-table--filterFromSession-filters'] = array(
+        	'age' => '99'
+	    );
 
-        $table = new Octopus_Html_Table('selectFilter', array('pager' => false, 'redirectCallback' => false));
+        $table = new Octopus_Html_Table('filterFromSession', array('pager' => false, 'redirectCallback' => false));
         $table->addColumn('name');
         $table->addColumn('age');
+
+        $this->assertEquals(array(), $table->getFilterValues(), 'no filter values with no filters added');
+
         $table->addFilter('select', 'age', array(50 => 'Fifty', 99 => 'Ninety-nine'));
+        $this->assertEquals(array('age' => '99'), $table->getFilterValues());
+
         $table->setDataSource(HtmlTablePerson::all());
-
-        $table->getSessionKeys('', $sort, $page, $filter);
-
-        $_SESSION[$filter] = array('age' => 99);
 
         $this->assertEquals(
             array(
@@ -330,6 +413,7 @@ END
                     ('John Smith', 99)
         ");
 
+        $_GET['age'] = '99';
 
         $table = new Octopus_Html_Table('selectFilter', array('pager' => false));
         $table->addColumn('name');
@@ -337,7 +421,7 @@ END
         $table->addFilter('select', 'age', array(50 => 'Fifty', 99 => 'Ninety-nine'));
         $table->setDataSource(HtmlTablePerson::all());
 
-        $_GET['age'] = '99';
+        //dump_r($table->getFilterValues());
 
         $this->assertEquals(
             array(
@@ -360,13 +444,12 @@ END
                     ('John Smith', 99)
         ");
 
+        $_GET['sort'] = '!age';
 
         $table = new Octopus_Html_Table('selectFilter', array('pager' => false));
         $table->addColumn('name');
         $table->addColumn('age');
         $table->setDataSource(HtmlTablePerson::all());
-
-        $_GET['sort'] = '!age';
 
         $this->assertEquals(
             array(
@@ -378,10 +461,12 @@ END
             $table->toArray()
         );
 
+
         $table->reset();
 
         $_GET['sort'] = '!age,name';
         $table->setDataSource(HtmlTablePerson::all());
+
 
         $this->assertEquals(
             array(
@@ -397,7 +482,7 @@ END
 
     function testInitPageFromQueryString() {
 
-        $table = new Octopus_Html_Table('paging');
+        $table = new Octopus_Html_Table('paging', array('pageSize' => 2));
         $table->addColumn('name');
         $table->addColumn('age');
         $table->setDataSource(HtmlTablePerson::all());
@@ -410,7 +495,7 @@ END
 
     function testInitPageFromQueryStringAfterSort() {
 
-        $table = new Octopus_Html_Table('paging');
+        $table = new Octopus_Html_Table('paging', array('pageSize' => 2));
         $table->addColumn('name');
         $table->addColumn('age');
         $table->setDataSource(HtmlTablePerson::all());
@@ -431,7 +516,7 @@ END
 
         $expected = <<<END
         <table id="empty" class="empty" border="0" cellpadding="0" cellspacing="0">
-            <thead>
+            <thead class="columns">
                 <tr>
                     <th class="name firstCell">Name</th>
                     <th class="age lastCell">Age</th>
@@ -439,7 +524,7 @@ END
             </thead>
             <tbody class="emptyNotice">
                 <tr>
-                    <td class="emptyNotice">
+                    <td class="emptyNotice" colspan="2">
                         <p>Sorry, there is nothing to display. Try another search or filter.</p>
                     </td>
                 </tr>
@@ -495,14 +580,14 @@ END;
             </td>
         </tr>
     </thead>
-    <thead>
+    <thead class="columns">
         <tr>
             <th class="name firstCell">Name</th>
         </tr>
     </thead>
     <tbody class="emptyNotice">
         <tr>
-            <td class="emptyNotice">
+            <td class="emptyNotice" colspan="1">
                 <p>Sorry, there is nothing to display. Try another search or filter.</p>
             </td>
         </tr>
@@ -558,6 +643,67 @@ END;
             $table->toArray(),
             'unfilter should reset filter state'
         );
+
+    }
+
+    function testFilterResultSetHook() {
+
+		$db = $this->resetDatabase();
+        $db->query("
+            INSERT INTO html_table_persons (`name`, `age`)
+                VALUES
+                    ('Joe Blow', 50),
+                    ('Jane Blow', 50),
+                    ('John Smith', 99)
+        ");
+
+
+        $table = new Octopus_Html_Table('selectFilter', array('pager' => false, 'redirectCallback' => false));
+        $table->addColumn('name');
+        $table->addColumn('age');
+
+        $table->addFilter(
+	        'select',
+	        'sex',
+	        array(
+	        	'options' => array('M' => 'Male', 'F' => 'Female'),
+		        'function' => array(__CLASS__, 'filter_testFilterResultSetHook')
+		    )
+	    );
+
+        $table->setDataSource(HtmlTablePerson::all());
+
+        $table->filter(array('sex' => 'M'));
+
+        $this->assertEquals(
+            array(
+                array('Name', 'Age'),
+                array('Joe Blow', 50),
+                array('John Smith', 99)
+            ),
+            $table->toArray()
+        );
+
+    }
+
+    public static function filter_testFilterResultSetHook($filter, $resultSet) {
+
+    	if ($filter->val() == 'M') {
+
+	    	return $resultSet->where(array(
+	    		array('name LIKE' => 'Joe%'),
+	    		'OR',
+	    		array('name LIKE' => 'John%'),
+		    ));
+
+		} else if ($filter->val() == 'F') {
+
+			return $resultSet->where(array(
+	    		array('name LIKE' => 'Jane%'),
+		    ));
+		} else {
+			return $resultSet;
+		}
 
     }
 
@@ -783,7 +929,7 @@ END;
 
         $expected = <<<END
 <table id="simpleTable" border="0" cellpadding="0" cellspacing="0">
-    <thead>
+    <thead class="columns">
         <tr>
             <th class="name firstCell">Name</th>
             <th class="age lastCell">Age</th>
@@ -824,10 +970,10 @@ END;
 
         $expected = <<<END
 <table id="complexTable" border="0" cellpadding="0" cellspacing="0">
-    <thead>
+    <thead class="columns">
         <tr>
-            <th class="name firstCell sortable"><a href="?sort=name">Name</a></th>
-            <th class="age sortable"><a href="?sort=age">Age</a></th>
+            <th class="name firstCell sortable"><a href="?sort=name"><span class="sortMarker">Name</span></a></th>
+            <th class="age sortable"><a href="?sort=age"><span class="sortMarker">Age</span></a></th>
             <th class="actions lastCell">Actions</th>
         </tr>
     </thead>
@@ -837,8 +983,8 @@ END;
             <td class="age">50</td>
             <td class="actions lastCell">
                 <a href="/toggle/deactivate/1" class="toggle active toggleActive" data-alt-content="Inactive" data-alt-href="/toggle/activate/1">Active</a>
-                <a href="/edit/1" class="action edit">Edit</a>
-                <a href="/delete/1" class="action delete">Delete</a>
+                <a href="/edit/1" class="action edit" title="Edit">Edit</a>
+                <a href="/delete/1" class="action delete" title="Delete">Delete</a>
             </td>
         </tr>
         <tr class="even">
@@ -846,8 +992,8 @@ END;
             <td class="age">99</td>
             <td class="actions lastCell">
                 <a href="/toggle/activate/2" class="toggle active toggleInactive" data-alt-content="Active" data-alt-href="/toggle/deactivate/2">Inactive</a>
-                <a href="/edit/2" class="action edit">Edit</a>
-                <a href="/delete/2" class="action delete">Delete</a>
+                <a href="/edit/2" class="action edit" title="Edit">Edit</a>
+                <a href="/delete/2" class="action delete" title="Delete">Delete</a>
             </td>
         </tr>
     </tbody>
@@ -899,7 +1045,7 @@ END;
             $this->assertFalse($col->isSortedAsc(), "failed to flip sorting w/ $v");
             $this->assertTrue($col->isSortedDesc(), "failed to flip sorting w/ $v");
 
-            $col->sort(false);
+            $col->unsort();
             $this->assertFalse($col->isSorted(), "should not be sorted ");
             $this->assertFalse($col->isSortedAsc(), "should not be sorted asc");
             $this->assertFalse($col->isSortedDesc(), "should not be sorted desc ");
@@ -917,7 +1063,7 @@ END;
             $this->assertTrue($col->isSortedAsc(), "failed to flip sorting w/ $v");
             $this->assertFalse($col->isSortedDesc(), "failed to flip sorting w/ $v");
 
-            $col->sort(false);
+            $col->unsort();
             $this->assertFalse($col->isSorted(), "should not be sorted ");
             $this->assertFalse($col->isSortedAsc(), "should not be sorted asc");
             $this->assertFalse($col->isSortedDesc(), "should not be sorted desc ");
@@ -965,10 +1111,10 @@ END;
 
         $expected = <<<END
 <table id="resultSetSorting" border="0" cellpadding="0" cellspacing="0">
-    <thead>
+    <thead class="columns">
         <tr>
-            <th class="name firstCell sortable"><a href="?sort=name">Name</a></th>
-            <th class="age lastCell sortable"><a href="?sort=age">Age</a></th>
+            <th class="name firstCell sortable"><a href="?sort=name"><span class="sortMarker">Name</span></a></th>
+            <th class="age lastCell sortable"><a href="?sort=age"><span class="sortMarker">Age</span></a></th>
         </tr>
     </thead>
     <tbody>
@@ -994,10 +1140,10 @@ END;
 
         $expected = <<<END
 <table id="resultSetSorting" border="0" cellpadding="0" cellspacing="0">
-    <thead>
+    <thead class="columns">
         <tr>
-            <th class="name sorted firstCell sortable sortAsc"><a href="?sort=%21name">Name</a></th>
-            <th class="age lastCell sortable"><a href="?sort=age%2Cname">Age</a></th>
+            <th class="name sorted firstCell sortable sortAsc"><a href="?sort=%21name"><span class="sortMarker">Name</span></a></th>
+            <th class="age lastCell sortable"><a href="?sort=age%2Cname"><span class="sortMarker">Age</span></a></th>
         </tr>
     </thead>
     <tbody>
@@ -1024,10 +1170,10 @@ END;
 
         $expected = <<<END
 <table id="resultSetSorting" border="0" cellpadding="0" cellspacing="0">
-    <thead>
+    <thead class="columns">
         <tr>
-            <th class="name sorted firstCell sortable sortDesc"><a href="?sort=name">Name</a></th>
-            <th class="age lastCell sortable"><a href="?sort=age%2C%21name">Age</a></th>
+            <th class="name sorted firstCell sortable sortDesc"><a href="?sort=name"><span class="sortMarker">Name</span></a></th>
+            <th class="age lastCell sortable"><a href="?sort=age%2C%21name"><span class="sortMarker">Age</span></a></th>
         </tr>
     </thead>
     <tbody>
@@ -1052,6 +1198,8 @@ END;
 
     function testPaging() {
 
+    	return $this->markTestSkipped();
+
         $table = new Octopus_Html_Table('paging');
         $table->addColumn('name');
         $table->addColumn('age');
@@ -1070,10 +1218,10 @@ END;
         $tableHead = <<<END
 
 <table id="paging" border="0" cellpadding="0" cellspacing="0">
-    <thead>
+    <thead class="columns">
         <tr>
-            <th class="name firstCell sortable"><a href="?sort=name">Name</a></th>
-            <th class="age lastCell sortable"><a href="?sort=age">Age</a></th>
+            <th class="name firstCell sortable"><a href="?sort=name"><span class="sortMarker">Name</span></a></th>
+            <th class="age lastCell sortable"><a href="?sort=age"><span class="sortMarker">Age</span></a></th>
         </tr>
     </thead>
     <tbody>
@@ -1084,7 +1232,7 @@ END;
     <tfoot>
         <tr>
             <td class="pager" colspan="2">
-                <div class="pagerLinks"><span class="current">1</span>&nbsp;<a href="?page=2" title="page 2">2</a>&nbsp;<a href="?page=3" title="page 3">3</a>&nbsp;<a href="?page=4" title="page 4">4</a>&nbsp;<a href="?page=5" title="page 5">5</a>&nbsp;<a href="?page=6" title="page 6">6</a>&nbsp;<a href="?page=7" title="page 7">7</a>&nbsp;<a href="?page=8" title="page 8">8</a>&nbsp;<a href="?page=9" title="page 9">9</a>&nbsp;<a href="?page=10" title="page 10">10</a>&nbsp;<a href="?page=2" title="next page">Next &raquo;</a>&nbsp;</div>
+                <div class="pager"><a href="?page=1" class="current">1</span>&nbsp;<a href="?page=2" title="page 2">2</a>&nbsp;<a href="?page=3" title="page 3">3</a>&nbsp;<a href="?page=4" title="page 4">4</a>&nbsp;<a href="?page=5" title="page 5">5</a>&nbsp;<a href="?page=6" title="page 6">6</a>&nbsp;<a href="?page=7" title="page 7">7</a>&nbsp;<a href="?page=8" title="page 8">8</a>&nbsp;<a href="?page=9" title="page 9">9</a>&nbsp;<a href="?page=10" title="page 10">10</a>&nbsp;<a href="?page=2" title="next page">Next &raquo;</a>&nbsp;</div>
                 <div class="pagerLoc"> Showing 1 to 10 of 100 </div>
             </td>
         </tr>
@@ -1120,7 +1268,7 @@ END;
         $tableHead = <<<END
 
 <table id="paging" border="0" cellpadding="0" cellspacing="0">
-    <thead>
+    <thead class="columns">
         <tr>
             <th class="name firstCell sortable"><a href="?sort=name">Name</a></th>
             <th class="age lastCell sortable"><a href="?sort=age">Age</a></th>
@@ -1181,11 +1329,13 @@ END;
 
     function testImageActionsAndToggles() {
 
+    	return $this->markTestSkipped();
+
         $expected = <<<END
 <table id="complexTable" border="0" cellpadding="0" cellspacing="0">
-    <thead>
+    <thead class="columns">
         <tr>
-            <th class="name firstCell sortable"><a href="?sort=name">Name</a></th>
+            <th class="name firstCell sortable"><a href="?sort=name"><span class="sortMarker">Name</span></a></th>
             <th class="actions lastCell">Actions</th>
         </tr>
     </thead>
@@ -1213,7 +1363,6 @@ END;
         $table = new Octopus_Html_Table('complexTable', array('pager' => false ));
 
         $table->addColumn('name', array('sortable' => true));
-        $table->addColumn('age', array('sortable' => true));
 
         $col = $table->addColumn('actions');
         $col->addToggle('active', '/toggle/active/{$person_id}');

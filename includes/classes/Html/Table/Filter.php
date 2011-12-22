@@ -1,8 +1,13 @@
 <?php
 
-
 /**
- * A control for filtering a table's contents.
+ * A control for filtering a table's contents. Any methods called that aren't
+ * present on this class get forwarded to an Octopus_Html_Element this class
+ * manages. So you can do things like this:
+ *
+ *	$filter = $table->addFilter('text', 'name');
+ *	$filter->addClass('important');
+ *
  */
 abstract class Octopus_Html_Table_Filter {
 
@@ -14,80 +19,65 @@ abstract class Octopus_Html_Table_Filter {
         'attributes' => array(),
 
         /**
-         * Function used to actually filter results. Receives 2 arguments:
-         * the filter text and the datasource being filtered.
+         * Function used to actually filter results. Receives 3 arguments:
+         * the Octopus_Html_Table_Filter object, the datasource being filtered,
+         * and the Octopus_Html_Table the filter is a part of. Should return
+         * the filtered datasource, or null to not filter.
          */
         'function' => null,
-
-        /**
-         * Function to apply if the data source is a result set. If not
-         * specified, the 'function' key is used instead.
-         */
-        'function_resultset' => null,
-
-        /**
-         * Function to apply if the data source is an array. If not
-         * specified, the 'function' key is used instead.
-         */
-        'function_array' => null,
-
-        /**
-         * Function to apply if the data source is a sql string. If not
-         * specified, the 'function' key is used instead.
-         */
-        'function_sql' => null,
 
     );
 
     private static $registry = array();
 
     public $id;
-    private $type;
+
+	private $type;
+    private $value;
     private $label;
+    private $element = null;
 
+    protected $table;
     protected $options;
-    protected $element;
 
-    public function __construct($type, $id, $label, $options) {
+    public function __construct(Octopus_Html_Table $table, $type, $id, $label, $options) {
 
+    	$this->table = $table;
         $this->type = $type;
         $this->id = $id;
-
-        $this->label = ($label === null ? humanize($id) . ':' : $label);
+        $this->label = $label === null ? (humanize($id) . ':') : $label;
 
         $options = $this->initializeOptions($options);
         $this->options = array_merge(self::$defaults, $options);
-
-        $this->element = $this->createElement();
     }
 
-    public function __call($name, $arguments) {
-        // Forward method calls on to the element.
-        return call_user_func_array(array($this->element, $name), $arguments);
+    public function __call($method, $args) {
+    	$element = $this->getElement();
+    	return call_user_func_array(array($element, $method), $args);
     }
 
     /**
      * Executes this filter against the given data source.
-     * @return Mixed A filtered data source.
+     * @param Mixed $dataSource Data source being displayed
+     * @param Octopus_Html_Table $table The table being filtered.
+     * @return Mixed A filtered data source, or null if it doesn't need to be
+     * filtered.
      */
-    public function apply($dataSource) {
+    public function apply(Octopus_DataSource $dataSource) {
 
-        if (class_exists('Octopus_Model_ResultSet') && $dataSource instanceof Octopus_Model_ResultSet) {
-            return $this->applyToResultSet($dataSource);
-        } else if (is_array($dataSource)) {
-            return $this->applyToArray($dataSource);
-        } else if (is_string($dataSource)) {
-            return $this->applyToSql($dataSource);
-        } else if ($dataSource) {
-            throw new Octopus_Exception('Unsupported dataSource: ' . $dataSource);
-        } else {
-            return $dataSource;
-        }
+    	if (is_callable($this->options['function'])) {
+    		return call_user_func($this->options['function'], $this, $dataSource, $this->table);
+    	}
 
+    	return $this->defaultApply($dataSource);
     }
 
-    protected function callFunction($func, &$data) {
-        return call_user_func($func, $this, $data);
+    /**
+     * Applies this filter to the given data source, assuming no custom function
+     * was specified in options.
+     */
+    protected function defaultApply(Octopus_DataSource $dataSource) {
+    	return $dataSource->filter($this->id, $this->val());
     }
 
     /**
@@ -97,6 +87,25 @@ abstract class Octopus_Html_Table_Filter {
         return $this->val('');
     }
 
+    /**
+     * @return Octopus_Html_Element An element to display for this filter. It will
+     * have its value automatically updated by calls to val() or clear().
+     */
+    public function getElement() {
+
+    	if ($this->element) {
+    		return $this->element;
+    	}
+
+    	$element = $this->createElement();
+    	$this->setElementValue($element, $this->value);
+
+    	return $this->element = $element;
+    }
+
+    /**
+     * @return String The registered type name for this filter.
+     */
     public function getType() {
         return $this->type;
     }
@@ -113,70 +122,138 @@ abstract class Octopus_Html_Table_Filter {
     	return trim($val) === '';
     }
 
+    public function label(/* $label */) {
+    	$args = func_get_args();
+    	if (count($args)) {
+    		return $this->setLabel($args[0]);
+    	} else {
+    		return $this->getLabel();
+    	}
+    }
+
+    public function setLabel($label) {
+    	$this->label = $label;
+    	return $this;
+    }
+
+    public function getLabel() {
+    	return $this->label;
+    }
+
+    /**
+     * Creates a label this filter.
+     * @return Octopus_Html_Element
+     */
     public function createLabelElement() {
 
-        if (!$this->label) {
+    	$text = $this->getLabel();
+
+        if (!$text) {
             return;
         }
 
-        return new Octopus_Html_Element('label', array('class' => 'filterLabel', 'for' => $this->element->id), $this->label);
+        $element = $this->getElement();
+        if ($element) {
+	        return new Octopus_Html_Element('label', array('class' => 'filterLabel', 'for' => $element->id), $this->label);
+	       }
     }
 
     /**
-     * Executes this filter against a result set.
+     * Gets/sets the current value of this filter.
      */
-    protected function applyToResultSet($resultSet) {
+    public function val(/* $val */) {
 
-        if (isset($this->options['function_resultset'])) {
-            return $this->callFunction($this->options['function_resultset'], $resultSet);
-        } else if (isset($this->options['function'])) {
-            return $this->callFunction($this->options['function'], $resultSet);
-        }
+    	switch(func_num_args()) {
+    		case 0:
+    			return $this->getValue();
+    		default:
+    			return $this->setValue(func_get_arg(0));
+    	}
 
-        return $this->defaultApplyToResultSet($resultSet);
     }
 
-    protected function defaultApplyToResultSet($resultSet) {
-        return $resultSet->where($this->id, $this->val());
+    public function setValue($value) {
+
+    	if (is_object($value)) print_backtrace();
+
+    	$this->value = $value;
+
+    	if ($this->element) {
+    		$this->setElementValue($this->element, $value);
+    	}
+
+    	return $this;
+    }
+
+    public function getValue() {
+
+    	if ($this->element) {
+
+    		if ($this->readElementValue($this->element, $elementValue)) {
+
+    			if ($this->value != $elementValue) {
+
+	    			// Current value is not valid, so return whatever's in the
+	    			// element. This can arise when $element is a <select>
+	    			return $elementValue;
+
+	    		}
+    		}
+
+    	}
+
+    	return $this->value;
+    }
+
+    public function __toString() {
+    	$element = $this->getElement();
+    	return $element->__toString();
     }
 
     /**
-     * Executes this filter against an array.
+     * @return Octopus_Html_Element The HTML element used to display this filter
+     * to the user. Elements returned by this function will
+     * have their values automatically kept up-to-date via subsequent calls to
+     * val() or setValue().
      */
-    protected function &applyToArray(&$ar) {
+    protected abstract function createElement();
 
-        if (isset($this->options['function_array'])) {
-            return $this->callFunction($this->options['function_array'], $array);
-        } else if (isset($this->options['function'])) {
-            return $this->callFunction($this->options['function'], $array);
-        }
+    /**
+     * Called to read the value out of an element returned by a call to
+     * createElement().
+     * @param $element An HTML element returned by a call to createElement()
+     * @param $value Gets set to the current value in $element
+     * @return bool True if read is successful, false otherwise.
+     */
+    protected function readElementValue(Octopus_Html_Element $element, &$value) {
 
-        throw new Octopus_Exception("applyToArray is not implemented, and neither the 'function' or 'function_array' options contain a callable function.");
+    	if ($element instanceof Octopus_Html_Form_Field) {
+    		$value = $element->val();
+    		return true;
+    	}
+
+    	$value = $element->text();
+    	return true;
     }
 
     /**
-     * Executes this filter against raw SQL.
+     * Called to set the value of an HTML element to $value.
+     * @param Octopus_Html_Element $element An element created by a previous
+     * call to createElement().
      */
-    protected function applyToSql($sql) {
+ 	protected function setElementValue(Octopus_Html_Element $element, $value) {
 
-        if (isset($this->options['function_sql'])) {
-            return $this->callFunction($this->options['function_sql'], $sql);
-        } else if (isset($this->options['function'])) {
-            return $this->callFunction($this->options['function'], $sql);
-        }
+ 		if ($element instanceof Octopus_Html_Form_Field) {
+ 			$element->val($value);
+ 			return;
+ 		}
 
-        throw new Octopus_Exception("applyToSql is not implemented, and neither the 'function' or 'function_sql' options contain a callable function.");
-    }
-
-    /**
-     * @return Octopus_Html_Element The actual element that is rendered for
-     * this filter.
-     */
-    abstract protected function createElement();
+ 		$element->text($value);
+ 	}
 
     protected function &initializeOptions(&$options) {
 
-        if (is_string($options)) {
+        if (is_callable($options)) {
             // Allow passing just a function
             $options = array('function' => $options);
         }
@@ -188,12 +265,13 @@ abstract class Octopus_Html_Table_Filter {
 
     /**
      * Creates a new filter.
+     * @param $table The table this filter is for.
      * @param $type String Kind of filter to create. New filter types can be
      * added by calling Octopus_Html_Table_Filter::register().
      * @param $id String Unique ID for this filter.
      * @param $options Array Any options to pass to the filter's constructor.
      */
-    public static function create($type, $id, $label, $options = null) {
+    public static function create(Octopus_Html_Table $table, $type, $id, $label, $options = null) {
 
         if ($id === null) {
             $id = $type;
@@ -204,23 +282,26 @@ abstract class Octopus_Html_Table_Filter {
             $label = null;
         }
 
-        if (!isset(self::$registry[$type])) {
-            throw new Octopus_Exception("Filter type not registered: $type");
-        }
+        if (isset(self::$registry[$type])) {
+        	$class = self::$registry[$type];
+        } else if (class_exists($type)) {
+        	$class = $type;
+	    } else {
 
-        $class = self::$registry[$type];
+        	$class = 'Octopus_Html_Table_Filter_' . camel_case($type, true);
 
-        return new $class($type, $id, $label, $options);
+        	if (!class_exists($class)) {
+            	throw new Octopus_Exception("Filter type not registered: $type");
+            }
+
+	    }
+
+        return new $class($table, $type, $id, $label, $options);
     }
 
     public static function register($type, $class) {
         self::$registry[$type] = $class;
     }
 }
-
-Octopus_Html_Table_Filter::register('text', 'Octopus_Html_Table_Filter_Text');
-Octopus_Html_Table_Filter::register('search', 'Octopus_Html_Table_Filter_Search');
-Octopus_Html_Table_Filter::register('select', 'Octopus_Html_Table_Filter_Select');
-Octopus_Html_Table_Filter::register('checkbox', 'Octopus_Html_Table_Filter_Checkbox');
 
 ?>

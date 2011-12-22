@@ -147,7 +147,9 @@ class StringTests extends PHPUnit_Framework_TestCase
             'foo%' => '%foo\%%',
             'foo_bar' => '%foo\_bar%',
             'foo \ bar' => '%foo \\\\ bar%',
-            'f*' => 'f%'
+            'f*' => 'f%',
+            'f\*' => 'f*',
+            'f\?' => 'f?'
         );
 
         foreach($tests as $input => $expected) {

@@ -35,6 +35,11 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         'debug' => false,
 
         /**
+         * Sorting to use if none has been specified.
+         */
+        'defaultSorting' => array(),
+
+        /**
          * Class applied to the table when there is nothing in it.
          */
         'emptyClass' => 'empty',
@@ -153,16 +158,18 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
     // Original data source passed to setDataSource()
     private $_originalDataSource = null;
+    private $_filteredAndSortedDataSource = null;
+    private $_currentFilters = array();
+    private $_currentSorting = array();
 
-    private $_sorting = array();
+    private $_sorting = null;
     private $_filters = array(); // Octopus_Html_Table_Filter objects, keyed on ID
-    private $_page = 1;
+    private $_filterValues = array();
+    private $_page = null;
 
     private $_pager = null;
-    private $_resetPager = false;
 
     private $_sessionKeys = array();
-    private $_queryString = null;
 
     public function __construct($id, $options = array()) {
 
@@ -178,7 +185,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         parent::__construct('table', $attrs);
 
         $this->_options = array_merge(self::$defaultOptions, $options);
-        $this->_pager = new Octopus_Html_Pager($this->_options);
+
 
         $this->initFromEnvironment();
     }
@@ -326,20 +333,18 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         if ($type instanceof Octopus_Html_Table_Filter) {
             $filter = $type;
         } else {
-            $filter = Octopus_Html_Table_Filter::create($type, $id, $label, $options);
+            $filter = Octopus_Html_Table_Filter::create($this, $type, $id, $label, $options);
         }
 
         if (!$filter) {
         	return;
         }
 
-        if (isset($this->_filters[$filter->id])) {
-        	$filter->val($this->_filters[$filter->id]);
+        if (isset($this->_filterValues[$filter->id])) {
+        	$filter->val($this->_filterValues[$filter->id]);
         }
 
         $this->_filters[$filter->id] = $filter;
-
-        $this->rememberState();
 
         // This new filter might correspond to a value previously passed to
         // filter(), so ensure data is requeried.
@@ -420,12 +425,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
     public function setPage($page) {
 
-    	$p = $this->getPager();
-
-    	// NOTE: pager tracks page # even between datasource changes, so it is
-    	// safe to rely on it to keep track of the table's page #.
-    	$p->setPage($page);
-
+    	$this->_page = $page;
         $this->rememberState();
 
         return $this;
@@ -436,13 +436,14 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      */
     public function getPager() {
 
-    	if (!$this->_resetPager) {
-    		return $this->_pager;
+    	if (!$this->_pager) {
+    		$this->_pager = new Octopus_Html_Pager($this->_options);
     	}
 
-    	// The pager's datasource needs to be rebuilt
-    	return $this->_pager->setDataSource($this->getFilteredAndSortedDataSource());
+    	$this->_pager->setDataSource($this->getFilteredAndSortedDataSource());
+    	$this->_pager->setPage($this->getRequestedPage());
 
+    	return $this->_pager;
     }
 
     public function getPageCount() {
@@ -483,7 +484,6 @@ class Octopus_Html_Table extends Octopus_Html_Element {
             return $this->unfilter();
         }
 
-        $values = array();
         $filterID = null;
 
         foreach($args as $arg) {
@@ -494,7 +494,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
                 } else {
 
                 	if ($arg !== null) {
-                    	$values[$filterID] = $arg;
+                    	$this->_filterValues[$filterID] = array('set' => true, 'value' => $arg);
                     }
 
                     $filterID = null;
@@ -508,14 +508,22 @@ class Octopus_Html_Table extends Octopus_Html_Element {
             		continue;
             	}
 
-                $this->values[$id] = $value;
+                $this->_filterValues[$id] = array('set' => true, 'value' => $value);
             }
         }
 
-        foreach($values as $key => $value) {
+        foreach($this->_filterValues as $key => $info) {
+
+        	if (!$info['set']) {
+        		continue;
+        	}
+
         	$filter = $this->getFilter($key);
-        	if ($filter) $filter->val($value);
+        	if ($filter) $filter->val($info['value']);
+
         }
+
+        $this->invalidate();
 
         $this->rememberState();
 
@@ -530,6 +538,12 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         foreach($this->_filters as $filter) {
             $filter->clear();
         }
+
+        foreach($this->getFilterValues() as $key => $value) {
+        	$this->_filterValues[$key]['set'] = false;
+        }
+
+        $this->invalidate();
 
         $this->rememberState();
 
@@ -593,7 +607,6 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         foreach($this->_columns as $c) {
             $c->sort(false);
         }
-        $this->_sortColumns = array();
 
         foreach($this->_filters as $f) {
             $f->clear();
@@ -639,7 +652,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     public function isSorted() {
-        return !!count($this->_sortColumns);
+        return !!count($this->getSorting());
     }
 
     /**
@@ -678,6 +691,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
     	$p->setDataSource($dataSource);
     	$this->_originalDataSource = $p->getDataSource(); // Pager automatically converts e.g. arrays to DataSources
+
     	$this->invalidate();
 
         return $this;
@@ -702,6 +716,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      * override any sorting in the querystring (e.g., /whatever?sort=age gets
      * overwritten when you call sort('name')).
      * @see setDefaultSorting
+     * @see unsort
      */
     public function sort(/* lots of different ways */) {
 
@@ -734,9 +749,11 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      * Removes any sorting applied to this table
      */
     public function unsort() {
+
     	$this->_sorting = array();
     	$this->applySorting();
     	$this->rememberState();
+
         if ($this->_options['resetPageOnSort']) {
             $this->setPage(1);
         }
@@ -754,18 +771,13 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
     	$seen = array();
 
-    	foreach($this->_columns as $col) {
+    	foreach($this->getColumns() as $col) {
     		$col->unsort();
     	}
 
-    	foreach($this->_sorting as $id => $dir) {
-
-    		if (!isset($this->_columns[$id])) {
-    			continue;
-    		}
-
-    		$col = $this->_columns[$id];
-    		$col->sort($dir);
+    	foreach($this->getSorting() as $id => $dir) {
+    		$col = $this->getColumn($id);
+    		if ($col) $col->sort($dir);
     	}
     }
 
@@ -845,10 +857,6 @@ END;
      */
     protected function getQueryString() {
 
-        if ($this->_queryString !== null) {
-            return $this->_queryString;
-        }
-
         if ($this->_options['queryString'] !== null) {
             $qs = $this->_options['queryString'];
         } else {
@@ -865,7 +873,6 @@ END;
             parse_str($qs, $qs);
         }
 
-        $this->_queryString = $qs;
         return $qs;
     }
 
@@ -875,13 +882,23 @@ END;
      */
     protected function getFilteredAndSortedDataSource() {
 
+    	$filterValues = $this->getFilterValues();
+    	$sorting = $this->getSorting();
+
+    	$filtersChanged = $this->_currentFilters === null ? true : !!array_diff($filterValues, $this->_currentFilters);
+    	$sortingChanged = $this->_currentSorting === null ? true : !!array_diff($sorting, $this->_currentSorting);
+
+    	if ($this->_filteredAndSortedDataSource && !($filtersChanged || $sortingChanged)) {
+    		return $this->_filteredAndSortedDataSource;
+    	}
+
     	$ds = $this->_originalDataSource;
 
     	if (!$ds) {
     		return;
     	}
 
-    	foreach($this->_filters as $id => $value) {
+    	foreach($filterValues as $id => $value) {
 
             $filter = $this->getFilter($id);
             if (!$filter) continue;
@@ -891,16 +908,19 @@ END;
 
         }
 
-        foreach($this->_sorting as $id => $dir) {
+        foreach(array_reverse($sorting, true) as $id => $dir) {
 
-        	if (!isset($this->_columns[$id])) {
-        		continue;
+        	$col = $this->getColumn($id);
+        	$col->sort($dir);
+        	if ($col) {
+        		$ds = $col->applySorting($ds);
         	}
 
-        	$col = $this->_columns[$id];
-        	$ds = $col->applySorting($ds);
-
         }
+
+        $this->_currentSorting = $sorting;
+        $this->_currentFilters = $filterValues;
+        $this->_filteredAndSortedDataSource = $ds;
 
         return $ds;
     }
@@ -911,18 +931,26 @@ END;
     protected function rememberState($what = null) {
 
     	if (!$what || $what === 'sorting') {
+
         	$sortingKey = $this->getSessionKey('sorting');
-        	if ($sortingKey) $_SESSION[$sortingKey] = $this->getSortString();
+        	if ($sortingKey) $_SESSION[$sortingKey] = $this->getSorting();
+
         }
 
         if (!$what || $what === 'page') {
         	$pageKey = $this->getSessionKey('page');
-        	if ($pageKey) $_SESSION[$pageKey] = $this->getPage();
+        	if ($pageKey) $_SESSION[$pageKey] = $this->getRequestedPage();
         }
 
         if (!$what || $what === 'filters') {
+
         	$filtersKey = $this->getSessionKey('filters');
-        	if ($filtersKey) $_SESSION[$filtersKey] = $this->getFilterValues();
+
+        	if ($filtersKey) {
+        		// Don't overwrite values for filters that have not been added yet
+        		$sessionValues = isset($_SESSION[$filtersKey]) ? $_SESSION[$filtersKey] : array();
+				$_SESSION[$filtersKey] = array_merge($sessionValues, $this->getFilterValues());
+			}
         }
 
     }
@@ -936,7 +964,7 @@ END;
     	if (!is_array($what)) $what = array($what);
 
     	foreach($what as $key) {
-    		$key = $this->getSessionKey($what);
+    		$key = $this->getSessionKey($key);
     		unset($_SESSION[$key]);
     	}
 
@@ -953,25 +981,13 @@ END;
     protected function getSortString($sorting = null) {
 
         $result = '';
-
-        $ds = $this->getDataSource();
-        if ($sorting === null) $sorting = $this->_sorting;
+        if ($sorting === null) $sorting = $this->getSorting();
 
         foreach($sorting as $id => $dir) {
 
-        	if (!isset($this->_columns[$id])) {
-        		continue;
-        	}
+			if ($result) $result .= ',';
+    		$result .= ($dir ? '' : '!') . $id;
 
-        	$col = $this->_columns[$id];
-
-        	if (!$col->isSortable($ds)) {
-        		continue;
-        	}
-
-        	if ($result) $result .= ',';
-
-        	$result .= ($col->isSortedDesc($ds) ? '!' : '') . $col->id;
         }
 
         return $result;
@@ -985,14 +1001,97 @@ END;
      */
     public function getFilterValues() {
 
-        $values = array();
-        foreach($this->_filters as $key => $value) {
-        	if (isset($this->_filters[$key])) {
-        		$values[$key] = $value;
-        	}
-        }
+    	$values = array();
+
+    	$qs = $this->getQueryString();
+
+    	$sessionKey = $this->getSessionKey('filters');
+
+    	if ($sessionKey && isset($_SESSION[$sessionKey]) && is_array($_SESSION[$sessionKey])) {
+    		$sessionValues = $_SESSION[$sessionKey];
+    	} else {
+    		$sessionValues = array();
+    	}
+
+    	foreach($this->_filters as $id => $filter) {
+
+    		if (isset($this->_filterValues[$id])) {
+
+    			if ($this->_filterValues[$id]['set']) {
+	    			$values[$id] = $this->_filterValues[$id]['value'];
+	    		}
+
+    		} else if (isset($qs[$id])) {
+    			$values[$id] = $qs[$id];
+    			$this->_filterValues[$id] = array('set' => true, 'value' => $qs[$id]);
+    		} else if (isset($sessionValues[$id])) {
+    			$values[$id] = $sessionValues[$id];
+    			$this->_filterValues[$id] = array('set' => true, 'value' => $sessionValues[$id]);
+    		}
+
+    	}
+
 
         return $values;
+    }
+
+    /**
+     * @return Array Keys are column ids, values are true for sort ascending,
+     * false for sort descending.
+     */
+    public function getSorting() {
+
+    	if ($this->_sorting !== null) {
+
+    		// Sorting has been set manually, so use that
+    		return $this->createSortingArray($this->_sorting);
+
+    	}
+
+    	$qs = $this->getQueryString();
+    	$qsValues = isset($qs[$this->_options['sortArg']]) ? $qs[$this->_options['sortArg']] : array();
+
+    	$sessionKey = $this->getSessionKey('sorting');
+    	if ($sessionKey) {
+    		$sessionValues = isset($_SESSION[$sessionKey]) ? $_SESSION[$sessionKey] : array();
+    	} else {
+    		$sessionValues = array();
+    	}
+
+    	$sorting = $this->createSortingArray($qsValues, $sessionValues);
+    	if (!empty($sorting)) return $sorting;
+
+    	return $this->createSortingArray($this->getDefaultSorting());
+    }
+
+    private function createSortingArray(/* $arg1, $arg2 */) {
+
+    	$result = array();
+
+    	foreach(func_get_args() as $arg) {
+
+    		if (!$arg) {
+    			continue;
+    		}
+
+    		if (is_string($arg)) {
+    			$arg = self::parseSortString($arg);
+    		}
+
+    		foreach($arg as $id => $dir) {
+
+    			$col = $this->getColumn($id);
+
+    			if (!$col || isset($result[$id])) {
+    				continue;
+    			}
+
+    			$result[$id] = self::parseSortDirection($dir);
+    		}
+
+    	}
+
+    	return $result;
     }
 
     /**
@@ -1008,21 +1107,13 @@ END;
 
         $newSorting = array($column->id => true);
 
-        foreach($this->_sorting as $id => $dir) {
+        foreach($this->getSorting() as $id => $dir) {
 
-        	if (!isset($this->_columns[$id])) {
-        		continue;
-        	}
+        	if ($id == $column->id && count($newSorting) === 1) {
 
-        	if ($id == $column->id) {
-
-        		if (count($newSorting) === 1) {
-
-		            // Clicking on the thing that is already primarily sorted
-		            // inverts the sort order of that column.
-	        		$newSorting[$id] = !$newSorting[$id];
-
-	        	}
+	            // Clicking on the thing that is already primarily sorted
+	            // inverts the sort order of that column.
+        		$newSorting[$id] = !$dir;
 
         	} else {
         		$newSorting[$id] = $dir;
@@ -1158,8 +1249,6 @@ END;
     protected function initFromEnvironment() {
 
         $this->initFiltersFromEnvironment();
-        $this->initSortingFromEnvironment();
-        $this->initPageFromEnvironment();
 
         $this->ensureQueryStringMatchesTableState();
     }
@@ -1195,7 +1284,7 @@ END;
 
         $qs = $this->getQueryString();
 
- 		// First, check if the user has clicked the 'clear filters' link.
+ 		// Check if the user has clicked the 'clear filters' link.
         $clearFiltersArg = $this->_options['clearFiltersArg'];
 
         if ($clearFiltersArg && !empty($qs[$clearFiltersArg])) {
@@ -1213,27 +1302,22 @@ END;
 
         }
 
-        // Next, apply any filters in the querystring / session
-        $filterValues = array();
-
-        $sessionKey = $this->getSessionKey('filters');
-        if ($sessionKey && isset($_SESSION[$sessionKey]) && is_array($_SESSION[$sessionKey])) {
-        	$filterValues = $_SESSION[$sessionKey];
-        }
-
-        $filterValues = array_merge($filterValues, $qs);
-        $this->unfilter()->filter($filterValues);
-
     }
 
     /**
-     * Checks the querystring and session for the page we're supposed to be
-     * on.
+     * @return Number The page the user asked for, which may or may not be
+     * valid.
      */
-    protected function initPageFromEnvironment() {
+    protected function getRequestedPage() {
+
+
+    	if ($this->_page !== null) {
+    		return $this->_page;
+    	}
 
         $qs = $this->getQueryString();
         $pageArg = $this->_options['pageArg'];
+        $page = 1;
 
         if (isset($qs[$pageArg])) {
             $page = $qs[$pageArg];
@@ -1241,32 +1325,23 @@ END;
             $page = $_SESSION[$sessionKey];
         }
 
-        $this->setPage($page);
+        $page = preg_replace('/[^\d]+/', '', $page);
+
+        return $page;
     }
 
     /**
-     * Reads the querystring and session to see if the table's sorting needs
-     * to be updated.
+     * @return Mixed The first column in the sort order, or null if table is
+     * unsorted.
      */
-    protected function initSortingFromEnvironment() {
+    protected function getPrimarySortColumn() {
 
-        $qs = $this->getQueryString();
-        $sortArg = $this->_options['sortArg'];
-        $useSession = $this->_options['useSession'];
-        $sessionSortKey = $this->getSessionKey('sorting');
+    	foreach($this->getSorting() as $id => $dir) {
 
-        if (isset($qs[$sortArg])) {
-            $sort = rawurldecode($qs[$sortArg]);
-        } else if ($useSession && isset($_SESSION[$sessionSortKey])) {
-            $sort = $_SESSION[$sessionSortKey];
-        }
+    		$col = $this->getColumn($id);
+    		if ($col) return $col;
 
-        if ($sort) {
-            $this->sort(explode(',', $sort));
-        } else {
-            // Use default sorting
-            $this->sort($this->getDefaultSorting());
-        }
+    	}
 
     }
 
@@ -1275,7 +1350,7 @@ END;
      * that provides the current page of data to be rebuilt.
      */
     protected function invalidate() {
-    	$this->_resetPager = true;
+    	$this->_filteredAndSortedDataSource = null;
     }
 
     /**
@@ -1322,9 +1397,10 @@ END;
         $sortClass = '';
 
         if ($asc || $desc) {
-            $first = array_shift($this->_sortColumns);
-            if ($first == $column) $sortClass = ($desc ? 'sortDesc' : 'sortAsc');
-            array_unshift($this->_sortColumns, $first);
+        	$primary = $this->getPrimarySortColumn();
+        	if ($primary === $column) {
+        		$sortClass = ($desc ? 'sortDesc' : 'sortAsc');
+        	}
         }
 
         $th->addClass('sortable', $sortClass);
@@ -1367,7 +1443,7 @@ END;
         $td = new Octopus_Html_Element('td');
 
         $rowIndex = 1;
-        foreach($this->getData() as $row) {
+        foreach($this->getItems() as $row) {
 
             $tr->reset();
             $this->prepareBodyRow($tr, $row, $rowIndex);
@@ -1530,6 +1606,33 @@ END;
                 return true;
             }
         }
+
+    }
+
+    /**
+     * Parses a string in the format 'col1,!col2' into an array whose keys are
+     * column ids and values are sort direction (true = asc, false = desc).
+     */
+    private static function parseSortString($str) {
+
+    	$result = array();
+    	foreach(explode(',', $str) as $s) {
+
+    		$s = trim($s);
+    		$asc = true;
+
+    		while($s && $s[0] === '!') {
+    			$asc = !$asc;
+    			$s = substr($s, 1);
+    		}
+
+    		if ($s) {
+    			$result[$s] = $asc;
+    		}
+
+    	}
+
+    	return $result;
 
     }
 

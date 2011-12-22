@@ -52,7 +52,8 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
     	'nextLinkText' => 'Next',
 
         /**
-         * QueryString arg used to specify the page.
+         * QueryString arg used to specify the page. Set to false to disable
+         * automatic intialization from the querystring.
          */
         'pageArg' => 'page',
 
@@ -81,7 +82,6 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
 
     private $page = null;
     private $pageSize = null;
-    private $readQueryString = false;
 
     protected $requireCloseTag = true;
 
@@ -131,15 +131,9 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
     	}
 
     	$this->dataSource = $ds;
-
-    	$oldPage = $this->getPage();
-    	$this->setPage($oldPage);
-
-    	if ($this->getPage() == $oldPage) {
-    		// Page didn't change, ensure that css etc is updated
-    		$this->limitedDataSource = null;
-    		$this->updateCss();
-    	}
+		$this->limitedDataSource = null;
+    	$this->page = null;
+		$this->updateCss();
 
     	return $this;
     }
@@ -160,9 +154,13 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
      */
     public function getPage() {
 
+    	if (!$this->dataSource) {
+    		return 1;
+    	}
+
     	if ($this->page === null) {
     		$p = $this->getDefaultPage();
-    		$this->setCurrentPage($p);
+    		$this->setPage($p);
     	}
 
     	return $this->page;
@@ -261,8 +259,8 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
     		$startIndex = 1;
     	}
 
-    	if ($endIndex >= $pageCount) {
-    		$startIndex -= (($endIndex + 1) - $pageCount);
+    	if ($endIndex > $pageCount) {
+    		$startIndex -= ($endIndex - $pageCount);
     		$endIndex = $pageCount;
     	}
 
@@ -270,19 +268,6 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
     	$endIndex = min($endIndex, $pageCount);
 
     	$result = range($startIndex, $startIndex + ($endIndex - $startIndex));
-
-    	// Add pages at the end
-    	for ($i = 1; $i <= $delta; $i++) {
-
-    		$p = ($pageCount - 1) - ($delta - $i);
-
-    		if ($p <= $endIndex) {
-    			continue;
-    		}
-
-    		$result[] = $p + 1;
-
-    	}
 
     	return $result;
     }
@@ -333,7 +318,7 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
     		return;
     	}
 
-    	$prev = $this->createPagingLink($this->getPreviousPage() + 1, $o['prevLinkText'], $o['prevLinkClass']);
+    	$prev = $this->createPagingLink($this->getPreviousPage(), $o['prevLinkText'], $o['prevLinkClass']);
     	$this->append($prev);
 
     	$lastNum = null;
@@ -351,7 +336,7 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
 
     	}
 
-    	$next = $this->createPagingLink($this->getNextPage() + 1, $o['nextLinkText'], $o['nextLinkClass']);
+    	$next = $this->createPagingLink($this->getNextPage(), $o['nextLinkText'], $o['nextLinkClass']);
     	$this->append($next);
 
     }
@@ -393,12 +378,11 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
 
     	$arg = $this->options['pageArg'];
 
-    	if ($this->readQueryString || empty($arg) || !isset($_GET[$arg])) {
+    	if (empty($arg) || !isset($_GET[$arg])) {
     		return 1;
     	}
 
     	$page = preg_replace('/[^\d]/', '', $_GET[$arg]);
-    	$this->readQueryString = true;
 
     	return $page;
     }
@@ -415,13 +399,13 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
     		$this->addClass($o['emptyClass']);
     	}
 
-    	if ($pageCount && $page == 0) {
+    	if ($pageCount && $page === 1) {
     		$this->addClass($o['firstPageClass']);
     	} else {
     		$this->removeClass($o['firstPageClass']);
     	}
 
-    	if ($pageCount && $page == $pageCount - 1) {
+    	if ($pageCount && $page === $pageCount) {
     		$this->addClass($o['lastPageClass']);
     	} else {
     		$this->removeClass($o['lastPageClass']);
