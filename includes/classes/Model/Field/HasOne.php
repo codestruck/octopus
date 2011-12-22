@@ -268,7 +268,8 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         }
 
         $textField = $displayField->getFieldName();
-        return new Octopus_Model_Restriction_Field($model, $this->getFieldname() . '.' . $textField . ' LIKE', $text);
+
+        return new Octopus_Model_Restriction_Field($model, $this->getFieldname() . '.' . $textField . ' LIKE', wildcardify($text));
     }
 
 

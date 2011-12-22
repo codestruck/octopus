@@ -672,9 +672,9 @@ END;
     	if ($filter->val() == 'M') {
 
 	    	return $resultSet->where(array(
-	    		array('name LIKE' => 'Joe*'),
+	    		array('name LIKE' => 'Joe%'),
 	    		'OR',
-	    		array('name LIKE' => 'John*'),
+	    		array('name LIKE' => 'John%'),
 		    ));
 
 		} else if ($filter->val() == 'F') {
