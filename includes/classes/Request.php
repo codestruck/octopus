@@ -65,7 +65,18 @@ class Octopus_Request {
      * return "".
      */
     public function getRequestedAction() {
-        return $this->internalGetControllerInfo('original_action');
+
+    	// NOTE: For a request like '/test' that resolves to the DefaultController,
+    	// original_action is null. So we substitute the resolved action.
+
+    	$result = $this->internalGetControllerInfo('original_action');
+    	if ($result) return $result;
+
+    	if ($this->isDefaultController()) {
+    		return $this->getAction();
+    	}
+
+    	return null;
     }
 
     /**
@@ -155,6 +166,14 @@ class Octopus_Request {
      */
     public function getResolvedPath() {
         return $this->resolvedPath;
+    }
+
+    /**
+     * @return Boolean Whether this request is getting sent to the app's
+     * DefaultController
+     */
+    public function isDefaultController() {
+    	return $this->getControllerClass() === 'DefaultController';
     }
 
     /**

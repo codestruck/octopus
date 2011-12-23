@@ -5,6 +5,28 @@
  */
 class PipelineTests extends Octopus_App_TestCase {
 
+	function testDontAddSlashForDefaultControllerActionsWithoutController() {
+
+		$siteDir = $this->getSiteDir();
+		file_put_contents(
+			"{$siteDir}/views/test.tpl",
+			"Hi there"
+		);
+
+		$app = $this->getApp();
+
+		$req = $app->createRequest('/test');
+		$this->assertEquals('DefaultController', $req->getControllerClass());
+		$this->assertEquals('test', $req->getAction(), 'Action is test');
+		$this->assertEquals('test', $req->getRequestedAction(), 'Requested action is test');
+		$this->assertEquals(array(), $req->getActionArgs(), 'Action gets no arguments');
+
+		$resp = $app->getResponse('/test', true);
+
+		$this->assertEquals(200, $resp->getStatus(), "Should not redirect to /test/");
+
+	}
+
     function testDefaultActionReceivesActionAndArgs() {
 
         $siteDir = $this->getSiteDir();
