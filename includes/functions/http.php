@@ -86,6 +86,16 @@
         return $url;
     }
 
+    /**
+     * Adds a route to the current app instance's router. See also
+     * Octopus_Router::alias
+     */
+    function add_route($from, $to, $options = array()) {
+    	$app = Octopus_App::singleton();
+    	$r = $app->getRouter();
+    	return $r->alias($from, $to, $options);
+    }
+
     // native version requires 5.4 to properly encode spaces for GET requests
     function octopus_http_build_query($data, $seperator = '&', $method = 'GET') {
 

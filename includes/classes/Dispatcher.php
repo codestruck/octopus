@@ -71,8 +71,6 @@ class Octopus_Dispatcher {
 
 
     /**
-     * Given the controller info array from an Octopus_Nav_Item, instantiates the
-     * appropriate controller instance.
      * @return Object An Octopus_Controller if found, otherwise NULL.
      */
     protected function createController($request, $response) {

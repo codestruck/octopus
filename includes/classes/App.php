@@ -66,7 +66,7 @@ class Octopus_App {
 
         /**
          * Whether or not to auto-include files in the site/functions directory.
-         * This option depends on use_site_config, if that is false, no
+         * This option depends on use_site_config, if that is false, none
          * will be included.
          */
         'include_site_functions' => true,
@@ -97,7 +97,7 @@ class Octopus_App {
     private static $_instance = null;
 
     private $_options;
-    private $_nav;
+    private $_router;
     private $_settings;
     private $_controllers = null, $_flatControllers = null;
     private $_prevErrorHandler = null;
@@ -121,7 +121,6 @@ class Octopus_App {
         $this->_figureOutDirectories();
         $this->_figureOutSecurity();
         $this->_figureOutLocation();
-        $this->_initNav();
         $this->_loadSystemModels();
         $this->_examineSiteDir();
         $this->_loadSiteConfig();
@@ -284,20 +283,14 @@ class Octopus_App {
 
     }
 
-    private function _initNav() {
-
-        $this->_nav = new Octopus_Nav();
-
-        $o =& $this->_options;
-        if ($o['root_alias']) {
-            $this->_nav->alias($o['root_alias'], '/');
-        }
-
-    }
-
-    public function alias($what, $toWhat) {
-        $nav = $this->getNav();
-        $nav->alias($what, $toWhat);
+    /**
+     * Adds an alias to this app's router.
+     * Note that the order of arguments here is $to, $from rather than
+     * router's $from, $to. Sorry about that.
+     */
+    public function alias($to, $from, $options = array()) {
+        $r = $this->getRouter();
+        $r->alias($from, $to, $options);
         return $this;
     }
 
@@ -320,16 +313,6 @@ class Octopus_App {
      */
     public function error($message, $level = E_USER_WARNING) {
         trigger_error($message, $level);
-    }
-
-
-    public function find($path, $options = null) {
-
-        if (!$this->_nav) {
-            $this->_nav = new Octopus_Nav();
-        }
-
-        return $this->_nav->find($path, $options);
     }
 
     /**
@@ -509,14 +492,30 @@ class Octopus_App {
         return $this->_options;
     }
 
+    /**
+     * @deprecated Use getRouter().
+     */
     public function getNav() {
+    	return $this->getRouter();
+    }
 
-        if (!$this->_nav) {
-            $this->_nav = new Octopus_Nav();
-        }
+    /**
+     * @return Octopus_Router The router responsible for mapping nice urls to
+     * yucky internal ones.
+     */
+    public function getRouter() {
 
-        return $this->_nav;
+    	if (!$this->_router) {
 
+    		$this->_router = new Octopus_Router();
+
+    		if (!empty($this->_options['root_alias'])) {
+    			$this->_router->alias('/', $this->_options['root_alias']);
+    		}
+
+    	}
+
+    	return $this->_router;
     }
 
     /**
@@ -604,12 +603,12 @@ class Octopus_App {
 
         $originalPath = $path;
 
-        // Octopus_Nav handles aliasing etc, so it can tell us what the
+        // Octopus_Router handles aliasing etc, so it can tell us what the
         // 'real' requested path is.
 
-        $nav = $this->getNav();
+        $router = $this->getRouter();
 
-        return new Octopus_Request($this, $originalPath, $nav->resolve($path), $options);
+        return new Octopus_Request($this, $originalPath, $router->resolve($path), $options);
     }
 
     /**
@@ -944,12 +943,13 @@ class Octopus_App {
             require_once($hostConfigFile);
         }
 
-        // Nav Structure
-        $navFile = $o['SITE_DIR'] . 'nav.php';
-        if (!file_exists($navFile)) {
-            //$this->error('No nav.php found in site dir.', E_USER_NOTICE);
-        } else {
-            require_once($navFile);
+        // Load app routes
+        // NOTE: nav.php is loaded for backwards compatibility
+        foreach(array('nav.php', 'routes.php') as $f) {
+        	$file = $o['SITE_DIR'] . $f;
+        	if (is_file($f)) {
+        		self::loadRoutesFile($file, $this);
+        	}
         }
 
         // Models
@@ -1028,6 +1028,13 @@ class Octopus_App {
             $tz = 'America/Los_Angeles';
         }
         date_default_timezone_set($tz);
+
+    }
+
+    private static function loadRoutesFile($file, Octopus_App $app) {
+
+    	$NAV = $ROUTES = $app->getRouter();
+    	require_once($file);
 
     }
 
