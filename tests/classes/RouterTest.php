@@ -2,6 +2,15 @@
 
 class RouterTest extends PHPUnit_Framework_TestCase {
 
+	function testOverride() {
+
+		$r = new Octopus_Router();
+		$r->alias('/', '/test');
+		$r->alias('/', '/something');
+		$this->assertEquals('/something', $r->resolve('/'));
+
+	}
+
 	function testSimpleAlias() {
 
 		$r = new Octopus_Router();
