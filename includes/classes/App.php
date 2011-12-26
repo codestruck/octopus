@@ -947,7 +947,7 @@ class Octopus_App {
         // NOTE: nav.php is loaded for backwards compatibility
         foreach(array('nav.php', 'routes.php') as $f) {
         	$file = $o['SITE_DIR'] . $f;
-        	if (is_file($f)) {
+        	if (is_file($file)) {
         		self::loadRoutesFile($file, $this);
         	}
         }
