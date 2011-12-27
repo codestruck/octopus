@@ -198,6 +198,8 @@ class Octopus_Renderer {
         $result['SITE_DIR'] = $this->app->getOption('SITE_DIR');
         $result['OCTOPUS_DIR'] = $this->app->getOption('OCTOPUS_DIR');
 
+        $result['URL_BASE'] = $this->app->getOption('URL_BASE');
+
         $result['URI'] = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : $request->getPath();
         $result['URI_AS_CLASS'] = to_css_class(str_replace('/', '', $request->getPath()));
 
