@@ -46,6 +46,8 @@ class Octopus_Html_Page {
 
     protected $options;
 
+    private $dirs = array();
+
     private $scriptDirs = array();
     private $cssDirs = array();
 
@@ -68,14 +70,6 @@ class Octopus_Html_Page {
     public function __construct($options = array()) {
 
         $this->options = array_merge(self::$defaults, $options);
-
-        foreach(array('ROOT_DIR', 'OCTOPUS_DIR', 'SITE_DIR', 'URL_BASE') as $opt) {
-            if (!empty($this->options[$opt])) {
-                $this->options[$opt] = rtrim($this->options[$opt], '/') . '/';
-            } else {
-                $this->options[$opt] = get_option($opt, '');
-            }
-        }
 
         foreach($this->options['minify'] as $kind => $minifiers) {
 
@@ -122,6 +116,16 @@ class Octopus_Html_Page {
      */
     public function reset() {
 
+    	$this->dirs = array();
+
+        foreach(array('ROOT_DIR', 'OCTOPUS_DIR', 'SITE_DIR', 'URL_BASE') as $opt) {
+            if (!empty($this->options[$opt])) {
+                $this->dirs[$opt] = end_in('/', $this->options[$opt]);
+            } else {
+                $this->dirs[$opt] = get_option($opt, '');
+            }
+        }
+
     	$this->scriptDirs = array();
     	$this->cssDirs = array();
 
@@ -137,13 +141,13 @@ class Octopus_Html_Page {
     	$this->titleSeparator = ' | ';
     	$this->breadcrumbs = array();
 
-        $this->addJavascriptDir($this->options['ROOT_DIR'], 0);
-        $this->addJavascriptDir($this->options['SITE_DIR'], 0);
-        $this->addJavascriptDir($this->options['OCTOPUS_DIR'], PHP_INT_MAX);
+        $this->addJavascriptDir($this->dirs['ROOT_DIR'], 0);
+        $this->addJavascriptDir($this->dirs['SITE_DIR'], 0);
+        $this->addJavascriptDir($this->dirs['OCTOPUS_DIR'], PHP_INT_MAX);
 
-        $this->addCssDir($this->options['ROOT_DIR'], 0);
-        $this->addCssDir($this->options['SITE_DIR'], 0);
-        $this->addCssDir($this->options['OCTOPUS_DIR'], PHP_INT_MAX);
+        $this->addCssDir($this->dirs['ROOT_DIR'], 0);
+        $this->addCssDir($this->dirs['SITE_DIR'], 0);
+        $this->addCssDir($this->dirs['OCTOPUS_DIR'], PHP_INT_MAX);
 
         $this->setMeta('Content-type', 'text/html; charset=UTF-8');
     }
@@ -880,7 +884,7 @@ class Octopus_Html_Page {
     private function getPhysicalPathAllowMissing($file, Array $dirs) {
     	$result = $this->getPhysicalPath($file, $dirs, true, false);
     	if ($result !== false) return $result;
-    	return $this->options['ROOT_DIR'] . ltrim($file, '/');
+    	return $this->dirs['ROOT_DIR'] . ltrim($file, '/');
     }
 
     public function getUrlForFile($file, $useUrlifier = true) {
@@ -898,7 +902,7 @@ class Octopus_Html_Page {
         	return $file;
         }
 
-        $root = $this->options['ROOT_DIR'];
+        $root = $this->dirs['ROOT_DIR'];
 
         if (starts_with($file, $root)) {
         	$file = substr($file, strlen($root));
@@ -912,7 +916,7 @@ class Octopus_Html_Page {
         if (defined('SG_VERSION')) {
             $root = preg_replace('#/core/$#', '/', $root, -1, $count);
             if ($count > 0 && starts_with($file, $root, false, $remainder)) {
-                return $this->options['URL_BASE'] . $remainder;
+                return $this->dirs['URL_BASE'] . $remainder;
             }
         }
 
@@ -1162,11 +1166,10 @@ class Octopus_Html_Page {
 
         $css = $this->minify('css', $css);
 
+
         foreach($css as &$item) {
         	$item['file'] = $this->getUrlForFile($item['file']);
         }
-
-        $css = $this->minify('css', $css);
 
         return $css;
     }
@@ -1302,7 +1305,7 @@ END;
      * Helper that calls u() with the appropriate args.
      */
     protected function u($url) {
-        return u($url, null, array('URL_BASE' => $this->options['URL_BASE']));
+        return u($url, null, array('URL_BASE' => $this->dirs['URL_BASE']));
     }
 
     public function getFullTitle() {
