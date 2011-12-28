@@ -79,6 +79,8 @@ class AppTests extends Octopus_App_TestCase {
     	file_put_contents($fooThemeDir . 'templates/html/page.tpl', '{$HEAD}');
     	file_put_contents($barThemeDir . 'templates/html/page.tpl', '{$HEAD}');
 
+    	$foomtime = filemtime($fooThemeDir . 'test.js');
+
     	$page = Octopus_Html_Page::singleton();
     	$page->addJavascript('/test.js');
 
@@ -90,7 +92,7 @@ class AppTests extends Octopus_App_TestCase {
 <head>
 	<title></title>
 	<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
-	<script type="text/javascript" src="/site/themes/foo/test.js"></script>
+	<script type="text/javascript" src="/site/themes/foo/test.js?$foomtime"></script>
 </head>
 END
 			,
@@ -100,13 +102,15 @@ END
 		$settings->set('site.theme', 'bar');
 		Octopus_Smarty::singleton()->reset();
 
+		$barmtime = filemtime($barThemeDir . 'test.js');
+
     	$resp = $app->getResponse('/whatever/blah', true);
     	$this->assertHtmlEquals(
 	    	<<<END
 <head>
 	<title></title>
 	<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
-	<script type="text/javascript" src="/site/themes/bar/test.js"></script>
+	<script type="text/javascript" src="/site/themes/bar/test.js?$barmtime"></script>
 </head>
 END
 			,
@@ -130,6 +134,8 @@ END
 
     	touch($fooThemeDir . 'test.css');
     	touch($barThemeDir . 'test.css');
+    	$foomtime = filemtime($fooThemeDir . 'test.css');
+    	$barmtime = filemtime($barThemeDir . 'test.css');
 
     	file_put_contents($fooThemeDir . 'templates/html/page.tpl', '{$HEAD}');
     	file_put_contents($barThemeDir . 'templates/html/page.tpl', '{$HEAD}');
@@ -145,7 +151,7 @@ END
 <head>
 	<title></title>
 	<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
-	<link href="/site/themes/foo/test.css" rel="stylesheet" type="text/css" media="all" />
+	<link href="/site/themes/foo/test.css?$foomtime" rel="stylesheet" type="text/css" media="all" />
 </head>
 END
 			,
@@ -161,7 +167,7 @@ END
 <head>
 	<title></title>
 	<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
-	<link href="/site/themes/bar/test.css" rel="stylesheet" type="text/css" media="all" />
+	<link href="/site/themes/bar/test.css?$barmtime" rel="stylesheet" type="text/css" media="all" />
 </head>
 END
 			,

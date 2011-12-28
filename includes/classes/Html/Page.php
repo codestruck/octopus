@@ -902,6 +902,12 @@ class Octopus_Html_Page {
         	return $file;
         }
 
+        $mtime = '';
+        if (is_file($file)) {
+        	$mtime = @filemtime($file);
+        	$mtime = $mtime ? "?$mtime" : '';
+        }
+
         $root = $this->dirs['ROOT_DIR'];
 
         if (starts_with($file, $root)) {
@@ -916,12 +922,12 @@ class Octopus_Html_Page {
         if (defined('SG_VERSION')) {
             $root = preg_replace('#/core/$#', '/', $root, -1, $count);
             if ($count > 0 && starts_with($file, $root, false, $remainder)) {
-                return $this->dirs['URL_BASE'] . $remainder;
+                return $this->dirs['URL_BASE'] . $remainder . $mtime;
             }
         }
 
         // Fall back to just URL_BASE/file
-        return $this->u($file);
+        return $this->u($file) . $mtime;
     }
 
     /**

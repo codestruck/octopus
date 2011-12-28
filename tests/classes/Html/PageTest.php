@@ -2,6 +2,45 @@
 
 class PageTest extends Octopus_App_TestCase {
 
+	function testCssHasMtime() {
+
+		recursive_touch($this->getSiteDir() . 'css/test.css');
+		$mtime = filemtime($this->getSiteDir() . 'css/test.css');
+
+		$page = new Octopus_Html_Page();
+		$page->addCss('/css/test.css');
+
+		$this->assertHtmlEquals(
+			<<<END
+<link href="/site/css/test.css?$mtime" rel="stylesheet" type="text/css" media="all" />
+END
+			,
+			$page->renderCss(true)
+		);
+
+
+	}
+
+	function testJavascriptHasMtime() {
+
+		recursive_touch($this->getSiteDir() . 'script/test.js');
+		$mtime = filemtime($this->getSiteDir() . 'script/test.js');
+
+		$page = new Octopus_Html_Page();
+		$page->addJavascript('/script/test.js');
+
+		$this->assertHtmlEquals(
+			<<<END
+<script type="text/javascript" src="/site/script/test.js?$mtime"></script>
+END
+			,
+			$page->renderJavascript(true)
+		);
+
+
+	}
+
+
 	function testNoScriptWeightDoesNotOverrideExisting() {
 
 		$page = new Octopus_Html_Page();
@@ -55,7 +94,7 @@ class PageTest extends Octopus_App_TestCase {
 		$files = $page->getJavascriptFiles();
 		$file = array_shift($files);
 
-		$this->assertEquals('/subdir/site/' . basename($dir) . '/test.js', $file['file'], 'Test file is found in added dir');
+		$this->assertEquals('/subdir/site/' . basename($dir) . '/test.js?' . filemtime($dir . '/test.js'), $file['file'], 'Test file is found in added dir');
 	}
 
 	function testAddCssDir() {
@@ -72,7 +111,7 @@ class PageTest extends Octopus_App_TestCase {
 		$files = $page->getCssFiles();
 		$file = array_shift($files);
 
-		$this->assertEquals('/subdir/site/' . basename($dir) . '/test.css', $file['file'], 'Test file is found in added dir');
+		$this->assertEquals('/subdir/site/' . basename($dir) . '/test.css?' . filemtime($dir . '/test.css'), $file['file'], 'Test file is found in added dir');
 	}
 
 
@@ -346,12 +385,13 @@ END
 
     	$file = 'test.js';
     	file_put_contents($this->getSiteDir() . $file, '/* test */');
+    	$mtime = filemtime($this->getSiteDir() . $file);
 
     	$page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
     	$page->addJavascript('/test.js');
     	$this->assertHtmlEquals(
     		<<<END
-<script type="text/javascript" src="/subdir/site/test.js"></script>
+<script type="text/javascript" src="/subdir/site/test.js?$mtime"></script>
 END
 			,
 			$page->renderJavascript(true)
@@ -363,13 +403,14 @@ END
 
     	$file = $this->getRootDir() . 'test.js';
     	file_put_contents($file, '/* test */');
+    	$mtime = filemtime($file);
 
     	$page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
     	$page->addJavascript($file);
 
     	$this->assertHtmlEquals(
 	    	<<<END
-<script type="text/javascript" src="/subdir/test.js"></script>
+<script type="text/javascript" src="/subdir/test.js?$mtime"></script>
 END
 			,
 			$page->renderJavascript(true)
@@ -868,10 +909,12 @@ END
         $page->addJavascriptAlias(array('/a.js', '/c.js'), '/ac.js');
         $page->addJavascriptAlias(array('/a.js', '/b.js', '/d.js'), '/abd.js');
 
+        $cmtime = filemtime($this->getSiteDir() . 'c.js');
+
         $this->assertHtmlEquals(
             <<<END
 <script type="text/javascript" src="/subdir/abd.js"></script>
-<script type="text/javascript" src="/subdir/site/c.js"></script>
+<script type="text/javascript" src="/subdir/site/c.js?$cmtime"></script>
 END
             ,
             $page->renderJavascript(true)
@@ -893,10 +936,12 @@ END
 
         $page->addJavascriptAlias(array('/c.js', '/b.js'), '/cb.js');
 
+        $amtime = filemtime($this->getRootDir() . 'a.js');
+
         $this->assertHtmlEquals(
             <<<END
 <script type="text/javascript" src="/cb.js"></script>
-<script type="text/javascript" src="/a.js"></script>
+<script type="text/javascript" src="/a.js?$amtime"></script>
 END
             ,
             $page->renderJavascript(true)
@@ -924,7 +969,8 @@ END
         $this->assertEquals('/subdir/ac.js', $f['file']);
 
         $f = array_shift($files);
-        $this->assertEquals('/subdir/b.js', $f['file']);
+        $bmtime = filemtime($this->getRootDir() . 'b.js');
+        $this->assertEquals("/subdir/b.js?$bmtime", $f['file']);
 
     }
 
