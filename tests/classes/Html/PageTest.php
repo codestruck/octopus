@@ -1151,6 +1151,7 @@ END
     	$this->assertEquals(1, count($js));
     	$js = array_shift($js);
     	$file = $this->getRootDir() . preg_replace('#^/subdir/#i', '', $js['file']);
+    	$file = preg_replace('/\?.*/', '', $file);
 
     	$this->assertEquals(
 	    	<<<END
@@ -1175,6 +1176,7 @@ END
     	$this->assertEquals(1, count($js));
     	$js = array_shift($js);
     	$file = $this->getRootDir() . preg_replace('#^/subdir/#i', '', $js['file']);
+    	$file = preg_replace('/\?.*/', '', $file);
 
     	$this->assertEquals(
 	    	<<<END
@@ -1199,6 +1201,7 @@ END
     	$this->assertEquals(1, count($js));
     	$js = array_shift($js);
     	$file = $this->getRootDir() . preg_replace('#^/subdir/#i', '', $js['file']);
+    	$file = preg_replace('/\?.*/', '', $file);
 
     	$this->assertEquals(
 	    	<<<END
@@ -1245,7 +1248,8 @@ END
     	$js = $page->getJavascriptFiles();
     	$this->assertEquals(1, count($js));
     	$js = array_shift($js);
-    	$file = $this->getRootDir() . preg_replace('#^/subdir/#i', '', $js['file']);
+    	$file = $this->getRootDir() . preg_replace('#^(/subdir/|\?.*)#i', '', $js['file']);
+		$file = preg_replace('/\?.*/', '', $file);
     	$mtime = filemtime($file);
 
     	sleep(2);
@@ -1263,6 +1267,7 @@ END
     	$this->assertEquals(1, count($js));
     	$js = array_shift($js);
     	$file = $this->getRootDir() . preg_replace('#^/subdir/#i', '', $js['file']);
+    	$file = preg_replace('/\?.*/', '', $file);
     	$this->assertEquals($mtime, filemtime($file));
 
     }
