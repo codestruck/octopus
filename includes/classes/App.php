@@ -77,6 +77,11 @@ class Octopus_App {
         'load_models' => true,
 
         /**
+         * Enable PHP session support
+         */
+        'use_sessions' => true,
+
+        /**
          * PHP session name.
          */
         'session_name' => 'octopus',
@@ -1019,8 +1024,12 @@ class Octopus_App {
      */
     private function _setUpPHP() {
 
-        if (!session_id()) {
-            session_start($this->getOption('session_name'));
+        if ($this->getOption('use_sessions')) {
+            if (!session_id()) {
+                session_start($this->getOption('session_name'));
+            }
+        } else {
+            ini_set('session.use_cookies', '0');
         }
 
         $tz = @date_default_timezone_get();
