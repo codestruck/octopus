@@ -4,6 +4,8 @@ class Octopus_Http_Request_Sockets extends Octopus_Http_Request_Base {
 
     public function request($url, $data = null, $args = array()) {
 
+        $this->requestUrl = $url;
+        $this->requestData = $data;
         $this->args = array_merge($this->defaults, $args);
 
         list($host, $port, $path, $secure) = $this->parseUrl($url, $data);

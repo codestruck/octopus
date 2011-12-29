@@ -145,6 +145,17 @@ class Octopus_Http_Request_Base {
 
         // the 400's and 500's are bad news
         if ($this->responseNumber >= 400) {
+            if (DEV) {
+                $message = "error {$this->responseNumber}\nURL: {$this->requestUrl}\n";
+                if ($this->requestData) {
+                    $message .= "params: " . print_r($this->requestData, 1);
+                }
+                $message .= $content;
+
+                $log = new Octopus_Logger_File(OCTOPUS_PRIVATE_DIR . 'http.log');
+                $log->log($message);
+            }
+
             $content = '';
         }
 
