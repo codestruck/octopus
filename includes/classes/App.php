@@ -320,7 +320,7 @@ class Octopus_App {
      * the final page.
      */
     public function createRenderer() {
-        return Octopus::create('Renderer', array($this));
+        return Octopus::create('Octopus_Renderer', array($this));
     }
 
     /**

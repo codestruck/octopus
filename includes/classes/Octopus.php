@@ -67,7 +67,7 @@ class Octopus {
      */
     public static function bind($name, $class) {
         if (isset(self::$bindings[$name])) {
-            array_unshift($class, self::$bindings[$name]);
+            array_unshift(self::$bindings[$name], $class);
         } else {
             self::$bindings[$name] = array($class);
         }
@@ -102,7 +102,6 @@ class Octopus {
     public static function create($name, Array $args = array()) {
 
         $class = self::getClass($name);
-        self::loadClass($class);
 
         switch(count($args)) {
 
@@ -124,13 +123,12 @@ class Octopus {
     /**
      * Gets the class that is bound to the given name.
      */
-    public static function getClass($name) {
+    public static function getClass($class) {
 
-        $class = 'Octopus_' . $name;
-
-        if (!empty(self::$bindings[$name])) {
-            $class = self::$bindings[$name][0];
+        if (!empty(self::$bindings[$class])) {
+            return self::$bindings[$class][0];
         }
+
         return $class;
     }
 
