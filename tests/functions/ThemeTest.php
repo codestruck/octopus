@@ -29,12 +29,14 @@ class ThemeTest extends Octopus_App_TestCase {
     		$page = Octopus_Html_Page::singleton();
 			$page->reset();
 
-    		recursive_touch($dir . 'themes/test/script/test.js');
+			$file = $dir . 'themes/test/script/test.js';
+    		recursive_touch($file);
+    		$mtime = filemtime($file);
     		add_theme_javascript('script/test.js');
 
     		$files = $page->getJavascriptFiles();
     		$this->assertEquals(1, count($files), 'only 1 javascript file added');
-    		$this->assertEquals($url . 'themes/test/script/test.js', $files[0]['file'], 'URL for added javascript is correct');
+    		$this->assertEquals($url . "themes/test/script/test.js?$mtime", $files[0]['file'], 'URL for added javascript is correct');
 
     		$page->reset();
     		recursive_delete($dir . 'themes');
@@ -56,12 +58,14 @@ class ThemeTest extends Octopus_App_TestCase {
     		$page = Octopus_Html_Page::singleton();
 			$page->reset();
 
-    		recursive_touch($dir . 'themes/test/css/test.css');
+			$file = $dir . 'themes/test/css/test.css';
+    		recursive_touch($file);
+    		$mtime = filemtime($file);
     		add_theme_css('/css/test.css');
 
     		$files = $page->getCssFiles();
     		$this->assertEquals(1, count($files), 'only 1 css file added');
-    		$this->assertEquals($url . 'themes/test/css/test.css', $files[0]['file'], 'URL for added css is correct');
+    		$this->assertEquals($url . "themes/test/css/test.css?$mtime", $files[0]['file'], 'URL for added css is correct');
 
     		$page->reset();
     		recursive_delete($dir . 'themes');
