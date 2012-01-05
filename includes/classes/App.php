@@ -1,10 +1,5 @@
 <?php
 
-// Shortcut functions
-function app_error($error, $level = E_USER_WARNING) {
-    Octopus_App::singleton()->error($error, $level);
-}
-
 /**
  * Central class for an app instance.
  */
@@ -361,65 +356,6 @@ class Octopus_App {
         );
     }
 
-    /**
-     * @return Array A hierarchical list of controllers.
-     */
-    public function getControllers($flat = false) {
-
-        if ($this->_controllers && !$flat) {
-            return $this->_controllers;
-        } else if ($this->_flatControllers && $flat) {
-            return $this->_flatControllers;
-        }
-
-        $o =& $this->_options;
-        $found = array();
-
-        $dirs = array($o['OCTOPUS_DIR'], $o['SITE_DIR']);
-
-        foreach($dirs as $d) {
-
-            foreach(safe_glob($d . 'controllers/*.php') as $f) {
-
-                $parts = explode('_', basename($f, '.php'));
-
-                $this->fillOutControllerHierarchy($found, $parts);
-
-            }
-
-        }
-
-        if ($flat) {
-            $found = $this->flattenControllerHierarchy($found);
-            $this->_flatControllers = $found;
-            return $found;
-        } else {
-            $this->_controllers = $found;
-            return $found;
-        }
-    }
-
-    private function fillOutControllerHierarchy(&$h, &$parts) {
-
-        if (empty($parts)) {
-            return;
-        }
-
-        while(($p = array_shift($parts)) !== null) {
-
-            if (!$p) {
-                continue;
-            }
-
-            if (!isset($h[$p])) {
-                $h[$p] = array();
-            }
-
-            $this->fillOutControllerHierarchy($h[$p], $parts);
-            return;
-        }
-
-    }
 
     /**
      * @return Object The Octopus_Request instance generated the last time
@@ -856,23 +792,6 @@ class Octopus_App {
         if ($o['use_globals']) {
             $GLOBALS['URL_BASE'] = $o['URL_BASE'];
         }
-    }
-
-    private function flattenControllerHierarchy($h, $inProgress = '', &$result = array()) {
-
-        foreach($h as $key => $children) {
-
-            $item = $inProgress . ($inProgress ? '_' : '') . $key;
-
-            if (count($children)) {
-                $this->flattenControllerHierarchy($children, $item, $result);
-            } else {
-                $result[] = $item;
-            }
-        }
-
-        return $result;
-
     }
 
     private function _includeSiteFunctions() {
