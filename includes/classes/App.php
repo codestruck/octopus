@@ -7,6 +7,14 @@ class Octopus_App {
 
     public static $defaults = array(
 
+    	/**
+    	 * The default template inside which to render the current view's
+    	 * contents. This will be evaluated as relative to the
+    	 * /site/templates or /octopus/templates directories. Any valid
+    	 * view extensions (e.g., .tpl, .php) will be appended, so
+    	 * for the value 'html/page', both 'html/page.tpl' and 'html/page.php'
+    	 * will be tried.
+    	 */
         'default_template' => 'html/page',
 
         /**
@@ -80,12 +88,6 @@ class Octopus_App {
          * PHP session name.
          */
         'session_name' => 'octopus',
-
-        /**
-         * Whether or not to redirect to a 'welcome to octopus' view if no
-         * config file is available.
-         */
-        'show_welcome' => false,
 
         /**
          * Extensions that view files can have.
@@ -496,19 +498,6 @@ class Octopus_App {
         }
 
         $this->_currentRequest = $req = $this->createRequest($path, $options);
-
-        if ($o['show_welcome']) {
-
-            if (!($this->_haveSiteConfig || $this->_haveSiteControllers || $this->_haveSiteViews)) {
-
-                // No config, views, or controllers = show a welcome message.
-                if (!preg_match('/^sys($|\/.*)$/i', $req->getResolvedPath())) {
-                    $path = 'sys/welcome';
-                }
-
-            }
-        }
-
         $this->_currentResponse = $resp = $this->createResponse($req, !empty($options['buffer']));
 
         $dispatch = new Octopus_Dispatcher($this);
