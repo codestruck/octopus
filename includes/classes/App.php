@@ -5,6 +5,9 @@
  */
 class Octopus_App {
 
+	/**
+	 * Default values for the $options array passed to Octopus_App::start().
+	 */
     public static $defaults = array(
 
     	/**
@@ -35,12 +38,6 @@ class Octopus_App {
         'cancel_redirects_on_error' => true,
 
         /**
-         * Whether the app is running over HTTPS. NULL means the app will
-         * figure it out for itself.
-         */
-        'https' => null,
-
-        /**
          * Querystring argument used my mod_rewrite for nice URLs.
          */
         'path_querystring_arg' => '__path',
@@ -52,13 +49,14 @@ class Octopus_App {
         'use_singleton' => true,
 
         /**
-         * Whether or not to create defines.
+         * Whether or not to set defines for global octopus variables (DEV,
+	     * LIVE, STAGING, URL_BASE, etc).
          */
         'use_defines' => true,
 
         /**
-         * Whether or not to set a bunch of global variables, e.g.
-         * $URL_BASE.
+         * Whether or not to set globals for important octopus variables ($DEV,
+	     * $LIVE, $STAGING, $URL_BASE, etc).
          */
         'use_globals' => true,
 
@@ -733,7 +731,7 @@ class Octopus_App {
 
         $o =& $this->_options;
 
-        if ($o['https'] === null) {
+        if (!isset($o['https'])) {
             $o['https'] = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on';
         }
 
