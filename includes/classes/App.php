@@ -18,7 +18,7 @@ class Octopus_App {
         /**
          * Alias to define for the '/' path. Set to false to not define one.
          */
-        'root_alias' => 'home',
+        'root_alias' => 'sys/welcome',
 
         /**
          * Whether to squash redirects when a PHP error occurs. This will only
