@@ -38,7 +38,7 @@ class Octopus_Router {
 	 * </example>
 	 */
 	public function alias($from, $to, $options = array()) {
-		array_unshift($this->routes, compact('from', 'to', 'options'));
+		$this->routes[] =compact('from', 'to', 'options');
 		return $this;
 	}
 
@@ -51,7 +51,9 @@ class Octopus_Router {
 
 		$path = start_in('/', $path);
 
-		foreach($this->routes as &$route) {
+		for($i = count($this->routes) - 1; $i >= 0; $i--) {
+
+			$route =& $this->routes[$i];
 
 			$result = $this->resolveRoute($path, $route);
 			if ($result) return $result;

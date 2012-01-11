@@ -2,12 +2,12 @@
 
 class AppTests extends Octopus_App_TestCase {
 
-	function testAutoAliasSlashToHome() {
+	function testAutoAliasSlashToSysWelcome() {
 
 		$app = $this->getApp();
 
 		$r = $app->getRouter();
-		$this->assertEquals('home', $r->resolve('/'));
+		$this->assertEquals('sys/welcome', $r->resolve('/'));
 
 	}
 
