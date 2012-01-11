@@ -38,13 +38,28 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
     }
 
     /**
-     * @return Array A standardized JSON response array.
+     * @param Mixed $errors Either a single error string or an array of
+     * errors.
+     * @param Number $status The HTTP status code to report. Defaults to 403
+     * (forbidden).
+     * @return Array A standardized JSON response array with the following
+     * keys:
+     *		success - Always false
+     *		errors -  An array of error messages. This is always an array, even
+     * 		          if $errors is not.
+     *
      */
-    protected function error($errors) {
+    protected function error($errors, $status = 403) {
+
+    	if (!$errors) {
+    		$errors = array();
+    	}
 
         if (!is_array($errors)) {
             $errors = array($errors);
         }
+
+        $this->response->setStatus($status);
 
         return array(
             'success' => false,
