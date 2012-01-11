@@ -96,7 +96,6 @@ class Api1TestErrorController extends Octopus_Controller_Api {
     public function testMultipleErrors() {
     	return \$this->error(array('error 1', 'error 2'));
     }
-
 }
 
 ?>
@@ -124,6 +123,40 @@ END
 		    ),
 		    json_decode($resp->getContent(), true)
 		);
+
+    }
+
+    function testErrorInBefore() {
+
+		$app = $this->startApp();
+
+        $this->createControllerFile(
+            'api/1/TestErrorInBefore',
+            <<<END
+<?php
+
+class Api1TestErrorInBeforeController extends Octopus_Controller_Api {
+
+	public function _before(\$action, \$args) {
+		return \$this->error('_before fails');
+	}
+
+	public function test() {
+
+	}
+}
+
+?>
+END
+        );
+
+        $resp = $app->getResponse('/api/1/test-error-in-before/test', true);
+        $this->assertEquals(403, $resp->getStatus(), 'status is 403');
+        $this->assertEquals('application/json', $resp->contentType(), 'content type is application/json');
+        $this->assertEquals(
+        	array('success' => false, 'errors' => array('_before fails')),
+        	json_decode($resp->getContent(), true)
+	    );
 
     }
 
