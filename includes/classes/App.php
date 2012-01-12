@@ -464,7 +464,9 @@ class Octopus_App {
      * @param $path String The path being requested.
      * @param $options Array Options dictating how the request should be
      * processed.
-     * @return Object An Octopus_Response instance.
+     * @return Object An Octopus_Response instance. By default, this will be
+     * a buffered response. For unbuffered responses, set the 'buffer' option
+     * to false.
      */
     public function getResponse($path = null, $options = null) {
 
@@ -488,6 +490,13 @@ class Octopus_App {
             unset($_GET[$arg]);
         }
 
+        if (!array_key_exists("buffer", $options)) {
+        	// Default to buffered response
+        	$options['buffer'] = true;
+        }
+
+        // Ensure there's no querystring on path. This doesn't come up in
+        // normal app operation, but can sometime arise in testing.
         $qPos = strpos($path, '?');
         if ($qPos !== false) {
         	$qs = substr($path, $qPos + 1);
@@ -496,7 +505,7 @@ class Octopus_App {
         }
 
         $this->_currentRequest = $req = $this->createRequest($path, $options);
-        $this->_currentResponse = $resp = $this->createResponse($req, !empty($options['buffer']));
+        $this->_currentResponse = $resp = $this->createResponse($req, $options['buffer']);
 
         $dispatch = new Octopus_Dispatcher($this);
         $dispatch->handleRequest($req, $resp);

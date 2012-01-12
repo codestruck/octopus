@@ -103,18 +103,18 @@
 
         if ($app->DEV) {
             // In dev mode, use buffered output and add extra debugging info
-            $response = $app->getResponse($path, true);
+            $response = $app->getResponse($path);
             $renderTime = round(microtime(true) - $_SERVER['REQUEST_TIME_MILLISECOND'], 3);
             $response->replaceContent('<!-- OF_OCTOPUS_TOTAL_RENDER_TIME -->', ' of ' . $renderTime);
             $response->replaceContent('<!-- OCTOPUS_TOTAL_RENDER_TIME -->', $renderTime);
 
         } else {
-            // Otherwise, just write out as we have data.
-            $response = $app->getResponse($path);
+            // Otherwise, just write out as we have data (use an unbuffered
+	        // Octopus_Response).
+            $response = $app->getResponse($path, false);
         }
 
         $response->flush();
-
     }
 
     /**
