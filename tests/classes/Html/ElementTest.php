@@ -5,6 +5,54 @@
  */
 class ElementTests extends Octopus_Html_TestCase {
 
+	function testInsertBefore() {
+
+		$parent = new Octopus_Html_Element('div');
+
+		$child1 = new Octopus_Html_Element('span', array(), 'foo');
+		$parent->append($child1);
+
+		$child2 = new Octopus_Html_Element('span', array(), 'bar');
+		$child2->insertBefore($child1);
+
+		$this->assertHtmlEquals(
+			<<<END
+<div>
+	<span>bar</span><span>foo</span>
+</div>
+END
+			,
+			$parent->render(true)
+		);
+
+	}
+
+	function testInsertAfter() {
+
+		$parent = new Octopus_Html_Element('div');
+
+		$child1 = new Octopus_Html_Element('span', array(), 'foo');
+		$parent->append($child1);
+
+		$child2 = new Octopus_Html_Element('span', array(), 'bar');
+		$child2->insertAfter($child1);
+
+		$child3 = new Octopus_Html_Element('span', array(), 'baz');
+		$child3->insertAfter($child1);
+
+		$this->assertHtmlEquals(
+			<<<END
+<div>
+	<span>foo</span><span>baz</span><span>bar</span>
+</div>
+END
+			,
+			$parent->render(true)
+		);
+
+	}
+
+
 	function testIsTag() {
 
 		$e = new Octopus_Html_Element('blockquote');

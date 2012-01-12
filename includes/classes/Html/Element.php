@@ -181,6 +181,52 @@ class Octopus_Html_Element {
         return $this;
     }
 
+    /**
+     * Adds this element just after $sibling
+     * @param Octopus_Html_Element $sibling The element to insert this element after.
+     * @throws Octopus_Exception if $sibling does not have a parent.
+     * @return $this
+     */
+    public function insertAfter(Octopus_Html_Element $sibling) {
+
+		$parent = $sibling->parent();
+
+    	if (!$parent) {
+    		throw new Octopus_Exception("Cannot insertBefore a sibling with no parent.");
+    	}
+
+    	$index = array_search($sibling, $parent->_content);
+    	if ($index === false || $index >= count($parent->_content) - 1) {
+    		$before = null;
+    	} else {
+    		$before = $parent->_content[$index+1];
+    	}
+
+    	$parent->addContent($this, $before);
+
+    	return $this;
+
+    }
+
+    /**
+     * Adds this element just before $sibling
+     * @param Octopus_Html_Element $sibling The element to insert this element before.
+     * @throws Octopus_Exception if $sibling does not have a parent.
+     * @return $this
+     */
+    public function insertBefore(Octopus_Html_Element $sibling) {
+
+    	$parent = $sibling->parent();
+
+    	if (!$parent) {
+    		throw new Octopus_Exception("Cannot insertBefore a sibling with no parent.");
+    	}
+
+    	$parent->addContent($this, $sibling);
+
+    	return $this;
+    }
+
     public function remove(/* $child */) {
 
         $args = func_get_args();
@@ -623,10 +669,13 @@ class Octopus_Html_Element {
     }
 
     /**
-     * Manages actually inserting content into this element, either at the
-     * beginning or the end.
+     * Inserts content (strings or Html_Elements) into this element.
+     * @param Mixed $item A string, an Octopus_Html_Element instance, or an
+     * array containing either.
+     * @param Mixed $before The existing item before which to insert $item.
+     * If falsey, $item is added to the end of the existing content.
      */
-    protected function addContent($item, $prepend) {
+    protected function addContent($item, $before = null) {
 
     	// This is so count($el->children()) is always zero, even when
     	// empty strings have been appended
@@ -638,23 +687,17 @@ class Octopus_Html_Element {
             $this->_content = array();
         }
 
-        if (!is_array($item)) {
-            $this->takeOwnership($item);
-            if ($prepend) {
-                array_unshift($this->_content, $item);
-            } else {
-                $this->_content[] = $item;
-            }
+        if ($before) {
+        	$offset = array_search($before, $this->_content);
+        	if ($offset === false) $index = count($this->_content);
         } else {
-            foreach($item as $i) {
-                $this->takeOwnership($i);
-                if ($prepend) {
-                    array_unshift($this->_content, $i);
-                } else {
-                    $this->_content[] = $i;
-                }
-            }
+        	$offset = count($this->_content);
         }
+
+        if (!is_array($item)) $item = array($item);
+        array_map(array($this, 'takeOwnership'), $item);
+
+        array_splice($this->_content, $offset, 0, $item);
 
     }
 

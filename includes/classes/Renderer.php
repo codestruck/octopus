@@ -161,6 +161,9 @@ class Octopus_Renderer {
      *    _GET -		$_GET
      *    _POST -    	$_POST
      *
+     *	  HOST - Current hostname, normalized to remove 'www.' and in all
+     *           lowercase.
+     *
      *    QS - 		$_GET as a string with no '?' at the beginning.
      *    FULL_QS	-	$_GET as a string with a '?' at the beginning.
      *    QS_AND -	Character to use to build on FULL_QS (if FULL_QS is
@@ -188,6 +191,11 @@ class Octopus_Renderer {
 
         $result['_GET'] = $qs;
         $result['_POST'] =& $_POST;
+
+        // Host
+        if (isset($_SERVER['HTTP_HOST'])) {
+        	$result['HOST'] = strtolower(preg_replace('/^www\./i', '', $_SERVER['HTTP_HOST']));
+        }
 
         // Query string
         $result['QS'] = $queryString;
