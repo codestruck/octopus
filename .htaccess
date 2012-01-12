@@ -12,10 +12,6 @@ AddDefaultCharset UTF-8
     # Block access to _private
     RewriteRule "^(.*/)?_private/" - [F,L]
 
-    # Block settings.yaml
-    RewriteRule "^(.*/)?settings.yaml" - [F,L]
-
-
     # TODO Remove PW-specific stuff
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
@@ -26,6 +22,18 @@ AddDefaultCharset UTF-8
     RewriteRule ^(.*)$ index.php?__path=$1 [L,QSA]
 
 </IfModule>
+
+# Block access to settings.yaml
+<Files "settings.yaml">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Block access to smarty templates
+<Files ~ "\.tpl$">
+    Order allow,deny
+    Deny from all
+</Files>
 
 <IfModule mod_php.c>
 php_value error_reporting E_ALL

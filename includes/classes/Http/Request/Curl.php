@@ -4,6 +4,8 @@ class Octopus_Http_Request_Curl extends Octopus_Http_Request_Base {
 
     public function request($url, $data = null, $args = array()) {
 
+        $this->requestUrl = $url;
+        $this->requestData = $data;
         $this->args = array_merge($this->defaults, $args);
         $args =& $this->args;
 

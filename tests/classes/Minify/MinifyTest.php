@@ -57,9 +57,9 @@ class MinifyTest extends Octopus_App_TestCase {
 
             $this->assertEquals(
                 array(
-                    $urlDir . 'file_src.js?' . filemtime($src) => array('/file.js')
+                    $src => array($file)
                 ),
-                $strat->getMinifiedUrls(array('/file.js')),
+                $strat->minify(array($file)),
                 "dir: $dirName"
             );
 
@@ -68,9 +68,9 @@ class MinifyTest extends Octopus_App_TestCase {
 
             $this->assertEquals(
                 array(
-                    $urlDir . 'file.js?' . filemtime($file) => array('/file.js')
+                    $file => array($file)
                 ),
-                $strat->getMinifiedUrls(array('/file.js'))
+                $strat->minify(array($file))
             );
 
             unlink($file);
@@ -78,14 +78,14 @@ class MinifyTest extends Octopus_App_TestCase {
             // if only src exists, link to src
             $this->assertEquals(
                 array(
-                    $urlDir . 'file_src.js?' . filemtime($src) => array('/file.js')
+                    $src => array($file)
                 ),
-                $strat->getMinifiedUrls(array('/file.js'))
+                $strat->minify(array($file))
             );
 
             unlink($src);
 
-            $this->assertEquals(array(), $strat->getMinifiedUrls(array('/file.js')));
+            $this->assertEquals(array(), $strat->minify(array('/file.js')));
         }
 
     }
@@ -115,13 +115,13 @@ class MinifyTest extends Octopus_App_TestCase {
 
             $deleteHash = md5("|$a|$b");
             $uniqueHash = md5("|$a?" . filemtime($a) . "|$b?" . filemtime($b));
-            $cacheFile = "combine/$deleteHash-$uniqueHash.js";
+            $cacheFile = $this->getCacheDir() . "combine/$deleteHash-$uniqueHash.js";
 
             $this->assertEquals(
                 array(
-                    '/cache/' . $cacheFile => array('/a.js', '/b.js'),
+                	$cacheFile => array($a, $b)
                 ),
-                $strat->getMinifiedUrls(array('/a.js', '/b.js'))
+                $strat->minify(array($a, $b))
             );
 
             $this->assertEquals(
@@ -131,7 +131,7 @@ $aContents
 $bContents
 END
                 ,
-                file_get_contents($cacheDir . $cacheFile)
+                file_get_contents($cacheFile)
             );
 
             sleep(1);
@@ -140,16 +140,15 @@ END
             $bContents = 'Modified b contents';
             file_put_contents($b, $bContents);
 
-            $deleteHash = md5("|$a|$b");
             $uniqueHash = md5("|$a?" . filemtime($a) . "|$b?" . filemtime($b));
             $prevCacheFile = $cacheFile;
-            $cacheFile = "combine/$deleteHash-$uniqueHash.js";
+            $cacheFile = $this->getCacheDir() . "combine/$deleteHash-$uniqueHash.js";
 
             $this->assertEquals(
                 array(
-                    '/cache/' . $cacheFile => array('/a.js', '/b.js'),
+                	$cacheFile => array($a, $b)
                 ),
-                $strat->getMinifiedUrls(array('/a.js', '/b.js'))
+                $strat->minify(array($a, $b))
             );
 
             $this->assertEquals(
@@ -159,21 +158,21 @@ $aContents
 $bContents
 END
                 ,
-                file_get_contents($cacheDir . $cacheFile)
+                file_get_contents($cacheFile)
             );
 
-            $this->assertFalse(is_file($cacheDir . $prevCacheFile), "old cache file for the content has been deleted ({$cacheDir}{$prevCacheFile})");
+            $this->assertFalse(is_file($prevCacheFile), "old cache file for the content has been deleted ({$cacheDir}{$prevCacheFile})");
 
             // get files in a different order
             $deleteHash = md5("|$b|$a");
             $uniqueHash = md5("|$b?" . filemtime($b) . "|$a?" . filemtime($a));
-            $cacheFile = "combine/$deleteHash-$uniqueHash.js";
+            $cacheFile = $this->getCacheDir() . "combine/$deleteHash-$uniqueHash.js";
 
             $this->assertEquals(
                 array(
-                    '/cache/' . $cacheFile => array('/b.js', '/a.js'),
+                   	$cacheFile => array($b, $a),
                 ),
-                $strat->getMinifiedUrls(array('/b.js', '/a.js'))
+                $strat->minify(array($b, $a))
             );
 
             $this->assertEquals(
@@ -183,7 +182,7 @@ $bContents
 $aContents
 END
                 ,
-                file_get_contents($cacheDir . $cacheFile)
+                file_get_contents($cacheFile)
             );
 
 

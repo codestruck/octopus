@@ -1,17 +1,23 @@
 <?php
 
-// Shortcut functions
-function app_error($error, $level = E_USER_WARNING) {
-    Octopus_App::singleton()->error($error, $level);
-}
-
 /**
  * Central class for an app instance.
  */
 class Octopus_App {
 
+	/**
+	 * Default values for the $options array passed to Octopus_App::start().
+	 */
     public static $defaults = array(
 
+    	/**
+    	 * The default template inside which to render the current view's
+    	 * contents. This will be evaluated as relative to the
+    	 * /site/templates or /octopus/templates directories. Any valid
+    	 * view extensions (e.g., .tpl, .php) will be appended, so
+    	 * for the value 'html/page', both 'html/page.tpl' and 'html/page.php'
+    	 * will be tried.
+    	 */
         'default_template' => 'html/page',
 
         /**
@@ -23,19 +29,13 @@ class Octopus_App {
         /**
          * Alias to define for the '/' path. Set to false to not define one.
          */
-        'root_alias' => 'home',
+        'root_alias' => 'sys/welcome',
 
         /**
          * Whether to squash redirects when a PHP error occurs. This will only
          * happen in DEV mode.
          */
         'cancel_redirects_on_error' => true,
-
-        /**
-         * Whether the app is running over HTTPS. NULL means the app will
-         * figure it out for itself.
-         */
-        'https' => null,
 
         /**
          * Querystring argument used my mod_rewrite for nice URLs.
@@ -49,13 +49,14 @@ class Octopus_App {
         'use_singleton' => true,
 
         /**
-         * Whether or not to create defines.
+         * Whether or not to set defines for global octopus variables (DEV,
+	     * LIVE, STAGING, URL_BASE, etc).
          */
         'use_defines' => true,
 
         /**
-         * Whether or not to set a bunch of global variables, e.g.
-         * $URL_BASE.
+         * Whether or not to set globals for important octopus variables ($DEV,
+	     * $LIVE, $STAGING, $URL_BASE, etc).
          */
         'use_globals' => true,
 
@@ -66,7 +67,7 @@ class Octopus_App {
 
         /**
          * Whether or not to auto-include files in the site/functions directory.
-         * This option depends on use_site_config, if that is false, no
+         * This option depends on use_site_config, if that is false, none
          * will be included.
          */
         'include_site_functions' => true,
@@ -77,15 +78,14 @@ class Octopus_App {
         'load_models' => true,
 
         /**
+         * Enable PHP session support
+         */
+        'use_sessions' => true,
+
+        /**
          * PHP session name.
          */
         'session_name' => 'octopus',
-
-        /**
-         * Whether or not to redirect to a 'welcome to octopus' view if no
-         * config file is available.
-         */
-        'show_welcome' => false,
 
         /**
          * Extensions that view files can have.
@@ -97,7 +97,7 @@ class Octopus_App {
     private static $_instance = null;
 
     private $_options;
-    private $_nav;
+    private $_router;
     private $_settings;
     private $_controllers = null, $_flatControllers = null;
     private $_prevErrorHandler = null;
@@ -121,7 +121,6 @@ class Octopus_App {
         $this->_figureOutDirectories();
         $this->_figureOutSecurity();
         $this->_figureOutLocation();
-        $this->_initNav();
         $this->_loadSystemModels();
         $this->_examineSiteDir();
         $this->_loadSiteConfig();
@@ -284,20 +283,14 @@ class Octopus_App {
 
     }
 
-    private function _initNav() {
-
-        $this->_nav = new Octopus_Nav();
-
-        $o =& $this->_options;
-        if ($o['root_alias']) {
-            $this->_nav->alias($o['root_alias'], '/');
-        }
-
-    }
-
-    public function alias($what, $toWhat) {
-        $nav = $this->getNav();
-        $nav->alias($what, $toWhat);
+    /**
+     * Adds an alias to this app's router.
+     * Note that the order of arguments here is $to, $from rather than
+     * router's $from, $to. Sorry about that.
+     */
+    public function alias($to, $from, $options = array()) {
+        $r = $this->getRouter();
+        $r->alias($from, $to, $options);
         return $this;
     }
 
@@ -322,22 +315,12 @@ class Octopus_App {
         trigger_error($message, $level);
     }
 
-
-    public function find($path, $options = null) {
-
-        if (!$this->_nav) {
-            $this->_nav = new Octopus_Nav();
-        }
-
-        return $this->_nav->find($path, $options);
-    }
-
     /**
      * @return An Octopus_Renderer instance to use to find views and render
      * the final page.
      */
     public function createRenderer() {
-        return Octopus::create('Renderer', array($this));
+        return Octopus::create('Octopus_Renderer', array($this));
     }
 
     /**
@@ -373,65 +356,6 @@ class Octopus_App {
         );
     }
 
-    /**
-     * @return Array A hierarchical list of controllers.
-     */
-    public function getControllers($flat = false) {
-
-        if ($this->_controllers && !$flat) {
-            return $this->_controllers;
-        } else if ($this->_flatControllers && $flat) {
-            return $this->_flatControllers;
-        }
-
-        $o =& $this->_options;
-        $found = array();
-
-        $dirs = array($o['OCTOPUS_DIR'], $o['SITE_DIR']);
-
-        foreach($dirs as $d) {
-
-            foreach(safe_glob($d . 'controllers/*.php') as $f) {
-
-                $parts = explode('_', basename($f, '.php'));
-
-                $this->fillOutControllerHierarchy($found, $parts);
-
-            }
-
-        }
-
-        if ($flat) {
-            $found = $this->flattenControllerHierarchy($found);
-            $this->_flatControllers = $found;
-            return $found;
-        } else {
-            $this->_controllers = $found;
-            return $found;
-        }
-    }
-
-    private function fillOutControllerHierarchy(&$h, &$parts) {
-
-        if (empty($parts)) {
-            return;
-        }
-
-        while(($p = array_shift($parts)) !== null) {
-
-            if (!$p) {
-                continue;
-            }
-
-            if (!isset($h[$p])) {
-                $h[$p] = array();
-            }
-
-            $this->fillOutControllerHierarchy($h[$p], $parts);
-            return;
-        }
-
-    }
 
     /**
      * @return Object The Octopus_Request instance generated the last time
@@ -509,14 +433,30 @@ class Octopus_App {
         return $this->_options;
     }
 
+    /**
+     * @deprecated Use getRouter().
+     */
     public function getNav() {
+    	return $this->getRouter();
+    }
 
-        if (!$this->_nav) {
-            $this->_nav = new Octopus_Nav();
-        }
+    /**
+     * @return Octopus_Router The router responsible for mapping nice urls to
+     * yucky internal ones.
+     */
+    public function getRouter() {
 
-        return $this->_nav;
+    	if (!$this->_router) {
 
+    		$this->_router = new Octopus_Router();
+
+    		if (!empty($this->_options['root_alias'])) {
+    			$this->_router->alias('/', $this->_options['root_alias']);
+    		}
+
+    	}
+
+    	return $this->_router;
     }
 
     /**
@@ -556,19 +496,6 @@ class Octopus_App {
         }
 
         $this->_currentRequest = $req = $this->createRequest($path, $options);
-
-        if ($o['show_welcome']) {
-
-            if (!($this->_haveSiteConfig || $this->_haveSiteControllers || $this->_haveSiteViews)) {
-
-                // No config, views, or controllers = show a welcome message.
-                if (!preg_match('/^sys($|\/.*)$/i', $req->getResolvedPath())) {
-                    $path = 'sys/welcome';
-                }
-
-            }
-        }
-
         $this->_currentResponse = $resp = $this->createResponse($req, !empty($options['buffer']));
 
         $dispatch = new Octopus_Dispatcher($this);
@@ -604,12 +531,12 @@ class Octopus_App {
 
         $originalPath = $path;
 
-        // Octopus_Nav handles aliasing etc, so it can tell us what the
+        // Octopus_Router handles aliasing etc, so it can tell us what the
         // 'real' requested path is.
 
-        $nav = $this->getNav();
+        $router = $this->getRouter();
 
-        return new Octopus_Request($this, $originalPath, $nav->resolve($path), $options);
+        return new Octopus_Request($this, $originalPath, $router->resolve($path), $options);
     }
 
     /**
@@ -804,7 +731,7 @@ class Octopus_App {
 
         $o =& $this->_options;
 
-        if ($o['https'] === null) {
+        if (!isset($o['https'])) {
             $o['https'] = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on';
         }
 
@@ -852,23 +779,6 @@ class Octopus_App {
         if ($o['use_globals']) {
             $GLOBALS['URL_BASE'] = $o['URL_BASE'];
         }
-    }
-
-    private function flattenControllerHierarchy($h, $inProgress = '', &$result = array()) {
-
-        foreach($h as $key => $children) {
-
-            $item = $inProgress . ($inProgress ? '_' : '') . $key;
-
-            if (count($children)) {
-                $this->flattenControllerHierarchy($children, $item, $result);
-            } else {
-                $result[] = $item;
-            }
-        }
-
-        return $result;
-
     }
 
     private function _includeSiteFunctions() {
@@ -944,12 +854,13 @@ class Octopus_App {
             require_once($hostConfigFile);
         }
 
-        // Nav Structure
-        $navFile = $o['SITE_DIR'] . 'nav.php';
-        if (!file_exists($navFile)) {
-            //$this->error('No nav.php found in site dir.', E_USER_NOTICE);
-        } else {
-            require_once($navFile);
+        // Load app routes
+        // NOTE: nav.php is loaded for backwards compatibility
+        foreach(array('nav.php', 'routes.php') as $f) {
+        	$file = $o['SITE_DIR'] . $f;
+        	if (is_file($file)) {
+        		self::loadRoutesFile($file, $this);
+        	}
         }
 
         // Models
@@ -1019,8 +930,12 @@ class Octopus_App {
      */
     private function _setUpPHP() {
 
-        if (!session_id()) {
-            session_start($this->getOption('session_name'));
+        if ($this->getOption('use_sessions')) {
+            if (!session_id()) {
+                session_start($this->getOption('session_name'));
+            }
+        } else {
+            ini_set('session.use_cookies', '0');
         }
 
         $tz = @date_default_timezone_get();
@@ -1028,6 +943,13 @@ class Octopus_App {
             $tz = 'America/Los_Angeles';
         }
         date_default_timezone_set($tz);
+
+    }
+
+    private static function loadRoutesFile($file, Octopus_App $app) {
+
+    	$NAV = $ROUTES = $app->getRouter();
+    	require_once($file);
 
     }
 

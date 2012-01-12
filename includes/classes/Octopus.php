@@ -60,25 +60,33 @@ class Octopus {
     }
 
     /**
-     * Binds a new class to a name, to help support the IoC pattern.
-     * @param String $class The custom class to bind.
-     * @param String $name The name to which to bind it. This should be
-     * the Octopus class name minus the initial 'Octopus_'.
+     * Binds a class to another class or another class instance.
+     * @param string $from The class name to be bound.
+     * @param mixed $to Either the class to bin $from to, or an object that
+     * should be returned by calls to ::create() for $from.
      */
-    public static function bind($name, $class) {
-        if (isset(self::$bindings[$name])) {
-            array_unshift($class, self::$bindings[$name]);
+    public static function bind($from, $to) {
+
+        if (isset(self::$bindings[$from])) {
+            array_unshift(self::$bindings[$from], $to);
         } else {
-            self::$bindings[$name] = array($class);
+            self::$bindings[$from] = array($to);
         }
+
     }
 
     /**
      * Undoes a call to bind().
      */
-    public static function unbind($name, $class) {
+    public static function unbind($name, $class = null) {
+
         if (!isset(self::$bindings[$name])) {
             return;
+        }
+
+        if ($class === null) {
+        	unset(self::$bindings[$name]);
+        	return;
         }
 
         $newBindings = array();
@@ -93,45 +101,54 @@ class Octopus {
 
     /**
      * Creates a new instance of the class with the given name.
-     * @param String $role The name of the class to create. Should be
-     * the standard octopus class name minus the 'Octopus_', e.g.
-     * 'Controller', 'Html_Element'.
+     * @param String $name The name of the class to create.
      * @param Array $args Arguments to pass to the class's constructor.
      * @return Object A class instance.
+     * @throws Octopus_Exception if $name is bound to an object instance and
+     * $args is non-empty.
      */
     public static function create($name, Array $args = array()) {
 
-        $class = self::getClass($name);
-        self::loadClass($class);
+        $binding = self::getBinding($name);
+
+        if (is_object($binding)) {
+
+        	if (!$args) {
+        		// $name was bound to a specific object.
+        		return $binding;
+        	} else {
+        		throw new Octopus_Exception("Cannot specify constructor arguments for class bound to object instance.");
+        	}
+
+        }
 
         switch(count($args)) {
 
             // Don't use reflection for 99.999999% of cases
-            case 0: return new $class();
-            case 1: return new $class($args[0]);
-            case 2: return new $class($args[0], $args[1]);
-            case 3: return new $class($args[0], $args[1], $args[2]);
-            case 4: return new $class($args[0], $args[1], $args[2], $args[3]);
-            case 5: return new $class($args[0], $args[1], $args[2], $args[3], $args[4]);
+            case 0: return new $binding();
+            case 1: return new $binding($args[0]);
+            case 2: return new $binding($args[0], $args[1]);
+            case 3: return new $binding($args[0], $args[1], $args[2]);
+            case 4: return new $binding($args[0], $args[1], $args[2], $args[3]);
+            case 5: return new $binding($args[0], $args[1], $args[2], $args[3], $args[4]);
             // case 6: die("You need to refactor your shit, yo.");
 
             default:
-                $r = new ReflectionClass($class);
+                $r = new ReflectionClass($binding);
                 return $r->newInstanceArgs($args);
         }
     }
 
     /**
-     * Gets the class that is bound to the given name.
+     * Gets the class or object that is bound to the given name.
      */
-    public static function getClass($name) {
-
-        $class = 'Octopus_' . $name;
+    public static function getBinding($name) {
 
         if (!empty(self::$bindings[$name])) {
-            $class = self::$bindings[$name][0];
+            return self::$bindings[$name][0];
         }
-        return $class;
+
+        return $name;
     }
 
     /**

@@ -20,6 +20,31 @@
         return $page->addCss($url, $weight, $attributes);
     }
 
+    /**
+     * Adds a CSS file from the current theme to the page.
+     * @param String $file The path to the file relative to the theme's root.
+     */
+    function add_theme_css($file, $weight = null, $attributes = array()) {
+
+    	$themeFile = get_theme_file($file);
+    	if (!$themeFile) $themeFile = $file;
+
+    	return add_css($themeFile, $weight, $attributes);
+    }
+
+    /**
+     * Adds a javascript file from the current theme to the page.
+     * @param String $file The path to the JS file, relative to the theme's
+     * root.
+     */
+    function add_theme_javascript($file, $section = null, $weight = null, $attributes = array()) {
+
+    	$themeFile = get_theme_file($file);
+    	if (!$themeFile) $themeFile = $file;
+
+    	return add_javascript($themeFile, $section, $weight, $attributes);
+    }
+
     function render_javascript($section = '', $useAliases = true) {
         $page = Octopus_Html_Page::singleton();
         return $page->renderJavascript($section);
