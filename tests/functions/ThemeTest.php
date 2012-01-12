@@ -39,7 +39,7 @@ class ThemeTest extends Octopus_App_TestCase {
     		$this->assertEquals($url . "themes/test/script/test.js?$mtime", $files[0]['file'], 'URL for added javascript is correct');
 
     		$page->reset();
-    		recursive_delete($dir . 'themes');
+    		recursive_delete($dir . 'themes/test');
     	}
 
     }
@@ -68,7 +68,7 @@ class ThemeTest extends Octopus_App_TestCase {
     		$this->assertEquals($url . "themes/test/css/test.css?$mtime", $files[0]['file'], 'URL for added css is correct');
 
     		$page->reset();
-    		recursive_delete($dir . 'themes');
+    		recursive_delete($dir . 'themes/test');
     	}
 
     }
