@@ -40,16 +40,29 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
     /**
      * @param Mixed $errors Either a single error string or an array of
      * errors.
+     * @param Mixed $data Array of data to pass down along with the errors.
+     * If this is numeric, it is interpreted as $status, so you can do:
+     *
+     *		$this->error('Not found', 404);
+     *
      * @param Number $status The HTTP status code to report. Defaults to 403
      * (forbidden).
      * @return Array A standardized JSON response array with the following
      * keys:
      *		success - Always false
+     *		data -    If $data is non-null, this key will be present and will
+     *                contain that value.
      *		errors -  An array of error messages. This is always an array, even
      * 		          if $errors is not.
      *
      */
-    protected function error($errors, $status = 403) {
+    protected function error($errors, $data = null, $status = 403) {
+
+    	// Support error($errors, $status)
+    	if (is_numeric($data)) {
+    		$status = $data;
+    		$data = null;
+    	}
 
     	if (!$errors) {
     		$errors = array();
@@ -61,10 +74,15 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
 
         $this->response->setStatus($status);
 
-        return array(
-            'success' => false,
-            'errors' => $errors
-        );
+        $result = array('success' => false, 'errors' => $errors);
+
+        // For backwards compatibility (mostly to not break a bunch of tests),
+        // don't add the 'data' key unless there's actually something there
+        if ($data !== null) {
+        	$result['data'] = $data;
+        }
+
+        return $result;
     }
 
     public function __execute($action, $args) {
