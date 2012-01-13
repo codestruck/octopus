@@ -30,7 +30,7 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
     /**
      * @return Array A standardized JSON response array.
      */
-    protected function success($data) {
+    protected function success($data = array()) {
         return array(
             'success' => true,
             'data' => $data
