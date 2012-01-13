@@ -129,6 +129,7 @@ END
     function testErrorInBefore() {
 
 		$app = $this->startApp();
+		$method = __METHOD__;
 
         $this->createControllerFile(
             'api/1/TestErrorInBefore',
@@ -141,8 +142,8 @@ class Api1TestErrorInBeforeController extends Octopus_Controller_Api {
 		return \$this->error('_before fails');
 	}
 
-	public function test() {
-
+	public function testAction() {
+		\$GLOBALS['$method'] = true;
 	}
 }
 
@@ -157,6 +158,7 @@ END
         	array('success' => false, 'errors' => array('_before fails')),
         	json_decode($resp->getContent(), true)
 	    );
+	    $this->assertFalse(array_key_exists($method, $GLOBALS), 'test action should not have fired.');
 
     }
 
