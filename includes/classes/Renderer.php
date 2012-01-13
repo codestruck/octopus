@@ -446,7 +446,7 @@ class Octopus_Renderer {
     private function findViewForRender(Octopus_Controller $controller, Octopus_Request $request, Octopus_Response $response, Array &$data, $useViewNotFound = true) {
 
         if ($response->isForbidden()) {
-            $info = $this->findView($request, $controller, 'sys/forbidden');
+            $info = $this->findView($request, $controller, '403');
         } else {
             $info = $this->findView($request, $controller);
         }

@@ -366,9 +366,21 @@ abstract class Octopus_Controller {
     }
 
     /**
+     * Sends the browser a 403 error.
+     */
+    protected function forbidden($newView = '403') {
+
+    	if ($newView !== null) {
+    		$this->view = $newView;
+    	}
+
+    	$this->response->forbidden();
+    }
+
+    /**
      * Sends the browser a 404 error.
      */
-    protected function notFound($newView = null) {
+    protected function notFound($newView = '404') {
 
         if ($newView !== null) {
             $this->view = $newView;
