@@ -322,7 +322,6 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
 
         foreach ($fields as $field) {
             $field = $workingFields[] = (is_string($field) ? $this->getField($field) : $field);
-            if ($field->getFieldName() == 'shipping_address') enable_dump_r();
             $field->save($this, $i);
         }
 
