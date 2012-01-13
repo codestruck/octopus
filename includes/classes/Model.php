@@ -284,6 +284,15 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
             return false;
         }
 
+        if ($this->_id === null) {
+
+        	// Give subclasses a chance to locate an existing record
+        	// immediately before save. This helps when you have a natural id
+        	// (a unique ID you don't control)
+        	$this->_id = $this->findExistingID();
+
+        }
+
         // shortcut saving on existing items with no modifications
         if ($this->exists() && empty($this->touchedFields)) {
             return true;
@@ -297,6 +306,17 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
 
         return $this->internalSave($this->_id, $fields);
 
+    }
+
+    /**
+     * Override this to hook into the save process so you can try and find
+     * an existing record (perhaps by another unique field) that should be
+     * updated rather than INSERTing a new record.
+     * @return Mixed The ID of the existing record, or null if there is no
+     * existing record.
+     */
+    protected function findExistingID() {
+   		return null;
     }
 
     /**
