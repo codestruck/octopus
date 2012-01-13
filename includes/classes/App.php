@@ -490,6 +490,10 @@ class Octopus_App {
             unset($_GET[$arg]);
         }
 
+        if (!is_array($options)) {
+        	$options = array('buffer' => true);
+        }
+
         if (!array_key_exists("buffer", $options)) {
         	// Default to buffered response
         	$options['buffer'] = true;
