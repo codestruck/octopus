@@ -140,7 +140,7 @@ class Octopus_Renderer {
     protected function renderView(Octopus_Controller $controller, Octopus_Request $request, Octopus_Response $response, Array $data, $renderViewNotFound = true) {
 
         // NOTE: findViewForRender will always return a valid view (by default,
-        // it returns the view_not_found view).
+        // it returns the 404 view).
         $viewFile = $this->findViewForRender($controller, $request, $response, $data, $renderViewNotFound);
 
         $this->augmentViewData($data, $request, $response);
@@ -257,7 +257,7 @@ class Octopus_Renderer {
      * @return String Full path to the 'view not found' view to use.
      */
     protected function getViewNotFoundViewFile(Octopus_Request $request, $controller) {
-        return $this->findViewFile($request, $controller, 'sys/view_not_found');
+        return $this->findViewFile($request, $controller, '404');
     }
 
     private function augmentViewData(Array &$data, Octopus_Request $request, Octopus_Response $response) {
@@ -456,18 +456,12 @@ class Octopus_Renderer {
             if (!$info['found'] && $useViewNotFound) {
 
                 // View wasn't found, so provide some extra data for the 'view not found' view.
-                $data = array(
-                    'controller_data' => array(),
-                    'path' => $request->getPath(),
-                    'resolved_path' => '',
-                    'view_paths' => array()
-                );
-
                 $response->setStatus(404);
 
-                if ($this->app->isDevEnvironment()) {
-                    $data['controller_data'] = $data;
-                    $data['resolved_path'] = $request->getResolvedPath();
+                if ($this->app->DEV) {
+
+                	$data['path'] = $this->app->URL_BASE . $request->getPath();
+                    $data['resolved_path'] = $this->app->URL_BASE . $request->getResolvedPath();
 
                     $paths = $this->getViewPaths($request, $controller);
                     $paths = preg_replace('/^' . preg_quote(ROOT_DIR, '/') . '/i', '', $paths);
