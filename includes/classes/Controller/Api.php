@@ -1,7 +1,9 @@
 <?php
 
 /**
- * Base for implementing API controllers.
+ * Base for implementing API controllers. Action results are returned as JSON.
+ * @see ::success()
+ * @see ::error()
  */
 abstract class Octopus_Controller_Api extends Octopus_Controller {
 
@@ -87,43 +89,54 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
 
     public function __execute($action, $args) {
 
-        if (!$args) $args = array();
-        $args = array_merge($args, $_GET, $_POST);
-
         $this->setResponseContentType();
 
-        $data = parent::__execute($action, $args);
+        $result = parent::__execute($action, $args);
 
-        $dumped_content = get_dumped_content();
-
-        if (!empty($dumped_content)) {
-            if ($data === null) {
-                $data = $dumped_content;
-            } else if (is_array($data)) {
-                $data = array_merge($dumped_content, $data);
-            } else {
-                $data = array_merge($dumped_content, compact('data'));
-            }
-            output_dumped_content_header(array_pop($dumped_content), $this->response);
-        }
-
-        $this->response->append(json_encode($data));
+        $this->response->append(json_encode($result));
         $this->response->stop();
 
-        return $data;
+        return $result;
     }
 
-    protected function __executeAction($action, $actionMethod, $args) {
+    /**
+     * @see Octopus_Controller::resolveAction
+     */
+	protected function resolveAction($originalAction, &$action, &$actionMethod, &$args, &$beforeArgs, &$afterArgs, &$result) {
 
-        if ($action == '_default') {
-            return parent::__executeAction($action, $actionMethod, $args);
-        }
+		if (!parent::resolveAction($originalAction, $action, $actionMethod, $args, $beforeArgs, $afterArgs, $result)) {
+			return false;
+		}
 
-        $class = new ReflectionClass($this);
-        $method = $class->getMethod($actionMethod);
+		if ($actionMethod === '_default') {
+			// It doesn't really make sense to map parameters for _default
+			return true;
+		}
 
-        $positionalArgs = array();
+    	// Api controllers support named arguments via $_GET or $_POST,
+    	// so combine those with the passed in arguments.
+        if (!$args) $args = array();
+        $args = array_merge($_GET, $_POST, $args); // TODO: limit to appropriate values based on http method?
+
+        // Ensure _before and _after methods get named arguments rather than
+        // positional ones
+        $beforeArgs = $afterArgs = $args;
+
+		$class = new ReflectionClass($this);
+		$method = null;
+
+		try {
+			$method = $class->getMethod($actionMethod);
+		} catch (Exception $ex) {
+			// Method does not exist, so we can't do any mapping.
+			return true;
+		}
+
+		// Translate named arguments into an array that can be passed to
+		// e.g. call_user_func_array
+
         $errors = array();
+        $positionalArgs = array();
 
         foreach($method->getParameters() as $param) {
 
@@ -132,26 +145,28 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
             $required = !$param->isDefaultValueAvailable();
             $default = $required ? null : $param->getDefaultValue();
 
-            if ($required && !isset($args[$name])) {
+            $exists = array_key_exists($name, $args);
+
+            if ($required && !$exists) {
                 $errors[$name] = "$name is required.";
                 continue;
             }
 
-            $positionalArgs[$pos] = isset($args[$name]) ? $args[$name] : $default;
+            $positionalArgs[$pos] = $exists ? $args[$name] : $default;
             unset($args[$name]);
         }
 
         if (count($errors)) {
-            return $this->error($errors);
-
+            $result = $this->error($errors);
+            return false;
         }
 
-        // Append all remaining args to the end
-        // TODO test
-        $positionalArgs[] = $args;
+        $args = $positionalArgs;
 
-        return parent::__executeAction($action, $actionMethod, $positionalArgs);
-    }
+		return true;
+	}
+
+
 
 }
 

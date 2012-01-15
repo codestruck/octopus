@@ -33,7 +33,7 @@ abstract class Octopus_Controller {
 
         $action = trim($action);
 
-        if (strncmp($action, '_', 1) == 0) {
+        if (strncmp($action, '_', 1) === 0) {
             // Public methods starting with '_' can't be actions
             return;
         }
@@ -46,64 +46,153 @@ abstract class Octopus_Controller {
         if (!$args) $args = array();
         $action = $actionMethod = null;
 
-        $this->figureOutActions($originalAction, $action, $actionMethod);
+        $result = array();
+
+        if ($this->resolveAction($originalAction, $action, $actionMethod, $args, $beforeArgs, $afterArgs, $result)) {
+
+	        if ($this->executeBeforeMethods($originalAction, $action, $actionMethod, $beforeArgs, $result)) {
+
+		        $this->executedActions[] = array('action' => $originalAction, 'args' => $args);
+
+	        	$result = $this->executeAction($originalAction, $action, $actionMethod, $args);
+
+	        	$result = $this->executeAfterMethods($originalAction, $action, $actionMethod, $afterArgs, $result);
+
+	        }
+	    }
+
+		if (is_array($result)) {
+			$result = array_map(array($this, 'escape'), $result);
+		}
+
+		return $result;
+    }
+
+    /**
+     * Executes all the _before methods present for $action.
+     * @param String $originalAction The original requested action
+     * @param String $action The normalized action name (camel case, any
+	 * trailing 'Action' or '_action' removed).
+     * @param String $actionMethod The actual method on this class that will
+     * be executed for the action.
+     * @param Array $args,
+ 	 * @param Mixed $result If this method returns false, this is set to the
+ 	 * result to return for the action.
+     * @return Boolean True to allow executing the action, false otherwise.
+     */
+    protected function executeBeforeMethods($originalAction, $action, $actionMethod, Array $args, &$result) {
 
         $beforeMethods = $this->getBeforeMethods($originalAction, $action, $actionMethod);
 
-        foreach($beforeMethods as $beforeMethod => $includeActionInArgs) {
+        foreach($beforeMethods as $beforeMethod => $actionAsFirstArg) {
 
-            if (!is_callable_and_public($this, $beforeMethod)) {
+            if (!is_callable(array($this, $beforeMethod))) {
                 continue;
             }
 
-            if ($includeActionInArgs) {
-                $result = $this->$beforeMethod(camel_case($originalAction), $args);
+            if ($actionAsFirstArg) {
+                $result = $this->$beforeMethod($action, $args);
             } else {
                 $result = $this->$beforeMethod($args);
             }
 
             if ($this->isFailure($result)) {
-                return $result;
+                return false;
             }
 
         }
 
-        $originalArgs = $args;
+        return true;
 
-        if ($action === '_default') {
-            $args = array($originalAction, $args);
-        }
-
-        $this->executedActions[] = array('action' => $originalAction, 'args' => $args);
-        $data = $this->__executeAction($action, $actionMethod, $args);
-
-        $afterMethods = $this->getAfterMethods($originalAction, $action, $actionMethod);
-
-        foreach($afterMethods as $afterMethod => $includeAction) {
-
-            if (!is_callable_and_public($this, $afterMethod)) {
-                continue;
-            }
-
-            if ($includeAction) {
-                $data = $this->$afterMethod(camel_case($originalAction), $originalArgs, $data);
-            } else {
-                $data = $this->$afterMethod($originalArgs, $data);
-            }
-        }
-
-        if (is_array($data)) {
-            $data = array_map(array($this, 'escape'), $data);
-        }
-
-        return $data;
     }
 
     /**
-     * Given an incoming action name, resolves the 'true' name of the action
-     * as well as the method to use to call it.
+     * Actually calls the method that corresponds to $action on this controller.
+     * @param String $originalAction The original requested action
+     * @param String $action The normalized action name (camel case, any
+	 * trailing 'Action' or '_action' removed).
+     * @param String $actionMethod The actual method on this class that will
+     * be executed for the action.
+     * @param Array $args Arguments to pass to the action.
      */
-    private function figureOutActions($originalAction, &$action, &$actionMethod) {
+    protected function executeAction($originalAction, $action, $actionMethod, Array $args) {
+
+    	if ($actionMethod === '_default') {
+    		return $this->_default($action, $args);
+    	}
+
+        $haveArgs = !!count($args);
+
+        if (!$haveArgs) {
+
+            // Easy enough
+            return $this->$actionMethod();
+
+        } else {
+
+            /* If args is an associative array, pass in as a single
+             * argument. Otherwise, assume each value in the array maps
+             * to a corresponding argument in the action.
+             */
+
+            if (is_associative_array($args)) {
+                return $this->$actionMethod($args);
+            } else {
+                return call_user_func_array(array($this, $actionMethod), $args);
+            }
+        }
+    }
+
+    /**
+     * Executes any _after methods for the given action.
+     * @param String $originalAction The original requested action
+     * @param String $action The normalized action name (camel case, any
+	 * trailing 'Action' or '_action' removed).
+     * @param String $actionMethod The actual method on this class that will
+     * be executed for the action.
+	 * @param Array $args Arguments passed to the action
+	 * @param Mixed $result Result of the action.
+	 * @return Mixed The final result after running all _after methods.
+     */
+    protected function executeAfterMethods($originalAction, $action, $actionMethod, Array $args, $result) {
+
+        $afterMethods = $this->getAfterMethods($originalAction, $action, $actionMethod);
+
+        $argsWithAction = $args;
+        array_unshift($argsWithAction, $action);
+
+        foreach($afterMethods as $afterMethod => $actionAsFirstArg) {
+
+            if (!is_callable(array($this, $afterMethod))) {
+                continue;
+            }
+
+            if ($actionAsFirstArg) {
+                $result = $this->$afterMethod($action, $args, $result);
+            } else {
+                $result = $this->$afterMethod($args, $result);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Given an incoming action, figures out what method it actually corresponds
+     * to and normalizes arguments as appropriate.
+     * @return Boolean True to continue with executing $actionMethod, or
+     * false to return $result as the action's result.
+     */
+    protected function resolveAction($originalAction, &$action, &$actionMethod, &$args, &$beforeArgs, &$afterArgs, &$result) {
+
+    	$this->figureOutAction($originalAction, $action, $actionMethod);
+
+    	$beforeArgs = $afterArgs = $args;
+
+    	return true;
+    }
+
+    private function figureOutAction($originalAction, &$action, &$actionMethod) {
 
         /*
          * Possible methods for an action called 'foo-bar':
@@ -129,7 +218,7 @@ abstract class Octopus_Controller {
                     $actionMethod .= '_action';
 
                     if (!is_callable_and_public($this, $actionMethod)) {
-                        $action = $actionMethod = '_default';
+                        $actionMethod = '_default';
                     }
 
                 }
@@ -143,10 +232,12 @@ abstract class Octopus_Controller {
 
     /**
      * @return An array of '_after' methods to call for the given action.
+     * Keys are method names and values are true to include $action as the
+     * first argument passed to the method.
      */
-    private function &getAfterMethods($originalAction, $action, $actionMethod) {
+    protected function getAfterMethods($originalAction, $action, $actionMethod) {
 
-        $isDefault = ($action === '_default');
+        $isDefault = ($actionMethod === '_default');
 
         $a = array();
 
@@ -166,15 +257,19 @@ abstract class Octopus_Controller {
 
     /**
      * @return An array of '_before' methods to call for the given action.
+     * Keys are the actual methods and values are true if $action should be
+     * passed as the first argument.
      */
-    private function &getBeforeMethods($originalAction, $action, $actionMethod) {
+    protected function getBeforeMethods($originalAction, $action, $actionMethod) {
 
-        $isDefault = ($action === '_default');
+        $isDefault = ($actionMethod === '_default');
 
         $b = array('_before' => true);
 
+        // If no method exists for action, but there is a _before_action method,
+        // don't pass the action name as the 1st argument
         $b['_before_' . $originalAction] = false;
-        $b['_before_' . $action] = $isDefault;
+        $b['_before_' . $action] = false;
 
         if ($isDefault) {
             $b['_before_default'] = true;
@@ -185,40 +280,15 @@ abstract class Octopus_Controller {
         return $b;
     }
 
-    private function isFailure($result) {
+    /**
+     * @return Boolean Indicating whether a value returned from a _before()
+     * method should be regarded as a failure.
+     */
+    protected function isFailure($result) {
 
+    	// TODO: move the $result['success'] logic into api controller
         return ($result === false) ||
                (is_array($result) && isset($result['success']) && $result['success'] === false);
-    }
-
-    /**
-     * Actually calls the method that corresponds to $action on this controller.
-     * @param string $action Name of action, e.g. 'fooBar',
-     * @param string $actionMethod Name of the method, e.g. 'fooBarAction'
-     * @param Array $args Arguments to pass to the action.
-     */
-    protected function __executeAction($action, $actionMethod, $args) {
-
-        $haveArgs = !!count($args);
-
-        if (!$haveArgs) {
-
-            // Easy enough
-            return $this->$actionMethod();
-
-        } else {
-
-            /* If args is an associative array, pass in as a single
-             * argument. Otherwise, assume each value in the array maps
-             * to a corresponding argument in the action.
-             */
-
-            if (is_associative_array($args)) {
-                return $this->$actionMethod($args);
-            } else {
-                return call_user_func_array(array($this, $actionMethod), $args);
-            }
-        }
     }
 
     /**
