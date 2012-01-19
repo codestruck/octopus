@@ -129,6 +129,7 @@ END
     function testErrorInBefore() {
 
 		$app = $this->startApp();
+		$method = __METHOD__;
 
         $this->createControllerFile(
             'api/1/TestErrorInBefore',
@@ -141,8 +142,8 @@ class Api1TestErrorInBeforeController extends Octopus_Controller_Api {
 		return \$this->error('_before fails');
 	}
 
-	public function test() {
-
+	public function testAction() {
+		\$GLOBALS['$method'] = true;
 	}
 }
 
@@ -157,6 +158,67 @@ END
         	array('success' => false, 'errors' => array('_before fails')),
         	json_decode($resp->getContent(), true)
 	    );
+	    $this->assertFalse(array_key_exists($method, $GLOBALS), 'test action should not have fired.');
+
+    }
+
+    function testCustomErrorStatusCode() {
+
+		$app = $this->startApp();
+
+        $this->createControllerFile(
+            'api/1/TestCustomErrorStatusCode',
+            <<<END
+<?php
+
+class Api1TestCustomErrorStatusCodeController extends Octopus_Controller_Api {
+
+	public function test() {
+		return \$this->error('not found', 404);
+	}
+}
+
+?>
+END
+        );
+
+        $r = $app->getResponse('/api/1/test-custom-error-status-code/test', true);
+        $this->assertEquals(404, $r->getStatus());
+        $this->assertEquals(
+        	array('success' => false, 'errors' => array('not found')),
+        	json_decode($r->getContent(), true)
+	    );
+
+
+    }
+
+    function testDataInError() {
+
+		$app = $this->startApp();
+
+        $this->createControllerFile(
+            'api/1/TestDataInError',
+            <<<END
+<?php
+
+class Api1TestDataInErrorController extends Octopus_Controller_Api {
+
+	public function test() {
+		return \$this->error('not found', array('foo' => 'bar'));
+	}
+}
+
+?>
+END
+        );
+
+        $r = $app->getResponse('/api/1/test-data-in-error/test', true);
+        $this->assertEquals(403, $r->getStatus());
+        $this->assertEquals(
+        	array('success' => false, 'data' => array('foo' => 'bar'), 'errors' => array('not found')),
+        	json_decode($r->getContent(), true)
+	    );
+
 
     }
 

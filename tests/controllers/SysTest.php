@@ -6,7 +6,7 @@ class SysControllerTests extends Octopus_App_TestCase {
 
         $s = $this->getSiteDir();
         @mkdir("$s/views/sys");
-        touch("$s/views/sys/forbidden.php");
+        touch("$s/views/403.tpl");
 
         file_put_contents("$s/themes/default/templates/html/page.php", '<?php echo $view_content; ?>');
 

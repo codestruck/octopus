@@ -31,6 +31,23 @@ class Minpost extends Octopus_Model {
     );
 }
 
+class FindExistingIdTestModel extends Octopus_Model {
+
+	protected $fields = array(
+		'name',
+		'age' => 'numeric'
+	);
+
+	public $calls = 0;
+
+	protected function findExistingID() {
+		$this->calls++;
+		$existing = FindExistingIdTestModel::get(array('name' => $this->name));
+		return $existing ? $existing->id : null;
+	}
+
+}
+
 /**
  * @group Model
  */
@@ -40,6 +57,33 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
     function __construct()
     {
         parent::__construct('model/crud-data.xml');
+    }
+
+    function testFindExistingIdHook() {
+
+    	Octopus_DB_Schema_Model::makeTable('FindExistingIdTestModel');
+
+    	$a = new FindExistingIdTestModel();
+    	$a->name = "foo";
+
+    	$b = new FindExistingIdTestModel();
+    	$b->name = "foo";
+
+    	$this->assertTrue($a->save(), 'save of a succeeds');
+    	$this->assertTrue($b->save(), 'save of b succeeds');
+
+    	$this->assertTrue(!!$a->id, "Record A saved");
+    	$this->assertTrue(!!$b->id, "Record B saved");
+    	$this->assertEquals($a->id, $b->id, "No duplicate records generated");
+
+    	$this->assertEquals(1, $a->calls, "called 1x on a");
+    	$this->assertEquals(1, $b->calls, "called 1x on b");
+
+    	$b->age = 50;
+    	$this->assertTrue($b->save(), 'second save of b succeeds');
+
+    	$this->assertEquals(1, $b->calls, "still called 1x on b");
+
     }
 
     function testTableName()
