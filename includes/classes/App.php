@@ -83,6 +83,11 @@ class Octopus_App {
         'use_sessions' => true,
 
         /**
+         * Whether to use the theme system.
+         */
+        'use_themes' => true,
+
+        /**
          * PHP session name.
          */
         'session_name' => 'octopus',
@@ -398,6 +403,10 @@ class Octopus_App {
      * @return String The current theme to use.
      */
     public function getTheme($request = null) {
+
+    	if (!$this->_options['use_themes']) {
+    		return '';
+    	}
 
         if ($request === null) $request = $this->getCurrentRequest();
 
