@@ -102,10 +102,10 @@ class Octopus_Smarty {
     	$result = array();
 
     	$result[] = $siteDir . 'views';
-    	if ($this->theme) $result[] = $siteDir . 'themes/' . $this->theme;
+    	$result[] = $siteDir . 'themes';
 
     	$result[] = $octopusDir . 'views';
-    	if ($this->theme) $result[] = $octopusDir . 'themes/' . $this->theme;
+    	$result[] = $octopusDir . 'themes';
 
     	return $result;
     }
