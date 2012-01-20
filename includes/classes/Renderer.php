@@ -54,7 +54,7 @@ class Octopus_Renderer {
      */
     public function render(Octopus_Controller $controller, Array $data, Octopus_Request $request, Octopus_Response $response) {
 
-        $this->applyTheme($request, $data);
+        $this->applyTheme($controller, $request, $data);
 
         $viewContent = $this->renderView($controller, $request, $response, $data);
         $templateContent = $this->renderTemplate($controller, $request, $response, $viewContent, $data);
@@ -67,10 +67,10 @@ class Octopus_Renderer {
      * loads the 'theme.php' file in the current theme's directory, and adds
      * the theme's directory as potential paths for js and css files.
      */
-    protected function applyTheme(Octopus_Request $request, &$data) {
+    protected function applyTheme(Octopus_Controller $controller, Octopus_Request $request, &$data) {
 
         $app = $this->app;
-        $theme = $app->getTheme($request);
+        $theme = $controller->theme ? $controller->theme : $app->getTheme($request);
 
         if (!$theme) {
         	return;
@@ -481,7 +481,7 @@ class Octopus_Renderer {
         $octopusDir = $this->app->getOption('OCTOPUS_DIR');
 
         $extensions = array('', '.php', '.tpl');
-        $theme = $this->app->getTheme($request);
+        $theme = $controller->theme ? $controller->theme : $this->app->getTheme($request);
 
         $template = $controller->template;
 

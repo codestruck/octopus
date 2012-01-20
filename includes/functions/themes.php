@@ -3,10 +3,19 @@
     /**
      * @return string The name of the current theme.
      */
-    function current_theme() {
-
+    function get_theme() {
         $app = Octopus_App::singleton();
         return $app->getTheme();
+    }
+
+    /**
+     * Sets the current theme.
+     * @param String $theme The name of the theme to use. Should be a directory
+     * in the site/themes directory.
+     */
+    function set_theme($theme) {
+    	$app = Octopus_App::singleton();
+    	$app->setTheme($theme);
     }
 
     /**
@@ -16,7 +25,7 @@
     function get_theme_file($file, $options = array()) {
 
         $file = ltrim($file, '/');
-        $theme = isset($options['theme']) ? $options['theme'] : current_theme();
+        $theme = isset($options['theme']) ? $options['theme'] : get_theme();
 
         foreach(array('SITE_DIR', 'OCTOPUS_DIR') as $dir) {
 

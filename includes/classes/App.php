@@ -415,6 +415,18 @@ class Octopus_App {
         return $this->getSetting($key);
     }
 
+    /**
+     * Sets the theme for the current request.
+     */
+    public function setTheme($theme, $request = null) {
+
+    	if (!$request) $request = $this->getCurrentRequest();
+
+    	$controller = $request->getController();
+    	$controller->theme = $theme;
+
+    }
+
     public function getHostname() {
         return $this->_options['HTTP_HOST'];
     }

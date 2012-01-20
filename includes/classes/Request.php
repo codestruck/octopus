@@ -13,8 +13,9 @@ class Octopus_Request {
     private $options;
     private $controllerInfo = null;
     private $controllerClass = null;
+    private $controller = null;
 
-    public function __construct($app, $path, $resolvedPath = null, $options = array()) {
+    public function __construct(Octopus_App $app, $path, $resolvedPath = null, $options = array()) {
 
         $this->app = $app;
         $this->options = $options;
@@ -34,6 +35,25 @@ class Octopus_Request {
      */
     public function getApp() {
         return $this->app;
+    }
+
+    /**
+     * @return Octopus_Controller The controller instance associated with
+     * this request.
+     */
+    public function getController() {
+
+    	if ($this->controller) {
+    		return $this->controller;
+    	}
+
+    	$this->controller = $this->createController();
+
+        if (!$this->controller) {
+            $this->controller = $this->createDefaultController();
+        }
+
+        return $this->controller;
     }
 
     public function getMethod() {
@@ -203,6 +223,23 @@ class Octopus_Request {
             $cleaned .= '/';
         }
     }
+
+    /**
+     * @return Object An Octopus_Controller if found, otherwise NULL.
+     */
+    protected function createController() {
+        $class = $this->getControllerClass();
+	    return $class ? new $class() : null;
+    }
+
+    /**
+     * Creates an instance of the octopus DefaultController.
+     */
+    protected function &createDefaultController() {
+    	Octopus::requireOnce($this->app->getOption('OCTOPUS_DIR') . 'controllers/Default.php');
+        return new DefaultController();
+    }
+
 
     /**
      * @return Object A reference to the current HTTP request being processed.

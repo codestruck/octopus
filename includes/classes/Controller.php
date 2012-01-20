@@ -7,6 +7,7 @@ abstract class Octopus_Controller {
 
     public $template;
     public $view;
+    public $theme;
     public $app;
     public $request;
     public $response;
