@@ -61,6 +61,18 @@ class Octopus_Html_Table_Action extends Octopus_Html_Table_Content {
             $this->setAttribute('data-confirm', $confirm);
 
         }
+
+        // Allow setting attributes on the link
+        $attrs = $options;
+        unset($attrs['label']);
+        unset($attrs['id']);
+        unset($attrs['method']);
+        unset($attrs['confirm']);
+        unset($attrs['url']);
+        unset($attrs['href']);
+        unset($attrs['function']);
+        $this->attr($attrs);
+
     }
 
     public function url(/* polymorphic */) {

@@ -191,6 +191,48 @@ class TableTest extends Octopus_App_TestCase {
 
     }
 
+    function testAttributesOnActionLinks() {
+
+    	$table = new Octopus_Html_Table('actionTest');
+    	$table->addColumns(array(
+    		'actions' => array(
+    			'view person' => array(
+    				'url' => '/view/{$id}',
+    				'rel'  => 'nofollow',
+    				'target' => '_blank',
+    				'class' => 'custom-class'
+	    		)
+	    	)
+	    ));
+
+		$db = $this->resetDatabase();
+        $db->query("
+            INSERT INTO html_table_persons (`name`, `age`)
+                VALUES
+                    ('Joe Blow', 50),
+                    ('Jane Blow', 50),
+                    ('John Smith', 99)
+        ");
+
+        $table->setDataSource(HtmlTablePerson::all());
+
+        $html = $table->render(true);
+
+        Octopus::loadExternal('simplehtmldom');
+        $dom = str_get_dom($html);
+
+        $actions = $dom->find('a');
+        $this->assertEquals(3, count($actions));
+
+        foreach($actions as $a) {
+        	$this->assertEquals('nofollow', $a->rel);
+        	$this->assertEquals('_blank', $a->target);
+        	$this->assertEquals('custom-class', $a->class);
+        }
+
+    }
+
+
     function testModifierFunctionIsOnModel() {
 
     	return $this->markTestSkipped("WTF?");
