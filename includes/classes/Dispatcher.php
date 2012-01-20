@@ -30,7 +30,7 @@ class Octopus_Dispatcher {
 
             // No action specified == index, but we need to make sure the
             // path ends with a '/'.
-            if (substr($request->getPath(), -1) != '/') {
+            if (substr($request->getPath(), -1) !== '/') {
 
                 $slashUrl = $this->_app->makeUrl('/' . trim($request->getPath(), '/') . '/', $_GET);
                 $response->redirect($slashUrl);
