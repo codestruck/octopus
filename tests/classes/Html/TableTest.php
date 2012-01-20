@@ -193,7 +193,7 @@ class TableTest extends Octopus_App_TestCase {
 
     function testAttributesOnActionLinks() {
 
-    	$table = new Octopus_Html_Table('actionTest');
+    	$table = new Octopus_Html_Table('actionTest', array('pager' => false));
     	$table->addColumns(array(
     		'actions' => array(
     			'view person' => array(

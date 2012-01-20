@@ -67,6 +67,7 @@ class Octopus_Html_Table_Action extends Octopus_Html_Table_Content {
         unset($attrs['label']);
         unset($attrs['id']);
         unset($attrs['method']);
+        unset($attrs['post']);
         unset($attrs['confirm']);
         unset($attrs['url']);
         unset($attrs['href']);
