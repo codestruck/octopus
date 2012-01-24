@@ -400,5 +400,35 @@ class ModelManyToManyTest extends Octopus_DB_TestCase
 
     }
 
+    function testLoopCallsId() {
+
+        $db = Octopus_DB::singleton();
+        $count = $db->queryCount;
+
+        $group = new Group(1);
+
+        foreach ($group->products as $product) {
+            $this->assertTrue($product->id > 0);
+        }
+
+        $this->assertEquals($count + 2, $db->queryCount);
+
+    }
+
+    function testLoopCallsPrimaryKey() {
+
+        $db = Octopus_DB::singleton();
+        $count = $db->queryCount;
+
+        $group = new Group(1);
+
+        foreach ($group->products as $product) {
+            $this->assertTrue($product->id > 0);
+        }
+
+        $this->assertEquals($count + 2, $db->queryCount);
+
+    }
+
 }
 

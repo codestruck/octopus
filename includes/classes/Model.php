@@ -196,6 +196,10 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
 
     }
 
+    public function recordExists($exists = true) {
+        $this->_exists = $exists;
+    }
+
     /**
      * @return True if we've checked that a record with this record's ID exists
      * in the database, false otherwise. Note that the result of this method
