@@ -33,9 +33,9 @@ class Octopus_Auth_Model_Facebook extends Octopus_Auth_Model {
         parent::__construct($arg);
     }
 
-    function auth() {
+    function auth($cache = true) {
 
-        if (parent::auth()) {
+        if (parent::auth($cache)) {
             return true;
         }
 
