@@ -209,7 +209,27 @@ class AuthModelTest extends PHPUnit_Framework_TestCase
 
     }
 
-    function testUserDeleted() {
+	function testUserDeleteMethod() {
+
+        $i = new Octopus_DB_Insert();
+        $i->table('auth_model_test_users');
+        $i->set('email', 'mike');
+        $i->set('password', sha1('frank'));
+        $i->set('active', 1);
+        $i->execute();
+
+        $user = new AuthModelTestUser();
+
+        $this->assertTrue($user->login('mike', 'frank'), 'login succeeds');
+        $this->assertTrue($user->auth(), 'auth() succeeds after login');
+
+        $user->delete();
+
+        $this->assertFalse($user->auth(), 'auth() fails after calling user->delete()');
+    }
+
+
+	function testUserDeletedCached() {
 
         $i = new Octopus_DB_Insert();
         $i->table('auth_model_test_users');
@@ -228,7 +248,29 @@ class AuthModelTest extends PHPUnit_Framework_TestCase
         $d->where('email = ?', 'mike');
         $d->execute();
 
-        $this->assertFalse($user->auth(), 'auth() fails after deleting record');
+        $this->assertTrue($user->auth(), 'auth() still true after delete (using cache)');
+    }
+
+    function testUserDeletedNoCache() {
+
+        $i = new Octopus_DB_Insert();
+        $i->table('auth_model_test_users');
+        $i->set('email', 'mike');
+        $i->set('password', sha1('frank'));
+        $i->set('active', 1);
+        $i->execute();
+
+        $user = new AuthModelTestUser();
+
+        $this->assertTrue($user->login('mike', 'frank'), 'login succeeds');
+        $this->assertTrue($user->auth(), 'auth() succeeds after login');
+
+        $d = new Octopus_DB_Delete();
+        $d->table('auth_model_test_users');
+        $d->where('email = ?', 'mike');
+        $d->execute();
+
+        $this->assertFalse($user->auth(false), 'auth() fails after deleting record');
     }
 
     function testDisabledUserLoginFails() {
@@ -247,7 +289,27 @@ class AuthModelTest extends PHPUnit_Framework_TestCase
 
     }
 
-    function testDisablingUserUnauths() {
+	function testDisablingUserUnauths() {
+
+        $i = new Octopus_DB_Insert();
+        $i->table('auth_model_test_users');
+        $i->set('email', 'mike');
+        $i->set('password', sha1('frank'));
+        $i->set('active', 1);
+        $i->execute();
+
+        $user = new AuthModelTestUser();
+
+        $this->assertTrue($user->login('mike', 'frank'), 'login succeeds');
+        $this->assertTrue($user->auth(), 'auth() succeeds after login');
+
+        $user->active = false;
+        $user->save();
+
+        $this->assertFalse($user->auth(), 'auth() fails after disabling');
+    }
+
+    function testDisablingUserOutFromUnderDoesNotUnauthWhenCached() {
 
         $i = new Octopus_DB_Insert();
         $i->table('auth_model_test_users');
@@ -267,7 +329,8 @@ class AuthModelTest extends PHPUnit_Framework_TestCase
         $u->where('email = ?', 'mike');
         $u->execute();
 
-        $this->assertFalse($user->auth(), 'auth() fails after disabling');
+        $this->assertTrue($user->auth(), 'auth() succeeds using cached result after record is disabled out from under it');
+        $this->assertFalse($user->auth(false), 'auth() fails using cached result after record is disabled out from under it');
     }
 
     function testUserInfo() {

@@ -33,6 +33,8 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
 
     protected $groups = array();
 
+    private $authCache = array();
+
     // Because login() changes the ID of the model, we store auth hashes
     // per-class and per-id
     private static $authHashes = array();
@@ -40,12 +42,18 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
     /**
      * Validates that the user is currently logged in and that their record
      * has not been deleted or deactivated.
+     * @param Boolean $cache Whether or not to check for a cached auth result
      */
-    public function auth() {
+    public function auth($cache = true) {
+
+    	if ($cache && $this->checkAuthCache($authed)) {
+    		return $authed;
+    	}
 
         $auth = $this->getAuthRecord();
 
         if (!$auth) {
+        	$this->cacheAuth(false);
             return false;
         }
 
@@ -64,6 +72,7 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
             $d->where('realm = ?', $this->getRealm());
             $d->execute();
 
+            $this->cacheAuth(false);
     		return false;
         }
 
@@ -91,7 +100,69 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
 
         $this->onAccess();
 
+        $this->cacheAuth(true);
+
         return true;
+    }
+
+    /**
+     * @param Boolean $authed Gets set to the auth result for the current record
+     * if this function returns true.
+     * @return Boolean True if there is a cached auth result for the current
+     * record.
+     */
+    protected function checkAuthCache(&$authed) {
+
+    	if (!$this->id) {
+    		return false;
+    	}
+
+		$authed = false;
+
+    	if (!isset($this->authCache[$this->id])) {
+    		return false;
+    	}
+
+    	$cache = $this->authCache[$this->id];
+
+    	// Changing hidden/active status invalidates auth cache
+
+    	$activeField = $this->getActiveField();
+    	if ($activeField) {
+    		if ($cache[$activeField] != $this->$activeField) {
+    			return false;
+    		}
+    	}
+
+    	$hiddenField = $this->getHiddenField();
+    	if ($hiddenField) {
+    		if ($cache[$hiddenField] != $this->$hiddenField) {
+    			return false;
+    		}
+    	}
+
+    	$authed = $cache['authed'];
+    	return true;
+    }
+
+    /**
+     * Caches an auth result for the current record.
+     */
+    protected function cacheAuth($authed) {
+
+    	if (!$this->id) {
+    		return;
+    	}
+
+    	$cache = array('authed' => !!$authed);
+
+    	$activeField = $this->getActiveField();
+    	if ($activeField) $cache[$activeField] = $this->$activeField;
+
+    	$hiddenField = $this->getHiddenField();
+    	if ($hiddenField) $cache[$hiddenField] = $this->$hiddenField;
+
+    	$this->authCache[$this->id] = $cache;
     }
 
     protected function afterAuth() { }
@@ -173,6 +244,8 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
         // Set a login cookie
         $this->setAuthHash($hash, $remember);
 
+        $this->cacheAuth(true);
+
         return true;
     }
 
@@ -191,6 +264,8 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
             $d->execute();
 
         }
+
+        $this->cacheAuth(false);
     }
 
     /**
