@@ -235,7 +235,7 @@ class Octopus_Request {
     /**
      * Creates an instance of the octopus DefaultController.
      */
-    protected function &createDefaultController() {
+    protected function createDefaultController() {
     	Octopus::requireOnce($this->app->getOption('OCTOPUS_DIR') . 'controllers/Default.php');
         return new DefaultController();
     }
