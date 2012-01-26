@@ -1,0 +1,45 @@
+
+<project name="Octopus" default="build">
+
+    <target name="build" depends="prepare,lint,phpunit" />
+
+    <target name="clean" description="Cleanup build artifacts">
+        <delete dir="${basedir}/build/api"/>
+        <delete dir="${basedir}/build/code-browser"/>
+        <delete dir="${basedir}/build/coverage"/>
+        <delete dir="${basedir}/build/logs"/>
+        <delete dir="${basedir}/build/pdepend"/>
+    </target>
+
+    <target name="prepare" depends="clean" description="Prepare for build">
+        <mkdir dir="${basedir}/build/api"/>
+        <mkdir dir="${basedir}/build/code-browser"/>
+        <mkdir dir="${basedir}/build/coverage"/>
+        <mkdir dir="${basedir}/build/logs"/>
+        <mkdir dir="${basedir}/build/pdepend"/>
+    </target>
+
+    <target name="lint">
+        <apply executable="php" failonerror="true">
+        <arg value="-l" />
+
+        <fileset dir="${basedir}/site">
+            <include name="**/*.php" />
+            <exclude name="externals/**/*.php" />
+            <modified />
+        </fileset>
+        </apply>
+    </target>
+
+    <target name="phpunit">
+        <exec dir="${basedir}" executable="phpunit" failonerror="true">
+            <arg line="--no-configuration" />
+            <arg line="--bootstrap tests/bootstrap.php" />
+            <arg line="--log-junit build/logs/junit.xml" />
+            <arg line="--coverage-clover build/logs/clover.xml" />
+            <arg line="--coverage-html build/coverage" />
+            <arg line="tests/" />
+        </exec>
+    </target>
+
+</project>
