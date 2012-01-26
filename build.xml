@@ -23,7 +23,7 @@
         <apply executable="php" failonerror="true">
         <arg value="-l" />
 
-        <fileset dir="${basedir}/site">
+        <fileset dir="${basedir}">
             <include name="**/*.php" />
             <exclude name="externals/**/*.php" />
             <modified />
