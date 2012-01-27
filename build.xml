@@ -9,6 +9,7 @@
         <delete dir="${basedir}/build/coverage"/>
         <delete dir="${basedir}/build/logs"/>
         <delete dir="${basedir}/build/pdepend"/>
+        <delete dir="${basedir}/_private"/>
     </target>
 
     <target name="prepare" depends="clean" description="Prepare for build">
@@ -17,6 +18,7 @@
         <mkdir dir="${basedir}/build/coverage"/>
         <mkdir dir="${basedir}/build/logs"/>
         <mkdir dir="${basedir}/build/pdepend"/>
+        <mkdir dir="${basedir}/_private" />
     </target>
 
     <target name="lint">
