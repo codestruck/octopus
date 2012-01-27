@@ -1,7 +1,7 @@
 
 <project name="Octopus" default="build">
 
-    <target name="build" depends="prepare,lint,phpunit" />
+    <target name="build" depends="prepare,lint,phploc,pdepend,phpmd-ci,phpcpd,phpunit" />
 
     <target name="clean" description="Cleanup build artifacts">
         <delete dir="${basedir}/build/api"/>
