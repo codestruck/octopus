@@ -228,8 +228,7 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
         $this->resetDirtyState();
 
         // Make a record of the login in the user_auth table
-           $hash = md5(uniqid(rand(), true));
-        $ip = get_user_ip();
+        $hash = md5(uniqid(rand(), true));
 
         $i = new Octopus_DB_Insert();
         $i->comment('Octopus_Auth_Model::login');
@@ -288,7 +287,7 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
 
         $subject = 'Password Reset on ' . $site_name;
 
-            $text = <<<END
+        $text = <<<END
 
 You requested a password reset.
 
@@ -300,12 +299,12 @@ You may change it after logging in to the site.
 
 END;
 
-            $mail = new Octopus_Mail();
-            $mail->to($email);
-            $mail->from($from);
-            $mail->subject($subject);
-            $mail->text($text);
-            $mail->send();
+        $mail = new Octopus_Mail();
+        $mail->to($this->email);
+        $mail->from($from);
+        $mail->subject($subject);
+        $mail->text($text);
+        $mail->send();
 
         return true;
     }

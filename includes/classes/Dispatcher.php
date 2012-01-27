@@ -17,7 +17,6 @@ class Octopus_Dispatcher {
     public function handleRequest(Octopus_Request $request, Octopus_Response $response) {
 
         $path = $request->getResolvedPath();
-        $originalPath = $request->getPath();
 
         if (!($request->getRequestedAction() || $request->getActionArgs())) {
 

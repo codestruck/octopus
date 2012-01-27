@@ -395,7 +395,6 @@
         // Handle being handed in a full url
         if (preg_match('#\s*([a-z0-9_-]*)://([^/]*?)(:(\d+))?/(.*)#i', $path, $m)) {
 
-            $inScheme = $m[1];
             $inServer = $m[2];
             $inPort = $m[4];
             $inPath = $m[5];

@@ -3,7 +3,6 @@
 class Octopus_DB_Driver_Pdo {
 
     public $handle = null;
-    private $lastSql = '';
 
     /**
      * Establish a DB connection.

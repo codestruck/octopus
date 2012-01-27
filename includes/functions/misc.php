@@ -144,7 +144,6 @@
             return false;
         }
 
-        $last = null;
         foreach($arr as $key => $value) {
 
             if (!is_numeric($key)) {
