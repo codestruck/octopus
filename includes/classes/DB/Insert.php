@@ -2,8 +2,8 @@
 
 class Octopus_DB_Insert extends Octopus_DB_Helper {
 
-    function Octopus_DB_Insert($sql = null, $params = null) {
-        parent::Octopus_DB_Helper($sql, $params);
+    function __construct($sql = null, $params = null) {
+        parent::__construct($sql, $params);
     }
 
     function getSql() {

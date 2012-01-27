@@ -2,7 +2,7 @@
 
 class Octopus_Image_Mode_Crop_Thumb extends Octopus_Image_Mode_Base {
 
-    function Octopus_Image_Mode_Crop_Thumb($src, $layout) {
+    function __construct($src, $layout) {
         $this->src = $src;
         $this->layout = $layout;
     }

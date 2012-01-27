@@ -2,7 +2,7 @@
 
 class Octopus_DB_Error {
 
-    function Octopus_DB_Error($error, $sql, $params) {
+    function __construct($error, $sql, $params) {
 
         $this->dateString = 'D, d M Y H:i:s T';
         $this->error = $error;

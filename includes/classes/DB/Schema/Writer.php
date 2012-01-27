@@ -2,7 +2,7 @@
 
 class Octopus_DB_Schema_Writer {
 
-    function Octopus_DB_Schema_Writer($tableName, $db = null) {
+    function __construct($tableName, $db = null) {
         $this->tableName = $tableName;
         $this->fields = array();
         $this->indexes = array();

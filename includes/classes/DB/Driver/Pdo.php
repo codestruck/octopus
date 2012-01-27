@@ -1,4 +1,5 @@
 <?php
+
 class Octopus_DB_Driver_Pdo {
 
     public $handle = null;

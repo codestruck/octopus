@@ -2,10 +2,6 @@
 
 class Octopus_DB_Update extends Octopus_DB_Helper {
 
-    function Octopus_DB_Update($sql = null, $params = array()) {
-        parent::Octopus_DB_Helper($sql, $params);
-    }
-
     function getSql() {
 
         if ($this->sql) {

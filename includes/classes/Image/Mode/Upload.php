@@ -2,7 +2,7 @@
 
 class Octopus_Image_Mode_Upload extends Octopus_Image_Mode_Base {
 
-    function Octopus_Image_Mode_Upload($src, $layout) {
+    function __construct($src, $layout) {
         $this->src = $src;
         $this->layout = $layout;
     }

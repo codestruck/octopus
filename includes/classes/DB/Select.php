@@ -2,8 +2,8 @@
 
 class Octopus_DB_Select extends Octopus_DB_Helper {
 
-    function Octopus_DB_Select($sql = null, $params = array()) {
-        parent::Octopus_DB_Helper($sql, $params);
+    function __construct($sql = null, $params = array()) {
+        parent::__construct($sql, $params);
         $this->joins = array();
         $this->joinFields = array();
         $this->orderBy = array();
