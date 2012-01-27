@@ -40,8 +40,8 @@
             <arg line="--bootstrap tests/bootstrap.php" />
             <arg line="--log-junit build/logs/junit.xml" />
 <!--
-            <arg line="--coverage-clover build/logs/clover.xml" />
-            <arg line="--coverage-html build/coverage" />
+            <arg line="coverage-clover build/logs/clover.xml" />
+            <arg line="coverage-html build/coverage" />
 -->
             <arg line="tests/" />
         </exec>
