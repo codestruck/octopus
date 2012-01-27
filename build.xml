@@ -36,6 +36,7 @@
     <target name="phpunit">
         <exec dir="${basedir}" executable="phpunit" failonerror="true">
             <arg line="--no-configuration" />
+            <arg line="--configuration tests/config.xml" />
             <arg line="--bootstrap tests/bootstrap.php" />
             <arg line="--log-junit build/logs/junit.xml" />
             <arg line="--coverage-clover build/logs/clover.xml" />
