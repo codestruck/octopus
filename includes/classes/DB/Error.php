@@ -45,7 +45,9 @@ class Octopus_DB_Error {
         $logDir = get_option('LOG_DIR');
         if (!$logDir) {
             $logDir = get_option('OCTOPUS_PRIVATE_DIR') . 'log/';
-            @mkdir($logDir, 0777, true);
+            if (!is_dir($logDir)) {
+                mkdir($logDir, 0777, true);
+            }
         }
 
         $logger = new Octopus_Logger_File($logDir . 'db.txt');

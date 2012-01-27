@@ -213,7 +213,7 @@ class Octopus_App {
             $resp->flush();
         }
 
-        if ($this->_prevErrorHandler) {
+        if ($this->_prevErrorHandler && !function_exists('xdebug_enable')) {
             $args = func_get_args();
             call_user_func_array($this->_prevErrorHandler, $args);
         }
