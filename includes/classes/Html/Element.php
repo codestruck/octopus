@@ -174,11 +174,29 @@ class Octopus_Html_Element {
     }
 
     /**
+     * Appends this element to another.
+     * @return $this
+     */
+    public function appendTo(Octopus_Html_Element $parent) {
+    	$parent->append($this);
+    	return $this;
+    }
+
+    /**
      * Inserts content before the existing content of this element.
      */
     public function prepend($item) {
         $this->addContent($item, true);
         return $this;
+    }
+
+    /**
+     * Inserts this element before all of $parent's children.
+     * @return $this
+     */
+    public function prependTo(Octopus_Html_Element $parent) {
+    	$parent->prepend($this);
+    	return $this;
     }
 
     /**

@@ -5,6 +5,45 @@
  */
 class ElementTests extends Octopus_Html_TestCase {
 
+	function testAppendTo() {
+
+		$parent = new Octopus_Html_Element('div');
+		$span = new Octopus_Html_Element('span');
+
+		$this->assertSame($span, $span->text('test')->appendTo($parent));
+		$this->assertHtmlEquals(
+			<<<END
+<div><span>test</span></div>
+END
+			,
+			$parent->render(true)
+		);
+
+	}
+
+	function testPrependTo() {
+
+		$parent = new Octopus_Html_Element('div');
+		$child1 = new Octopus_Html_Element('span');
+		$child2 = new Octopus_Html_Element('span');
+
+		$child2->text('child 2')->appendTo($parent);
+
+		$this->assertSame($child1, $child1->text('child 1')->prependTo($parent));
+
+		$this->assertHtmlEquals(
+			<<<END
+<div><span>child 1</span><span>child 2</span></div>
+END
+			,
+			$parent->render(true)
+		);
+
+	}
+
+
+
+
 	function testInsertBefore() {
 
 		$parent = new Octopus_Html_Element('div');
