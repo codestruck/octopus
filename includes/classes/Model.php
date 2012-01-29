@@ -112,7 +112,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         // hasCategory
 
         if (!preg_match('/^(add|remove(All)?|has)([A-Z].*?)$/', $name, $matches)) {
-            throw new Octopus_Model_Exception('Cannot call ' . $name . ' on Model ' . $this->getClassName());
+        	throw new Octopus_Exception_MethodMissing($this, $name, $arguments);
         }
 
         $action = $matches[1];
@@ -123,8 +123,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         if (!$field) $field = $this->getField(camel_case($fieldName));
 
         if (!$field) {
-            $class = $this->getClassName();
-            throw new Octopus_Model_Exception("Cannot call $name on model $class (field $fieldName does not exist).");
+        	throw new Octopus_Exception_MethodMissing($this, $name, $arguments, "Field '$fieldName' does not exist");
         }
 
         if ($action === 'has') {

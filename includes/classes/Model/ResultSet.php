@@ -973,6 +973,10 @@ END;
 
     // Magic Methods {{{
 
+    /**
+     * @throws Octopus_Exception_MethodMissing Thrown if $name does not
+     * resolve to an actual method.
+     */
     public function __call($name, $args) {
 
         foreach(self::$_magicMethods as $pattern => $handler) {
@@ -981,7 +985,7 @@ END;
             }
         }
 
-        throw new Octopus_Exception("'$name' is not a valid method on Octopus_Model_ResultSet");
+        throw new Octopus_Exception_MethodMissing($this, $name, $args);
     }
 
     /**

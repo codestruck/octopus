@@ -103,7 +103,7 @@ class Octopus_Html_Page {
             return call_user_func_array(array($this, 'addJavascript'), $fullArgs);
         }
 
-        throw new Octopus_Exception("Cannot call $name on Octopus_Html_Page");
+        throw new Octopus_Exception_MethodMissing($this, $name, $args);
     }
 
     private static function counter() {
