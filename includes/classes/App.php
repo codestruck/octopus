@@ -976,7 +976,16 @@ class Octopus_App {
 
     private static function loadRoutesFile($file, Octopus_App $app) {
 
-    	require_once($file);
+    	// Make $APP, $NAV, and $ROUTES variables avilable to routes.php
+    	// file
+    	$APP = $app;
+    	$NAV = $ROUTES = $app->getRouter();
+
+    	// Use those vars to hopefully keep the build from bitching about
+    	// unused variables
+    	if ($APP || $NAV || $ROUTES) {
+    		require_once($file);
+    	}
 
     }
 
