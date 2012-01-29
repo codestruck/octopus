@@ -4,7 +4,7 @@ class Octopus_DB extends Octopus_Base {
 
     public $queryCount = 0;
 
-    protected function Octopus_DB() {
+    protected function __construct() {
 
         if (class_exists('PDO') && !defined('NO_PDO')) {
             $this->driver = new Octopus_DB_Driver_Pdo();

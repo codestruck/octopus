@@ -33,13 +33,13 @@ class NumericTest extends Octopus_App_TestCase {
     	$m = new NumericTestModel();
 
     	$m->intfield = '0';
-    	$this->assertSame(0, $m->intfield);
+    	$this->assertEquals(0, $m->intfield);
 
     	$m->intfield = '3.000';
-    	$this->assertSame(3, $m->intfield);
+    	$this->assertEquals(3, $m->intfield);
 
     	$m->intfield = '5.95059';
-    	$this->assertSame(5, $m->intfield);
+    	$this->assertEquals(5, $m->intfield);
 
     }
 
@@ -51,7 +51,7 @@ class NumericTest extends Octopus_App_TestCase {
 
     	$m->intfield = 500;
     	$m->intfield = 'something else invalid';
-    	$this->assertSame(500, $m->intfield);
+    	$this->assertEquals(500, $m->intfield);
 
     }
 
@@ -122,6 +122,13 @@ class NumericTest extends Octopus_App_TestCase {
 
     }
 
+    function testLargeInteger() {
+
+        $m = new NumericTestModel();
+        $m->intfield = 107512669322227;
+        $this->assertEquals(107512669322227, $m->intfield);
+
+    }
 
 }
 

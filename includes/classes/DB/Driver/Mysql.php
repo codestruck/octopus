@@ -2,7 +2,7 @@
 
 class Octopus_DB_Driver_Mysql {
 
-    function Octopus_DB_Driver_Mysql() {
+    function __construct() {
         $this->handle = null;
         $this->queries = array();
 

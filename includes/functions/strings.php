@@ -62,20 +62,6 @@
         return underscore($s, '-');
     }
 
-    /**
-     * Cleans up text from unknown sources (like ie from word).
-     */
-    function decruftify($s) {
-
-        /*
-         * Things this could do:
-         *  - normalize whitespace characters
-         *  - Clean up curly quotes
-         *  - Return nice UTF8
-         */
-
-    }
-
     function end_in($end, $str) {
 
         $len = strlen($str);

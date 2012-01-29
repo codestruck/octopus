@@ -26,7 +26,7 @@ class SysController extends Octopus_Controller {
 
     public function index() {
 
-        $this->redirect('sys/about');
+        $this->redirect('/sys/about');
 
     }
 
@@ -54,7 +54,6 @@ class SysController extends Octopus_Controller {
      */
     public function settings() {
 
-
         return array(
 
             'settings' => $this->app->getSettings()
@@ -64,9 +63,6 @@ class SysController extends Octopus_Controller {
     }
 
     public function welcome() {
-
-
     }
-}
 
-?>
+}

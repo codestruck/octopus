@@ -2,7 +2,7 @@
 
 class Octopus_DB_Result {
 
-    function Octopus_DB_Result($driver, $query) {
+    function __construct($driver, $query) {
         $this->success = true;
         $this->driver = $driver;
         $this->query = $query;

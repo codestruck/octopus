@@ -4,7 +4,7 @@ define_unless('SQL_DATE_FORMAT', 'Y-m-d H:i:s');
 
 class Octopus_DB_Helper {
 
-    function Octopus_DB_Helper($sql, $params) {
+    function __construct($sql = null, $params = array()) {
 
         $this->sql = $sql;
         $this->params = $params;

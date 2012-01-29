@@ -1,0 +1,96 @@
+
+<project name="Octopus" default="build">
+
+    <target name="build" depends="prepare,lint,phploc,pdepend,phpmd-ci,phpcpd,phpunit" />
+
+    <target name="clean" description="Cleanup build artifacts">
+        <delete dir="${basedir}/build/api"/>
+        <delete dir="${basedir}/build/code-browser"/>
+        <delete dir="${basedir}/build/coverage"/>
+        <delete dir="${basedir}/build/logs"/>
+        <delete dir="${basedir}/build/pdepend"/>
+        <delete dir="${basedir}/_private"/>
+    </target>
+
+    <target name="prepare" depends="clean" description="Prepare for build">
+        <mkdir dir="${basedir}/build/api"/>
+        <mkdir dir="${basedir}/build/code-browser"/>
+        <mkdir dir="${basedir}/build/coverage"/>
+        <mkdir dir="${basedir}/build/logs"/>
+        <mkdir dir="${basedir}/build/pdepend"/>
+        <mkdir dir="${basedir}/_private" />
+    </target>
+
+    <target name="lint">
+        <apply executable="php" failonerror="true">
+        <arg value="-l" />
+
+        <fileset dir="${basedir}">
+            <include name="**/*.php" />
+            <exclude name="externals/**/*.php" />
+            <modified />
+        </fileset>
+        </apply>
+    </target>
+ 
+    <target name="phploc" description="Measure project size using PHPLOC">
+        <exec executable="phploc">
+            <arg value="--log-csv" />
+            <arg value="${basedir}/build/logs/phploc.csv" />
+            <arg path="${basedir}/includes" />
+        </exec>
+    </target>
+
+    <target name="pdepend"
+         description="Calculate software metrics using PHP_Depend">
+        <exec executable="pdepend">
+            <arg value="--jdepend-xml=${basedir}/build/logs/jdepend.xml" />
+            <arg value="--jdepend-chart=${basedir}/build/pdepend/dependencies.svg" />
+            <arg value="--overview-pyramid=${basedir}/build/pdepend/overview-pyramid.svg" />
+            <arg path="${basedir}/includes" />
+        </exec>
+    </target>
+
+    <target name="phpmd"
+         description="Perform project mess detection using PHPMD and print human readable output. Intended for usage on the command line before committing.">
+        <exec executable="phpmd">
+            <arg path="${basedir}/includes" />
+            <arg value="text" />
+            <arg value="${basedir}/build/phpmd.xml" />
+        </exec>
+    </target>
+
+    <target name="phpmd-ci"
+         description="Perform project mess detection using PHPMD creating a log file for the continuous integration server">
+        <exec executable="phpmd">
+            <arg path="${basedir}/includes" />
+            <arg value="xml" />
+            <arg value="${basedir}/build/phpmd.xml" />
+            <arg value="--reportfile" />
+            <arg value="${basedir}/build/logs/pmd.xml" />
+        </exec>
+    </target>
+
+    <target name="phpcpd" description="Find duplicate code using PHPCPD">
+        <exec executable="phpcpd">
+            <arg value="--log-pmd" />
+            <arg value="${basedir}/build/logs/pmd-cpd.xml" />
+            <arg path="${basedir}/includes" />
+        </exec>
+    </target>
+
+    <target name="phpunit">
+        <exec dir="${basedir}" executable="phpunit" failonerror="true">
+            <arg line="--no-configuration" />
+            <arg line="--configuration tests/config.xml" />
+            <arg line="--bootstrap tests/bootstrap.php" />
+            <arg line="--log-junit build/logs/junit.xml" />
+<!--
+            <arg line="coverage-clover build/logs/clover.xml" />
+            <arg line="coverage-html build/coverage" />
+-->
+            <arg line="tests/" />
+        </exec>
+    </target>
+
+</project>

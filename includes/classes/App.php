@@ -104,13 +104,11 @@ class Octopus_App {
     private $_options;
     private $_router;
     private $_settings;
-    private $_controllers = null, $_flatControllers = null;
     private $_prevErrorHandler = null;
     private $_currentRequest = null;
     private $_currentResponse = null;
 
     private $_haveSiteDir = false;
-    private $_haveSiteViews = false;
     private $_haveSiteControllers = false;
     private $_haveSiteConfig = false;
 
@@ -213,7 +211,7 @@ class Octopus_App {
             $resp->flush();
         }
 
-        if ($this->_prevErrorHandler) {
+        if ($this->_prevErrorHandler && !function_exists('xdebug_enable')) {
             $args = func_get_args();
             call_user_func_array($this->_prevErrorHandler, $args);
         }
@@ -333,8 +331,6 @@ class Octopus_App {
      * @return Number The current DB version.
      */
     public function migrate($version = null) {
-
-        $db = Octopus_DB::singleton();
 
         $runner = new Octopus_DB_Migration_Runner($this->getMigrationDirs());
         $version = $runner->migrate($version);
@@ -490,8 +486,6 @@ class Octopus_App {
      * to false.
      */
     public function getResponse($path = null, $options = null) {
-
-        $o =& $this->_options;
 
         if (is_array($path) && $options === null) {
             // Support getResponse(array('option' => 'value'));
@@ -982,12 +976,8 @@ class Octopus_App {
 
     private static function loadRoutesFile($file, Octopus_App $app) {
 
-    	$NAV = $ROUTES = $app->getRouter();
     	require_once($file);
 
     }
 
-
 }
-
-?>

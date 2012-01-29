@@ -4,7 +4,7 @@ ini_set('auto_detect_line_endings', true);
 
 class Octopus_Parse_Csv {
 
-    function Octopus_Parse_Csv($filename, $skipRows = 2) {
+    function __construct($filename, $skipRows = 2) {
 
         $this->analyzeFile($filename);
 

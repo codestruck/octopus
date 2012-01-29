@@ -2,9 +2,6 @@
 
 class Octopus_Image_Mode_Base {
 
-    function Octopus_Image_Mode_Base() {
-    }
-
     function common() {
 
         $this->ext = ($this->keep_type) ? $this->src->ext : $this->default_type;

@@ -2,7 +2,7 @@
 
 class Octopus_Logger_File {
 
-    function Octopus_Logger_File($file) {
+    function __construct($file) {
         $this->file = $file;
         $this->_handle = null;
     }

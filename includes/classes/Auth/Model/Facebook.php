@@ -58,7 +58,6 @@ class Octopus_Auth_Model_Facebook extends Octopus_Auth_Model {
 
         // Make a record of the login in the user_auth table
         $hash = md5(uniqid(rand(), true));
-        $ip = get_user_ip();
 
         $i = new Octopus_DB_Insert();
         $i->comment('Octopus_Auth_Model::login');

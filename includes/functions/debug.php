@@ -491,17 +491,8 @@ END;
 
     public static function dumpToString($x, $format = null, $fancy = true) {
 
-        if (function_exists('xdebug_call_class')) {
-            $escapeHtml = false;
-        }
-
         if (!$format) {
             $format = Octopus_Debug::inWebContext() ? 'html' : 'text';
-        }
-
-        // Don't do any fancy pants escaping when xdebug is installed
-        if (function_exists('xdebug_var_dump')) {
-            $format = 'text';
         }
 
         if ($fancy) {
