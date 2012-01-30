@@ -8,10 +8,10 @@ class AuthModelTestUser extends Octopus_Auth_Model {
     public $cookieName = 'auth-model-test-user';
 
     protected $fields = array(
-    	'email',
-    	'password',
-    	'password_salt',
-    	'active'
+        'email',
+        'password',
+        'password_salt',
+        'active'
     );
 
 }
@@ -21,9 +21,9 @@ class NoPasswordSaltUser extends Octopus_Auth_Model {
     public $cookieName = 'no-password-salt';
 
     protected $fields = array(
-    	'email',
-    	'password',
-    	'active'
+        'email',
+        'password',
+        'active'
     );
 
 }
@@ -33,9 +33,9 @@ class UserNameUser extends Octopus_Auth_Model {
     public $cookieName = 'user-name-user';
 
     protected $fields = array(
-    	'username',
-    	'password',
-    	'active'
+        'username',
+        'password',
+        'active'
     );
 
 }
@@ -124,7 +124,7 @@ class AuthModelTest extends PHPUnit_Framework_TestCase
         $userA->active = true;
         $userA->save();
 
-    	$userB = new AuthModelTestUser();
+        $userB = new AuthModelTestUser();
         $userB->email = 'b';
         $userB->password = sha1('b');
         $userB->active = true;
@@ -168,17 +168,17 @@ class AuthModelTest extends PHPUnit_Framework_TestCase
     function testCorrectUserIsLoggedIn() {
 
         $users = array(
-        	array('email' => 'joe', 'password' => sha1('test'), 'active' => 1),
-        	array('email' => 'jane', 'password' => sha1('test'), 'active' => 1)
+            array('email' => 'joe', 'password' => sha1('test'), 'active' => 1),
+            array('email' => 'jane', 'password' => sha1('test'), 'active' => 1)
         );
 
         foreach($users as $u) {
-        	$i = new Octopus_DB_Insert();
-        	$i->table('auth_model_test_users');
-        	foreach($u as $key => $value) {
-        		$i->set($key, $value);
-        	}
-        	$i->execute();
+            $i = new Octopus_DB_Insert();
+            $i->table('auth_model_test_users');
+            foreach($u as $key => $value) {
+                $i->set($key, $value);
+            }
+            $i->execute();
         }
 
         $user = new AuthModelTestUser();
@@ -209,7 +209,7 @@ class AuthModelTest extends PHPUnit_Framework_TestCase
 
     }
 
-	function testUserDeleteMethod() {
+    function testUserDeleteMethod() {
 
         $i = new Octopus_DB_Insert();
         $i->table('auth_model_test_users');
@@ -229,7 +229,7 @@ class AuthModelTest extends PHPUnit_Framework_TestCase
     }
 
 
-	function testUserDeletedCached() {
+    function testUserDeletedCached() {
 
         $i = new Octopus_DB_Insert();
         $i->table('auth_model_test_users');
@@ -289,7 +289,7 @@ class AuthModelTest extends PHPUnit_Framework_TestCase
 
     }
 
-	function testDisablingUserUnauths() {
+    function testDisablingUserUnauths() {
 
         $i = new Octopus_DB_Insert();
         $i->table('auth_model_test_users');

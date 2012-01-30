@@ -22,9 +22,9 @@ class Octopus_Model_Field_Datetime extends Octopus_Model_Field {
     }
 
      public function setValue($model, $value) {
-     	$value  = $this->parseDateTime($value);
-     	$value = $this->formatDateTime($value);
-     	return parent::setValue($model, $value);
+         $value  = $this->parseDateTime($value);
+         $value = $this->formatDateTime($value);
+         return parent::setValue($model, $value);
      }
 
     public function migrate($schema, $table) {
@@ -52,16 +52,16 @@ class Octopus_Model_Field_Datetime extends Octopus_Model_Field {
     protected function parseDateTime($str) {
 
         if ($str === '0000-00-00 00:00:00' ||
-        	$str === '0000-00-00' ||
-        	$str === null ||
-        	$str === false ||
-        	$str === '') {
-        	return '';
+            $str === '0000-00-00' ||
+            $str === null ||
+            $str === false ||
+            $str === '') {
+            return '';
         }
 
         if (is_numeric($str)) {
-        	// $str is already a timestamp
-        	return $str;
+            // $str is already a timestamp
+            return $str;
         }
 
         $value = strtotime($str);
@@ -76,11 +76,11 @@ class Octopus_Model_Field_Datetime extends Octopus_Model_Field {
     protected function formatDateTime($value) {
 
         if (!is_numeric($value)) {
-        	$value = $this->parseDateTime($value);
+            $value = $this->parseDateTime($value);
         }
 
         if (!$value) {
-        	return '';
+            return '';
         }
 
         return date($this->getDateFormat(), $value);

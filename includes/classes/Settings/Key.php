@@ -66,16 +66,16 @@ class Octopus_Settings_Key {
 
         $o =& $this->options;
 
-		if (isset($o['default_value' . $suffix])) {
+        if (isset($o['default_value' . $suffix])) {
             $found = true;
             return $o['default_value' . $suffix];
         } else if (isset($o['default' . $suffix])) {
             $found = true;
             return $o['default' . $suffix];
         } else if (isset($o['default_func' . $suffix])) {
-        	$found = true;
-        	return call_user_func($o['default_func' . $suffix]);
-	    }  else {
+            $found = true;
+            return call_user_func($o['default_func' . $suffix]);
+        }  else {
             $found = false;
             return null;
         }

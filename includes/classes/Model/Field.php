@@ -119,7 +119,7 @@ abstract class Octopus_Model_Field {
     public function loadValue(Octopus_Model $model, $row) {
         $name = $this->getFieldName();
         if (isset($row[$name])) {
-        	$this->setValue($model, $row[$name]);
+            $this->setValue($model, $row[$name]);
         }
     }
 
@@ -355,9 +355,9 @@ abstract class Octopus_Model_Field {
      */
     public function addToForm(Octopus_Html_Form $form) {
 
-    	if (!$this->shouldAddToForm()) {
-    		return;
-    	}
+        if (!$this->shouldAddToForm()) {
+            return;
+        }
 
         $field = $form->add('text', $this->getFieldName());
 
@@ -376,9 +376,9 @@ abstract class Octopus_Model_Field {
      */
     public function addToTable(Octopus_Html_Table $table) {
 
-    	if (!$this->shouldAddToTable()) {
-    		return;
-    	}
+        if (!$this->shouldAddToTable()) {
+            return;
+        }
 
         $table->addColumn($this->getFieldName());
     }
@@ -416,28 +416,28 @@ abstract class Octopus_Model_Field {
 
     protected function shouldAddToForm() {
 
-    	$defaultValue = !in_array(
-	    	$this->getFieldName(),
-	    	array(
-	    		'created',
-	    		'updated',
-	    		'password',
-		    )
-		);
+        $defaultValue = !in_array(
+            $this->getFieldName(),
+            array(
+                'created',
+                'updated',
+                'password',
+            )
+        );
 
-    	return !!$this->getOption('form', $defaultValue);
+        return !!$this->getOption('form', $defaultValue);
     }
 
     protected function shouldAddToTable() {
 
-    	$defaultValue = !in_array(
-	    	$this->getFieldName(),
-	    	array(
-	    		'password',
-		    )
-		);
+        $defaultValue = !in_array(
+            $this->getFieldName(),
+            array(
+                'password',
+            )
+        );
 
-    	return !!$this->getOption('table', $defaultValue);
+        return !!$this->getOption('table', $defaultValue);
     }
 
 }

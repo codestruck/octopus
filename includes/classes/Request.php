@@ -43,11 +43,11 @@ class Octopus_Request {
      */
     public function getController() {
 
-    	if ($this->controller) {
-    		return $this->controller;
-    	}
+        if ($this->controller) {
+            return $this->controller;
+        }
 
-    	$this->controller = $this->createController();
+        $this->controller = $this->createController();
 
         if (!$this->controller) {
             $this->controller = $this->createDefaultController();
@@ -86,17 +86,17 @@ class Octopus_Request {
      */
     public function getRequestedAction() {
 
-    	// NOTE: For a request like '/test' that resolves to the DefaultController,
-    	// original_action is null. So we substitute the resolved action.
+        // NOTE: For a request like '/test' that resolves to the DefaultController,
+        // original_action is null. So we substitute the resolved action.
 
-    	$result = $this->internalGetControllerInfo('original_action');
-    	if ($result) return $result;
+        $result = $this->internalGetControllerInfo('original_action');
+        if ($result) return $result;
 
-    	if ($this->isDefaultController()) {
-    		return $this->getAction();
-    	}
+        if ($this->isDefaultController()) {
+            return $this->getAction();
+        }
 
-    	return null;
+        return null;
     }
 
     /**
@@ -193,7 +193,7 @@ class Octopus_Request {
      * DefaultController
      */
     public function isDefaultController() {
-    	return $this->getControllerClass() === 'DefaultController';
+        return $this->getControllerClass() === 'DefaultController';
     }
 
     /**
@@ -229,14 +229,14 @@ class Octopus_Request {
      */
     protected function createController() {
         $class = $this->getControllerClass();
-	    return $class ? new $class() : null;
+        return $class ? new $class() : null;
     }
 
     /**
      * Creates an instance of the octopus DefaultController.
      */
     protected function createDefaultController() {
-    	Octopus::requireOnce($this->app->getOption('OCTOPUS_DIR') . 'controllers/Default.php');
+        Octopus::requireOnce($this->app->getOption('OCTOPUS_DIR') . 'controllers/Default.php');
         return new DefaultController();
     }
 

@@ -46,14 +46,14 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
      */
     public function auth($cache = true) {
 
-    	if ($cache && $this->checkAuthCache($authed)) {
-    		return $authed;
-    	}
+        if ($cache && $this->checkAuthCache($authed)) {
+            return $authed;
+        }
 
         $auth = $this->getAuthRecord();
 
         if (!$auth) {
-        	$this->cacheAuth(false);
+            $this->cacheAuth(false);
             return false;
         }
 
@@ -73,7 +73,7 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
             $d->execute();
 
             $this->cacheAuth(false);
-    		return false;
+            return false;
         }
 
         // User is auth'd
@@ -86,7 +86,7 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
             $user = $this->_get($auth['user_id']);
 
             if (!$user) {
-            	throw new Octopus_Exception("User record disappeared!");
+                throw new Octopus_Exception("User record disappeared!");
             }
 
             $this->id = $user->id;
@@ -113,36 +113,36 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
      */
     protected function checkAuthCache(&$authed) {
 
-    	if (!$this->id) {
-    		return false;
-    	}
+        if (!$this->id) {
+            return false;
+        }
 
-		$authed = false;
+        $authed = false;
 
-    	if (!isset($this->authCache[$this->id])) {
-    		return false;
-    	}
+        if (!isset($this->authCache[$this->id])) {
+            return false;
+        }
 
-    	$cache = $this->authCache[$this->id];
+        $cache = $this->authCache[$this->id];
 
-    	// Changing hidden/active status invalidates auth cache
+        // Changing hidden/active status invalidates auth cache
 
-    	$activeField = $this->getActiveField();
-    	if ($activeField) {
-    		if ($cache[$activeField] != $this->$activeField) {
-    			return false;
-    		}
-    	}
+        $activeField = $this->getActiveField();
+        if ($activeField) {
+            if ($cache[$activeField] != $this->$activeField) {
+                return false;
+            }
+        }
 
-    	$hiddenField = $this->getHiddenField();
-    	if ($hiddenField) {
-    		if ($cache[$hiddenField] != $this->$hiddenField) {
-    			return false;
-    		}
-    	}
+        $hiddenField = $this->getHiddenField();
+        if ($hiddenField) {
+            if ($cache[$hiddenField] != $this->$hiddenField) {
+                return false;
+            }
+        }
 
-    	$authed = $cache['authed'];
-    	return true;
+        $authed = $cache['authed'];
+        return true;
     }
 
     /**
@@ -150,19 +150,19 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
      */
     protected function cacheAuth($authed) {
 
-    	if (!$this->id) {
-    		return;
-    	}
+        if (!$this->id) {
+            return;
+        }
 
-    	$cache = array('authed' => !!$authed);
+        $cache = array('authed' => !!$authed);
 
-    	$activeField = $this->getActiveField();
-    	if ($activeField) $cache[$activeField] = $this->$activeField;
+        $activeField = $this->getActiveField();
+        if ($activeField) $cache[$activeField] = $this->$activeField;
 
-    	$hiddenField = $this->getHiddenField();
-    	if ($hiddenField) $cache[$hiddenField] = $this->$hiddenField;
+        $hiddenField = $this->getHiddenField();
+        if ($hiddenField) $cache[$hiddenField] = $this->$hiddenField;
 
-    	$this->authCache[$this->id] = $cache;
+        $this->authCache[$this->id] = $cache;
     }
 
     protected function afterAuth() { }
@@ -209,15 +209,15 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
     public function login($username, $password, $remember = false) {
 
         if (!trim($username)) {
-        	// Don't allow logins w/ blank user names
-        	return false;
+            // Don't allow logins w/ blank user names
+            return false;
         }
 
         $this->cleanOutUserAuthTable();
 
         $user = $this->getUserForLogin($username, $password);
         if (!$user) {
-        	return false;
+            return false;
         }
 
         // The username/pass checks out!
@@ -350,15 +350,15 @@ END;
         $activeField = $this->getActiveField();
 
         if ($activeField) {
-        	$criteria[$activeField] = $active ? 1 : 0;
-        	return;
+            $criteria[$activeField] = $active ? 1 : 0;
+            return;
         }
 
         $hiddenField = $this->getHiddenField();
 
         if ($hiddenField) {
-        	$criteria[$hiddenField] = $active ? 0 : 1;
-        	return;
+            $criteria[$hiddenField] = $active ? 0 : 1;
+            return;
         }
 
         throw new Octopus_Exception("Auth model " . get_class($this) . " does not have a 'hidden' or 'active' field.");
@@ -369,7 +369,7 @@ END;
 
         $candidates = $this->usernameField;
         if (!$candidates) {
-        	throw new Octopus_Exception("User name field not configured for auth model " . get_class($this));
+            throw new Octopus_Exception("User name field not configured for auth model " . get_class($this));
         }
 
         if (!is_array($candidates)) $candidates = array($candidates);
@@ -378,16 +378,16 @@ END;
 
         foreach($candidates as $f) {
 
-        	$f = $this->getField($f);
-        	if (!$f) continue;
+            $f = $this->getField($f);
+            if (!$f) continue;
 
-        	if (!empty($items)) $items[] = 'OR';
+            if (!empty($items)) $items[] = 'OR';
 
-        	$items[] = array($f->getFieldName() => $username);
+            $items[] = array($f->getFieldName() => $username);
         }
 
         if (empty($items)) {
-        	throw new Octopus_Exception("No valid user name field was found on auth model " . get_class($this));
+            throw new Octopus_Exception("No valid user name field was found on auth model " . get_class($this));
         }
 
         $criteria[] = $items;
@@ -425,13 +425,13 @@ END;
         $realm = $this->getRealm();
 
         if ($this->id && isset($h[$realm]) && isset($h[$realm][$this->id])) {
-        	return $h[$realm][$this->id];
+            return $h[$realm][$this->id];
         }
 
         if ($this->cookieName) {
 
-        	$hash = Octopus_Cookie::get($this->cookieName);
-        	if ($hash) return $hash;
+            $hash = Octopus_Cookie::get($this->cookieName);
+            if ($hash) return $hash;
 
         }
 
@@ -445,26 +445,26 @@ END;
     protected function setAuthHash($hash, $remember = false) {
 
         if (empty($this->cookieName)) {
-        	throw new Octopus_Exception("Cookie name has not been configured on auth class " . get_class($this));
+            throw new Octopus_Exception("Cookie name has not been configured on auth class " . get_class($this));
         }
 
-    	$h =& self::$authHashes;
+        $h =& self::$authHashes;
         $realm = $this->getRealm();
 
         if ($hash) {
 
-        	if ($this->id) {
+            if ($this->id) {
 
-        		if (!isset($h[$realm])) {
-        			$h[$realm] = array();
-        		}
+                if (!isset($h[$realm])) {
+                    $h[$realm] = array();
+                }
 
-        		$h[$realm][$this->id] = $hash;
+                $h[$realm][$this->id] = $hash;
 
-        	}
+            }
 
             $expire = $remember ? time() + ($this->rememberDays * 24 * 60 * 60) : 0;
-           	Octopus_Cookie::set($this->cookieName, $hash, $expire, $this->cookiePath, null, $this->cookieSsl);
+               Octopus_Cookie::set($this->cookieName, $hash, $expire, $this->cookiePath, null, $this->cookieSsl);
 
             // set a cookie to trigger ssl redirect if we set secure only auth cookie
             if ($this->cookieSsl) {
@@ -473,13 +473,13 @@ END;
 
         } else {
 
-        	if ($this->cookieName) {
-        		Octopus_Cookie::destroy($this->cookieName);
-        	}
+            if ($this->cookieName) {
+                Octopus_Cookie::destroy($this->cookieName);
+            }
 
-        	if ($this->id && isset($h[$realm])) {
-        		unset($h[$realm][$this->id]);
-        	}
+            if ($this->id && isset($h[$realm])) {
+                unset($h[$realm][$this->id]);
+            }
 
         }
 
@@ -570,7 +570,7 @@ END;
     private function recordStillExistsAndIsActive($auth) {
 
         $criteria = array(
-        	$this->getPrimaryKey() => $auth['user_id'],
+            $this->getPrimaryKey() => $auth['user_id'],
         );
         $this->addActiveFilter($criteria);
 
@@ -579,7 +579,7 @@ END;
         $s->table($this->getTableName(), array($this->getPrimaryKey()));
 
         foreach($criteria as $key => $value) {
-        	$s->where("$key = ?", $value);
+            $s->where("$key = ?", $value);
         }
 
         return !!$s->getOne();

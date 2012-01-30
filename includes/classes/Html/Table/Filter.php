@@ -58,13 +58,13 @@ abstract class Octopus_Html_Table_Filter {
      */
     public function apply($dataSource, $table) {
 
-    	if (is_callable($this->options['function'])) {
-    		return call_user_func($this->options['function'], $this, $dataSource, $table);
-    	}
+        if (is_callable($this->options['function'])) {
+            return call_user_func($this->options['function'], $this, $dataSource, $table);
+        }
 
-    	if (class_exists('Octopus_Model_ResultSet') && $dataSource instanceof Octopus_Model_ResultSet) {
-    		return $dataSource->where($this->id, $this->val());
-    	}
+        if (class_exists('Octopus_Model_ResultSet') && $dataSource instanceof Octopus_Model_ResultSet) {
+            return $dataSource->where($this->id, $this->val());
+        }
     }
 
     /**
@@ -79,26 +79,26 @@ abstract class Octopus_Html_Table_Filter {
     }
 
     public function label(/* $label */) {
-    	$args = func_get_args();
-    	if (count($args)) {
-    		return $this->setLabel($args[0]);
-    	} else {
-    		return $this->getLabel();
-    	}
+        $args = func_get_args();
+        if (count($args)) {
+            return $this->setLabel($args[0]);
+        } else {
+            return $this->getLabel();
+        }
     }
 
     public function setLabel($label) {
-    	$this->label = $label;
-    	return $this;
+        $this->label = $label;
+        return $this;
     }
 
     public function getLabel() {
-    	return $this->label;
+        return $this->label;
     }
 
     public function createLabelElement() {
 
-    	$text = $this->getLabel();
+        $text = $this->getLabel();
 
         if (!$text) {
             return;
@@ -144,16 +144,16 @@ abstract class Octopus_Html_Table_Filter {
         }
 
         if (isset(self::$registry[$type])) {
-        	$class = self::$registry[$type];
+            $class = self::$registry[$type];
         } else {
 
-        	$class = 'Octopus_Html_Table_Filter_' . camel_case($type, true);
+            $class = 'Octopus_Html_Table_Filter_' . camel_case($type, true);
 
-        	if (!class_exists($class)) {
-            	throw new Octopus_Exception("Filter type not registered: $type");
+            if (!class_exists($class)) {
+                throw new Octopus_Exception("Filter type not registered: $type");
             }
 
-	    }
+        }
 
         return new $class($type, $id, $label, $options);
     }

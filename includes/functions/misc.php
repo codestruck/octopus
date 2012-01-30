@@ -44,21 +44,21 @@
      */
     function guess_site_name() {
 
-    	$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
-    	if (!$host) return '';
+        $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+        if (!$host) return '';
 
-    	$parts = explode('.', $host);
-    	$count = count($parts);
+        $parts = explode('.', $host);
+        $count = count($parts);
 
-    	$name = '';
+        $name = '';
 
-    	if ($count > 1) {
-    		$name = $parts[$count - 2];
-    	} else {
-    		$name = $parts[0];
-    	}
+        if ($count > 1) {
+            $name = $parts[$count - 2];
+        } else {
+            $name = $parts[0];
+        }
 
-    	return humanize($name);
+        return humanize($name);
 
     }
 

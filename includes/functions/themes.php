@@ -14,8 +14,8 @@
      * in the site/themes directory.
      */
     function set_theme($theme) {
-    	$app = Octopus_App::singleton();
-    	$app->setTheme($theme);
+        $app = Octopus_App::singleton();
+        $app->setTheme($theme);
     }
 
     /**
@@ -29,16 +29,16 @@
 
         foreach(array('SITE_DIR', 'OCTOPUS_DIR') as $dir) {
 
-        	$dir = isset($options[$dir]) ? end_in('/', $options[$dir]) : get_option($dir);
-			if (!$dir) continue;
+            $dir = isset($options[$dir]) ? end_in('/', $options[$dir]) : get_option($dir);
+            if (!$dir) continue;
 
-			$dir = $dir . 'themes/' . $theme . '/';
+            $dir = $dir . 'themes/' . $theme . '/';
 
-			$f = $dir . $file;
+            $f = $dir . $file;
 
-			if (is_file($f)) {
-				return $f;
-			}
+            if (is_file($f)) {
+                return $f;
+            }
 
         }
 

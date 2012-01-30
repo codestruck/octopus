@@ -110,7 +110,7 @@
 
         } else {
             // Otherwise, just write out as we have data (use an unbuffered
-	        // Octopus_Response).
+            // Octopus_Response).
             $response = $app->getResponse($path, false);
         }
 

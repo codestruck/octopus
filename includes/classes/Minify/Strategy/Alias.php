@@ -9,107 +9,107 @@
  */
 class Octopus_Minify_Strategy_Alias extends Octopus_Minify_Strategy {
 
-	private $finder;
-	private $aliases = array();
+    private $finder;
+    private $aliases = array();
 
-	/**
-	 * Creates a new aliaser that uses $findCallback to locate files physically
-	 * on the filesystem.
-	 */
-	public function __construct($findCallback = null) {
-		$this->finder = $findCallback ? $findCallback : array($this, 'defaultFindCallback');
-	}
+    /**
+     * Creates a new aliaser that uses $findCallback to locate files physically
+     * on the filesystem.
+     */
+    public function __construct($findCallback = null) {
+        $this->finder = $findCallback ? $findCallback : array($this, 'defaultFindCallback');
+    }
 
-	public function defaultFindCallback($file) {
-		return $file;
-	}
+    public function defaultFindCallback($file) {
+        return $file;
+    }
 
-	/**
-	 * Adds an alias for $files.
-	 */
-	public function addAlias(Array $files, $alias) {
-		$this->aliases[] = compact('files', 'alias');
-	}
+    /**
+     * Adds an alias for $files.
+     */
+    public function addAlias(Array $files, $alias) {
+        $this->aliases[] = compact('files', 'alias');
+    }
 
-	public function minify($files, $options = array()) {
+    public function minify($files, $options = array()) {
 
-		$result = array();
+        $result = array();
 
-		$aliases = $this->aliases;
+        $aliases = $this->aliases;
 
-		// Locate all the files in question
+        // Locate all the files in question
 
-		foreach($aliases as $index => &$a) {
+        foreach($aliases as $index => &$a) {
 
-			foreach($a['files'] as $fileIndex => $file) {
-				$file = call_user_func($this->finder, $file);
-				if (!$file) {
-					// One of the files needed to match the alias
-					// could not be found, so the alias is
-					// invalid
-					return $result;
-				}
-				$a['files'][$fileIndex] = $file;
-			}
+            foreach($a['files'] as $fileIndex => $file) {
+                $file = call_user_func($this->finder, $file);
+                if (!$file) {
+                    // One of the files needed to match the alias
+                    // could not be found, so the alias is
+                    // invalid
+                    return $result;
+                }
+                $a['files'][$fileIndex] = $file;
+            }
 
-			// If the file being aliased in does not exist, does that matter?
-			$alias = call_user_func($this->finder, $a['alias']);
-			if ($alias) {
-				$a['alias'] = $alias;
-			}
+            // If the file being aliased in does not exist, does that matter?
+            $alias = call_user_func($this->finder, $a['alias']);
+            if ($alias) {
+                $a['alias'] = $alias;
+            }
 
-		}
-		unset($a);
+        }
+        unset($a);
 
-		foreach($files as $index => $file) {
-			$file = call_user_func($this->finder, $file);
-			if (!$file) {
-				unset($files[$index]);
-			}
-		}
+        foreach($files as $index => $file) {
+            $file = call_user_func($this->finder, $file);
+            if (!$file) {
+                unset($files[$index]);
+            }
+        }
 
-		// Cull out any aliases that require files that were not provided
+        // Cull out any aliases that require files that were not provided
 
-		while($aliases && $files) {
+        while($aliases && $files) {
 
-			foreach($aliases as $index => $a) {
+            foreach($aliases as $index => $a) {
 
-				foreach($a['files'] as $f) {
-					if (!in_array($f, $files)) {
-						unset($aliases[$index]);
-						break;
-					}
-				}
+                foreach($a['files'] as $f) {
+                    if (!in_array($f, $files)) {
+                        unset($aliases[$index]);
+                        break;
+                    }
+                }
 
-			}
+            }
 
-			$bestAliasIndex = null;
-			$bestFileCount = 0;
+            $bestAliasIndex = null;
+            $bestFileCount = 0;
 
-			foreach($aliases as $index => $a) {
+            foreach($aliases as $index => $a) {
 
-				$count = count($a['files']);
-				if ($count > $bestFileCount) {
-					$bestAliasIndex = $index;
-					$bestFileCount = $count;
-				}
+                $count = count($a['files']);
+                if ($count > $bestFileCount) {
+                    $bestAliasIndex = $index;
+                    $bestFileCount = $count;
+                }
 
-			}
+            }
 
-			if ($bestAliasIndex === null) {
-				return $result;
-			}
+            if ($bestAliasIndex === null) {
+                return $result;
+            }
 
-			$bestAlias = $aliases[$bestAliasIndex];
-			unset($aliases[$bestAliasIndex]);
+            $bestAlias = $aliases[$bestAliasIndex];
+            unset($aliases[$bestAliasIndex]);
 
-			$result[$bestAlias['alias']] = $bestAlias['files'];
-			$files = array_diff($files, $bestAlias['files']);
-		}
+            $result[$bestAlias['alias']] = $bestAlias['files'];
+            $files = array_diff($files, $bestAlias['files']);
+        }
 
-		return $result;
+        return $result;
 
-	}
+    }
 
     /**
      * @return Array The result of injecting any aliases present in $aliases into

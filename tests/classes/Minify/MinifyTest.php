@@ -2,40 +2,40 @@
 
 class MinifyTest extends Octopus_App_TestCase {
 
-	function testAliasStrategyLocalFiles() {
+    function testAliasStrategyLocalFiles() {
 
-		$s = new Octopus_Minify_Strategy_Alias();
+        $s = new Octopus_Minify_Strategy_Alias();
 
-		$s->addAlias(array('/a.js', '/b.js'), '/ab.js');
+        $s->addAlias(array('/a.js', '/b.js'), '/ab.js');
 
-		$minified = $s->minify(array('/a.js', '/b.js', '/c.js'));
+        $minified = $s->minify(array('/a.js', '/b.js', '/c.js'));
 
-		$this->assertEquals(
-			array('/ab.js' => array('/a.js', '/b.js')),
-			$minified
-		);
+        $this->assertEquals(
+            array('/ab.js' => array('/a.js', '/b.js')),
+            $minified
+        );
 
-	}
+    }
 
-	function testAliasRemoteFiles() {
+    function testAliasRemoteFiles() {
 
-		$s = new Octopus_Minify_Strategy_Alias();
-		$s->addAlias(array('http://a.com/script.js', 'http://b.com/script.js'), '/ab.js');
+        $s = new Octopus_Minify_Strategy_Alias();
+        $s->addAlias(array('http://a.com/script.js', 'http://b.com/script.js'), '/ab.js');
 
-		$minified = $s->minify(array('http://a.com/script.js', '/whatever.js', 'http://b.com/script.js'));
+        $minified = $s->minify(array('http://a.com/script.js', '/whatever.js', 'http://b.com/script.js'));
 
-		$this->assertEquals(
-			array(
-				'/ab.js' => array('http://a.com/script.js', 'http://b.com/script.js')
-			),
-			$minified
-		);
+        $this->assertEquals(
+            array(
+                '/ab.js' => array('http://a.com/script.js', 'http://b.com/script.js')
+            ),
+            $minified
+        );
 
-	}
+    }
 
-	/**
-	 * @group slow
-	 */
+    /**
+     * @group slow
+     */
     function testSrcStrategy() {
 
         $app = $this->getApp();
@@ -119,7 +119,7 @@ class MinifyTest extends Octopus_App_TestCase {
 
             $this->assertEquals(
                 array(
-                	$cacheFile => array($a, $b)
+                    $cacheFile => array($a, $b)
                 ),
                 $strat->minify(array($a, $b))
             );
@@ -146,7 +146,7 @@ END
 
             $this->assertEquals(
                 array(
-                	$cacheFile => array($a, $b)
+                    $cacheFile => array($a, $b)
                 ),
                 $strat->minify(array($a, $b))
             );
@@ -170,7 +170,7 @@ END
 
             $this->assertEquals(
                 array(
-                   	$cacheFile => array($b, $a),
+                       $cacheFile => array($b, $a),
                 ),
                 $strat->minify(array($b, $a))
             );

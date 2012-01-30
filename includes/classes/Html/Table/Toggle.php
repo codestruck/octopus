@@ -97,10 +97,10 @@ class Octopus_Html_Table_Toggle extends Octopus_Html_Table_Content {
         $this->addClass('toggle', to_css_class($id));
 
         if ($options['method'] != 'get') {
-	        $this->addClass('method-' . to_css_class($options['method']));
-	        // TODO: Remove
-	        $this->addClass('method' . ucwords($options['method']));
-	    }
+            $this->addClass('method-' . to_css_class($options['method']));
+            // TODO: Remove
+            $this->addClass('method' . ucwords($options['method']));
+        }
     }
 
     /**

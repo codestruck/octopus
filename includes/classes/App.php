@@ -5,19 +5,19 @@
  */
 class Octopus_App {
 
-	/**
-	 * Default values for the $options array passed to Octopus_App::start().
-	 */
+    /**
+     * Default values for the $options array passed to Octopus_App::start().
+     */
     public static $defaults = array(
 
-    	/**
-    	 * The default template inside which to render the current view's
-    	 * contents. This will be evaluated as relative to the
-    	 * /site/templates or /octopus/templates directories. Any valid
-    	 * view extensions (e.g., .tpl, .php) will be appended, so
-    	 * for the value 'html/page', both 'html/page.tpl' and 'html/page.php'
-    	 * will be tried.
-    	 */
+        /**
+         * The default template inside which to render the current view's
+         * contents. This will be evaluated as relative to the
+         * /site/templates or /octopus/templates directories. Any valid
+         * view extensions (e.g., .tpl, .php) will be appended, so
+         * for the value 'html/page', both 'html/page.tpl' and 'html/page.php'
+         * will be tried.
+         */
         'default_template' => 'html/page',
 
         /**
@@ -50,13 +50,13 @@ class Octopus_App {
 
         /**
          * Whether or not to set defines for global octopus variables (DEV,
-	     * LIVE, STAGING, URL_BASE, etc).
+         * LIVE, STAGING, URL_BASE, etc).
          */
         'use_defines' => true,
 
         /**
          * Whether or not to set globals for important octopus variables ($DEV,
-	     * $LIVE, $STAGING, $URL_BASE, etc).
+         * $LIVE, $STAGING, $URL_BASE, etc).
          */
         'use_globals' => true,
 
@@ -400,9 +400,9 @@ class Octopus_App {
      */
     public function getTheme($request = null) {
 
-    	if (!$this->_options['use_themes']) {
-    		return '';
-    	}
+        if (!$this->_options['use_themes']) {
+            return '';
+        }
 
         if ($request === null) $request = $this->getCurrentRequest();
 
@@ -425,10 +425,10 @@ class Octopus_App {
      */
     public function setTheme($theme, $request = null) {
 
-    	if (!$request) $request = $this->getCurrentRequest();
+        if (!$request) $request = $this->getCurrentRequest();
 
-    	$controller = $request->getController();
-    	$controller->theme = $theme;
+        $controller = $request->getController();
+        $controller->theme = $theme;
 
     }
 
@@ -454,7 +454,7 @@ class Octopus_App {
      * @deprecated Use getRouter().
      */
     public function getNav() {
-    	return $this->getRouter();
+        return $this->getRouter();
     }
 
     /**
@@ -463,17 +463,17 @@ class Octopus_App {
      */
     public function getRouter() {
 
-    	if (!$this->_router) {
+        if (!$this->_router) {
 
-    		$this->_router = new Octopus_Router();
+            $this->_router = new Octopus_Router();
 
-    		if (!empty($this->_options['root_alias'])) {
-    			$this->_router->alias('/', $this->_options['root_alias']);
-    		}
+            if (!empty($this->_options['root_alias'])) {
+                $this->_router->alias('/', $this->_options['root_alias']);
+            }
 
-    	}
+        }
 
-    	return $this->_router;
+        return $this->_router;
     }
 
     /**
@@ -506,21 +506,21 @@ class Octopus_App {
         }
 
         if (!is_array($options)) {
-        	$options = array('buffer' => true);
+            $options = array('buffer' => true);
         }
 
         if (!array_key_exists("buffer", $options)) {
-        	// Default to buffered response
-        	$options['buffer'] = true;
+            // Default to buffered response
+            $options['buffer'] = true;
         }
 
         // Ensure there's no querystring on path. This doesn't come up in
         // normal app operation, but can sometime arise in testing.
         $qPos = strpos($path, '?');
         if ($qPos !== false) {
-        	$qs = substr($path, $qPos + 1);
-        	$path = substr($path, 0, $qPos);
-        	parse_str($qs, $_GET);
+            $qs = substr($path, $qPos + 1);
+            $path = substr($path, 0, $qPos);
+            parse_str($qs, $_GET);
         }
 
         $this->_currentRequest = $req = $this->createRequest($path, $options);
@@ -885,10 +885,10 @@ class Octopus_App {
         // Load app routes
         // NOTE: nav.php is loaded for backwards compatibility
         foreach(array('nav.php', 'routes.php') as $f) {
-        	$file = $o['SITE_DIR'] . $f;
-        	if (is_file($file)) {
-        		self::loadRoutesFile($file, $this);
-        	}
+            $file = $o['SITE_DIR'] . $f;
+            if (is_file($file)) {
+                self::loadRoutesFile($file, $this);
+            }
         }
 
         // Models
@@ -976,16 +976,16 @@ class Octopus_App {
 
     private static function loadRoutesFile($file, Octopus_App $app) {
 
-    	// Make $APP, $NAV, and $ROUTES variables avilable to routes.php
-    	// file
-    	$APP = $app;
-    	$NAV = $ROUTES = $app->getRouter();
+        // Make $APP, $NAV, and $ROUTES variables avilable to routes.php
+        // file
+        $APP = $app;
+        $NAV = $ROUTES = $app->getRouter();
 
-    	// Use those vars to hopefully keep the build from bitching about
-    	// unused variables
-    	if ($APP || $NAV || $ROUTES) {
-    		require_once($file);
-    	}
+        // Use those vars to hopefully keep the build from bitching about
+        // unused variables
+        if ($APP || $NAV || $ROUTES) {
+            require_once($file);
+        }
 
     }
 

@@ -11,7 +11,7 @@ class Octopus_Renderer {
      * Creates a new renderer for the given app instance.
      */
     public function __construct(Octopus_App $app) {
-    	$this->app = $app;
+        $this->app = $app;
     }
 
     /**
@@ -73,7 +73,7 @@ class Octopus_Renderer {
         $theme = $controller->theme ? $controller->theme : $app->getTheme($request);
 
         if (!$theme) {
-        	return;
+            return;
         }
 
         $dirs = array($app->getOption('SITE_DIR'), $app->getOption('OCTOPUS_DIR'));
@@ -84,30 +84,30 @@ class Octopus_Renderer {
         // being searched for js / css files and re-add
         foreach($dirs as $dir) {
 
-        	$themesDir = $dir . 'themes/';
+            $themesDir = $dir . 'themes/';
 
-        	foreach($page->getJavascriptDirs() as $jsDir) {
-        		if (starts_with($jsDir, $themesDir)) {
-        			$page->removeJavascriptDir($jsDir);
-        		}
-        	}
+            foreach($page->getJavascriptDirs() as $jsDir) {
+                if (starts_with($jsDir, $themesDir)) {
+                    $page->removeJavascriptDir($jsDir);
+                }
+            }
 
-			foreach($page->getCssDirs() as $cssDir) {
-        		if (starts_with($cssDir, $themesDir)) {
-        			$page->removeCssDir($cssDir);
-        		}
-        	}
+            foreach($page->getCssDirs() as $cssDir) {
+                if (starts_with($cssDir, $themesDir)) {
+                    $page->removeCssDir($cssDir);
+                }
+            }
 
-        	$themeDir = $themesDir . $theme;
-        	$page->addJavascriptDir($themeDir);
-        	$page->addCssDir($themeDir);
+            $themeDir = $themesDir . $theme;
+            $page->addJavascriptDir($themeDir);
+            $page->addCssDir($themeDir);
         }
 
         foreach($dirs as $dir) {
-        	$themeDotPHP = $dir . 'themes/' . $theme . '/theme.php';
-        	if (is_file($themeDotPHP)) {
-        		Octopus::requireOnce($themeDotPHP);
-        	}
+            $themeDotPHP = $dir . 'themes/' . $theme . '/theme.php';
+            if (is_file($themeDotPHP)) {
+                Octopus::requireOnce($themeDotPHP);
+            }
         }
 
     }
@@ -158,21 +158,21 @@ class Octopus_Renderer {
      * The default implementation of this function defines the following
      * extra keys:
      *
-     *    _GET -		$_GET
-     *    _POST -    	$_POST
+     *    _GET -        $_GET
+     *    _POST -        $_POST
      *
-     *	  HOST - Current hostname, normalized to remove 'www.' and in all
+     *      HOST - Current hostname, normalized to remove 'www.' and in all
      *           lowercase.
      *
-     *    QS - 		$_GET as a string with no '?' at the beginning.
-     *    FULL_QS	-	$_GET as a string with a '?' at the beginning.
-     *    QS_AND -	Character to use to build on FULL_QS (if FULL_QS is
+     *    QS -         $_GET as a string with no '?' at the beginning.
+     *    FULL_QS    -    $_GET as a string with a '?' at the beginning.
+     *    QS_AND -    Character to use to build on FULL_QS (if FULL_QS is
      *              not '', this is '&'. Otherwise, it is '?').
      *
-     *    URL_BASE -	Prefix for the app's public root.
+     *    URL_BASE -    Prefix for the app's public root.
      *
-     *    URI -			The full requested URI
-     *    URI_AS_CLASS -	The URI escaped for use as a css class
+     *    URI -            The full requested URI
+     *    URI_AS_CLASS -    The URI escaped for use as a css class
      *
      *    ROOT_DIR
      *    SITE_DIR
@@ -194,7 +194,7 @@ class Octopus_Renderer {
 
         // Host
         if (isset($_SERVER['HTTP_HOST'])) {
-        	$result['HOST'] = strtolower(preg_replace('/^www\./i', '', $_SERVER['HTTP_HOST']));
+            $result['HOST'] = strtolower(preg_replace('/^www\./i', '', $_SERVER['HTTP_HOST']));
         }
 
         // Query string
@@ -218,7 +218,7 @@ class Octopus_Renderer {
         $action = strtolower(dashed($action));
 
         $result['CONTROLLER'] = $controller;
-		$result['ACTION'] = $action;
+        $result['ACTION'] = $action;
         $result['ACTION_AS_CLASS'] = $controller . '-' . $action;
 
         $result['SETTINGS'] = $this->app->getSettings();
@@ -264,9 +264,9 @@ class Octopus_Renderer {
 
         $extra = $this->getExtraViewData($request, $response);
         foreach($extra as $key => $value) {
-        	if (!isset($data[$key])) {
-        		$data[$key] = $value;
-        	}
+            if (!isset($data[$key])) {
+                $data[$key] = $value;
+            }
         }
 
     }
@@ -460,7 +460,7 @@ class Octopus_Renderer {
 
                 if ($this->app->DEV) {
 
-                	$data['path'] = $this->app->URL_BASE . $request->getPath();
+                    $data['path'] = $this->app->URL_BASE . $request->getPath();
                     $data['resolved_path'] = $this->app->URL_BASE . $request->getResolvedPath();
 
                     $paths = $this->getViewPaths($request, $controller);

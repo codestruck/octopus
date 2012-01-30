@@ -20,7 +20,7 @@ class Octopus_Html_Form_Field_Radio extends Octopus_Html_Form_Field {
 
         $this->removeClass($type);
         $this->removeClass($name);
-		$this->addClass(to_css_class($this->name) . 'RadioGroup', 'radioGroup');
+        $this->addClass(to_css_class($this->name) . 'RadioGroup', 'radioGroup');
 
         $this->requireCloseTag = true;
 
@@ -89,7 +89,7 @@ class Octopus_Html_Form_Field_Radio extends Octopus_Html_Form_Field {
 
             case 0:
 
-            	$sel = array();
+                $sel = array();
                 $this->getSelectedValues($this, $sel);
                 return $sel;
 
@@ -101,7 +101,7 @@ class Octopus_Html_Form_Field_Radio extends Octopus_Html_Form_Field {
                 }
 
                 if (!empty($value)) {
-                	$this->options[ $value ]->checked = true;
+                    $this->options[ $value ]->checked = true;
                 }
 
                 return $this;
@@ -109,24 +109,24 @@ class Octopus_Html_Form_Field_Radio extends Octopus_Html_Form_Field {
     }
 
     public function required($required = true) {
-    	$result = parent::required($required);
-    	$this->removeAttribute('required');
-    	return $result;
+        $result = parent::required($required);
+        $this->removeAttribute('required');
+        return $result;
     }
 
     private function getSelectedValues($el, &$values) {
 
-    	if (!$el instanceof Octopus_Html_Element) {
-    		return;
-    	}
+        if (!$el instanceof Octopus_Html_Element) {
+            return;
+        }
 
-    	if ($el->is('input') && $el->type == 'radio' && $el->name = $this->name) {
-    		if ($el->checked) $values[] = $el->value;
-    	}
+        if ($el->is('input') && $el->type == 'radio' && $el->name = $this->name) {
+            if ($el->checked) $values[] = $el->value;
+        }
 
-    	foreach($el->children() as $child) {
-    		$this->getSelectedValues($child, $values);
-    	}
+        foreach($el->children() as $child) {
+            $this->getSelectedValues($child, $values);
+        }
 
 
     }
@@ -147,17 +147,17 @@ class Octopus_Html_Form_Field_Radio extends Octopus_Html_Form_Field {
 
     public function wrap($tag = null) {
 
-    	$wrapper = parent::wrap($tag);
-    	$wrapper->class = trim(str_replace(
-    		array(to_css_class($this->name) . 'RadioGroup', 'radioGroup'),
-    		'',
-    		$wrapper->class
-	    ));
-	    $wrapper->addClass('field');
-	    $wrapper->addClass($this->name);
-	    $wrapper->addClass('radio');
+        $wrapper = parent::wrap($tag);
+        $wrapper->class = trim(str_replace(
+            array(to_css_class($this->name) . 'RadioGroup', 'radioGroup'),
+            '',
+            $wrapper->class
+        ));
+        $wrapper->addClass('field');
+        $wrapper->addClass($this->name);
+        $wrapper->addClass('radio');
 
-	    return $wrapper;
+        return $wrapper;
 
     }
 

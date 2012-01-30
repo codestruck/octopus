@@ -25,11 +25,11 @@ class Octopus_DB_Select extends Octopus_DB_Helper {
         $s = clone($this);
 
         foreach($s->tables as $table => $fields) {
-        	$s->tables[$table] = array();
+            $s->tables[$table] = array();
         }
 
-    	$s->runFunction('COUNT', '', '*');
-    	$s->joinFields = array();
+        $s->runFunction('COUNT', '', '*');
+        $s->joinFields = array();
 
         return $s;
     }
@@ -329,23 +329,23 @@ class Octopus_DB_Select extends Octopus_DB_Helper {
         // Handle functions not run against any table, e.g. COUNT(*)
         foreach($this->funcs as $func => $tables) {
             foreach($tables as $table => $fields) {
-            	if ($table === '') {
+                if ($table === '') {
 
-            		if (is_array($fields)) {
-            			$field = $fields[0];
-            			$alias = $fields[1];
-            		} else {
-            			$field = $fields;
-            			$alias = '';
-            		}
+                    if (is_array($fields)) {
+                        $field = $fields[0];
+                        $alias = $fields[1];
+                    } else {
+                        $field = $fields;
+                        $alias = '';
+                    }
 
-            		if ($alias) {
-            			$alias = " AS $alias";
-            		}
+                    if ($alias) {
+                        $alias = " AS $alias";
+                    }
 
-            		$fl = strtoupper($func) . "($field){$alias}";
-            		$fieldList[] = $fl;
-            	}
+                    $fl = strtoupper($func) . "($field){$alias}";
+                    $fieldList[] = $fl;
+                }
             }
         }
 

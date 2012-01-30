@@ -182,9 +182,9 @@ END
                 'html' => trim($name->render(true)),
                 'full_html' => trim($name->wrapper->render(true)),
                 'wrapper' => array(
-                	'open_tag' => $name->wrapper->renderOpenTag() . '>',
-                	'close_tag' => $name->wrapper->renderCloseTag('test')
-	            ),
+                    'open_tag' => $name->wrapper->renderOpenTag() . '>',
+                    'close_tag' => $name->wrapper->renderCloseTag('test')
+                ),
                 'valid' => false,
                 'errors' => array('Name is required.'),
                 'label' => array(
@@ -234,10 +234,10 @@ END
                         'html' => '<label for="nameInput">Name:</label>'
                     ),
                     'full_html' => trim($name->wrapper->render(true)),
-	                'wrapper' => array(
-	                	'open_tag' => $name->wrapper->renderOpenTag() . '>',
-	                	'close_tag' => $name->wrapper->renderCloseTag('test')
-		            ),
+                    'wrapper' => array(
+                        'open_tag' => $name->wrapper->renderOpenTag() . '>',
+                        'close_tag' => $name->wrapper->renderCloseTag('test')
+                    ),
                 )
             );
 
@@ -282,10 +282,10 @@ END
 
                         ),
                         'full_html' => trim($closeTag->wrapper->render(true)),
-		                'wrapper' => array(
-		                	'open_tag' => $closeTag->wrapper->renderOpenTag() . '>',
-		                	'close_tag' => $closeTag->wrapper->renderCloseTag('test')
-			            ),
+                        'wrapper' => array(
+                            'open_tag' => $closeTag->wrapper->renderOpenTag() . '>',
+                            'close_tag' => $closeTag->wrapper->renderCloseTag('test')
+                        ),
                     )
                 ),
 
@@ -435,8 +435,8 @@ END
         $_SERVER['REQUEST_METHOD'] = 'POST';
 
         $_POST['__octform'] = $badUserSig;
-		$this->assertTrue($form->submitted(), 'form is submitted even when validation fails');
-	    $this->assertFalse($form->validate(), 'validation fails when user id changes');
+        $this->assertTrue($form->submitted(), 'form is submitted even when validation fails');
+        $this->assertFalse($form->validate(), 'validation fails when user id changes');
 
         $_POST['__octform'] = $badActionSig;
         $this->assertTrue($form->submitted(), 'form is submitted even when validation will fail');
@@ -486,68 +486,68 @@ END
 
     function testMetaFieldIncludedInOpenTag() {
 
-    	$form = new Octopus_Html_form('metaFieldsInOpenTag');
-    	$form->method = 'post';
-    	$form->action = 'test-action';
-    	$form->secure(1);
+        $form = new Octopus_Html_form('metaFieldsInOpenTag');
+        $form->method = 'post';
+        $form->action = 'test-action';
+        $form->secure(1);
 
-    	$sig = $form->getSignature();
+        $sig = $form->getSignature();
 
-    	$ar = $form->toArray();
+        $ar = $form->toArray();
 
-    	$this->assertHtmlEquals(
-    		<<<END
+        $this->assertHtmlEquals(
+            <<<END
  <form id="metaFieldsInOpenTag" method="post" action="test-action" novalidate>
  <input type="hidden" name="__octform" value="$sig" />
 END
- 			,
- 			$ar['open_tag']
-	  	);
+             ,
+             $ar['open_tag']
+          );
 
     }
 
     function testSimulateSubmissionOnSecureForm() {
 
-    	$form = new Octopus_Html_Form('simulateSubmissionOnSecureForm');
-    	$form->secure(10);
-    	$form->add('name');
+        $form = new Octopus_Html_Form('simulateSubmissionOnSecureForm');
+        $form->secure(10);
+        $form->add('name');
 
-    	$form->submit(array('name' => 'foo'));
-    	$this->assertTrue($form->wasSubmitted(), 'form is marked as submitted');
-    	$this->assertTrue($form->validate(), 'form validates');
+        $form->submit(array('name' => 'foo'));
+        $this->assertTrue($form->wasSubmitted(), 'form is marked as submitted');
+        $this->assertTrue($form->validate(), 'form validates');
 
-		$form = new Octopus_Html_Form('simulateSubmissionOnSecureForm');
-    	$form->secure(10);
-    	$form->add('name');
+        $form = new Octopus_Html_Form('simulateSubmissionOnSecureForm');
+        $form->secure(10);
+        $form->add('name');
 
     }
 
     function testWrapperOpenAndCloseTagsInFormArray() {
 
-    	$form = new Octopus_Html_Form('wrapperOpenAndClosePresent');
+        $form = new Octopus_Html_Form('wrapperOpenAndClosePresent');
 
-    	$form->add('foo')->required();
-    	$form->add('checkbox', 'bar')->required();
+        $form->add('foo')->required();
+        $form->add('checkbox', 'bar')->required();
 
-    	$form = $form->toArray();
+        $form = $form->toArray();
 
-    	$this->assertEquals(
-    		array(
-    			'open_tag' => '
+        $this->assertEquals(
+            array(
+                'open_tag' => '
 <div id="fooField" class="field foo text required">',
-    			'close_tag' => '</div>'
-	    	),
-	    	$form['foo']['wrapper']
-	    );
+                'close_tag' => '</div>'
+            ),
+            $form['foo']['wrapper']
+        );
 
-	    $this->assertEquals(
-	    	array(
-	    		'open_tag' => '
+        $this->assertEquals(
+            array(
+                'open_tag' => '
 <div id="barField" class="field bar checkbox required">',
-	    		'close_tag' => '</div>'
-		    ),
-		    $form['bar']['wrapper']
-		);
+                'close_tag' => '</div>'
+            ),
+            $form['bar']['wrapper']
+        );
 
     }
 

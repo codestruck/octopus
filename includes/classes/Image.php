@@ -97,10 +97,10 @@ class Octopus_Image {
         }
 
         if (!in_array($this->src->ext, $this->allowed_types)) {
-        	if ($this->src->ext) {
-            	$this->error[] = "This type of file is not allowed: ." . strtoupper($this->src->ext);
+            if ($this->src->ext) {
+                $this->error[] = "This type of file is not allowed: ." . strtoupper($this->src->ext);
             } else {
-            	$this->error[] = "File type not allowed";
+                $this->error[] = "File type not allowed";
             }
             return false;
         }

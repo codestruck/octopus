@@ -338,22 +338,22 @@ END
     }
 
     function defaultSettingValueFunction() {
-    	return $this->defaultUsingFunctionValue;
+        return $this->defaultUsingFunctionValue;
     }
     private $defaultUsingFunctionValue;
 
     function testFunctionForDefault() {
 
-		$settings = new Octopus_Settings();
-		$settings->addFromArray(array(
-			'some.setting' => array('default_func' => array($this, 'defaultSettingValueFunction'))
-		));
+        $settings = new Octopus_Settings();
+        $settings->addFromArray(array(
+            'some.setting' => array('default_func' => array($this, 'defaultSettingValueFunction'))
+        ));
 
-		$this->defaultUsingFunctionValue = 42;
-		$this->assertEquals(42, $settings->get('some.setting'));
+        $this->defaultUsingFunctionValue = 42;
+        $this->assertEquals(42, $settings->get('some.setting'));
 
-		$settings->set('some.setting', '99');
-		$this->assertEquals(99, $settings->get('some.setting'));
+        $settings->set('some.setting', '99');
+        $this->assertEquals(99, $settings->get('some.setting'));
 
     }
 

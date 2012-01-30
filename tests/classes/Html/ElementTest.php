@@ -5,100 +5,100 @@
  */
 class ElementTests extends Octopus_Html_TestCase {
 
-	function testAppendTo() {
+    function testAppendTo() {
 
-		$parent = new Octopus_Html_Element('div');
-		$span = new Octopus_Html_Element('span');
+        $parent = new Octopus_Html_Element('div');
+        $span = new Octopus_Html_Element('span');
 
-		$this->assertSame($span, $span->text('test')->appendTo($parent));
-		$this->assertHtmlEquals(
-			<<<END
+        $this->assertSame($span, $span->text('test')->appendTo($parent));
+        $this->assertHtmlEquals(
+            <<<END
 <div><span>test</span></div>
 END
-			,
-			$parent->render(true)
-		);
+            ,
+            $parent->render(true)
+        );
 
-	}
+    }
 
-	function testPrependTo() {
+    function testPrependTo() {
 
-		$parent = new Octopus_Html_Element('div');
-		$child1 = new Octopus_Html_Element('span');
-		$child2 = new Octopus_Html_Element('span');
+        $parent = new Octopus_Html_Element('div');
+        $child1 = new Octopus_Html_Element('span');
+        $child2 = new Octopus_Html_Element('span');
 
-		$child2->text('child 2')->appendTo($parent);
+        $child2->text('child 2')->appendTo($parent);
 
-		$this->assertSame($child1, $child1->text('child 1')->prependTo($parent));
+        $this->assertSame($child1, $child1->text('child 1')->prependTo($parent));
 
-		$this->assertHtmlEquals(
-			<<<END
+        $this->assertHtmlEquals(
+            <<<END
 <div><span>child 1</span><span>child 2</span></div>
 END
-			,
-			$parent->render(true)
-		);
+            ,
+            $parent->render(true)
+        );
 
-	}
-
-
+    }
 
 
-	function testInsertBefore() {
 
-		$parent = new Octopus_Html_Element('div');
 
-		$child1 = new Octopus_Html_Element('span', array(), 'foo');
-		$parent->append($child1);
+    function testInsertBefore() {
 
-		$child2 = new Octopus_Html_Element('span', array(), 'bar');
-		$child2->insertBefore($child1);
+        $parent = new Octopus_Html_Element('div');
 
-		$this->assertHtmlEquals(
-			<<<END
+        $child1 = new Octopus_Html_Element('span', array(), 'foo');
+        $parent->append($child1);
+
+        $child2 = new Octopus_Html_Element('span', array(), 'bar');
+        $child2->insertBefore($child1);
+
+        $this->assertHtmlEquals(
+            <<<END
 <div>
-	<span>bar</span><span>foo</span>
+    <span>bar</span><span>foo</span>
 </div>
 END
-			,
-			$parent->render(true)
-		);
+            ,
+            $parent->render(true)
+        );
 
-	}
+    }
 
-	function testInsertAfter() {
+    function testInsertAfter() {
 
-		$parent = new Octopus_Html_Element('div');
+        $parent = new Octopus_Html_Element('div');
 
-		$child1 = new Octopus_Html_Element('span', array(), 'foo');
-		$parent->append($child1);
+        $child1 = new Octopus_Html_Element('span', array(), 'foo');
+        $parent->append($child1);
 
-		$child2 = new Octopus_Html_Element('span', array(), 'bar');
-		$child2->insertAfter($child1);
+        $child2 = new Octopus_Html_Element('span', array(), 'bar');
+        $child2->insertAfter($child1);
 
-		$child3 = new Octopus_Html_Element('span', array(), 'baz');
-		$child3->insertAfter($child1);
+        $child3 = new Octopus_Html_Element('span', array(), 'baz');
+        $child3->insertAfter($child1);
 
-		$this->assertHtmlEquals(
-			<<<END
+        $this->assertHtmlEquals(
+            <<<END
 <div>
-	<span>foo</span><span>baz</span><span>bar</span>
+    <span>foo</span><span>baz</span><span>bar</span>
 </div>
 END
-			,
-			$parent->render(true)
-		);
+            ,
+            $parent->render(true)
+        );
 
-	}
+    }
 
 
-	function testIsTag() {
+    function testIsTag() {
 
-		$e = new Octopus_Html_Element('blockquote');
-		$this->assertTrue($e->is('blockquote'));
-		$this->assertFalse($e->is('div'));
+        $e = new Octopus_Html_Element('blockquote');
+        $this->assertTrue($e->is('blockquote'));
+        $this->assertFalse($e->is('div'));
 
-	}
+    }
 
     function testSingleTagRender() {
 

@@ -305,7 +305,7 @@
         }
 
         if ($detectErrors && count($params)) {
-        	throw new Octopus_Exception(count($params) . " parameter(s) left in params array: " . implode(',', $params));
+            throw new Octopus_Exception(count($params) . " parameter(s) left in params array: " . implode(',', $params));
         }
 
         return $sql;
@@ -319,11 +319,11 @@
         if (preg_match('/([aieou]?)(s?)s$/i', $x, $m)) {
 
             if ($m[1] && $m[2]) {
-            	// class -> classes
-            	return $x . 'es';
+                // class -> classes
+                return $x . 'es';
             } else {
-            	// already plural already
-            	return $x;
+                // already plural already
+                return $x;
             }
         }
 

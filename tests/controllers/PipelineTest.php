@@ -5,27 +5,27 @@
  */
 class PipelineTests extends Octopus_App_TestCase {
 
-	function testDontAddSlashForDefaultControllerActionsWithoutController() {
+    function testDontAddSlashForDefaultControllerActionsWithoutController() {
 
-		$siteDir = $this->getSiteDir();
-		file_put_contents(
-			"{$siteDir}/views/test.tpl",
-			"Hi there"
-		);
+        $siteDir = $this->getSiteDir();
+        file_put_contents(
+            "{$siteDir}/views/test.tpl",
+            "Hi there"
+        );
 
-		$app = $this->getApp();
+        $app = $this->getApp();
 
-		$req = $app->createRequest('/test');
-		$this->assertEquals('DefaultController', $req->getControllerClass());
-		$this->assertEquals('test', $req->getAction(), 'Action is test');
-		$this->assertEquals('test', $req->getRequestedAction(), 'Requested action is test');
-		$this->assertEquals(array(), $req->getActionArgs(), 'Action gets no arguments');
+        $req = $app->createRequest('/test');
+        $this->assertEquals('DefaultController', $req->getControllerClass());
+        $this->assertEquals('test', $req->getAction(), 'Action is test');
+        $this->assertEquals('test', $req->getRequestedAction(), 'Requested action is test');
+        $this->assertEquals(array(), $req->getActionArgs(), 'Action gets no arguments');
 
-		$resp = $app->getResponse('/test', true);
+        $resp = $app->getResponse('/test', true);
 
-		$this->assertEquals(200, $resp->getStatus(), "Should not redirect to /test/");
+        $this->assertEquals(200, $resp->getStatus(), "Should not redirect to /test/");
 
-	}
+    }
 
     function testDefaultActionReceivesActionAndArgs() {
 
@@ -377,50 +377,50 @@ END
 
     function testDontPassQueryStringAsActionToBeforeAndAfter() {
 
-    	$GLOBALS['OCTOPUS_TEST_CASE'] = $this;
-    	$GLOBALS['_BEFORE_CALLED'] = false;
-    	$GLOBALS['_AFTER_CALLED'] = false;
+        $GLOBALS['OCTOPUS_TEST_CASE'] = $this;
+        $GLOBALS['_BEFORE_CALLED'] = false;
+        $GLOBALS['_AFTER_CALLED'] = false;
 
-    	$app = $this->getApp();
-    	$this->createControllerFile(
-	    	'DontPassQsInAction',
-	    	<<<END
-	    	<?php
+        $app = $this->getApp();
+        $this->createControllerFile(
+            'DontPassQsInAction',
+            <<<END
+            <?php
 
-	    	class DontPassQsInActionController extends Octopus_Controller {
+            class DontPassQsInActionController extends Octopus_Controller {
 
-	    		public function _before(\$action, \$args) {
-	    			global \$OCTOPUS_TEST_CASE;
-	    			global \$_BEFORE_CALLED;
+                public function _before(\$action, \$args) {
+                    global \$OCTOPUS_TEST_CASE;
+                    global \$_BEFORE_CALLED;
 
-	    			\$OCTOPUS_TEST_CASE->assertEquals('test', \$action);
-	    			\$_BEFORE_CALLED = true;
-	    		}
+                    \$OCTOPUS_TEST_CASE->assertEquals('test', \$action);
+                    \$_BEFORE_CALLED = true;
+                }
 
-	    		public function testAction() {
+                public function testAction() {
 
-	    		}
+                }
 
-	    		public function _after(\$action, \$args, \$result) {
+                public function _after(\$action, \$args, \$result) {
 
-					global \$OCTOPUS_TEST_CASE;
-	    			global \$_AFTER_CALLED;
+                    global \$OCTOPUS_TEST_CASE;
+                    global \$_AFTER_CALLED;
 
-	    			\$OCTOPUS_TEST_CASE->assertEquals('test', \$action);
-	    			\$_AFTER_CALLED = true;
+                    \$OCTOPUS_TEST_CASE->assertEquals('test', \$action);
+                    \$_AFTER_CALLED = true;
 
-	    		}
+                }
 
-	    	}
+            }
 
 
-	    	?>
+            ?>
 END
-	   	);
+           );
 
-	   	$resp = $app->getResponse('/dont-pass-qs-in-action/test?foo=bar', true);
-	   	$this->assertTrue($GLOBALS['_BEFORE_CALLED'], '_before not called');
-	   	$this->assertTrue($GLOBALS['_AFTER_CALLED'], '_after not called');
+           $resp = $app->getResponse('/dont-pass-qs-in-action/test?foo=bar', true);
+           $this->assertTrue($GLOBALS['_BEFORE_CALLED'], '_before not called');
+           $this->assertTrue($GLOBALS['_AFTER_CALLED'], '_after not called');
 
 
 

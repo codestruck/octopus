@@ -20,107 +20,107 @@ class TableTest extends Octopus_App_TestCase {
 
     var $rawData = array(
         /* Test Data {{{ */
-        array(    'id',		'name',			'age'			),
-        array(    1,		'Hamish Grant',			'49'			),
-        array(    2,		'Charles Bowman',			'32'			),
-        array(    3,		'Palmer Douglas',			'52'			),
-        array(    4,		'James Conrad',			'61'			),
-        array(    5,		'Leroy Short',			'41'			),
-        array(    6,		'Ahmed Rasmussen',			'67'			),
-        array(    7,		'Russell Foster',			'36'			),
-        array(    8,		'Dustin Snider',			'43'			),
-        array(    9,		'Boris Vega',			'47'			),
-        array(    10,		'Emery Lewis',			'60'			),
-        array(    11,		'Thomas Wheeler',			'31'			),
-        array(    12,		'Hop Castro',			'35'			),
-        array(    13,		'Luke Valdez',			'47'			),
-        array(    14,		'Demetrius Hester',			'55'			),
-        array(    15,		'Berk Barrera',			'48'			),
-        array(    16,		'Jackson Benjamin',			'37'			),
-        array(    17,		'Hop Terrell',			'51'			),
-        array(    18,		'Oscar Cotton',			'44'			),
-        array(    19,		'Cedric Fulton',			'41'			),
-        array(    20,		'Nicholas Moss',			'65'			),
-        array(    21,		'John Lynch',			'63'			),
-        array(    22,		'Nathan Alston',			'25'			),
-        array(    23,		'Wyatt Nash',			'66'			),
-        array(    24,		'Ignatius Walls',			'40'			),
-        array(    25,		'Cedric Barrera',			'42'			),
-        array(    26,		'Oleg Little',			'45'			),
-        array(    27,		'Alfonso Acevedo',			'40'			),
-        array(    28,		'Louis Ramsey',			'49'			),
-        array(    29,		'Benedict Wade',			'64'			),
-        array(    30,		'Ira Morse',			'48'			),
-        array(    31,		'Gil Clements',			'28'			),
-        array(    32,		'Denton Suarez',			'28'			),
-        array(    33,		'Edward Skinner',			'58'			),
-        array(    34,		'Davis Garner',			'55'			),
-        array(    35,		'Louis Kramer',			'57'			),
-        array(    36,		'Amir Donaldson',			'36'			),
-        array(    37,		'Jeremy Faulkner',			'36'			),
-        array(    38,		'Tanek Vargas',			'25'			),
-        array(    39,		'Hilel Anthony',			'67'			),
-        array(    40,		'Ezekiel King',			'51'			),
-        array(    41,		'Tarik Todd',			'59'			),
-        array(    42,		'Yardley Cline',			'54'			),
-        array(    43,		'Baker King',			'47'			),
-        array(    44,		'Sawyer Riggs',			'62'			),
-        array(    45,		'Julian Henry',			'40'			),
-        array(    46,		'Dillon Hull',			'51'			),
-        array(    47,		'Keaton Williamson',			'63'			),
-        array(    48,		'Sebastian Sosa',			'60'			),
-        array(    49,		'Talon Frye',			'61'			),
-        array(    50,		'Samuel Nelson',			'38'			),
-        array(    51,		'Herman Lynn',			'34'			),
-        array(    52,		'Craig Leonard',			'42'			),
-        array(    53,		'Travis Mejia',			'64'			),
-        array(    54,		'Harlan Hunter',			'54'			),
-        array(    55,		'Denton Alexander',			'28'			),
-        array(    56,		'Lucian Forbes',			'48'			),
-        array(    57,		'Dalton Stark',			'47'			),
-        array(    58,		'Brody Petersen',			'41'			),
-        array(    59,		'Wade Mckinney',			'55'			),
-        array(    60,		'Porter Horton',			'40'			),
-        array(    61,		'Benedict Thomas',			'65'			),
-        array(    62,		'Elton Campbell',			'43'			),
-        array(    63,		'Oliver Bates',			'26'			),
-        array(    64,		'Luke Jordan',			'47'			),
-        array(    65,		'Elton Rice',			'47'			),
-        array(    66,		'Griffith Hendricks',			'61'			),
-        array(    67,		'Wing Murray',			'55'			),
-        array(    68,		'Ishmael Ross',			'42'			),
-        array(    69,		'Stone Puckett',			'24'			),
-        array(    70,		'Keegan Lancaster',			'44'			),
-        array(    71,		'Vaughan Melendez',			'40'			),
-        array(    72,		'Sean Walters',			'46'			),
-        array(    73,		'Dominic Norton',			'48'			),
-        array(    74,		'Felix Gallegos',			'25'			),
-        array(    75,		'Steven Moses',			'59'			),
-        array(    76,		'Geoffrey Bernard',			'33'			),
-        array(    77,		'Cody Baldwin',			'62'			),
-        array(    78,		'Trevor Lara',			'53'			),
-        array(    79,		'Elvis Harrison',			'41'			),
-        array(    80,		'Ezekiel Wiggins',			'65'			),
-        array(    81,		'Reese Tran',			'47'			),
-        array(    82,		'Carl Raymond',			'45'			),
-        array(    83,		'Marvin Battle',			'30'			),
-        array(    84,		'Colby Hayes',			'45'			),
-        array(    85,		'Dalton English',			'29'			),
-        array(    86,		'Amal Newton',			'32'			),
-        array(    87,		'Cyrus Suarez',			'33'			),
-        array(    88,		'Bert Roth',			'57'			),
-        array(    89,		'Perry Butler',			'29'			),
-        array(    90,		'Cairo Jenkins',			'28'			),
-        array(    91,		'August Fields',			'24'			),
-        array(    92,		'Laith Hull',			'58'			),
-        array(    93,		'Asher Cain',			'60'			),
-        array(    94,		'Coby Goodman',			'33'			),
-        array(    95,		'Merritt Mclaughlin',			'45'			),
-        array(    96,		'Rashad Moses',			'30'			),
-        array(    97,		'Zachary Terry',			'25'			),
-        array(    98,		'Christian Acosta',			'60'			),
-        array(    99,		'Victor Rice',			'66'			),
-        array(    100,		'Ashton Vaughn',			'42'			),
+        array(    'id',        'name',            'age'            ),
+        array(    1,        'Hamish Grant',            '49'            ),
+        array(    2,        'Charles Bowman',            '32'            ),
+        array(    3,        'Palmer Douglas',            '52'            ),
+        array(    4,        'James Conrad',            '61'            ),
+        array(    5,        'Leroy Short',            '41'            ),
+        array(    6,        'Ahmed Rasmussen',            '67'            ),
+        array(    7,        'Russell Foster',            '36'            ),
+        array(    8,        'Dustin Snider',            '43'            ),
+        array(    9,        'Boris Vega',            '47'            ),
+        array(    10,        'Emery Lewis',            '60'            ),
+        array(    11,        'Thomas Wheeler',            '31'            ),
+        array(    12,        'Hop Castro',            '35'            ),
+        array(    13,        'Luke Valdez',            '47'            ),
+        array(    14,        'Demetrius Hester',            '55'            ),
+        array(    15,        'Berk Barrera',            '48'            ),
+        array(    16,        'Jackson Benjamin',            '37'            ),
+        array(    17,        'Hop Terrell',            '51'            ),
+        array(    18,        'Oscar Cotton',            '44'            ),
+        array(    19,        'Cedric Fulton',            '41'            ),
+        array(    20,        'Nicholas Moss',            '65'            ),
+        array(    21,        'John Lynch',            '63'            ),
+        array(    22,        'Nathan Alston',            '25'            ),
+        array(    23,        'Wyatt Nash',            '66'            ),
+        array(    24,        'Ignatius Walls',            '40'            ),
+        array(    25,        'Cedric Barrera',            '42'            ),
+        array(    26,        'Oleg Little',            '45'            ),
+        array(    27,        'Alfonso Acevedo',            '40'            ),
+        array(    28,        'Louis Ramsey',            '49'            ),
+        array(    29,        'Benedict Wade',            '64'            ),
+        array(    30,        'Ira Morse',            '48'            ),
+        array(    31,        'Gil Clements',            '28'            ),
+        array(    32,        'Denton Suarez',            '28'            ),
+        array(    33,        'Edward Skinner',            '58'            ),
+        array(    34,        'Davis Garner',            '55'            ),
+        array(    35,        'Louis Kramer',            '57'            ),
+        array(    36,        'Amir Donaldson',            '36'            ),
+        array(    37,        'Jeremy Faulkner',            '36'            ),
+        array(    38,        'Tanek Vargas',            '25'            ),
+        array(    39,        'Hilel Anthony',            '67'            ),
+        array(    40,        'Ezekiel King',            '51'            ),
+        array(    41,        'Tarik Todd',            '59'            ),
+        array(    42,        'Yardley Cline',            '54'            ),
+        array(    43,        'Baker King',            '47'            ),
+        array(    44,        'Sawyer Riggs',            '62'            ),
+        array(    45,        'Julian Henry',            '40'            ),
+        array(    46,        'Dillon Hull',            '51'            ),
+        array(    47,        'Keaton Williamson',            '63'            ),
+        array(    48,        'Sebastian Sosa',            '60'            ),
+        array(    49,        'Talon Frye',            '61'            ),
+        array(    50,        'Samuel Nelson',            '38'            ),
+        array(    51,        'Herman Lynn',            '34'            ),
+        array(    52,        'Craig Leonard',            '42'            ),
+        array(    53,        'Travis Mejia',            '64'            ),
+        array(    54,        'Harlan Hunter',            '54'            ),
+        array(    55,        'Denton Alexander',            '28'            ),
+        array(    56,        'Lucian Forbes',            '48'            ),
+        array(    57,        'Dalton Stark',            '47'            ),
+        array(    58,        'Brody Petersen',            '41'            ),
+        array(    59,        'Wade Mckinney',            '55'            ),
+        array(    60,        'Porter Horton',            '40'            ),
+        array(    61,        'Benedict Thomas',            '65'            ),
+        array(    62,        'Elton Campbell',            '43'            ),
+        array(    63,        'Oliver Bates',            '26'            ),
+        array(    64,        'Luke Jordan',            '47'            ),
+        array(    65,        'Elton Rice',            '47'            ),
+        array(    66,        'Griffith Hendricks',            '61'            ),
+        array(    67,        'Wing Murray',            '55'            ),
+        array(    68,        'Ishmael Ross',            '42'            ),
+        array(    69,        'Stone Puckett',            '24'            ),
+        array(    70,        'Keegan Lancaster',            '44'            ),
+        array(    71,        'Vaughan Melendez',            '40'            ),
+        array(    72,        'Sean Walters',            '46'            ),
+        array(    73,        'Dominic Norton',            '48'            ),
+        array(    74,        'Felix Gallegos',            '25'            ),
+        array(    75,        'Steven Moses',            '59'            ),
+        array(    76,        'Geoffrey Bernard',            '33'            ),
+        array(    77,        'Cody Baldwin',            '62'            ),
+        array(    78,        'Trevor Lara',            '53'            ),
+        array(    79,        'Elvis Harrison',            '41'            ),
+        array(    80,        'Ezekiel Wiggins',            '65'            ),
+        array(    81,        'Reese Tran',            '47'            ),
+        array(    82,        'Carl Raymond',            '45'            ),
+        array(    83,        'Marvin Battle',            '30'            ),
+        array(    84,        'Colby Hayes',            '45'            ),
+        array(    85,        'Dalton English',            '29'            ),
+        array(    86,        'Amal Newton',            '32'            ),
+        array(    87,        'Cyrus Suarez',            '33'            ),
+        array(    88,        'Bert Roth',            '57'            ),
+        array(    89,        'Perry Butler',            '29'            ),
+        array(    90,        'Cairo Jenkins',            '28'            ),
+        array(    91,        'August Fields',            '24'            ),
+        array(    92,        'Laith Hull',            '58'            ),
+        array(    93,        'Asher Cain',            '60'            ),
+        array(    94,        'Coby Goodman',            '33'            ),
+        array(    95,        'Merritt Mclaughlin',            '45'            ),
+        array(    96,        'Rashad Moses',            '30'            ),
+        array(    97,        'Zachary Terry',            '25'            ),
+        array(    98,        'Christian Acosta',            '60'            ),
+        array(    99,        'Victor Rice',            '66'            ),
+        array(    100,        'Ashton Vaughn',            '42'            ),
         /* }}} */
     );
     var $arrayData;
@@ -143,30 +143,30 @@ class TableTest extends Octopus_App_TestCase {
         parent::setUp();
 
         foreach($_SESSION as $key => $value) {
-        	unset($_SESSION[$key]);
+            unset($_SESSION[$key]);
         }
 
-		foreach($_GET as $key => $value) {
-        	unset($_GET[$key]);
+        foreach($_GET as $key => $value) {
+            unset($_GET[$key]);
         }
 
-		foreach($_POST as $key => $value) {
-        	unset($_POST[$key]);
+        foreach($_POST as $key => $value) {
+            unset($_POST[$key]);
         }
     }
 
     function testActionLinksGetGoodClassNames() {
 
-    	$table = new Octopus_Html_Table('actionTest');
-    	$table->addColumns(array(
-    		'actions' => array(
-    			'view person' => array(
-    				'url' => '/view/{$id}'
-	    		)
-	    	)
-	    ));
+        $table = new Octopus_Html_Table('actionTest');
+        $table->addColumns(array(
+            'actions' => array(
+                'view person' => array(
+                    'url' => '/view/{$id}'
+                )
+            )
+        ));
 
-		$db = $this->resetDatabase();
+        $db = $this->resetDatabase();
         $db->query("
             INSERT INTO html_table_persons (`name`, `age`)
                 VALUES
@@ -186,26 +186,26 @@ class TableTest extends Octopus_App_TestCase {
         $this->assertEquals(3, count($actions));
 
         foreach($actions as $a) {
-        	$this->assertEquals('action view_person', $a->class);
+            $this->assertEquals('action view_person', $a->class);
         }
 
     }
 
     function testAttributesOnActionLinks() {
 
-    	$table = new Octopus_Html_Table('actionTest', array('pager' => false));
-    	$table->addColumns(array(
-    		'actions' => array(
-    			'view person' => array(
-    				'url' => '/view/{$id}',
-    				'rel'  => 'nofollow',
-    				'target' => '_blank',
-    				'class' => 'custom-class'
-	    		)
-	    	)
-	    ));
+        $table = new Octopus_Html_Table('actionTest', array('pager' => false));
+        $table->addColumns(array(
+            'actions' => array(
+                'view person' => array(
+                    'url' => '/view/{$id}',
+                    'rel'  => 'nofollow',
+                    'target' => '_blank',
+                    'class' => 'custom-class'
+                )
+            )
+        ));
 
-		$db = $this->resetDatabase();
+        $db = $this->resetDatabase();
         $db->query("
             INSERT INTO html_table_persons (`name`, `age`)
                 VALUES
@@ -225,9 +225,9 @@ class TableTest extends Octopus_App_TestCase {
         $this->assertEquals(3, count($actions));
 
         foreach($actions as $a) {
-        	$this->assertEquals('nofollow', $a->rel);
-        	$this->assertEquals('_blank', $a->target);
-        	$this->assertEquals('custom-class', $a->class);
+            $this->assertEquals('nofollow', $a->rel);
+            $this->assertEquals('_blank', $a->target);
+            $this->assertEquals('custom-class', $a->class);
         }
 
     }
@@ -235,7 +235,7 @@ class TableTest extends Octopus_App_TestCase {
 
     function testModifierFunctionIsOnModel() {
 
-    	return $this->markTestSkipped("WTF?");
+        return $this->markTestSkipped("WTF?");
 
         $table = new Octopus_Html_Table('id');
         $table->setDataSource(HtmlTablePerson::all());
@@ -252,7 +252,7 @@ END
 
     function testFunctionErrorNotEscaped() {
 
-    	return $this->markTestSkipped("Why is this failing?");
+        return $this->markTestSkipped("Why is this failing?");
 
         $table = new Octopus_Html_Table('id');
         $table->setDataSource(HtmlTablePerson::all());
@@ -296,7 +296,7 @@ END
 
     function testPostActions() {
 
-    	return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
+        return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $table = new Octopus_Html_Table('postActions');
         $table->addColumn('name');
@@ -331,7 +331,7 @@ END
 
     function testPageWrittenToSession() {
 
-		return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
+        return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $table = new Octopus_Html_Table('selectFilter', array('redirectCallback' => false));
         $table->addColumn('name');
@@ -351,8 +351,8 @@ END
 
     function testSortingWrittenToSession() {
 
-    	$this->markTestSkipped('sort() is currently private -- should it be?');
-    	return;
+        $this->markTestSkipped('sort() is currently private -- should it be?');
+        return;
 
         $table = new Octopus_Html_Table('selectFilter', array('pager' => false, 'redirectCallback' => false));
         $table->addColumn('name');
@@ -527,7 +527,7 @@ END
 
     function testEmptyTable() {
 
-		return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
+        return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $table = new Octopus_Html_Table('empty', array('pager' => false));
         $table->addColumn('name');
@@ -577,7 +577,7 @@ END;
 
     function testRenderFilters() {
 
-		return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
+        return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $table = new Octopus_Html_Table('renderFilters', array('pager' => false, 'redirectCallback' => false));
         $table->addColumn('name');
@@ -621,7 +621,7 @@ END;
 
     function testTextFilter() {
 
-    	$this->markTestSkipped("WTF is wrong with this?");
+        $this->markTestSkipped("WTF is wrong with this?");
 
         $table = new Octopus_Html_Table('textFilter', array('redirectCallback' => false));
         $table->addColumn('name');
@@ -671,7 +671,7 @@ END;
 
     function testFilterResultSetHook() {
 
-		$db = $this->resetDatabase();
+        $db = $this->resetDatabase();
         $db->query("
             INSERT INTO html_table_persons (`name`, `age`)
                 VALUES
@@ -686,13 +686,13 @@ END;
         $table->addColumn('age');
 
         $table->addFilter(
-	        'select',
-	        'sex',
-	        array(
-	        	'options' => array('M' => 'Male', 'F' => 'Female'),
-		        'function' => array(__CLASS__, 'filter_testFilterResultSetHook')
-		    )
-	    );
+            'select',
+            'sex',
+            array(
+                'options' => array('M' => 'Male', 'F' => 'Female'),
+                'function' => array(__CLASS__, 'filter_testFilterResultSetHook')
+            )
+        );
 
         $table->setDataSource(HtmlTablePerson::all());
 
@@ -711,22 +711,22 @@ END;
 
     public static function filter_testFilterResultSetHook($filter, $resultSet) {
 
-    	if ($filter->val() == 'M') {
+        if ($filter->val() == 'M') {
 
-	    	return $resultSet->where(array(
-	    		array('name LIKE' => 'Joe%'),
-	    		'OR',
-	    		array('name LIKE' => 'John%'),
-		    ));
+            return $resultSet->where(array(
+                array('name LIKE' => 'Joe%'),
+                'OR',
+                array('name LIKE' => 'John%'),
+            ));
 
-		} else if ($filter->val() == 'F') {
+        } else if ($filter->val() == 'F') {
 
-			return $resultSet->where(array(
-	    		array('name LIKE' => 'Jane%'),
-		    ));
-		} else {
-			return $resultSet;
-		}
+            return $resultSet->where(array(
+                array('name LIKE' => 'Jane%'),
+            ));
+        } else {
+            return $resultSet;
+        }
 
     }
 
@@ -832,7 +832,7 @@ END;
 
     function testEscapeHtml() {
 
-		return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
+        return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $table = new Octopus_Html_Table('escape');
         $table->addColumn('name');
@@ -852,7 +852,7 @@ END;
 
     function testMethodOnObject() {
 
-    	return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
+        return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $table = new Octopus_Html_Table('methodOnObject');
         $table->addColumn('name');
@@ -881,7 +881,7 @@ END;
 
     function testFunctionWith3Args() {
 
-    	return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
+        return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $table = new Octopus_Html_Table('threeArgs');
         $table->addColumn('name');
@@ -901,7 +901,7 @@ END;
 
     function test2ArgBuiltInFunctions() {
 
-    	return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
+        return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $val = '  3  ';
 
@@ -937,7 +937,7 @@ END;
 
     function testGlobalFunction() {
 
-    	return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
+        return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $table = new Octopus_Html_Table('func', array('pager' => false));
         $table->addColumn('name');
@@ -960,7 +960,7 @@ END;
 
     function testSimpleTable() {
 
-    	return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
+        return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $expected = <<<END
 <table id="simpleTable" border="0" cellpadding="0" cellspacing="0">
@@ -1003,7 +1003,7 @@ END;
 
     function testComplexTable() {
 
-    	return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
+        return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $expected = <<<END
 <table id="complexTable" border="0" cellpadding="0" cellspacing="0">
@@ -1126,7 +1126,7 @@ END;
 
     function testResultSetSorting() {
 
-    	return $this->markTestSkipped("sort() is private on table -- should it be?");
+        return $this->markTestSkipped("sort() is private on table -- should it be?");
 
         $db = $this->resetDatabase();
 
@@ -1237,7 +1237,7 @@ END;
 
     function testPaging() {
 
-    	return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
+        return $this->markTestSkipped('NEED TO IMPLEMENT ARRAY DATASOURCE');
 
         $table = new Octopus_Html_Table('paging');
         $table->addColumn('name');
@@ -1368,7 +1368,7 @@ END;
 
     function testImageActionsAndToggles() {
 
-    	return $this->markTestSkipped("Need to implement image actions and toggles?");
+        return $this->markTestSkipped("Need to implement image actions and toggles?");
 
         $expected = <<<END
 <table id="complexTable" border="0" cellpadding="0" cellspacing="0">

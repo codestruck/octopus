@@ -33,7 +33,7 @@ class Octopus_Html_Table_Content extends Octopus_Html_Element {
 
             $html = $content;
         } else {
-        	$html = $this->render(true);
+            $html = $this->render(true);
         }
 
         $pattern = '/\{\$([a-z0-9_\.\|\>\(\)-]+)\}/i';
