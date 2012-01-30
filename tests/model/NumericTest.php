@@ -3,16 +3,17 @@
 class NumericTestModel extends Octopus_Model {
 
     protected $fields = array(
-
     	'intfield' => 'numeric',
     	'decimalfield' => array('type' => 'numeric', 'decimal_places' => 4)
-
-
     );
 
 }
 
 class NumericTest extends Octopus_App_TestCase {
+
+    function setUp() {
+        Octopus_DB_Schema_Model::makeTable('NumericTestModel');
+    }
 
     function testIntsInitializeTo0() {
 
@@ -130,6 +131,15 @@ class NumericTest extends Octopus_App_TestCase {
 
     }
 
-}
+    function testLargeIntegerSave() {
 
-?>
+        $m = new NumericTestModel();
+        $m->intfield = 107512669322227;
+        $m->save();
+
+        $n = new NumericTestModel($m->id);
+        $this->assertEquals(107512669322227, $n->intfield);
+
+    }
+
+}

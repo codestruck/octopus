@@ -88,7 +88,7 @@ class Octopus_Model_Field_Numeric extends Octopus_Model_Field {
             }
 
         } else {
-        	$value = floor($value);
+        	$value = sprintf('%d', floor($value));
         }
 
         return $value;
