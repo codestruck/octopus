@@ -361,28 +361,28 @@ END
                 'index' => ''
             ),
 
-			'name_short' => array(
+            'name_short' => array(
                 'type' => 'varchar',
                 'size' => '50',
                 'options' => 'NOT NULL',
                 'index' => ''
             ),
 
-			'name_short_size' => array(
+            'name_short_size' => array(
                 'type' => 'varchar',
                 'size' => '50',
                 'options' => 'NOT NULL',
                 'index' => ''
             ),
 
-			'name_long' => array(
+            'name_long' => array(
                 'type' => 'text',
                 'size' => '',
                 'options' => 'NOT NULL',
                 'index' => ''
             ),
 
-			'name_really_long' => array(
+            'name_really_long' => array(
                 'type' => 'text',
                 'size' => '',
                 'options' => 'NOT NULL',

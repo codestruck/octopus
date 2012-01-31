@@ -50,30 +50,30 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
      * @param Mixed $data Array of data to pass down along with the errors.
      * If this is numeric, it is interpreted as $status, so you can do:
      *
-     *		$this->error('Not found', 404);
+     *        $this->error('Not found', 404);
      *
      * @param Number $status The HTTP status code to report. Defaults to 403
      * (forbidden).
      * @return Array A standardized JSON response array with the following
      * keys:
-     *		success - Always false
-     *		data -    If $data is non-null, this key will be present and will
+     *        success - Always false
+     *        data -    If $data is non-null, this key will be present and will
      *                contain that value.
-     *		errors -  An array of error messages. This is always an array, even
-     * 		          if $errors is not.
+     *        errors -  An array of error messages. This is always an array, even
+     *                   if $errors is not.
      *
      */
     protected function error($errors, $data = null, $status = 403) {
 
-    	// Support error($errors, $status)
-    	if (is_numeric($data)) {
-    		$status = $data;
-    		$data = null;
-    	}
+        // Support error($errors, $status)
+        if (is_numeric($data)) {
+            $status = $data;
+            $data = null;
+        }
 
-    	if (!$errors) {
-    		$errors = array();
-    	}
+        if (!$errors) {
+            $errors = array();
+        }
 
         if (!is_array($errors)) {
             $errors = array($errors);
@@ -86,7 +86,7 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
         // For backwards compatibility (mostly to not break a bunch of tests),
         // don't add the 'data' key unless there's actually something there
         if ($data !== null) {
-        	$result['data'] = $data;
+            $result['data'] = $data;
         }
 
         return $result;
@@ -107,19 +107,19 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
     /**
      * @see Octopus_Controller::resolveAction
      */
-	protected function resolveAction($originalAction, &$action, &$actionMethod, &$args, &$beforeArgs, &$afterArgs, &$result) {
+    protected function resolveAction($originalAction, &$action, &$actionMethod, &$args, &$beforeArgs, &$afterArgs, &$result) {
 
-		if (!parent::resolveAction($originalAction, $action, $actionMethod, $args, $beforeArgs, $afterArgs, $result)) {
-			return false;
-		}
+        if (!parent::resolveAction($originalAction, $action, $actionMethod, $args, $beforeArgs, $afterArgs, $result)) {
+            return false;
+        }
 
-		if ($actionMethod === '_default') {
-			// It doesn't really make sense to map parameters for _default
-			return true;
-		}
+        if ($actionMethod === '_default') {
+            // It doesn't really make sense to map parameters for _default
+            return true;
+        }
 
-    	// Api controllers support named arguments via $_GET or $_POST,
-    	// so combine those with the passed in arguments.
+        // Api controllers support named arguments via $_GET or $_POST,
+        // so combine those with the passed in arguments.
         if (!$args) $args = array();
         $args = array_merge($_GET, $_POST, $args); // TODO: limit to appropriate values based on http method?
 
@@ -127,18 +127,18 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
         // positional ones
         $beforeArgs = $afterArgs = $args;
 
-		$class = new ReflectionClass($this);
-		$method = null;
+        $class = new ReflectionClass($this);
+        $method = null;
 
-		try {
-			$method = $class->getMethod($actionMethod);
-		} catch (Exception $ex) {
-			// Method does not exist, so we can't do any mapping.
-			return true;
-		}
+        try {
+            $method = $class->getMethod($actionMethod);
+        } catch (Exception $ex) {
+            // Method does not exist, so we can't do any mapping.
+            return true;
+        }
 
-		// Translate named arguments into an array that can be passed to
-		// e.g. call_user_func_array
+        // Translate named arguments into an array that can be passed to
+        // e.g. call_user_func_array
 
         $errors = array();
         $positionalArgs = array();
@@ -168,7 +168,7 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
 
         $args = $positionalArgs;
 
-		return true;
-	}
+        return true;
+    }
 
 }

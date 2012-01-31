@@ -7,25 +7,25 @@
  */
 class Octopus_Html_Header {
 
-	private $page;
-	private static $instance = null;
+    private $page;
+    private static $instance = null;
 
-	public function __construct(Octopus_Html_Page $page) {
-		$this->page = $page;
-		$page->addJavascriptMinifier('src');
-		$page->addCssMinifier('src');
-	}
+    public function __construct(Octopus_Html_Page $page) {
+        $this->page = $page;
+        $page->addJavascriptMinifier('src');
+        $page->addCssMinifier('src');
+    }
 
-	public function __call($method, $args) {
-		// Forward method calls on to the wrapped Html_Page instance.
-		return call_user_func_array(array($this->page, $method), $args);
-	}
+    public function __call($method, $args) {
+        // Forward method calls on to the wrapped Html_Page instance.
+        return call_user_func_array(array($this->page, $method), $args);
+    }
 
     public static function singleton() {
 
-    	if (!self::$instance) {
-    		self::$instance = new Octopus_Html_Header(Octopus_Html_Page::singleton());
-    	}
+        if (!self::$instance) {
+            self::$instance = new Octopus_Html_Header(Octopus_Html_Page::singleton());
+        }
 
         return self::$instance;
     }
@@ -47,14 +47,14 @@ class Octopus_Html_Header {
      * @deprecated
      */
     public function getJavascriptHeader() {
-    	return $this->renderJavascript(true);
+        return $this->renderJavascript(true);
     }
 
     /**
      * @deprecated
      */
     public function getCssHeader() {
-    	return $this->renderCss(true);
+        return $this->renderCss(true);
     }
 
 }

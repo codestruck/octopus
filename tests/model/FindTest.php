@@ -14,22 +14,22 @@ class FindTest extends Octopus_DB_TestCase {
 
     function testMapID() {
 
-    	$posts = FindPost::all();
-    	$ids = $posts->map('id');
+        $posts = FindPost::all();
+        $ids = $posts->map('id');
 
-    	$this->assertTrue(is_array($ids), 'map returns array');
-    	$this->assertEquals(count($posts), count($ids), 'same # of elements in ids array');
+        $this->assertTrue(is_array($ids), 'map returns array');
+        $this->assertEquals(count($posts), count($ids), 'same # of elements in ids array');
 
     }
 
     function testOrderByRand() {
 
-    	$posts = FindPost::all()->orderBy('RAND()');
+        $posts = FindPost::all()->orderBy('RAND()');
 
-    	$this->assertSqlEquals(
-    		'SELECT * FROM find_posts ORDER BY RAND()',
-    		$posts
-	    );
+        $this->assertSqlEquals(
+            'SELECT * FROM find_posts ORDER BY RAND()',
+            $posts
+        );
 
     }
 
@@ -74,8 +74,8 @@ class FindTest extends Octopus_DB_TestCase {
         $posts = FindPost::all()->where('id in', array(4));
         $this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`find_post_id` IN('4')", $posts);
 
-    	$posts = FindPost::all()->where('id in', array());
-    	$this->assertSqlEquals("SELECT * FROM find_posts WHERE 0", $posts);
+        $posts = FindPost::all()->where('id in', array());
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE 0", $posts);
 
     }
 

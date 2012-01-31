@@ -23,14 +23,14 @@ class ManyGroup extends Octopus_Model {
 class PluralFieldNameTestProduct extends Octopus_Model {
 
     protected $fields = array(
-    	'name',
-    	'groups' => array(
+        'name',
+        'groups' => array(
             'type' => 'many_to_many',
             'model' => 'ManyGroup',
             'field' => 'products',
             'relation' => 'product',
         ),
-    	'important_groups' => array(
+        'important_groups' => array(
             'type' => 'many_to_many',
             'model' => 'ManyGroup',
             'field' => 'important_products',
@@ -130,7 +130,7 @@ class ModelManyToManyTest extends Octopus_DB_TestCase
 
     function testPluralFieldNameSecondary() {
 
-    	Octopus_DB_Schema_Model::makeTable('PluralFieldNameTestProduct');
+        Octopus_DB_Schema_Model::makeTable('PluralFieldNameTestProduct');
         Octopus_DB_Schema_Model::makeTable('ManyGroup');
 
         $group = new ManyGroup();

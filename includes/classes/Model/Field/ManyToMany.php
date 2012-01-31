@@ -70,7 +70,7 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
     public function getJoinedModelClass() {
 
         if ($this->joinedModelClass) {
-        	return $this->joinedModelClass;
+            return $this->joinedModelClass;
         }
 
         $class = $this->getOption('model');
@@ -104,7 +104,7 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
     public function getJoinTableName() {
 
         if ($this->joinTableName) {
-        	return $this->joinTableName;
+            return $this->joinTableName;
         }
 
         $thisModel = singularize(underscore($this->getModelClass()));
@@ -160,13 +160,13 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
         if (is_object($obj)) {
 
             if ($obj instanceof $joinedClass) {
-            	// Save changes before adding
-            	$obj->save();
+                // Save changes before adding
+                $obj->save();
             }
             if (!($obj instanceof $joinedClass)) {
-            	$name = $this->getFieldName();
-            	$actualClass = get_class($obj);
-            	throw new Octopus_Model_Exception("Many-to-many relation $name only supports $joinedClass ($actualClass provided).");
+                $name = $this->getFieldName();
+                $actualClass = get_class($obj);
+                throw new Octopus_Model_Exception("Many-to-many relation $name only supports $joinedClass ($actualClass provided).");
             }
 
         } else if (is_numeric($obj)) {
@@ -180,15 +180,15 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
         if ($action === 'add') {
 
             if (!$model->id) {
-            	$modelClass = $this->getModelClass();
-            	$fieldName = $this->getFieldName();
-            	throw new Octopus_Model_Exception("$modelClass needs to be saved before calling $action on it ($fieldName)");
+                $modelClass = $this->getModelClass();
+                $fieldName = $this->getFieldName();
+                throw new Octopus_Model_Exception("$modelClass needs to be saved before calling $action on it ($fieldName)");
             }
 
             if (!$obj->id) {
-            	$modelClass = $this->getModelClass();
-            	$fieldName = $this->getFieldName();
-            	throw new Octopus_Model_Exception("$joinedClass needs to be saved before calling $action ($modelClass.$fieldName)");
+                $modelClass = $this->getModelClass();
+                $fieldName = $this->getFieldName();
+                throw new Octopus_Model_Exception("$joinedClass needs to be saved before calling $action ($modelClass.$fieldName)");
             }
 
             $i = new Octopus_DB_Insert();
@@ -207,16 +207,16 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
 
         if (!is_numeric($obj)) {
 
-        	$joinedClass = $this->getJoinedModelClass();
+            $joinedClass = $this->getJoinedModelClass();
 
-        	if (!$obj instanceof $joinedClass) {
-        		return false;
-        	}
+            if (!$obj instanceof $joinedClass) {
+                return false;
+            }
 
-        	$id = $obj->id;
+            $id = $obj->id;
 
         } else {
-        	$id = $obj;
+            $id = $obj;
         }
 
         $s = new Octopus_DB_Select();

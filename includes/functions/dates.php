@@ -143,15 +143,15 @@ if (!function_exists('fuzzy_date')) {
 
             if ($name === 'microseconds') {
 
-            	if ($count) {
-            		if ($resultLen) $result .= ':';
-            		$m = round($count / 1000000.0, 3) * 1000;
-            		$result .= sprintf('%03d', $m);
-            	}
+                if ($count) {
+                    if ($resultLen) $result .= ':';
+                    $m = round($count / 1000000.0, 3) * 1000;
+                    $result .= sprintf('%03d', $m);
+                }
 
             } else {
-            	if ($resultLen) $result .= ':';
-            	$result .= sprintf('%02d', $count);
+                if ($resultLen) $result .= ':';
+                $result .= sprintf('%02d', $count);
             }
 
         }

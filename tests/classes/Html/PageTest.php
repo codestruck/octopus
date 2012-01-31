@@ -2,165 +2,165 @@
 
 class PageTest extends Octopus_App_TestCase {
 
-	function testCssHasMtime() {
+    function testCssHasMtime() {
 
-		recursive_touch($this->getSiteDir() . 'css/test.css');
-		$mtime = filemtime($this->getSiteDir() . 'css/test.css');
+        recursive_touch($this->getSiteDir() . 'css/test.css');
+        $mtime = filemtime($this->getSiteDir() . 'css/test.css');
 
-		$page = new Octopus_Html_Page();
-		$page->addCss('/css/test.css');
+        $page = new Octopus_Html_Page();
+        $page->addCss('/css/test.css');
 
-		$this->assertHtmlEquals(
-			<<<END
+        $this->assertHtmlEquals(
+            <<<END
 <link href="/site/css/test.css?$mtime" rel="stylesheet" type="text/css" media="all" />
 END
-			,
-			$page->renderCss(true)
-		);
+            ,
+            $page->renderCss(true)
+        );
 
 
-	}
+    }
 
-	function testJavascriptHasMtime() {
+    function testJavascriptHasMtime() {
 
-		recursive_touch($this->getSiteDir() . 'script/test.js');
-		$mtime = filemtime($this->getSiteDir() . 'script/test.js');
+        recursive_touch($this->getSiteDir() . 'script/test.js');
+        $mtime = filemtime($this->getSiteDir() . 'script/test.js');
 
-		$page = new Octopus_Html_Page();
-		$page->addJavascript('/script/test.js');
+        $page = new Octopus_Html_Page();
+        $page->addJavascript('/script/test.js');
 
-		$this->assertHtmlEquals(
-			<<<END
+        $this->assertHtmlEquals(
+            <<<END
 <script type="text/javascript" src="/site/script/test.js?$mtime"></script>
 END
-			,
-			$page->renderJavascript(true)
-		);
+            ,
+            $page->renderJavascript(true)
+        );
 
 
-	}
+    }
 
 
-	function testNoScriptWeightDoesNotOverrideExisting() {
+    function testNoScriptWeightDoesNotOverrideExisting() {
 
-		$page = new Octopus_Html_Page();
-		$page->addJavascript('/some/script.js', 200);
-		$page->addJavascript('/some/script.js');
+        $page = new Octopus_Html_Page();
+        $page->addJavascript('/some/script.js', 200);
+        $page->addJavascript('/some/script.js');
 
-		$this->assertEquals(
-			array(
-				array(
-					'file' => '/some/script.js',
-					'attributes' => array(),
-					'section' => '',
-					'weight' => 200
-			)),
-			$this->unsetIndexes($page->getJavascriptFiles())
-		);
+        $this->assertEquals(
+            array(
+                array(
+                    'file' => '/some/script.js',
+                    'attributes' => array(),
+                    'section' => '',
+                    'weight' => 200
+            )),
+            $this->unsetIndexes($page->getJavascriptFiles())
+        );
 
-	}
+    }
 
-	function testAddScriptOverridesExisting() {
+    function testAddScriptOverridesExisting() {
 
-		$page = new Octopus_Html_Page();
-		$page->addJavascript('/some/script.js');
-		$page->addJavascript('/some/script.js', 200);
+        $page = new Octopus_Html_Page();
+        $page->addJavascript('/some/script.js');
+        $page->addJavascript('/some/script.js', 200);
 
-		$this->assertEquals(
-			array(
-				array(
-					'file' => '/some/script.js',
-					'attributes' => array(),
-					'section' => '',
-					'weight' => 200
-			)),
-			$this->unsetIndexes($page->getJavascriptFiles())
-		);
+        $this->assertEquals(
+            array(
+                array(
+                    'file' => '/some/script.js',
+                    'attributes' => array(),
+                    'section' => '',
+                    'weight' => 200
+            )),
+            $this->unsetIndexes($page->getJavascriptFiles())
+        );
 
-	}
-
-
-	function testAddScriptDir() {
-
-		$dir = $this->getSiteDir() . to_slug(__METHOD__);
-		mkdir($dir);
-		touch($dir . '/test.js');
-
-		$page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
-		$page->addJavascriptDir($dir);
-
-		$page->addJavascript('/test.js');
-
-		$files = $page->getJavascriptFiles();
-		$file = array_shift($files);
-
-		$this->assertEquals('/subdir/site/' . basename($dir) . '/test.js?' . filemtime($dir . '/test.js'), $file['file'], 'Test file is found in added dir');
-	}
-
-	function testAddCssDir() {
-
-		$dir = $this->getSiteDir() . to_slug(__METHOD__);
-		mkdir($dir);
-		touch($dir . '/test.css');
-
-		$page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
-		$page->addCssDir($dir);
-
-		$page->addCss('/test.css');
-
-		$files = $page->getCssFiles();
-		$file = array_shift($files);
-
-		$this->assertEquals('/subdir/site/' . basename($dir) . '/test.css?' . filemtime($dir . '/test.css'), $file['file'], 'Test file is found in added dir');
-	}
+    }
 
 
-	function testTitleHtmlEscaped() {
+    function testAddScriptDir() {
 
-		$page = new Octopus_Html_Page();
-		$page->setTitle('< this should be escaped & stuff >');
+        $dir = $this->getSiteDir() . to_slug(__METHOD__);
+        mkdir($dir);
+        touch($dir . '/test.js');
 
-		$this->assertHtmlEquals(
-			<<<END
+        $page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
+        $page->addJavascriptDir($dir);
+
+        $page->addJavascript('/test.js');
+
+        $files = $page->getJavascriptFiles();
+        $file = array_shift($files);
+
+        $this->assertEquals('/subdir/site/' . basename($dir) . '/test.js?' . filemtime($dir . '/test.js'), $file['file'], 'Test file is found in added dir');
+    }
+
+    function testAddCssDir() {
+
+        $dir = $this->getSiteDir() . to_slug(__METHOD__);
+        mkdir($dir);
+        touch($dir . '/test.css');
+
+        $page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
+        $page->addCssDir($dir);
+
+        $page->addCss('/test.css');
+
+        $files = $page->getCssFiles();
+        $file = array_shift($files);
+
+        $this->assertEquals('/subdir/site/' . basename($dir) . '/test.css?' . filemtime($dir . '/test.css'), $file['file'], 'Test file is found in added dir');
+    }
+
+
+    function testTitleHtmlEscaped() {
+
+        $page = new Octopus_Html_Page();
+        $page->setTitle('< this should be escaped & stuff >');
+
+        $this->assertHtmlEquals(
+            <<<END
 <title>&lt; this should be escaped &amp; stuff &gt;</title>
 END
-			,
-			$page->renderTitle(true)
-		);
+            ,
+            $page->renderTitle(true)
+        );
 
-	}
+    }
 
-	function testFullTitleHtmlEscaped() {
+    function testFullTitleHtmlEscaped() {
 
-		$page = new Octopus_Html_Page();
-		$page->setFullTitle('< this should be escaped & stuff >');
+        $page = new Octopus_Html_Page();
+        $page->setFullTitle('< this should be escaped & stuff >');
 
-		$this->assertHtmlEquals(
-			<<<END
+        $this->assertHtmlEquals(
+            <<<END
 <title>&lt; this should be escaped &amp; stuff &gt;</title>
 END
-			,
-			$page->renderTitle(true)
-		);
+            ,
+            $page->renderTitle(true)
+        );
 
-	}
+    }
 
 
-	function testBreadcrumbTitleStuffHtmlEscaped() {
+    function testBreadcrumbTitleStuffHtmlEscaped() {
 
-		$page = new Octopus_Html_Page();
-		$page->addBreadcrumb('/', '<Home>');
-		$page->setTitle('<Title>');
+        $page = new Octopus_Html_Page();
+        $page->addBreadcrumb('/', '<Home>');
+        $page->setTitle('<Title>');
 
-		$this->assertHtmlEquals(
-			<<<END
+        $this->assertHtmlEquals(
+            <<<END
 <title>&lt;Title&gt; | &lt;Home&gt;</title>
 END
-			,
-			$page->renderTitle(true)
-		);
+            ,
+            $page->renderTitle(true)
+        );
 
-	}
+    }
 
     function testSetTitle() {
 
@@ -369,82 +369,82 @@ END;
 
     function testExternalJavascript() {
 
-    	$page = new Octopus_Html_Page();
-    	$page->addJavascript('http://example.com/file.js');
-    	$this->assertHtmlEquals(
-	    	<<<END
+        $page = new Octopus_Html_Page();
+        $page->addJavascript('http://example.com/file.js');
+        $this->assertHtmlEquals(
+            <<<END
 <script type="text/javascript" src="http://example.com/file.js"></script>
 END
-			,
-			$page->renderJavascript(true)
-		);
+            ,
+            $page->renderJavascript(true)
+        );
 
     }
 
     function testAbsoluteJavascriptInSiteDir() {
 
-    	$file = 'test.js';
-    	file_put_contents($this->getSiteDir() . $file, '/* test */');
-    	$mtime = filemtime($this->getSiteDir() . $file);
+        $file = 'test.js';
+        file_put_contents($this->getSiteDir() . $file, '/* test */');
+        $mtime = filemtime($this->getSiteDir() . $file);
 
-    	$page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
-    	$page->addJavascript('/test.js');
-    	$this->assertHtmlEquals(
-    		<<<END
+        $page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
+        $page->addJavascript('/test.js');
+        $this->assertHtmlEquals(
+            <<<END
 <script type="text/javascript" src="/subdir/site/test.js?$mtime"></script>
 END
-			,
-			$page->renderJavascript(true)
-		);
+            ,
+            $page->renderJavascript(true)
+        );
 
     }
 
     function testPhysicalPathJavascript() {
 
-    	$file = $this->getRootDir() . 'test.js';
-    	file_put_contents($file, '/* test */');
-    	$mtime = filemtime($file);
+        $file = $this->getRootDir() . 'test.js';
+        file_put_contents($file, '/* test */');
+        $mtime = filemtime($file);
 
-    	$page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
-    	$page->addJavascript($file);
+        $page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
+        $page->addJavascript($file);
 
-    	$this->assertHtmlEquals(
-	    	<<<END
+        $this->assertHtmlEquals(
+            <<<END
 <script type="text/javascript" src="/subdir/test.js?$mtime"></script>
 END
-			,
-			$page->renderJavascript(true)
-		);
+            ,
+            $page->renderJavascript(true)
+        );
 
     }
 
     function testRelativeJavascript() {
 
-    	$page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
-    	$page->addJavascript('js/relative.js');
+        $page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
+        $page->addJavascript('js/relative.js');
 
-    	$this->assertHtmlEquals(
-	    	<<<END
+        $this->assertHtmlEquals(
+            <<<END
 <script type="text/javascript" src="js/relative.js"></script>
 END
-			,
-			$page->renderJavascript(true)
-		);
+            ,
+            $page->renderJavascript(true)
+        );
 
     }
 
     function testMissingJavascript() {
 
-    	$page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
-    	$page->addJavascript('/missing.js');
+        $page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
+        $page->addJavascript('/missing.js');
 
-    	$this->assertHtmlEquals(
-			<<<END
+        $this->assertHtmlEquals(
+            <<<END
 <script type="text/javascript" src="/subdir/missing.js"></script>
 END
-			,
-			$page->renderJavascript(true)
-		);
+            ,
+            $page->renderJavascript(true)
+        );
 
     }
 
@@ -490,13 +490,13 @@ END;
         $page->addJavascript('low_weight.js', -100);
 
         $this->assertHtmlEquals(
-        	<<<END
+            <<<END
 <script type="text/javascript" src="low_weight.js"></script>
 <script type="text/javascript" src="high_weight.js"></script>
 END
-			,
-			$page->renderJavascript(true)
-		);
+            ,
+            $page->renderJavascript(true)
+        );
     }
 
     function unsetIndexes($ar) {
@@ -1123,95 +1123,95 @@ END
      */
     function testCombineJavascript() {
 
-    	$page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
+        $page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
 
-    	$siteDir = $this->getSiteDir();
-    	$scriptDir = $siteDir . 'script/';
-    	mkdir($scriptDir);
+        $siteDir = $this->getSiteDir();
+        $scriptDir = $siteDir . 'script/';
+        mkdir($scriptDir);
 
-    	file_put_contents(
-    		"{$scriptDir}a.js",
-    		<<<END
+        file_put_contents(
+            "{$scriptDir}a.js",
+            <<<END
 /* contents of file a */
 END
-	    );
+        );
 
-	    file_put_contents(
-	    	"{$scriptDir}b.js",
-	    	<<<END
+        file_put_contents(
+            "{$scriptDir}b.js",
+            <<<END
 /* contents of file b */
 END
-		);
+        );
 
-    	$page->addJavascript('/script/a.js');
-    	$page->addJavascript('/script/b.js');
-    	$page->setJavascriptMinifier('combine');
+        $page->addJavascript('/script/a.js');
+        $page->addJavascript('/script/b.js');
+        $page->setJavascriptMinifier('combine');
 
-    	$js = $page->getJavascriptFiles();
-    	$this->assertEquals(1, count($js));
-    	$js = array_shift($js);
-    	$file = $this->getRootDir() . preg_replace('#^/subdir/#i', '', $js['file']);
-    	$file = preg_replace('/\?.*/', '', $file);
+        $js = $page->getJavascriptFiles();
+        $this->assertEquals(1, count($js));
+        $js = array_shift($js);
+        $file = $this->getRootDir() . preg_replace('#^/subdir/#i', '', $js['file']);
+        $file = preg_replace('/\?.*/', '', $file);
 
-    	$this->assertEquals(
-	    	<<<END
+        $this->assertEquals(
+            <<<END
 /* contents of file a */
 
 /* contents of file b */
 END
-			,
-			file_get_contents($file)
-		);
+            ,
+            file_get_contents($file)
+        );
 
-		sleep(2);
+        sleep(2);
 
-    	file_put_contents(
-    		"{$scriptDir}a.js",
-    		<<<END
+        file_put_contents(
+            "{$scriptDir}a.js",
+            <<<END
 /* contents of file a UPDATED!!!! */
 END
-	    );
+        );
 
-    	$js = $page->getJavascriptFiles();
-    	$this->assertEquals(1, count($js));
-    	$js = array_shift($js);
-    	$file = $this->getRootDir() . preg_replace('#^/subdir/#i', '', $js['file']);
-    	$file = preg_replace('/\?.*/', '', $file);
+        $js = $page->getJavascriptFiles();
+        $this->assertEquals(1, count($js));
+        $js = array_shift($js);
+        $file = $this->getRootDir() . preg_replace('#^/subdir/#i', '', $js['file']);
+        $file = preg_replace('/\?.*/', '', $file);
 
-    	$this->assertEquals(
-	    	<<<END
+        $this->assertEquals(
+            <<<END
 /* contents of file a UPDATED!!!! */
 
 /* contents of file b */
 END
-			,
-			file_get_contents($file)
-		);
+            ,
+            file_get_contents($file)
+        );
 
-		sleep(2);
+        sleep(2);
 
-    	file_put_contents(
-    		"{$scriptDir}b.js",
-    		<<<END
+        file_put_contents(
+            "{$scriptDir}b.js",
+            <<<END
 /* contents of file b UPDATED!!!! */
 END
-	    );
+        );
 
-    	$js = $page->getJavascriptFiles();
-    	$this->assertEquals(1, count($js));
-    	$js = array_shift($js);
-    	$file = $this->getRootDir() . preg_replace('#^/subdir/#i', '', $js['file']);
-    	$file = preg_replace('/\?.*/', '', $file);
+        $js = $page->getJavascriptFiles();
+        $this->assertEquals(1, count($js));
+        $js = array_shift($js);
+        $file = $this->getRootDir() . preg_replace('#^/subdir/#i', '', $js['file']);
+        $file = preg_replace('/\?.*/', '', $file);
 
-    	$this->assertEquals(
-	    	<<<END
+        $this->assertEquals(
+            <<<END
 /* contents of file a UPDATED!!!! */
 
 /* contents of file b UPDATED!!!! */
 END
-			,
-			file_get_contents($file)
-		);
+            ,
+            file_get_contents($file)
+        );
 
 
     }
@@ -1221,54 +1221,54 @@ END
      */
     function testCombineJavascriptRegenerateOnDemand() {
 
-    	$page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
+        $page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
 
-    	$siteDir = $this->getSiteDir();
-    	$scriptDir = $siteDir . 'script/';
-    	mkdir($scriptDir);
+        $siteDir = $this->getSiteDir();
+        $scriptDir = $siteDir . 'script/';
+        mkdir($scriptDir);
 
-    	file_put_contents(
-    		"{$scriptDir}a.js",
-    		<<<END
+        file_put_contents(
+            "{$scriptDir}a.js",
+            <<<END
 /* contents of file a */
 END
-	    );
+        );
 
-	    file_put_contents(
-	    	"{$scriptDir}b.js",
-	    	<<<END
+        file_put_contents(
+            "{$scriptDir}b.js",
+            <<<END
 /* contents of file b */
 END
-		);
+        );
 
-    	$page->addJavascript('/script/a.js');
-    	$page->addJavascript('/script/b.js');
-    	$page->setJavascriptMinifier('combine');
+        $page->addJavascript('/script/a.js');
+        $page->addJavascript('/script/b.js');
+        $page->setJavascriptMinifier('combine');
 
-    	$js = $page->getJavascriptFiles();
-    	$this->assertEquals(1, count($js));
-    	$js = array_shift($js);
-    	$file = $this->getRootDir() . preg_replace('#^(/subdir/|\?.*)#i', '', $js['file']);
-		$file = preg_replace('/\?.*/', '', $file);
-    	$mtime = filemtime($file);
+        $js = $page->getJavascriptFiles();
+        $this->assertEquals(1, count($js));
+        $js = array_shift($js);
+        $file = $this->getRootDir() . preg_replace('#^(/subdir/|\?.*)#i', '', $js['file']);
+        $file = preg_replace('/\?.*/', '', $file);
+        $mtime = filemtime($file);
 
-    	sleep(2);
+        sleep(2);
 
-    	$page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
+        $page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
 
-    	$siteDir = $this->getSiteDir();
-    	$scriptDir = $siteDir . 'script/';
+        $siteDir = $this->getSiteDir();
+        $scriptDir = $siteDir . 'script/';
 
-    	$page->addJavascript('/script/a.js');
-    	$page->addJavascript('/script/b.js');
-    	$page->setJavascriptMinifier('combine');
+        $page->addJavascript('/script/a.js');
+        $page->addJavascript('/script/b.js');
+        $page->setJavascriptMinifier('combine');
 
-    	$js = $page->getJavascriptFiles();
-    	$this->assertEquals(1, count($js));
-    	$js = array_shift($js);
-    	$file = $this->getRootDir() . preg_replace('#^/subdir/#i', '', $js['file']);
-    	$file = preg_replace('/\?.*/', '', $file);
-    	$this->assertEquals($mtime, filemtime($file));
+        $js = $page->getJavascriptFiles();
+        $this->assertEquals(1, count($js));
+        $js = array_shift($js);
+        $file = $this->getRootDir() . preg_replace('#^/subdir/#i', '', $js['file']);
+        $file = preg_replace('/\?.*/', '', $file);
+        $this->assertEquals($mtime, filemtime($file));
 
     }
 

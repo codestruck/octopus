@@ -27,35 +27,35 @@ abstract class Octopus_Html_TestCase extends PHPUnit_Framework_TestCase {
 
         if ($expected != $actual) {
 
-        	$len = min(strlen($expected), strlen($actual));
+            $len = min(strlen($expected), strlen($actual));
 
-        	for($i = 0; $i < $len; $i++) {
+            for($i = 0; $i < $len; $i++) {
 
-        		if ($expected[$i] != $actual[$i]) {
+                if ($expected[$i] != $actual[$i]) {
 
-        			$around = 23;
-        			$start = max(0, $i - $around);
-        			$end = min($len, $i+$around);
+                    $around = 23;
+                    $start = max(0, $i - $around);
+                    $end = min($len, $i+$around);
 
-        			$expectedExcerpt = substr($expected, $start, $end - $start);
-        			$actualExcerpt = substr($actual, $start, $end - $start);
+                    $expectedExcerpt = substr($expected, $start, $end - $start);
+                    $actualExcerpt = substr($actual, $start, $end - $start);
 
-        			$arrow = str_repeat('-', $i - $start) . '^';
-
-
-        			if ($start > 0) {
-        				$expectedExcerpt = '...' . $expectedExcerpt;
-        				$actualExcerpt = '...' . $actualExcerpt;
-        				$arrow = '---' . $arrow;
-        			}
-
-        			if ($end < $len) {
-        				$expectedExcerpt .= '...';
-        				$actualExcerpt .= '...';
-        			}
+                    $arrow = str_repeat('-', $i - $start) . '^';
 
 
-        			dump_r(
+                    if ($start > 0) {
+                        $expectedExcerpt = '...' . $expectedExcerpt;
+                        $actualExcerpt = '...' . $actualExcerpt;
+                        $arrow = '---' . $arrow;
+                    }
+
+                    if ($end < $len) {
+                        $expectedExcerpt .= '...';
+                        $actualExcerpt .= '...';
+                    }
+
+
+                    dump_r(
 <<<END
 Strings differ at position $i:
 Expected:   $expectedExcerpt
@@ -64,12 +64,12 @@ Actual:     $actualExcerpt
 
 END
 
-	        		);
-	        		break;
+                    );
+                    break;
 
-        		}
+                }
 
-        	}
+            }
 
         }
 

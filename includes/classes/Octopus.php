@@ -24,16 +24,16 @@ class Octopus {
      */
     public static function addClassDir($dir, $prepend = false) {
         if ($prepend) {
-        	array_unshift(self::$classDirs, $dir);
+            array_unshift(self::$classDirs, $dir);
         } else {
-        	array_push(self::$classDirs, $dir);
+            array_push(self::$classDirs, $dir);
         }
     }
 
     public static function removeClassDir($dir) {
         $index = array_search($dir, self::$classDirs);
         if ($index !== false) {
-        	unset(self::$classDirs[$index]);
+            unset(self::$classDirs[$index]);
         }
     }
 
@@ -42,16 +42,16 @@ class Octopus {
      */
     public static function addControllerDir($dir, $prepend = false) {
         if ($prepend) {
-        	array_unshift(self::$controllerDirs, $dir);
+            array_unshift(self::$controllerDirs, $dir);
         } else {
-        	array_push(self::$controllerDirs, $dir);
+            array_push(self::$controllerDirs, $dir);
         }
     }
 
     public static function removeControllerDir($dir) {
         $index = array_search($dir, self::$controllerDirs);
         if ($index !== false) {
-        	unset(self::$controllerDirs[$index]);
+            unset(self::$controllerDirs[$index]);
         }
     }
 
@@ -85,8 +85,8 @@ class Octopus {
         }
 
         if ($class === null) {
-        	unset(self::$bindings[$name]);
-        	return;
+            unset(self::$bindings[$name]);
+            return;
         }
 
         $newBindings = array();
@@ -113,12 +113,12 @@ class Octopus {
 
         if (is_object($binding)) {
 
-        	if (!$args) {
-        		// $name was bound to a specific object.
-        		return $binding;
-        	} else {
-        		throw new Octopus_Exception("Cannot specify constructor arguments for class bound to object instance.");
-        	}
+            if (!$args) {
+                // $name was bound to a specific object.
+                return $binding;
+            } else {
+                throw new Octopus_Exception("Cannot specify constructor arguments for class bound to object instance.");
+            }
 
         }
 
@@ -254,15 +254,15 @@ class Octopus {
 
             $dir = get_option($key);
             if (!$dir || !is_dir($dir)) {
-            	continue;
+                continue;
             }
 
             $externalsDir = $dir . "externals/{$name}/";
             $file = $externalsDir . 'external.php';
 
             if (is_file($file)) {
-            	self::loadExternalFile($name, $file, $version);
-            	return true;
+                self::loadExternalFile($name, $file, $version);
+                return true;
             }
 
         }
@@ -288,31 +288,31 @@ class Octopus {
 
         $__normalFile = strtolower($__file);
         if (isset(self::$alreadyLoaded[$__normalFile])) {
-        	return;
+            return;
         }
 
         self::$alreadyLoaded[$__normalFile] = true;
         unset($__normalFile);
 
         if ($__vars) {
-	        extract($__vars);
-	    }
-	    unset($__vars);
+            extract($__vars);
+        }
+        unset($__vars);
 
         require_once($__file);
     }
 
     private static function loadExternalFile($name, $file, $version) {
 
-    	self::requireOnce($file, array('EXTERNAL_DIR' => dirname($file) . '/'));
-    	self::callExternalFunction($name, $version);
+        self::requireOnce($file, array('EXTERNAL_DIR' => dirname($file) . '/'));
+        self::callExternalFunction($name, $version);
 
     }
 
     private static function callExternalFunction($external, $version) {
         $func = 'external_' . $external;
         if (function_exists($func)) {
-        	$func($version);
+            $func($version);
         }
     }
 }

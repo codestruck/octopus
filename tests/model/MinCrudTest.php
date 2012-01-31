@@ -33,18 +33,18 @@ class Minpost extends Octopus_Model {
 
 class FindExistingIdTestModel extends Octopus_Model {
 
-	protected $fields = array(
-		'name',
-		'age' => 'numeric'
-	);
+    protected $fields = array(
+        'name',
+        'age' => 'numeric'
+    );
 
-	public $calls = 0;
+    public $calls = 0;
 
-	protected function findExistingID() {
-		$this->calls++;
-		$existing = FindExistingIdTestModel::get(array('name' => $this->name));
-		return $existing ? $existing->id : null;
-	}
+    protected function findExistingID() {
+        $this->calls++;
+        $existing = FindExistingIdTestModel::get(array('name' => $this->name));
+        return $existing ? $existing->id : null;
+    }
 
 }
 
@@ -61,28 +61,28 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
 
     function testFindExistingIdHook() {
 
-    	Octopus_DB_Schema_Model::makeTable('FindExistingIdTestModel');
+        Octopus_DB_Schema_Model::makeTable('FindExistingIdTestModel');
 
-    	$a = new FindExistingIdTestModel();
-    	$a->name = "foo";
+        $a = new FindExistingIdTestModel();
+        $a->name = "foo";
 
-    	$b = new FindExistingIdTestModel();
-    	$b->name = "foo";
+        $b = new FindExistingIdTestModel();
+        $b->name = "foo";
 
-    	$this->assertTrue($a->save(), 'save of a succeeds');
-    	$this->assertTrue($b->save(), 'save of b succeeds');
+        $this->assertTrue($a->save(), 'save of a succeeds');
+        $this->assertTrue($b->save(), 'save of b succeeds');
 
-    	$this->assertTrue(!!$a->id, "Record A saved");
-    	$this->assertTrue(!!$b->id, "Record B saved");
-    	$this->assertEquals($a->id, $b->id, "No duplicate records generated");
+        $this->assertTrue(!!$a->id, "Record A saved");
+        $this->assertTrue(!!$b->id, "Record B saved");
+        $this->assertEquals($a->id, $b->id, "No duplicate records generated");
 
-    	$this->assertEquals(1, $a->calls, "called 1x on a");
-    	$this->assertEquals(1, $b->calls, "called 1x on b");
+        $this->assertEquals(1, $a->calls, "called 1x on a");
+        $this->assertEquals(1, $b->calls, "called 1x on b");
 
-    	$b->age = 50;
-    	$this->assertTrue($b->save(), 'second save of b succeeds');
+        $b->age = 50;
+        $this->assertTrue($b->save(), 'second save of b succeeds');
 
-    	$this->assertEquals(1, $b->calls, "still called 1x on b");
+        $this->assertEquals(1, $b->calls, "still called 1x on b");
 
     }
 
@@ -683,16 +683,16 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
 
     function testLazyLoadDoesntOverwriteData() {
 
-    	$post = new Minpost();
-    	$post->title = "foo";
-    	$post->display_order = 5;
-    	$post->save();
+        $post = new Minpost();
+        $post->title = "foo";
+        $post->display_order = 5;
+        $post->save();
 
-    	$post = new Minpost($post->id);
-    	$post->title = "bar";
+        $post = new Minpost($post->id);
+        $post->title = "bar";
 
-    	$this->assertEquals(5, $post->display_order);
-    	$this->assertEquals("bar", $post->title);
+        $this->assertEquals(5, $post->display_order);
+        $this->assertEquals("bar", $post->title);
 
     }
 

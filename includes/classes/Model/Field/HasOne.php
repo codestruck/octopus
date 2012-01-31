@@ -45,9 +45,9 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         }
 
         if (isset($row[$col])) {
-        	$this->setValue($model, $row[$col]);
+            $this->setValue($model, $row[$col]);
         } else if (isset($row[$name])) {
-        	$this->setValue($model, $row[$name]);
+            $this->setValue($model, $row[$name]);
         }
 
     }
@@ -93,8 +93,8 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         if ($value) {
 
             if (is_numeric($value)) {
-            	$class = $this->getItemClass($model);
-            	$value = new $class($value);
+                $class = $this->getItemClass($model);
+                $value = new $class($value);
             }
 
         }
@@ -232,7 +232,7 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
     private function getColumn() {
 
         if ($this->getOption('filter', false)) {
-        	return 'item_id';
+            return 'item_id';
         }
 
         return to_id($this->getFieldName());
@@ -241,7 +241,7 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
     private function getItemClass($model= null) {
 
         if ($model && $this->getOption('filter', false)) {
-        	return ucfirst($model->item_type);
+            return ucfirst($model->item_type);
         }
 
         // use the 'model' option as the classname, otherwise the fieldname

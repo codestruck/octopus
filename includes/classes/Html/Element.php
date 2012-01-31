@@ -178,8 +178,8 @@ class Octopus_Html_Element {
      * @return $this
      */
     public function appendTo(Octopus_Html_Element $parent) {
-    	$parent->append($this);
-    	return $this;
+        $parent->append($this);
+        return $this;
     }
 
     /**
@@ -195,8 +195,8 @@ class Octopus_Html_Element {
      * @return $this
      */
     public function prependTo(Octopus_Html_Element $parent) {
-    	$parent->prepend($this);
-    	return $this;
+        $parent->prepend($this);
+        return $this;
     }
 
     /**
@@ -207,22 +207,22 @@ class Octopus_Html_Element {
      */
     public function insertAfter(Octopus_Html_Element $sibling) {
 
-		$parent = $sibling->parent();
+        $parent = $sibling->parent();
 
-    	if (!$parent) {
-    		throw new Octopus_Exception("Cannot insertBefore a sibling with no parent.");
-    	}
+        if (!$parent) {
+            throw new Octopus_Exception("Cannot insertBefore a sibling with no parent.");
+        }
 
-    	$index = array_search($sibling, $parent->_content);
-    	if ($index === false || $index >= count($parent->_content) - 1) {
-    		$before = null;
-    	} else {
-    		$before = $parent->_content[$index+1];
-    	}
+        $index = array_search($sibling, $parent->_content);
+        if ($index === false || $index >= count($parent->_content) - 1) {
+            $before = null;
+        } else {
+            $before = $parent->_content[$index+1];
+        }
 
-    	$parent->addContent($this, $before);
+        $parent->addContent($this, $before);
 
-    	return $this;
+        return $this;
 
     }
 
@@ -234,15 +234,15 @@ class Octopus_Html_Element {
      */
     public function insertBefore(Octopus_Html_Element $sibling) {
 
-    	$parent = $sibling->parent();
+        $parent = $sibling->parent();
 
-    	if (!$parent) {
-    		throw new Octopus_Exception("Cannot insertBefore a sibling with no parent.");
-    	}
+        if (!$parent) {
+            throw new Octopus_Exception("Cannot insertBefore a sibling with no parent.");
+        }
 
-    	$parent->addContent($this, $sibling);
+        $parent->addContent($this, $sibling);
 
-    	return $this;
+        return $this;
     }
 
     public function remove(/* $child */) {
@@ -399,7 +399,7 @@ class Octopus_Html_Element {
      * @return Boolean Whether this element is the given tag.
      */
     public function is($tag) {
-    	return strcasecmp($tag, $this->_tag) === 0;
+        return strcasecmp($tag, $this->_tag) === 0;
     }
 
     public function setAttribute($key, $value) {
@@ -695,21 +695,21 @@ class Octopus_Html_Element {
      */
     protected function addContent($item, $before = null) {
 
-    	// This is so count($el->children()) is always zero, even when
-    	// empty strings have been appended
-    	if ($item === null || $item === '') {
-    		return;
-    	}
+        // This is so count($el->children()) is always zero, even when
+        // empty strings have been appended
+        if ($item === null || $item === '') {
+            return;
+        }
 
         if ($this->_content === null) {
             $this->_content = array();
         }
 
         if ($before) {
-        	$offset = array_search($before, $this->_content);
-        	if ($offset === false) $index = count($this->_content);
+            $offset = array_search($before, $this->_content);
+            if ($offset === false) $index = count($this->_content);
         } else {
-        	$offset = count($this->_content);
+            $offset = count($this->_content);
         }
 
         if (!is_array($item)) $item = array($item);

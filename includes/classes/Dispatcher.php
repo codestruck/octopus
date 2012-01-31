@@ -33,7 +33,7 @@ class Octopus_Dispatcher {
 
         $controller = $request->getController();
 
-		$this->prepareController($controller, $request, $response);
+        $this->prepareController($controller, $request, $response);
 
         $data = $controller->__execute(
             $request->getAction(),

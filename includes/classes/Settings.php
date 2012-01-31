@@ -268,20 +268,20 @@ class Octopus_Settings extends Octopus_Base implements Iterator, ArrayAccess {
 
     public function offsetExists($offset) {
 
-    	return !!$this->getKey($offset, false);
+        return !!$this->getKey($offset, false);
 
     }
 
     public function offsetGet($offset) {
-    	return $this->get($offset);
+        return $this->get($offset);
     }
 
     public function offsetSet($offset, $value) {
-    	return $this->set($offset, $value);
+        return $this->set($offset, $value);
     }
 
     public function offsetUnset($offset) {
-    	$this->reset($offset);
+        $this->reset($offset);
     }
 
     public static function singleton() {

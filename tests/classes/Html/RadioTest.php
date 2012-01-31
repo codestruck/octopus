@@ -94,11 +94,11 @@ END;
 
         $this->assertEquals(array('pink'), $field->val());
 
-		$valid = $form->validate($result);
+        $valid = $form->validate($result);
 
-		$this->assertTrue($valid, 'The form was validated');
+        $this->assertTrue($valid, 'The form was validated');
 
-		$sig = $form->getSignature();
+        $sig = $form->getSignature();
         $expect = <<<END
 
 <form id="test" method="post" novalidate>

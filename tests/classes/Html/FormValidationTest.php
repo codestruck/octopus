@@ -104,8 +104,8 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
 
         $form = new Octopus_Html_Form('shortCircuit');
         $form->add('foo')
-        	->required()
-        	->mustMatch('/\d+/');
+            ->required()
+            ->mustMatch('/\d+/');
 
         $form->submit(array('foo' => ''));
         $form->validate($result);
@@ -213,36 +213,36 @@ class FormValidationTest extends PHPUnit_Framework_TestCase {
 
     function testMinLengthValidation() {
 
-    	$form = new Octopus_Html_Form('minLength');
-    	$form->add('foo')->minLength(5);
+        $form = new Octopus_Html_Form('minLength');
+        $form->add('foo')->minLength(5);
 
-    	$form->submit(array('foo' => ''));
-    	$this->assertTrue($form->validate(), 'Validation should succeed with empty input?');
+        $form->submit(array('foo' => ''));
+        $this->assertTrue($form->validate(), 'Validation should succeed with empty input?');
 
-    	for ($i = 1; $i < 5; $i++) {
-    		$form->submit(array('foo' => str_repeat('x', $i)));
-    		$this->assertFalse($form->validate(), "Validation should fail with $i characters");
-    	}
+        for ($i = 1; $i < 5; $i++) {
+            $form->submit(array('foo' => str_repeat('x', $i)));
+            $this->assertFalse($form->validate(), "Validation should fail with $i characters");
+        }
 
-    	$form->submit(array('foo' => 'xxxxx'));
-    	$this->assertTrue($form->validate(), 'validation should succeed with 5 characters');
+        $form->submit(array('foo' => 'xxxxx'));
+        $this->assertTrue($form->validate(), 'validation should succeed with 5 characters');
 
     }
 
     function testMaxLengthValidation() {
 
-    	$form = new Octopus_Html_Form('maxLength');
-    	$form->add('foo')->maxLength(5);
+        $form = new Octopus_Html_Form('maxLength');
+        $form->add('foo')->maxLength(5);
 
-    	$form->submit(array('foo' => ''));
+        $form->submit(array('foo' => ''));
 
-    	for ($i = 5; $i >= 0; $i--) {
-    		$form->submit(array('foo' => str_repeat('x', $i)));
-    		$this->assertTrue($form->validate(), "Validation should succeed with $i characters");
-    	}
+        for ($i = 5; $i >= 0; $i--) {
+            $form->submit(array('foo' => str_repeat('x', $i)));
+            $this->assertTrue($form->validate(), "Validation should succeed with $i characters");
+        }
 
-    	$form->submit(array('foo' => 'xxxxxx'));
-    	$this->assertFalse($form->validate(), 'validation should fail with > 5 characters');
+        $form->submit(array('foo' => 'xxxxxx'));
+        $this->assertFalse($form->validate(), 'validation should fail with > 5 characters');
 
     }
 

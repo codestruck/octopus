@@ -9,9 +9,9 @@ class Octopus_Model_Restriction_Field implements Octopus_Model_Restriction {
     private $model, $expression, $value;
 
     public function __construct(Octopus_Model $model, $expression, $value) {
-    	$this->model = $model;
-    	$this->expression = $expression;
-    	$this->value = $value;
+        $this->model = $model;
+        $this->expression = $expression;
+        $this->value = $value;
     }
 
     /**
@@ -21,9 +21,9 @@ class Octopus_Model_Restriction_Field implements Octopus_Model_Restriction {
      */
     public function getSql(Octopus_DB_Select $s, Array &$params) {
 
-    	$model = $this->model;
-    	$expr = $this->expression;
-    	$value = $this->value;
+        $model = $this->model;
+        $expr = $this->expression;
+        $value = $this->value;
 
         if ($value instanceof Octopus_Model_ResultSet) {
 

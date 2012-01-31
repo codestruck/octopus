@@ -2,7 +2,7 @@
 
 class Octopus_Html_Form_Field_Checkbox extends Octopus_Html_Form_Field {
 
-	private $multiple = false;
+    private $multiple = false;
 
     public function __construct($type, $name, $label, $attributes = null) {
 
@@ -10,7 +10,7 @@ class Octopus_Html_Form_Field_Checkbox extends Octopus_Html_Form_Field {
 
         if (substr($name, -2) === '[]') {
 
-        	$this->multiple = true;
+            $this->multiple = true;
 
             $cssName = substr($name, 0, -2);
             $this->class = to_css_class($cssName);
@@ -47,22 +47,22 @@ class Octopus_Html_Form_Field_Checkbox extends Octopus_Html_Form_Field {
         }
 
     }
-	public function readValue(&$values) {
+    public function readValue(&$values) {
 
-		if ($this->multiple) {
+        if ($this->multiple) {
 
-			$name = preg_replace('/\[\]$/', '', $this->name);
-			if (!isset($values[$name])) $values[$name] = array();
+            $name = preg_replace('/\[\]$/', '', $this->name);
+            if (!isset($values[$name])) $values[$name] = array();
 
-			if ($this->checked) {
-				$values[$name][] = $this->value;
-			}
+            if ($this->checked) {
+                $values[$name][] = $this->value;
+            }
 
-		} else {
-			return parent::readValue($values);
-		}
+        } else {
+            return parent::readValue($values);
+        }
 
-	}
+    }
 
     public function val(/* $val */) {
 
@@ -91,21 +91,21 @@ class Octopus_Html_Form_Field_Checkbox extends Octopus_Html_Form_Field {
 
     protected function createWrapper($tag = null) {
 
-    	$wrapper = parent::createWrapper($tag);
-    	if (!$this->multiple) {
-    		return $wrapper;
-    	}
+        $wrapper = parent::createWrapper($tag);
+        if (!$this->multiple) {
+            return $wrapper;
+        }
 
-    	$cssName = substr($this->name, 0, -2);
-    	$wrapper->id = to_css_class($cssName . camel_case($this->value, true) . 'Field');
-		$wrapper->class = 'field ' . $this->class;
+        $cssName = substr($this->name, 0, -2);
+        $wrapper->id = to_css_class($cssName . camel_case($this->value, true) . 'Field');
+        $wrapper->class = 'field ' . $this->class;
 
-    	return $wrapper;
+        return $wrapper;
 
     }
 
     protected function getDefaultLabel($name) {
-    	return rtrim(parent::getDefaultLabel($name), ':');
+        return rtrim(parent::getDefaultLabel($name), ':');
     }
 
     protected function valueChanged() {

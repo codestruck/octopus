@@ -51,34 +51,34 @@ abstract class Octopus_Controller {
 
         if ($this->resolveAction($originalAction, $action, $actionMethod, $args, $beforeArgs, $afterArgs, $result)) {
 
-	        if ($this->executeBeforeMethods($originalAction, $action, $actionMethod, $beforeArgs, $result)) {
+            if ($this->executeBeforeMethods($originalAction, $action, $actionMethod, $beforeArgs, $result)) {
 
-		        $this->executedActions[] = array('action' => $originalAction, 'args' => $args);
+                $this->executedActions[] = array('action' => $originalAction, 'args' => $args);
 
-	        	$result = $this->executeAction($originalAction, $action, $actionMethod, $args);
+                $result = $this->executeAction($originalAction, $action, $actionMethod, $args);
 
-	        	$result = $this->executeAfterMethods($originalAction, $action, $actionMethod, $afterArgs, $result);
+                $result = $this->executeAfterMethods($originalAction, $action, $actionMethod, $afterArgs, $result);
 
-	        }
-	    }
+            }
+        }
 
-		if (is_array($result)) {
-			$result = array_map(array($this, 'escape'), $result);
-		}
+        if (is_array($result)) {
+            $result = array_map(array($this, 'escape'), $result);
+        }
 
-		return $result;
+        return $result;
     }
 
     /**
      * Executes all the _before methods present for $action.
      * @param String $originalAction The original requested action
      * @param String $action The normalized action name (camel case, any
-	 * trailing 'Action' or '_action' removed).
+     * trailing 'Action' or '_action' removed).
      * @param String $actionMethod The actual method on this class that will
      * be executed for the action.
      * @param Array $args,
- 	 * @param Mixed $result If this method returns false, this is set to the
- 	 * result to return for the action.
+      * @param Mixed $result If this method returns false, this is set to the
+      * result to return for the action.
      * @return Boolean True to allow executing the action, false otherwise.
      */
     protected function executeBeforeMethods($originalAction, $action, $actionMethod, Array $args, &$result) {
@@ -111,16 +111,16 @@ abstract class Octopus_Controller {
      * Actually calls the method that corresponds to $action on this controller.
      * @param String $originalAction The original requested action
      * @param String $action The normalized action name (camel case, any
-	 * trailing 'Action' or '_action' removed).
+     * trailing 'Action' or '_action' removed).
      * @param String $actionMethod The actual method on this class that will
      * be executed for the action.
      * @param Array $args Arguments to pass to the action.
      */
     protected function executeAction($originalAction, $action, $actionMethod, Array $args) {
 
-    	if ($actionMethod === '_default') {
-    		return $this->_default($action, $args);
-    	}
+        if ($actionMethod === '_default') {
+            return $this->_default($action, $args);
+        }
 
         $haveArgs = !!count($args);
 
@@ -148,12 +148,12 @@ abstract class Octopus_Controller {
      * Executes any _after methods for the given action.
      * @param String $originalAction The original requested action
      * @param String $action The normalized action name (camel case, any
-	 * trailing 'Action' or '_action' removed).
+     * trailing 'Action' or '_action' removed).
      * @param String $actionMethod The actual method on this class that will
      * be executed for the action.
-	 * @param Array $args Arguments passed to the action
-	 * @param Mixed $result Result of the action.
-	 * @return Mixed The final result after running all _after methods.
+     * @param Array $args Arguments passed to the action
+     * @param Mixed $result Result of the action.
+     * @return Mixed The final result after running all _after methods.
      */
     protected function executeAfterMethods($originalAction, $action, $actionMethod, Array $args, $result) {
 
@@ -186,11 +186,11 @@ abstract class Octopus_Controller {
      */
     protected function resolveAction($originalAction, &$action, &$actionMethod, &$args, &$beforeArgs, &$afterArgs, &$result) {
 
-    	$this->figureOutAction($originalAction, $action, $actionMethod);
+        $this->figureOutAction($originalAction, $action, $actionMethod);
 
-    	$beforeArgs = $afterArgs = $args;
+        $beforeArgs = $afterArgs = $args;
 
-    	return true;
+        return true;
     }
 
     private function figureOutAction($originalAction, &$action, &$actionMethod) {
@@ -287,7 +287,7 @@ abstract class Octopus_Controller {
      */
     protected function isFailure($result) {
 
-    	// TODO: move the $result['success'] logic into api controller
+        // TODO: move the $result['success'] logic into api controller
         return ($result === false) ||
                (is_array($result) && isset($result['success']) && $result['success'] === false);
     }
@@ -343,14 +343,14 @@ abstract class Octopus_Controller {
      */
     protected function getActionUrl($action) {
 
-    	$action = preg_replace('/_?[aA]ction$/', '', $action);
-    	$action = dashed($action);
+        $action = preg_replace('/_?[aA]ction$/', '', $action);
+        $action = dashed($action);
 
-    	$url = preg_replace('/_?Controller$/', '', get_class($this));
-    	$url = dashed($url);
-    	$url = '/' . $url . '/' . $action;
+        $url = preg_replace('/_?Controller$/', '', get_class($this));
+        $url = dashed($url);
+        $url = '/' . $url . '/' . $action;
 
-    	return u($url);
+        return u($url);
     }
 
     /**
@@ -441,11 +441,11 @@ abstract class Octopus_Controller {
      */
     protected function forbidden($newView = '403') {
 
-    	if ($newView !== null) {
-    		$this->view = $newView;
-    	}
+        if ($newView !== null) {
+            $this->view = $newView;
+        }
 
-    	$this->response->forbidden();
+        $this->response->forbidden();
     }
 
     /**
@@ -464,13 +464,13 @@ abstract class Octopus_Controller {
      * If the action specified does not exist on this class, _default()
      * gets called.
      */
-	public function _default($action, $args) {
+    public function _default($action, $args) {
 
-		if ($this->tryScaffoldingAction($action, $args, $result)) {
-			return $result;
-		}
+        if ($this->tryScaffoldingAction($action, $args, $result)) {
+            return $result;
+        }
 
-		return array('controller_links' => $this->getControllerLinks());
+        return array('controller_links' => $this->getControllerLinks());
 
     }
 
@@ -553,30 +553,30 @@ abstract class Octopus_Controller {
      */
     protected function scaffoldAddAction($model, $args) {
 
-    	$this->view = 'scaffold_add';
+        $this->view = 'scaffold_add';
 
-    	$item = new $model();
-    	$form = $this->createScaffoldForm($item, 'add');
+        $item = new $model();
+        $form = $this->createScaffoldForm($item, 'add');
 
-    	$index_url = $this->getActionUrl('');
+        $index_url = $this->getActionUrl('');
 
-    	set_title('Add ' . humanize($model));
+        set_title('Add ' . humanize($model));
 
-    	if ($form->wasSubmitted() && $form->validate()) {
+        if ($form->wasSubmitted() && $form->validate()) {
 
-    		$values = $form->getValues();
-    		$item->setData($values);
+            $values = $form->getValues();
+            $item->setData($values);
 
-    		if ($item->save()) {
-    			set_flash("Added " . h($item));
-    			return $this->redirect($index_url);
-    		}
+            if ($item->save()) {
+                set_flash("Added " . h($item));
+                return $this->redirect($index_url);
+            }
 
-    	}
+        }
 
-		$controller_links = $this->getControllerLinks();
+        $controller_links = $this->getControllerLinks();
 
-    	return compact('model', 'form', 'index_url', 'controller_links');
+        return compact('model', 'form', 'index_url', 'controller_links');
     }
 
     /**
@@ -584,39 +584,39 @@ abstract class Octopus_Controller {
      */
     protected function scaffoldDeleteAction($model, $args) {
 
-		$this->view = 'scaffold_delete';
+        $this->view = 'scaffold_delete';
 
-		$id = array_shift($args);
-		$item = call_user_func(array($model, 'get'), $id);
+        $id = array_shift($args);
+        $item = call_user_func(array($model, 'get'), $id);
 
-		if (!$item) {
-			return $this->notFound();
-		}
+        if (!$item) {
+            return $this->notFound();
+        }
 
-		set_title("Delete " . humanize($model));
+        set_title("Delete " . humanize($model));
 
-		$index_url = $this->getActionUrl('');
+        $index_url = $this->getActionUrl('');
 
-		$form = new Octopus_Html_Form('delete' . $model);
-		$form->addClass('scaffold-delete');
-		$form->addButton('submit', 'Delete');
+        $form = new Octopus_Html_Form('delete' . $model);
+        $form->addClass('scaffold-delete');
+        $form->addButton('submit', 'Delete');
 
-		if ($form->wasSubmitted() && $form->validate()) {
+        if ($form->wasSubmitted() && $form->validate()) {
 
-			$name = h($item);
-			$item->delete();
-			set_flash("Deleted $name");
+            $name = h($item);
+            $item->delete();
+            set_flash("Deleted $name");
 
-			return $this->redirect($index_url);
-		}
+            return $this->redirect($index_url);
+        }
 
-    	// Allow, e.g. a Product model to be referred to as $product
-    	$var = underscore($model);
-    	if (!isset($$var)) $$var = $item;
+        // Allow, e.g. a Product model to be referred to as $product
+        $var = underscore($model);
+        if (!isset($$var)) $$var = $item;
 
-		$controller_links = $this->getControllerLinks();
+        $controller_links = $this->getControllerLinks();
 
-    	return compact('item', $var, 'model', 'form', 'index_url', 'controller_links');
+        return compact('item', $var, 'model', 'form', 'index_url', 'controller_links');
     }
 
 
@@ -625,45 +625,45 @@ abstract class Octopus_Controller {
      */
     protected function scaffoldEditAction($model, $args) {
 
-		$this->view = 'scaffold_edit';
+        $this->view = 'scaffold_edit';
 
-    	$id = array_shift($args);
-    	$item = call_user_func(array($model, 'get'), $id);
+        $id = array_shift($args);
+        $item = call_user_func(array($model, 'get'), $id);
 
-    	if (!$item) {
-    		return $this->notFound('404');
-    	}
+        if (!$item) {
+            return $this->notFound('404');
+        }
 
-    	set_title("Edit " . humanize($model));
+        set_title("Edit " . humanize($model));
 
-    	$index_url = $this->getActionUrl('');
+        $index_url = $this->getActionUrl('');
 
-		$form = $this->createScaffoldForm($item, 'edit');
+        $form = $this->createScaffoldForm($item, 'edit');
 
-		if ($form->wasSubmitted()) {
+        if ($form->wasSubmitted()) {
 
-			if ($form->validate()) {
+            if ($form->validate()) {
 
-				$values = $form->getValues();
-				$item->setData($values);
+                $values = $form->getValues();
+                $item->setData($values);
 
-				if ($item->save()) {
-					set_flash('Saved changes to ' . h($item));
-					return $this->redirect($index_url);
-				}
+                if ($item->save()) {
+                    set_flash('Saved changes to ' . h($item));
+                    return $this->redirect($index_url);
+                }
 
-			}
-		} else {
-			$form->setValues($item);
-		}
+            }
+        } else {
+            $form->setValues($item);
+        }
 
-		// Allow, e.g. a Product model to be referred to as $product
-    	$var = underscore($model);
-    	if (!isset($$var)) $$var = $item;
+        // Allow, e.g. a Product model to be referred to as $product
+        $var = underscore($model);
+        if (!isset($$var)) $$var = $item;
 
-		$controller_links = $this->getControllerLinks();
+        $controller_links = $this->getControllerLinks();
 
-		return compact('id', 'model', 'item', $var, 'form', 'index_url', 'controller_links');
+        return compact('id', 'model', 'item', $var, 'form', 'index_url', 'controller_links');
     }
 
     /**
@@ -671,21 +671,21 @@ abstract class Octopus_Controller {
      */
     protected function scaffoldIndexAction($model, $args) {
 
-		$this->view = 'scaffold_index';
+        $this->view = 'scaffold_index';
 
-    	if (!empty($args)) {
-    		return $this->scaffoldEdit($model, $args);
-    	}
+        if (!empty($args)) {
+            return $this->scaffoldEdit($model, $args);
+        }
 
-    	set_title(pluralize(humanize($model)));
+        set_title(pluralize(humanize($model)));
 
-    	$table = $this->createScaffoldTable($model);
+        $table = $this->createScaffoldTable($model);
 
-    	$add_url = $this->getActionUrl('add');
+        $add_url = $this->getActionUrl('add');
 
-		$controller_links = $this->getControllerLinks();
+        $controller_links = $this->getControllerLinks();
 
-    	return compact('model', 'table', 'add_url', 'controller_links');
+        return compact('model', 'table', 'add_url', 'controller_links');
     }
 
     /**
@@ -693,29 +693,29 @@ abstract class Octopus_Controller {
      */
     protected function scaffoldViewAction($model, $args) {
 
-		$this->view = 'scaffold_view';
+        $this->view = 'scaffold_view';
 
-    	$id = array_shift($args);
-    	$item = call_user_func(array($model, 'get'), $id);
+        $id = array_shift($args);
+        $item = call_user_func(array($model, 'get'), $id);
 
-    	if (!$item) {
-    		return $this->notFound();
-    	}
+        if (!$item) {
+            return $this->notFound();
+        }
 
-    	$index_url = $this->getActionUrl('');
+        $index_url = $this->getActionUrl('');
 
-    	$fields = array();
-    	foreach($item->getFields() as $f) {
-    		$fields[] = $f->getFieldName();
-    	}
+        $fields = array();
+        foreach($item->getFields() as $f) {
+            $fields[] = $f->getFieldName();
+        }
 
-    	// Allow, e.g. a Product model to be referred to as $product
-    	$var = underscore($model);
-    	if (!isset($$var)) $$var = $item;
+        // Allow, e.g. a Product model to be referred to as $product
+        $var = underscore($model);
+        if (!isset($$var)) $$var = $item;
 
-    	$controller_links = $this->getControllerLinks();
+        $controller_links = $this->getControllerLinks();
 
-    	return compact('id', 'item', $var, 'model', 'fields', 'index_url', 'controller_links');
+        return compact('id', 'item', $var, 'model', 'fields', 'index_url', 'controller_links');
 
     }
 
@@ -729,65 +729,65 @@ abstract class Octopus_Controller {
 
     private function createScaffoldForm($item, $action) {
 
-		$form = new Octopus_Html_Form($action . get_class($item));
+        $form = new Octopus_Html_Form($action . get_class($item));
 
-		$form->addClass('scaffold-' . $action);
+        $form->addClass('scaffold-' . $action);
 
-    	foreach($item->getFields() as $field) {
-    		$field->addToForm($form);
-    	}
+        foreach($item->getFields() as $field) {
+            $field->addToForm($form);
+        }
 
-    	$form->addButton('submit', 'Save');
+        $form->addButton('submit', 'Save');
 
-    	$fields = $form->getFields();
-    	$first = array_shift($fields);
-    	if ($first) {
-    		$first->autoFocus();
-    	}
+        $fields = $form->getFields();
+        $first = array_shift($fields);
+        if ($first) {
+            $first->autoFocus();
+        }
 
-    	return $form;
+        return $form;
 
     }
 
     private function createScaffoldTable($model) {
 
-    	$table = new Octopus_Html_Table(camel_case($model) . 'Table');
+        $table = new Octopus_Html_Table(camel_case($model) . 'Table');
 
-    	$table->addClass('scaffold-list');
+        $table->addClass('scaffold-list');
 
-    	$item = new $model();
-    	foreach($item->getFields() as $field) {
-    		$field->addToTable($table);
-    	}
+        $item = new $model();
+        foreach($item->getFields() as $field) {
+            $field->addToTable($table);
+        }
 
-    	$table->addColumns(array(
-    		'actions' => array(
-    			'view' => array('url' => 'view/{$id}'),
-    			'edit' => array('url' => 'edit/{$id}'),
-    			'delete' => array('url' => 'delete/{$id}')
-	    	)
-	    ));
+        $table->addColumns(array(
+            'actions' => array(
+                'view' => array('url' => 'view/{$id}'),
+                'edit' => array('url' => 'edit/{$id}'),
+                'delete' => array('url' => 'delete/{$id}')
+            )
+        ));
 
-    	$table->setDataSource(call_user_func(array($model, 'all')));
+        $table->setDataSource(call_user_func(array($model, 'all')));
 
-    	return $table;
+        return $table;
 
     }
 
     private function tryScaffoldingAction($action, $args, &$result) {
 
-		if (!$this->scaffold) {
-			return false;
-		}
+        if (!$this->scaffold) {
+            return false;
+        }
 
-		$scaffoldMethod = 'scaffold' . camel_case($action, true) . 'Action';
+        $scaffoldMethod = 'scaffold' . camel_case($action, true) . 'Action';
 
-		if (method_exists($this, $scaffoldMethod)) {
-			$result = $this->$scaffoldMethod($this->scaffold, $args);
-			return true;
-		}
+        if (method_exists($this, $scaffoldMethod)) {
+            $result = $this->$scaffoldMethod($this->scaffold, $args);
+            return true;
+        }
 
-		return false;
+        return false;
     }
 
     /**
@@ -797,22 +797,22 @@ abstract class Octopus_Controller {
      */
     private function getControllerLinks() {
 
-    	$links = array();
+        $links = array();
 
-    	$files = glob(get_option('SITE_DIR') . 'controllers/*.php');
-    	if (!$files) return $links;
+        $files = glob(get_option('SITE_DIR') . 'controllers/*.php');
+        if (!$files) return $links;
 
-    	foreach($files as $f) {
+        foreach($files as $f) {
 
-    		$name = basename($f, '.php');
-    		$url = '/' . dashed($name);
-    		$name = humanize($name);
+            $name = basename($f, '.php');
+            $url = '/' . dashed($name);
+            $name = humanize($name);
 
-    		$links[$name] = u($url);
+            $links[$name] = u($url);
 
-    	}
+        }
 
-    	return $links;
+        return $links;
 
     }
 

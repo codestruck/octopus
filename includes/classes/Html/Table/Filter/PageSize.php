@@ -5,23 +5,23 @@
  */
 class Octopus_Html_Table_Filter_PageSize extends Octopus_Html_Table_Filter {
 
-	protected function createElement() {
+    protected function createElement() {
 
-		$el = new Octopus_Html_Form_Field_Select('select', $this->id, 'Items Per Page');
+        $el = new Octopus_Html_Form_Field_Select('select', $this->id, 'Items Per Page');
 
-		$el->addOption(10);
-		$el->addOption(20);
-		$el->addOption(50);
+        $el->addOption(10);
+        $el->addOption(20);
+        $el->addOption(50);
 
 
-		return $el;
+        return $el;
 
-	}
+    }
 
-	public function apply($dataSource, $table) {
-		$table->setPageSize($this->val());
-		return $dataSource;
-	}
+    public function apply($dataSource, $table) {
+        $table->setPageSize($this->val());
+        return $dataSource;
+    }
 
 }
 

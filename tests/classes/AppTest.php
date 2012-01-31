@@ -2,24 +2,24 @@
 
 class AppTests extends Octopus_App_TestCase {
 
-	function testAutoAliasSlashToSysWelcome() {
+    function testAutoAliasSlashToSysWelcome() {
 
-		$app = $this->getApp();
+        $app = $this->getApp();
 
-		$r = $app->getRouter();
-		$this->assertEquals('sys/welcome', $r->resolve('/'));
+        $r = $app->getRouter();
+        $this->assertEquals('sys/welcome', $r->resolve('/'));
 
-	}
+    }
 
-	function testAlias() {
+    function testAlias() {
 
-		$app = $this->getApp();
-		$app->alias('/products/view/{$id}', '/products/{$id}', array('id' => '\d+'));
+        $app = $this->getApp();
+        $app->alias('/products/view/{$id}', '/products/{$id}', array('id' => '\d+'));
 
-		$req = $app->createRequest('/products/90');
-		$this->assertEquals('products/view/90', $req->getResolvedPath());
+        $req = $app->createRequest('/products/90');
+        $this->assertEquals('products/view/90', $req->getResolvedPath());
 
-	}
+    }
 
     function testGetTheme() {
 
@@ -47,132 +47,132 @@ class AppTests extends Octopus_App_TestCase {
 
     function testRespectSmartyTemplateDirInAppOptions() {
 
-    	// SoleCMS passes the 'template_dir' option to Octopus_App's constructor
-    	// to make sure that templates in the site's templates/ dir are rendered
+        // SoleCMS passes the 'template_dir' option to Octopus_App's constructor
+        // to make sure that templates in the site's templates/ dir are rendered
 
-    	$dir = sys_get_temp_dir();
-    	$app = $this->startApp(array('template_dir' => $dir));
+        $dir = sys_get_temp_dir();
+        $app = $this->startApp(array('template_dir' => $dir));
 
-    	Octopus::loadExternal('smarty');
-    	$smarty = Octopus_Smarty::trusted();
+        Octopus::loadExternal('smarty');
+        $smarty = Octopus_Smarty::trusted();
 
-    	$this->assertEquals(array($dir), $smarty->getTemplateDir());
+        $this->assertEquals(array($dir), $smarty->getTemplateDir());
 
     }
 
     function testFindJavascriptInThemeDir() {
 
-    	$app = $this->getApp();
-    	$settings = $app->getSettings();
+        $app = $this->getApp();
+        $settings = $app->getSettings();
 
-    	$fooThemeDir = $this->getSiteDir() . 'themes/foo/';
-    	$barThemeDir = $this->getSiteDir() . 'themes/bar/';
+        $fooThemeDir = $this->getSiteDir() . 'themes/foo/';
+        $barThemeDir = $this->getSiteDir() . 'themes/bar/';
 
-    	mkdir($fooThemeDir, 0777, true);
-    	mkdir($fooThemeDir . 'templates/html/', 0777, true);
-    	mkdir($barThemeDir, 0777, true);
-    	mkdir($barThemeDir . 'templates/html/', 0777, true);
+        mkdir($fooThemeDir, 0777, true);
+        mkdir($fooThemeDir . 'templates/html/', 0777, true);
+        mkdir($barThemeDir, 0777, true);
+        mkdir($barThemeDir . 'templates/html/', 0777, true);
 
-    	touch($fooThemeDir . 'test.js');
-    	touch($barThemeDir . 'test.js');
+        touch($fooThemeDir . 'test.js');
+        touch($barThemeDir . 'test.js');
 
-    	file_put_contents($fooThemeDir . 'templates/html/page.tpl', '{$HEAD}');
-    	file_put_contents($barThemeDir . 'templates/html/page.tpl', '{$HEAD}');
+        file_put_contents($fooThemeDir . 'templates/html/page.tpl', '{$HEAD}');
+        file_put_contents($barThemeDir . 'templates/html/page.tpl', '{$HEAD}');
 
-    	$foomtime = filemtime($fooThemeDir . 'test.js');
+        $foomtime = filemtime($fooThemeDir . 'test.js');
 
-    	$page = Octopus_Html_Page::singleton();
-    	$page->addJavascript('/test.js');
+        $page = Octopus_Html_Page::singleton();
+        $page->addJavascript('/test.js');
 
-    	$settings->set('site.theme', 'foo');
+        $settings->set('site.theme', 'foo');
 
-    	$resp = $app->getResponse('/whatever/blah', true);
-    	$this->assertHtmlEquals(
-	    	<<<END
+        $resp = $app->getResponse('/whatever/blah', true);
+        $this->assertHtmlEquals(
+            <<<END
 <head>
-	<title></title>
-	<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
-	<script type="text/javascript" src="/site/themes/foo/test.js?$foomtime"></script>
+    <title></title>
+    <meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+    <script type="text/javascript" src="/site/themes/foo/test.js?$foomtime"></script>
 </head>
 END
-			,
-			$resp->getContent()
-		);
+            ,
+            $resp->getContent()
+        );
 
-		$settings->set('site.theme', 'bar');
-		Octopus_Smarty::singleton()->reset();
+        $settings->set('site.theme', 'bar');
+        Octopus_Smarty::singleton()->reset();
 
-		$barmtime = filemtime($barThemeDir . 'test.js');
+        $barmtime = filemtime($barThemeDir . 'test.js');
 
-    	$resp = $app->getResponse('/whatever/blah', true);
-    	$this->assertHtmlEquals(
-	    	<<<END
+        $resp = $app->getResponse('/whatever/blah', true);
+        $this->assertHtmlEquals(
+            <<<END
 <head>
-	<title></title>
-	<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
-	<script type="text/javascript" src="/site/themes/bar/test.js?$barmtime"></script>
+    <title></title>
+    <meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+    <script type="text/javascript" src="/site/themes/bar/test.js?$barmtime"></script>
 </head>
 END
-			,
-			$resp->getContent()
-		);
+            ,
+            $resp->getContent()
+        );
 
     }
 
     function testFindCssInThemeDir() {
 
-    	$app = $this->getApp();
-    	$settings = $app->getSettings();
+        $app = $this->getApp();
+        $settings = $app->getSettings();
 
-    	$fooThemeDir = $this->getSiteDir() . 'themes/foo/';
-    	$barThemeDir = $this->getSiteDir() . 'themes/bar/';
+        $fooThemeDir = $this->getSiteDir() . 'themes/foo/';
+        $barThemeDir = $this->getSiteDir() . 'themes/bar/';
 
-    	mkdir($fooThemeDir, 0777, true);
-    	mkdir($fooThemeDir . 'templates/html/', 0777, true);
-    	mkdir($barThemeDir, 0777, true);
-    	mkdir($barThemeDir . 'templates/html/', 0777, true);
+        mkdir($fooThemeDir, 0777, true);
+        mkdir($fooThemeDir . 'templates/html/', 0777, true);
+        mkdir($barThemeDir, 0777, true);
+        mkdir($barThemeDir . 'templates/html/', 0777, true);
 
-    	touch($fooThemeDir . 'test.css');
-    	touch($barThemeDir . 'test.css');
-    	$foomtime = filemtime($fooThemeDir . 'test.css');
-    	$barmtime = filemtime($barThemeDir . 'test.css');
+        touch($fooThemeDir . 'test.css');
+        touch($barThemeDir . 'test.css');
+        $foomtime = filemtime($fooThemeDir . 'test.css');
+        $barmtime = filemtime($barThemeDir . 'test.css');
 
-    	file_put_contents($fooThemeDir . 'templates/html/page.tpl', '{$HEAD}');
-    	file_put_contents($barThemeDir . 'templates/html/page.tpl', '{$HEAD}');
+        file_put_contents($fooThemeDir . 'templates/html/page.tpl', '{$HEAD}');
+        file_put_contents($barThemeDir . 'templates/html/page.tpl', '{$HEAD}');
 
-    	$page = Octopus_Html_Page::singleton();
-    	$page->reset();
-    	$page->addCss('/test.css');
-    	$settings->set('site.theme', 'foo');
+        $page = Octopus_Html_Page::singleton();
+        $page->reset();
+        $page->addCss('/test.css');
+        $settings->set('site.theme', 'foo');
 
-    	$resp = $app->getResponse('/whatever/blah', true);
-    	$this->assertHtmlEquals(
-	    	<<<END
+        $resp = $app->getResponse('/whatever/blah', true);
+        $this->assertHtmlEquals(
+            <<<END
 <head>
-	<title></title>
-	<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
-	<link href="/site/themes/foo/test.css?$foomtime" rel="stylesheet" type="text/css" media="all" />
+    <title></title>
+    <meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+    <link href="/site/themes/foo/test.css?$foomtime" rel="stylesheet" type="text/css" media="all" />
 </head>
 END
-			,
-			$resp->getContent()
-		);
+            ,
+            $resp->getContent()
+        );
 
-		$settings->set('site.theme', 'bar');
-		Octopus_Smarty::singleton()->reset();
+        $settings->set('site.theme', 'bar');
+        Octopus_Smarty::singleton()->reset();
 
-    	$resp = $app->getResponse('/whatever/blah', true);
-    	$this->assertHtmlEquals(
-	    	<<<END
+        $resp = $app->getResponse('/whatever/blah', true);
+        $this->assertHtmlEquals(
+            <<<END
 <head>
-	<title></title>
-	<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
-	<link href="/site/themes/bar/test.css?$barmtime" rel="stylesheet" type="text/css" media="all" />
+    <title></title>
+    <meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+    <link href="/site/themes/bar/test.css?$barmtime" rel="stylesheet" type="text/css" media="all" />
 </head>
 END
-			,
-			$resp->getContent()
-		);
+            ,
+            $resp->getContent()
+        );
 
     }
 

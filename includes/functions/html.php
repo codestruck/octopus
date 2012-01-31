@@ -26,10 +26,10 @@
      */
     function add_theme_css($file, $weight = null, $attributes = array()) {
 
-    	$themeFile = get_theme_file($file);
-    	if (!$themeFile) $themeFile = $file;
+        $themeFile = get_theme_file($file);
+        if (!$themeFile) $themeFile = $file;
 
-    	return add_css($themeFile, $weight, $attributes);
+        return add_css($themeFile, $weight, $attributes);
     }
 
     /**
@@ -39,10 +39,10 @@
      */
     function add_theme_javascript($file, $section = null, $weight = null, $attributes = array()) {
 
-    	$themeFile = get_theme_file($file);
-    	if (!$themeFile) $themeFile = $file;
+        $themeFile = get_theme_file($file);
+        if (!$themeFile) $themeFile = $file;
 
-    	return add_javascript($themeFile, $section, $weight, $attributes);
+        return add_javascript($themeFile, $section, $weight, $attributes);
     }
 
     function render_javascript($section = '', $useAliases = true) {
@@ -89,8 +89,8 @@
     }
 
     function add_breadcrumb($url, $text) {
-    	$page = Octopus_Html_Page::singleton();
-    	$page->addBreadcrumb($url, $text);
+        $page = Octopus_Html_Page::singleton();
+        $page->addBreadcrumb($url, $text);
     }
 
 

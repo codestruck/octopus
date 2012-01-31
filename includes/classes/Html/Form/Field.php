@@ -40,7 +40,7 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
         $this->id = $name . 'Input';
 
         if ($label === null) {
-        	$label = $this->getDefaultLabel($name);
+            $label = $this->getDefaultLabel($name);
         }
 
         $this->addClass(to_css_class($name), to_css_class($type))
@@ -169,7 +169,7 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
      * Validates that input in this field is at most $length characters long.
      */
     public function maxLength($length, $message = null) {
-    	return $this->addRule(new Octopus_Html_Form_Field_Rule_Length(null, $length, $message));
+        return $this->addRule(new Octopus_Html_Form_Field_Rule_Length(null, $length, $message));
     }
 
     /**
@@ -178,7 +178,7 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
      * minLength().
      */
     public function minLength($length, $message = null) {
-    	return $this->addRule(new Octopus_Html_Form_Field_Rule_Length($length, null, $message));
+        return $this->addRule(new Octopus_Html_Form_Field_Rule_Length($length, null, $message));
     }
 
     /**
@@ -242,12 +242,12 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
      */
     public function niceName(/* $name */) {
 
-    	$args = func_get_args();
-    	if (count($args) === 0) {
-    		return $this->getNiceName();
-    	} else {
-    		return $this->setNiceName($args[0]);
-    	}
+        $args = func_get_args();
+        if (count($args) === 0) {
+            return $this->getNiceName();
+        } else {
+            return $this->setNiceName($args[0]);
+        }
 
     }
 
@@ -257,11 +257,11 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
      */
     public function getNiceName() {
 
-    	if ($this->_niceName !== null) {
-    		return $this->_niceName;
-    	}
+        if ($this->_niceName !== null) {
+            return $this->_niceName;
+        }
 
-    	return preg_replace('/:\s*$/', '', $this->label());
+        return preg_replace('/:\s*$/', '', $this->label());
     }
 
     /**
@@ -270,8 +270,8 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
      * @return Octopus_Html_Form_Field This field, for method chaining.
      */
     public function setNiceName($name) {
-    	$this->_niceName = $name;
-    	return $this;
+        $this->_niceName = $name;
+        return $this;
     }
 
     /**
@@ -307,17 +307,17 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
 
     public function isRequired() {
 
-    	if ($this->required) {
-    		return true;
-    	}
+        if ($this->required) {
+            return true;
+        }
 
-    	foreach($this->_rules as $rule) {
-    		if ($rule instanceof Octopus_Html_Form_Field_Rule_Required) {
-    			return true;
-    		}
-    	}
+        foreach($this->_rules as $rule) {
+            if ($rule instanceof Octopus_Html_Form_Field_Rule_Required) {
+                return true;
+            }
+        }
 
-    	return false;
+        return false;
     }
 
     /**
@@ -354,9 +354,9 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
 
             $result['full_html'] = trim($this->wrapper->render(true));
             $result['wrapper'] = array(
-            	'open_tag' => $this->wrapper->renderOpenTag() . '>',
-            	'close_tag' => $this->wrapper->renderCloseTag('foo'),
-	        );
+                'open_tag' => $this->wrapper->renderOpenTag() . '>',
+                'close_tag' => $this->wrapper->renderCloseTag('foo'),
+            );
 
         } else {
             $result['full_html'] = $result['html'];
@@ -443,10 +443,10 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
      */
     public function loadValue(&$values) {
 
-    	$name = preg_replace('/\[\]$/', '', $this->name);
-		$value = isset($values[$name]) ? $values[$name] : null;
+        $name = preg_replace('/\[\]$/', '', $this->name);
+        $value = isset($values[$name]) ? $values[$name] : null;
 
-		$this->val($value);
+        $this->val($value);
 
         return $this;
 
@@ -458,7 +458,7 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
      */
     public function readValue(&$values) {
 
-    	$name = preg_replace('/\[\]$/', '', $this->name);
+        $name = preg_replace('/\[\]$/', '', $this->name);
         $values[$name] = $this->val();
 
         return $this;
@@ -470,8 +470,8 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
      */
     public function wrap() {
 
-		if ($this->type == 'hidden') {
-			// Hidden inputs don't get wrapped
+        if ($this->type == 'hidden') {
+            // Hidden inputs don't get wrapped
             return $this;
         }
 
@@ -501,9 +501,9 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
      */
     protected function createWrapper($tag = null) {
 
-    	if ($tag === null) $tag = 'div';
+        if ($tag === null) $tag = 'div';
 
-		$wrapper = new Octopus_Html_Element($tag);
+        $wrapper = new Octopus_Html_Element($tag);
         $wrapper->id = preg_replace('/\[\]$/', '', $this->name) . 'Field';
         $wrapper->addClass('field', $this->class);
 
@@ -516,7 +516,7 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
      */
     protected function getDefaultLabel($name) {
 
-    	return humanize($name) . ':';
+        return humanize($name) . ':';
 
     }
 
@@ -526,7 +526,7 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
      */
     protected function updateLabels() {
 
-    	$text = $this->_label;
+        $text = $this->_label;
 
         foreach($this->_labelElements as $l) {
             $l->setAttribute('for', $this->id)

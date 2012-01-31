@@ -55,7 +55,7 @@ class Octopus_Html_Table_Filter_Select extends Octopus_Html_Table_Filter {
         $el->name = $this->id;
 
         if (isset($this->options['options'])) {
-        	$el->addOptions($this->options['options']);
+            $el->addOptions($this->options['options']);
         }
 
         $this->emptyOption = new Octopus_Html_Element('option', array('value' => ''), 'Choose One');

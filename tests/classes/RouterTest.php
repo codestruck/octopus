@@ -2,84 +2,84 @@
 
 class RouterTest extends PHPUnit_Framework_TestCase {
 
-	function testOverride() {
+    function testOverride() {
 
-		$r = new Octopus_Router();
-		$r->alias('/', '/test');
-		$r->alias('/', '/something');
-		$this->assertEquals('/something', $r->resolve('/'));
+        $r = new Octopus_Router();
+        $r->alias('/', '/test');
+        $r->alias('/', '/something');
+        $this->assertEquals('/something', $r->resolve('/'));
 
-	}
+    }
 
-	function testSimpleAlias() {
+    function testSimpleAlias() {
 
-		$r = new Octopus_Router();
-		$r->alias('/shortpath', '/some/long/path');
+        $r = new Octopus_Router();
+        $r->alias('/shortpath', '/some/long/path');
 
-		$this->assertEquals('/some/long/path', $r->resolve('/shortpath'));
-	}
+        $this->assertEquals('/some/long/path', $r->resolve('/shortpath'));
+    }
 
-	function testRegexAlias() {
+    function testRegexAlias() {
 
-		$r = new Octopus_Router();
+        $r = new Octopus_Router();
 
-		$r->alias(
-			'/{$id}',
-			'/products/view/{$id}',
-			array(
-				'id' => '[0-9]+'
-			)
-		);
+        $r->alias(
+            '/{$id}',
+            '/products/view/{$id}',
+            array(
+                'id' => '[0-9]+'
+            )
+        );
 
-		$this->assertEquals('/products/view/50', $r->resolve('/50'), 'simple resolution');
-		$this->assertEquals('/whatever', $r->resolve('/whatever'));
-		$this->assertEquals('/40d', $r->resolve('/40d'));
-	}
+        $this->assertEquals('/products/view/50', $r->resolve('/50'), 'simple resolution');
+        $this->assertEquals('/whatever', $r->resolve('/whatever'));
+        $this->assertEquals('/40d', $r->resolve('/40d'));
+    }
 
-	function testComplexRegexAlias() {
+    function testComplexRegexAlias() {
 
-		$r = new Octopus_Router();
+        $r = new Octopus_Router();
 
-		$r->alias(
-			'/{$id}/{$slug}',
-			'/products/view/{$id}/{$slug}',
-			array(
-				'id' => '\d+',
-				'slug' => '[a-z0-9-]+'
-			)
-		);
+        $r->alias(
+            '/{$id}/{$slug}',
+            '/products/view/{$id}/{$slug}',
+            array(
+                'id' => '\d+',
+                'slug' => '[a-z0-9-]+'
+            )
+        );
 
-		$this->assertEquals('/products/view/50/Some-Fun-Slug-42', $r->resolve('/50/Some-Fun-Slug-42'));
+        $this->assertEquals('/products/view/50/Some-Fun-Slug-42', $r->resolve('/50/Some-Fun-Slug-42'));
 
-	}
+    }
 
-	function testInlineRegexPattern() {
+    function testInlineRegexPattern() {
 
-		$r = new Octopus_Router();
-		$r->alias('/{(?<id>\d+)}', '/products/view/{$id}');
+        $r = new Octopus_Router();
+        $r->alias('/{(?<id>\d+)}', '/products/view/{$id}');
 
-		$this->assertEquals('/products/view/50', $r->resolve('/50'));
+        $this->assertEquals('/products/view/50', $r->resolve('/50'));
 
-	}
+    }
 
-	function testRouteArgsToAction() {
+    function testRouteArgsToAction() {
 
-		$r = new Octopus_Router();
-		$r->alias('/{$id}', '/products/view/{$id}', array('id' => '\d+'));
+        $r = new Octopus_Router();
+        $r->alias('/{$id}', '/products/view/{$id}', array('id' => '\d+'));
 
-		$this->assertEquals('/products/view/50/detailed', $r->resolve('/50/detailed'));
+        $this->assertEquals('/products/view/50/detailed', $r->resolve('/50/detailed'));
 
-	}
+    }
 
-	function testRootAlias() {
+    function testRootAlias() {
 
-		$r = new Octopus_Router();
-		$r->alias('/', '/home');
+        $r = new Octopus_Router();
+        $r->alias('/', '/home');
 
-		$this->assertEquals('/home', $r->resolve('/'));
-		$this->assertEquals('/products', $r->resolve('/products'));
+        $this->assertEquals('/home', $r->resolve('/'));
+        $this->assertEquals('/products', $r->resolve('/products'));
 
-	}
+    }
 
 }
 

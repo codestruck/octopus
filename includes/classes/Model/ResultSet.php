@@ -199,10 +199,10 @@ END;
             foreach($fields as $f) {
                 $value = $d[$f->getFieldName()];
                 if (is_object($value)) {
-                	try {
-                    	$value = trim($value->__toString());
+                    try {
+                        $value = trim($value->__toString());
                     } catch (Exception $ex) {
-                    	$value = "<Exception during __toString: $ex>";
+                        $value = "<Exception during __toString: $ex>";
                     }
                 }
                 $html .=
@@ -284,9 +284,9 @@ END;
     public function whereSql($sql, $params = array()) {
 
         if (!is_array($params)) {
-        	$args = func_get_args();
-        	array_shift($args);
-        	$params = $args;
+            $args = func_get_args();
+            array_shift($args);
+            $params = $args;
         }
 
         $result = $this->where(array($sql => $params));
@@ -625,7 +625,7 @@ END;
         foreach($criteria as $arg) {
 
             if ($arg instanceof Octopus_Model) {
-            	$arg = array('id' => $arg->id);
+                $arg = array('id' => $arg->id);
             }
 
             if ($arg instanceof Octopus_Model_ResultSet) {
@@ -693,11 +693,11 @@ END;
 
         foreach($orderBy as $fieldName => $dir) {
 
-        	// Special-case 'RAND()',
-        	if (strcasecmp('RAND()', $fieldName) === 0) {
-        		$s->orderBy('RAND()');
-        		continue;
-        	}
+            // Special-case 'RAND()',
+            if (strcasecmp('RAND()', $fieldName) === 0) {
+                $s->orderBy('RAND()');
+                continue;
+            }
 
             $info = Octopus_Model_Restriction_Field::parseFieldExpression($fieldName, $this->getModelInstance());
             extract($info);
@@ -729,14 +729,14 @@ END;
 
         if (is_array($fields)) {
 
-        	foreach($fields as $index => $name) {
+            foreach($fields as $index => $name) {
 
-        		// Allow using 'id' as an alias for primary key
-        		if ($name === 'id') {
-        			$fields[$index] = $this->getModelPrimaryKey();
-        		}
+                // Allow using 'id' as an alias for primary key
+                if ($name === 'id') {
+                    $fields[$index] = $this->getModelPrimaryKey();
+                }
 
-        	}
+            }
 
         }
 
@@ -1052,7 +1052,7 @@ END;
         $count = $s->numRows();
 
         if ($considerLimit && $this->_maxRecords !== null) {
-        	return min($this->_maxRecords, $count);
+            return min($this->_maxRecords, $count);
         }
 
         return $count;

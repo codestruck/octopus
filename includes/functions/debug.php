@@ -1468,48 +1468,48 @@ if (!function_exists('dump_r')) {
 
             $logFile = OCTOPUS_PRIVATE_DIR . 'dump_r.log';
 
-        	$d = new Octopus_Debug('dump_r');
+            $d = new Octopus_Debug('dump_r');
             foreach($args as $arg) {
                 $d->addVariable($arg);
             }
 
             if (is_file($logFile)) {
-            	$size = @filesize($logFile);
-            	if ($size && $size > (1 * 1024 * 1024) * 5) {
-            		@unlink($logFile);
-            	}
+                $size = @filesize($logFile);
+                if ($size && $size > (1 * 1024 * 1024) * 5) {
+                    @unlink($logFile);
+                }
             } else {
 
-            	@touch($logFile);
+                @touch($logFile);
 
-            	// Make log file writable by both command line and
-            	// apache phps
-            	@chmod($logFile, 0666);
+                // Make log file writable by both command line and
+                // apache phps
+                @chmod($logFile, 0666);
             }
 
             $fp = @fopen($logFile, 'a');
             if ($fp) {
 
-    	        if (empty($GLOBALS['__OCTOPUS_DUMP_R_CALLED'])) {
+                if (empty($GLOBALS['__OCTOPUS_DUMP_R_CALLED'])) {
 
-    	        	$GLOBALS['__OCTOPUS_DUMP_R_CALLED'] = true;
+                    $GLOBALS['__OCTOPUS_DUMP_R_CALLED'] = true;
 
-    				$now = date('r');
+                    $now = date('r');
 
-    	        	@fwrite(
-    		        	$fp,
-    		        	<<<END
+                    @fwrite(
+                        $fp,
+                        <<<END
 
 ********************************************************************************
 $now
 
 END
-    		        );
-    	        }
+                    );
+                }
 
-    	        $text = $d->renderText(true);
-    	        @fwrite($fp, $text . "\n");
-    	        @fclose($fp);
+                $text = $d->renderText(true);
+                @fwrite($fp, $text . "\n");
+                @fclose($fp);
             }
         }
     }

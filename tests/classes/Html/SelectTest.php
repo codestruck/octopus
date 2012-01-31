@@ -2,19 +2,19 @@
 
 class SelectTest extends Octopus_Html_TestCase {
 
-	function testOptionsMultipleArgs() {
+    function testOptionsMultipleArgs() {
 
-		$form = new Octopus_Html_Form('select');
-		$sel = $form->add('select', 'foo');
+        $form = new Octopus_Html_Form('select');
+        $sel = $form->add('select', 'foo');
 
-		$sel->addOptions('', 'One', 'Two', 'Three');
+        $sel->addOptions('', 'One', 'Two', 'Three');
 
-		$this->assertEquals(
-			array('', 'One', 'Two', 'Three'),
-			array_keys($sel->getOptions())
-		);
+        $this->assertEquals(
+            array('', 'One', 'Two', 'Three'),
+            array_keys($sel->getOptions())
+        );
 
-	}
+    }
 
     function testAddToForm() {
 
@@ -230,89 +230,89 @@ END;
                 ),
                 'full_html' => trim($select->wrapper->render(true)),
                 'wrapper' => array(
-                	'open_tag' => $select->wrapper->renderOpenTag() . '>',
-                	'close_tag' => $select->wrapper->renderCloseTag('test')
-	            ),
+                    'open_tag' => $select->wrapper->renderOpenTag() . '>',
+                    'close_tag' => $select->wrapper->renderCloseTag('test')
+                ),
             ),
             $select->toArray()
         );
 
     }
 
-	function testMultipleSelection() {
+    function testMultipleSelection() {
 
-		$select = Octopus_Html_Form_Field::create('select', 'test');
+        $select = Octopus_Html_Form_Field::create('select', 'test');
 
-		$select->addOptions(array(
-			'a' => 'foo',
-			'b' => 'bar',
-			'c' => 'baz'
-		));
+        $select->addOptions(array(
+            'a' => 'foo',
+            'b' => 'bar',
+            'c' => 'baz'
+        ));
 
-		$select->multiple = true;
+        $select->multiple = true;
 
-		$this->assertEquals('test[]', $select->name, 'Name updated');
+        $this->assertEquals('test[]', $select->name, 'Name updated');
 
-		/*
-		$this->assertHtmlEquals(
-			<<<END
+        /*
+        $this->assertHtmlEquals(
+            <<<END
 <select id="testInput" class="test select" name="test" multiple>
 <option value="a" selected>foo</option>
 <option value="b">bar</option>
 <option value="c">baz</option>
 </select>
 END
-			,
-			$select->render(true),
-			'first item selected by default'
-		);
-		*/
+            ,
+            $select->render(true),
+            'first item selected by default'
+        );
+        */
 
-		$select->val(array('a', 'b'));
-		$this->assertHtmlEquals(
-			<<<END
+        $select->val(array('a', 'b'));
+        $this->assertHtmlEquals(
+            <<<END
 <select id="testInput" class="test select" name="test[]" multiple>
 <option value="a" selected>foo</option>
 <option value="b" selected>bar</option>
 <option value="c">baz</option>
 </select>
 END
-			,
-			$select->render(true),
-			'Set multiple values using array to val()'
-		);
-		$this->assertEquals(array('a', 'b'), $select->val(), 'Multiple values returned by val()');
+            ,
+            $select->render(true),
+            'Set multiple values using array to val()'
+        );
+        $this->assertEquals(array('a', 'b'), $select->val(), 'Multiple values returned by val()');
 
 
-		$select->val('a', 'c');
-		$this->assertHtmlEquals(
-			<<<END
+        $select->val('a', 'c');
+        $this->assertHtmlEquals(
+            <<<END
 <select id="testInput" class="test select" name="test[]" multiple>
 <option value="a" selected>foo</option>
 <option value="b">bar</option>
 <option value="c" selected>baz</option>
 </select>
 END
-			,
-			$select->render(true),
-			'Set multiple values as multiple args to val()'
-		);
+            ,
+            $select->render(true),
+            'Set multiple values as multiple args to val()'
+        );
 
 
-	}
+    }
 
-	function testLoadMultipleValues() {
+    function testLoadMultipleValues() {
 
-		$select = Octopus_Html_Form_Field::create('select', 'test');
-		$select->addOptions(array('a' => 'foo', 'b' => 'bar', 'c' => 'baz'));
-		$select->multiple = true;
+        $select = Octopus_Html_Form_Field::create('select', 'test');
+        $select->addOptions(array('a' => 'foo', 'b' => 'bar', 'c' => 'baz'));
+        $select->multiple = true;
 
-		$values = array('test' => array('a', 'c'));
+        $values = array('test' => array('a', 'c'));
 
-		$select->loadValue($values);
-		$this->assertEquals(array('a', 'c'), $select->val());
+        $select->loadValue($values);
+        $this->assertEquals(array('a', 'c'), $select->val());
 
-	}
+    }
 
 
 }

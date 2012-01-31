@@ -38,18 +38,18 @@ class Octopus_Html_Table_Paginate {
         $from = ($page - 1) * $this->options['perPage'] + 1;
         $to = min(($page) * $this->options['perPage'], $total);
 
-	    $page_numbers = array();
-	    $before = floor(($this->options['delta']) / 2);
+        $page_numbers = array();
+        $before = floor(($this->options['delta']) / 2);
         $after = ceil(($this->options['delta']) / 2);
 
         for($i = $before; $i >= 1; $i--) {
-        	if ($page - $i >= 1) {
-        		$page_numbers[] = $page - $i;
-        	}
+            if ($page - $i >= 1) {
+                $page_numbers[] = $page - $i;
+            }
         }
         $page_numbers[] = $page;
         for($i = 1; $i < $after && ($page + $i) <= $pages; $i++) {
-        	$page_numbers[] = $page + $i;
+            $page_numbers[] = $page + $i;
         }
 
         // sort

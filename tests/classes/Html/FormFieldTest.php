@@ -6,15 +6,15 @@
  */
 class FormFieldTest extends Octopus_Html_TestCase {
 
-	function testAddFieldToForm() {
+    function testAddFieldToForm() {
 
-		$form = new Octopus_Html_Form('testForm');
-		$form->add('test');
+        $form = new Octopus_Html_Form('testForm');
+        $form->add('test');
 
-		$f = $form->getField('test');
-		$this->assertTrue($f instanceof Octopus_Html_Form_Field, 'field found');
+        $f = $form->getField('test');
+        $this->assertTrue($f instanceof Octopus_Html_Form_Field, 'field found');
 
-	}
+    }
 
     function testRenderTextField() {
 
@@ -92,9 +92,9 @@ class FormFieldTest extends Octopus_Html_TestCase {
                 'html' => trim($textarea->render(true)),
                 'full_html' => trim($textarea->wrapper->render(true)),
                 'wrapper' => array(
-                	'open_tag' => $textarea->wrapper->renderOpenTag() . '>',
-                	'close_tag' => $textarea->wrapper->renderCloseTag('test')
-	            ),
+                    'open_tag' => $textarea->wrapper->renderOpenTag() . '>',
+                    'close_tag' => $textarea->wrapper->renderCloseTag('test')
+                ),
                 'label' => array(
                     'text' => 'Foo:',
                     'html' => '<label for="fooInput">Foo:</label>',
@@ -110,27 +110,27 @@ class FormFieldTest extends Octopus_Html_TestCase {
 
     function testFieldNiceName() {
 
-    	$form = new Octopus_Html_Form('niceName');
+        $form = new Octopus_Html_Form('niceName');
 
-    	$foo = $form->add('foo');
-    	$this->assertEquals('Foo', $foo->niceName());
+        $foo = $form->add('foo');
+        $this->assertEquals('Foo', $foo->niceName());
 
-    	$foo = $form->add('foo_bar');
-    	$this->assertEquals('Foo Bar', $foo->niceName());
+        $foo = $form->add('foo_bar');
+        $this->assertEquals('Foo Bar', $foo->niceName());
 
-    	$foo = $form->add('foo2')->niceName('Custom name');
-    	$this->assertEquals('Custom name', $foo->niceName());
+        $foo = $form->add('foo2')->niceName('Custom name');
+        $this->assertEquals('Custom name', $foo->niceName());
 
-    	$foo = $form->add('foo3')->label('Custom name with colon:');
-    	$this->assertEquals('Custom name with colon', $foo->niceName());
+        $foo = $form->add('foo3')->label('Custom name with colon:');
+        $this->assertEquals('Custom name with colon', $foo->niceName());
 
-    	$foo = $form->add('foo4')->niceName('Should not change with label')->label('whatever');
-    	$this->assertEquals('Should not change with label', $foo->niceName());
+        $foo = $form->add('foo4')->niceName('Should not change with label')->label('whatever');
+        $this->assertEquals('Should not change with label', $foo->niceName());
 
-    	$foo = $form->add('foo5')->label('First label');
-    	$this->assertEquals('First label', $foo->niceName());
-    	$foo->label('Change label updates nice name');
-    	$this->assertEquals('Change label updates nice name', $foo->niceName());
+        $foo = $form->add('foo5')->label('First label');
+        $this->assertEquals('First label', $foo->niceName());
+        $foo->label('Change label updates nice name');
+        $this->assertEquals('Change label updates nice name', $foo->niceName());
 
     }
 

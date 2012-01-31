@@ -79,7 +79,7 @@ class Octopus_Model_Field_HasMany extends Octopus_Model_Field {
             // TODO: let filter specify the field on the other end
 
            } else {
-           	$obj->$key = $value;
+               $obj->$key = $value;
            }
 
         $obj->save();
