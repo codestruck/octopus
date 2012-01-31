@@ -16,4 +16,12 @@ function db_error_reporting($level) {
     return $old;
 }
 
-?>
+function dump_db_log() {
+
+    $db = Octopus_DB::singleton();
+    $log = new Octopus_Logger_File(OCTOPUS_PRIVATE_DIR . 'db_query.log');
+    $count = count($db->queries);
+    $time = round(microtime(true) - $_SERVER['REQUEST_TIME_MILLISECOND'], 3);
+    $log->log("\n\n-- $time sec $count QUERIES: {$_SERVER['REQUEST_URI']}\n" . implode("\n", $db->queries));
+
+}
