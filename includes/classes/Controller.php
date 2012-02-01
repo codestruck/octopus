@@ -32,6 +32,10 @@ abstract class Octopus_Controller {
      */
     public function __execute($action, $args) {
 
+    	if (!$this->shouldExecute($action, $args)) {
+    		return;
+    	}
+
         $action = trim($action);
 
         if (strncmp($action, '_', 1) === 0) {
@@ -68,6 +72,30 @@ abstract class Octopus_Controller {
 
         return $result;
     }
+
+    /**
+     * @return Boolean Whether to continue executing.
+     */
+	protected function shouldExecute($action, $args) {
+
+		// Ensure that e.g. /products -> /products/ when 'index' action is implied
+
+		if ($action === 'index' && !$this->request->getRequestedAction()) {
+
+			if (substr($this->request->getPath(), -1) !== '/') {
+
+	    		$slashUrl = $this->app->makeUrl('/' . trim($this->request->getPath(), '/') . '/', $_GET);
+	            $this->response->redirect($slashUrl);
+
+            	return false;
+
+            }
+
+		}
+
+	    return true;
+
+	}
 
     /**
      * Executes all the _before methods present for $action.

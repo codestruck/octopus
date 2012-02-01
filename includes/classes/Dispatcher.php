@@ -18,19 +18,6 @@ class Octopus_Dispatcher {
 
         $path = $request->getResolvedPath();
 
-        if (!($request->getRequestedAction() || $request->getActionArgs())) {
-
-            // No action specified == index, but we need to make sure the
-            // path ends with a '/'.
-            if (substr($request->getPath(), -1) !== '/') {
-
-                $slashUrl = $this->app->makeUrl('/' . trim($request->getPath(), '/') . '/', $_GET);
-                $response->redirect($slashUrl);
-
-                return;
-            }
-        }
-
         $controller = $request->getController();
 
         $this->prepareController($controller, $request, $response);
