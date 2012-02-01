@@ -17,8 +17,12 @@ class Octopus_Request {
 
     public function __construct(Octopus_App $app, $path, $resolvedPath = null, $options = array()) {
 
+        $defaults = array(
+            'put_data_file' => 'php://input',
+        );
+
         $this->app = $app;
-        $this->options = $options;
+        $this->options = array_merge($defaults, $options);
 
         $this->cleanPath($path, $this->path, $this->pathParts);
 
@@ -70,6 +74,31 @@ class Octopus_Request {
 
     public function isPost() {
         return $this->getMethod() == 'post';
+    }
+
+    public function isPut() {
+        return $this->getMethod() == 'put';
+    }
+
+    public function isDelete() {
+        return $this->getMethod() == 'delete';
+    }
+
+    public function getInputData() {
+        switch ($this->getMethod()) {
+            case 'get':
+                return $_GET;
+                break;
+            case 'post':
+                return $_POST;
+                break;
+            case 'put':
+                parse_str(file_get_contents($this->options['put_data_file']), $put);
+                return $put;
+                break;
+        }
+
+        return array();
     }
 
     /**

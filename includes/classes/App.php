@@ -532,7 +532,37 @@ class Octopus_App {
         return $resp;
     }
 
+    public function getDeleteResponse($path, $data = array(), $options = array()) {
+        $_SERVER['REQUEST_METHOD'] = 'delete';
+        return $this->getResponse($path, $options);
+    }
+
+    public function getPutResponse($path, $data = array(), $options = array()) {
+
+        if (is_bool($options)) {
+            $buffer = $options;
+            $options = array(
+                'buffer' => $buffer,
+            );
+        }
+
+        $file = tempnam('/tmp/', 'octopus_put');
+        file_put_contents($file, http_build_query($data));
+        $options['put_data_file'] = $file;
+        $_SERVER['REQUEST_METHOD'] = 'put';
+        $response = $this->getResponse($path, $options);
+        unlink($file);
+        return $response;
+    }
+
+    /**
+      * @deprecated
+      */
     public function post($url, $data = array(), $options = array()) {
+        return $this->getPostResponse($url, $data = array(), $options = array());
+    }
+
+    public function getPostResponse($url, $data = array(), $options = array()) {
 
         // TODO don't do this
 

@@ -5,7 +5,7 @@
  */
 class Octopus_Html_Form_Field_Button extends Octopus_Html_Form_Field {
 
-    protected function createWrapper() {
+    protected function createWrapper($tag = null) {
         return null;
     }
 

@@ -2,7 +2,6 @@
 
 class RequestTest extends Octopus_App_TestCase {
 
-
     function testPreservePathTrailingSlash() {
 
         $app = $this->startApp();
@@ -109,8 +108,6 @@ class RequestTest extends Octopus_App_TestCase {
 
     }
 
-
-
     function testFindDashedControllers() {
 
         $app = $this->startApp();
@@ -152,7 +149,6 @@ class RequestTest extends Octopus_App_TestCase {
             $this->assertControllerInfoMatches($expected, $req);
         }
 
-
     }
 
     function testFindApiControllers() {
@@ -169,12 +165,85 @@ class RequestTest extends Octopus_App_TestCase {
         foreach($tests as $path => $expected) {
             $req = $app->createRequest($path);
             $this->assertControllerInfoMatches($expected, $req);
+            $this->assertEquals($expected['action'], $req->getAction());
         }
 
     }
 
+    function testAlreadySetController() {
 
+        $app = $this->startApp();
+
+        $controllerFile = $this->createControllerFile('api/1/SavedTest');
+        $request = $app->createRequest('/api/1/saved-test');
+        $controller = $request->getController();
+
+        $this->assertTrue($request->getController() instanceof SavedTestController);
+
+        $this->assertEquals($controllerFile, $request->getControllerFile());
+
+    }
+
+    function testDefaultController() {
+
+        $app = $this->startApp();
+        $req = $app->createRequest('/api/1/not_exist');
+        $this->assertTrue($req->getController() instanceof DefaultController);
+        $this->assertTrue($req->isDefaultController());
+
+    }
+
+    function testMethod() {
+        $app = $this->startApp();
+
+        unset($_SERVER['REQUEST_METHOD']);
+        $request = $app->createRequest('/');
+        $this->assertEquals('get', $request->getMethod());
+        $this->assertTrue($request->isGet());
+
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $request = $app->createRequest('/');
+        $this->assertEquals('get', $request->getMethod());
+        $this->assertTrue($request->isGet());
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $this->assertEquals('post', $request->getMethod());
+        $this->assertTrue($request->isPost());
+
+        $_SERVER['REQUEST_METHOD'] = 'PUT';
+        $this->assertEquals('put', $request->getMethod());
+        $this->assertTrue($request->isPut());
+
+        $_SERVER['REQUEST_METHOD'] = 'DELETE';
+        $this->assertEquals('delete', $request->getMethod());
+        $this->assertTrue($request->isDelete());
+    }
+
+    function testInputData() {
+
+        $app = $this->startApp();
+        $request = $app->createRequest('/');
+
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_GET['foo'] = 'bar';
+        $this->assertEquals(array('foo' => 'bar'), $request->getInputData());
+
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['foo2'] = 'bar2';
+        $this->assertEquals(array('foo2' => 'bar2'), $request->getInputData());
+
+        $_SERVER['REQUEST_METHOD'] = 'PUT';
+        $file = tempnam('/tmp/', 'phpunit');
+        file_put_contents($file, 'foo3=bar3');
+        $request = $app->createRequest('/', array('put_data_file' => $file));
+        $this->assertEquals(array('foo3' => 'bar3'), $request->getInputData());
+        unlink($file);
+
+        $_SERVER['REQUEST_METHOD'] = 'DELETE';
+        $request = $app->createRequest('/');
+        $this->assertEquals(array(), $request->getInputData());
+
+
+    }
 
 }
-
-?>

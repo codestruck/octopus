@@ -150,26 +150,7 @@ abstract class Octopus_Controller {
             return $this->_default($action, $args);
         }
 
-        $haveArgs = !!count($args);
-
-        if (!$haveArgs) {
-
-            // Easy enough
-            return $this->$actionMethod();
-
-        } else {
-
-            /* If args is an associative array, pass in as a single
-             * argument. Otherwise, assume each value in the array maps
-             * to a corresponding argument in the action.
-             */
-
-            if (is_associative_array($args)) {
-                return $this->$actionMethod($args);
-            } else {
-                return call_user_func_array(array($this, $actionMethod), $args);
-            }
-        }
+        return call_user_func_array(array($this, $actionMethod), $args);
     }
 
     /**
