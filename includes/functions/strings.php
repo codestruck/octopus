@@ -555,4 +555,40 @@
 
     }
 
+    function pretty_json_encode($data) {
+        $str = json_encode($data);
+        $new = '';
+        $indent = 0;
+
+        for ($i = 0; $i < strlen($str); $i++) {
+            $char = $str[$i];
+
+            if ($char == '}' || $char == ']') {
+                $new .= "\n";
+                $indent -= 4;
+                $new .= str_repeat(' ', $indent);
+            }
+
+            $new .= $char;
+
+            if ($char == '{' || $char == '[') {
+                $new .= "\n";
+                $indent += 4;
+                $new .= str_repeat(' ', $indent);
+            }
+
+            if ($char == ',') {
+                $new .= "\n";
+                $new .= str_repeat(' ', $indent);
+            }
+
+            if ($char == ':') {
+                $new .= ' ';
+            }
+
+        }
+
+        return $new;
+    }
+
 ?>

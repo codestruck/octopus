@@ -481,5 +481,66 @@ END;
 
     }
 
+    function testPrettyJson() {
+
+        $data = array(
+            'foo' => 'baz',
+            'thing_id' => '1234',
+        );
+
+        $this->assertEquals(<<<END
+{
+    "foo": "baz",
+    "thing_id": "1234"
+}
+END
+            , pretty_json_encode($data));
+
+    }
+
+    function testPrettyJsonDeep() {
+
+        $data = array(
+            'foo' => 'baz',
+            'thing_id' => '1234',
+            'items' => array(
+                array(
+                    'id' => 1,
+                    'name' => 'Asdf',
+                    'colors' => array(
+                        'green',
+                        'blue',
+                    )
+                ),
+                array(
+                    'id' => 2,
+                    'name' => 'Asdf',
+                ),
+            ),
+        );
+
+        $this->assertEquals(<<<END
+{
+    "foo": "baz",
+    "thing_id": "1234",
+    "items": [
+        {
+            "id": 1,
+            "name": "Asdf",
+            "colors": [
+                "green",
+                "blue"
+            ]
+        },
+        {
+            "id": 2,
+            "name": "Asdf"
+        }
+    ]
+}
+END
+            , pretty_json_encode($data));
+
+    }
 
 }
