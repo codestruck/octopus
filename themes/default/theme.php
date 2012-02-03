@@ -1,8 +1,5 @@
 <?php
 
-    if (defined('URL_BASE')) {
-        $p = Octopus_Html_Page::singleton();
-        $p->addCss(URL_BASE . 'octopus/themes/default/styles.css');
-    }
+    add_css('/octopus/externals/bootstrap/css/bootstrap.min.css');
 
 ?>

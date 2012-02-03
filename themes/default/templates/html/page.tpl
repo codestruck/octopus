@@ -3,41 +3,39 @@
 {$HEAD}
 <body class="{$ACTION_AS_CLASS} action-{$ACTION|to_css_class}">
 
-	<div id="wrap">
+        <div class="navbar">
+            <div class="navbar-inner">
+                <div class="container">
 
-		<header>
+                    <a class="brand" href="{"/"|u}">{$SETTINGS['site.name']|h}</a>
 
-			<a class="logo" href="{"/"|u}"><h1>{$SETTINGS['site.name']|h}</h1></a>
 
-			{if $SETTINGS['site.slogan']}
-			<h2 class="slogan">{$SETTINGS['site.slogan']|h}</h2>
-			{/if}
+                    {if $controller_links}
+                    <ul class="nav controller-links">
+                    {foreach from=$controller_links key=text item=url}
+                    <li><a href="{$url|h}">{$text|h}</a></li>
+                    {/foreach}
+                    </ul>
+                    {/if}
 
-			{if $controller_links}
-			<nav class="controller-links">
-			{foreach from=$controller_links key=text item=url}
-			<li><a href="{$url|h}">{$text|h}</a></li>
-			{/foreach}
-			</nav>
-			{/if}
+                </div>
+            </div>
+        </div>
 
-		</header>
+        <div class="container">
 
-		<section id="content">
+            {render_flash()}
 
-			{render_flash()}
+            <div id="view-content">
+            {$view_content}
+            </div>
 
-			<div id="view-content">
-		    {$view_content}
-		    </div>
-
-	   	</section>
+        </div>
 
 	   	<footer>
-	    	This is the default Octopus theme. You're welcome.
 	    </footer>
 
-	</div> <!-- #wrap -->
+    </div>
 
 </body>
 </html>
