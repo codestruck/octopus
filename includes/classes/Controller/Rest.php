@@ -6,6 +6,7 @@
 abstract class Octopus_Controller_Rest extends Octopus_Controller {
 
     public $resource_id = null;
+    private $isError = false;
 
     public function setResponseContentType() {
         $this->response->contentType('application/json');
@@ -24,10 +25,13 @@ abstract class Octopus_Controller_Rest extends Octopus_Controller {
     }
 
     public function success($data) {
+        $this->isError = false;
         return $data;
     }
 
     public function error($errors, $status = 403) {
+
+        $this->isError = true;
 
         $result = array(
             'errors' => $errors,
@@ -65,6 +69,7 @@ abstract class Octopus_Controller_Rest extends Octopus_Controller {
 
         $errors = array();
         $positionalArgs = array();
+        $namedArgs = array();
 
         if (isset($args[0])) {
             $this->resource_id = $args[0];
@@ -76,11 +81,12 @@ abstract class Octopus_Controller_Rest extends Octopus_Controller {
         }
 
         $httpMethod = $this->request->getMethod();
-        if ($httpMethod === 'put' || $httpMethod === 'post') {
+        if ($httpMethod === 'put' || $httpMethod === 'post' || $httpMethod === 'get') {
             $args = $this->request->getInputData();
 
             foreach($method->getParameters() as $param) {
 
+                $pos = $param->getPosition();
                 $name = $param->getName();
                 $required = !$param->isDefaultValueAvailable();
                 $default = $required ? null : $param->getDefaultValue();
@@ -93,8 +99,10 @@ abstract class Octopus_Controller_Rest extends Octopus_Controller {
                 }
 
                 if ($exists) {
-                    $positionalArgs[$name] = $args[$name];
-                    unset($args[$name]);
+                    $positionalArgs[$pos] = $args[$name];
+                    $namedArgs[$name] = $args[$name];
+                } else {
+                    $positionalArgs[$pos] = '';
                 }
             }
         }
@@ -104,7 +112,8 @@ abstract class Octopus_Controller_Rest extends Octopus_Controller {
             return false;
         }
 
-        $beforeArgs = $afterArgs = $args = $positionalArgs;
+        $args = $positionalArgs;
+        $beforeArgs = $afterArgs = $namedArgs;
         return true;
     }
 
@@ -118,5 +127,12 @@ abstract class Octopus_Controller_Rest extends Octopus_Controller {
         return false;
 
     }
+
+    protected function isFailure($result) {
+
+        // TODO: move the $result['success'] logic into api controller
+        return $this->isError;
+    }
+
 
 }

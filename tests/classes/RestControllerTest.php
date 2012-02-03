@@ -27,9 +27,9 @@ class Api1ApplesController extends Octopus_Controller_Rest {
     /**
      * @resourceRequired
      */
-    public function putAction(\$name, \$color) {
+    public function putAction(\$name, \$color, \$optional = '', \$truth = false) {
         if (\$name == 'foo' && \$color == 'green') {
-            return \$this->success(array('id' => \$this->resource_id, 'from' => 'put'));
+            return \$this->success(array('id' => \$this->resource_id, 'from' => 'put', 'truth' => \$truth));
         }
     }
 
@@ -131,6 +131,7 @@ END
             array(
                 'id' => 2,
                 'from' => 'put',
+                'truth' => false,
             ),
             json_decode($resp->getContent(), true)
         );
@@ -286,6 +287,30 @@ END
             array(
                 'id' => 2,
                 'from' => 'put',
+                'truth' => false,
+            ),
+            json_decode($resp->getContent(), true)
+        );
+
+        $this->assertEquals('application/json', $resp->contentType());
+        $this->assertEquals(200, $resp->getStatus());
+
+    }
+
+    function testPutMissingOptional() {
+
+        $args = array(
+            'name' => 'foo',
+            'color' => 'green',
+            'truth' => true,
+        );
+        $resp = $this->app->getPutResponse('/api/1/apples/2', $args, true);
+
+        $this->assertEquals(
+            array(
+                'id' => 2,
+                'from' => 'put',
+                'truth' => true,
             ),
             json_decode($resp->getContent(), true)
         );
