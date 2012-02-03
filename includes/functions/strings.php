@@ -559,11 +559,16 @@
         $str = json_encode($data);
         $new = '';
         $indent = 0;
+        $inQuote = false;
 
         for ($i = 0; $i < strlen($str); $i++) {
             $char = $str[$i];
 
-            if ($char == '}' || $char == ']') {
+            if ($char == '"') {
+                $inQuote = !$inQuote;
+            }
+
+            if (!$inQuote && ($char == '}' || $char == ']')) {
                 $new .= "\n";
                 $indent -= 4;
                 $new .= str_repeat(' ', $indent);
@@ -571,18 +576,18 @@
 
             $new .= $char;
 
-            if ($char == '{' || $char == '[') {
+            if (!$inQuote && ($char == '{' || $char == '[')) {
                 $new .= "\n";
                 $indent += 4;
                 $new .= str_repeat(' ', $indent);
             }
 
-            if ($char == ',') {
+            if (!$inQuote && $char == ',') {
                 $new .= "\n";
                 $new .= str_repeat(' ', $indent);
             }
 
-            if ($char == ':') {
+            if (!$inQuote && $char == ':') {
                 $new .= ' ';
             }
 

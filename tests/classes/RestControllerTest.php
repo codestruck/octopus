@@ -55,6 +55,10 @@ class Api1BeetsController extends Octopus_Controller_Rest {
         return \$this->success(array('id' => \$this->resource_id, 'name' => 'Purple'));
     }
 
+    public function postAction() {
+        return \$this->success();
+    }
+
 }
 END
         );
@@ -160,7 +164,7 @@ END
 
     function testMissingMethod() {
 
-        $resp = $this->app->getPostResponse('/api/1/beets', array('name' => 'fail'), true);
+        $resp = $this->app->getDeleteResponse('/api/1/beets', array('name' => 'fail'), true);
 
         $this->assertEquals(
             array(
@@ -315,6 +319,16 @@ END
             json_decode($resp->getContent(), true)
         );
 
+        $this->assertEquals('application/json', $resp->contentType());
+        $this->assertEquals(200, $resp->getStatus());
+
+    }
+
+    function testEmptyResult() {
+
+        $resp = $this->app->getPostResponse('/api/1/beets', array(), true);
+
+        $this->assertSame('', $resp->getContent());
         $this->assertEquals('application/json', $resp->contentType());
         $this->assertEquals(200, $resp->getStatus());
 

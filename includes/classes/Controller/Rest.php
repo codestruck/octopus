@@ -18,13 +18,16 @@ abstract class Octopus_Controller_Rest extends Octopus_Controller {
 
         $result = parent::__execute($action, $args);
 
-        $this->response->append(pretty_json_encode($result));
+        if ($result) {
+            $this->response->append(pretty_json_encode($result));
+        }
+
         $this->response->stop();
 
         return $result;
     }
 
-    public function success($data, $status = 200) {
+    public function success($data = array(), $status = 200) {
         $this->isError = false;
         $this->response->setStatus($status);
         return $data;

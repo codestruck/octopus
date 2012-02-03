@@ -543,4 +543,21 @@ END
 
     }
 
+    function testPrettyJsonQuotes() {
+
+        $data = array(
+            'foo' => 'ba{z',
+            'thing_id' => '12:34',
+        );
+
+        $this->assertEquals(<<<END
+{
+    "foo": "ba{z",
+    "thing_id": "12:34"
+}
+END
+            , pretty_json_encode($data));
+
+    }
+
 }
