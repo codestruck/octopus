@@ -532,6 +532,12 @@ class Octopus_App {
         return $resp;
     }
 
+    public function getGetResponse($path, $data = array(), $options = array()) {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_GET = $data;
+        return $this->getResponse($path, $options);
+    }
+
     public function getDeleteResponse($path, $data = array(), $options = array()) {
         $_SERVER['REQUEST_METHOD'] = 'delete';
         return $this->getResponse($path, $options);

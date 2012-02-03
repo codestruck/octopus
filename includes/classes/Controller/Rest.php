@@ -24,12 +24,13 @@ abstract class Octopus_Controller_Rest extends Octopus_Controller {
         return $result;
     }
 
-    public function success($data) {
+    public function success($data, $status = 200) {
         $this->isError = false;
+        $this->response->setStatus($status);
         return $data;
     }
 
-    public function error($errors, $status = 403) {
+    public function error($errors, $data = array(), $status = 403) {
 
         $this->isError = true;
 
@@ -37,8 +38,13 @@ abstract class Octopus_Controller_Rest extends Octopus_Controller {
             'errors' => $errors,
         );
 
-        $this->response->setStatus($status);
+        if (is_numeric($data)) {
+            $status = $data;
+        } else {
+            $result = array_merge($data, $result);
+        }
 
+        $this->response->setStatus($status);
         return $result;
     }
 
