@@ -17,16 +17,27 @@ class Api1ApplesController extends Octopus_Controller_Rest {
         return \$this->success(array('id' => 2, 'from' => 'post'));
     }
 
-    public function getAction(\$id) {
-        return \$this->success(array('id' => 2, 'name' => 'Big Apple', 'color' => 'green'));
+    /**
+     * @resourceRequired
+     */
+    public function getAction() {
+        return \$this->success(array('id' => \$this->resource_id, 'name' => 'Big Apple', 'color' => 'green'));
     }
 
-    public function putAction(\$id, \$name, \$color) {
-        return \$this->success(array('id' => 2, 'from' => 'put'));
+    /**
+     * @resourceRequired
+     */
+    public function putAction(\$name, \$color) {
+        if (\$name == 'foo' && \$color == 'green') {
+            return \$this->success(array('id' => \$this->resource_id, 'from' => 'put'));
+        }
     }
 
-    public function deleteAction(\$id) {
-        return \$this->success(array('id' => 2, 'from' => 'delete'));
+    /**
+     * @resourceRequired
+     */
+    public function deleteAction() {
+        return \$this->success(array('id' => \$this->resource_id, 'from' => 'delete'));
     }
 
 }
@@ -40,8 +51,8 @@ END
 
 class Api1BeetsController extends Octopus_Controller_Rest {
 
-    public function getAction(\$id) {
-        return \$this->success(array('id' => 2, 'name' => 'Purple'));
+    public function getAction() {
+        return \$this->success(array('id' => \$this->resource_id, 'name' => 'Purple'));
     }
 
 }
@@ -184,7 +195,7 @@ END
 
         $this->assertEquals(
             array(
-                'errors' => array('id' => 'id is required.'),
+                'errors' => array('resource' => 'resource id is required.'),
             ),
             json_decode($resp->getContent(), true)
         );
@@ -201,7 +212,7 @@ END
         $this->assertEquals(
             array(
                 'errors' => array(
-                    'id' => 'id is required.',
+                    'resource' => 'resource id is required.',
                     'color' => 'color is required.',
                 ),
             ),
@@ -219,7 +230,7 @@ END
 
         $this->assertEquals(
             array(
-                'errors' => array('id' => 'id is required.'),
+                'errors' => array('resource' => 'resource id is required.'),
             ),
             json_decode($resp->getContent(), true)
         );
@@ -253,6 +264,28 @@ END
         $this->assertEquals(
             array(
                 'result' => 3,
+            ),
+            json_decode($resp->getContent(), true)
+        );
+
+        $this->assertEquals('application/json', $resp->contentType());
+        $this->assertEquals(200, $resp->getStatus());
+
+    }
+
+    function testPutExtraArg() {
+
+        $args = array(
+            'signed_request' => 'xxx',
+            'name' => 'foo',
+            'color' => 'green',
+        );
+        $resp = $this->app->getPutResponse('/api/1/apples/2', $args, true);
+
+        $this->assertEquals(
+            array(
+                'id' => 2,
+                'from' => 'put',
             ),
             json_decode($resp->getContent(), true)
         );

@@ -5,6 +5,8 @@
  */
 abstract class Octopus_Controller_Rest extends Octopus_Controller {
 
+    public $resource_id = null;
+
     public function setResponseContentType() {
         $this->response->contentType('application/json');
     }
@@ -64,61 +66,37 @@ abstract class Octopus_Controller_Rest extends Octopus_Controller {
         $errors = array();
         $positionalArgs = array();
 
+        if (isset($args[0])) {
+            $this->resource_id = $args[0];
+        } else {
+            $comment = $method->getDocComment();
+            if (preg_match('/@resourceRequired/', $comment)) {
+                $errors['resource'] = 'resource id is required.';
+            }
+        }
+
         $httpMethod = $this->request->getMethod();
-        switch ($httpMethod) {
-            case 'get':
-            case 'delete':
-                foreach($method->getParameters() as $param) {
+        if ($httpMethod === 'put' || $httpMethod === 'post') {
+            $args = $this->request->getInputData();
 
-                    $pos = $param->getPosition();
-                    $name = $param->getName();
-                    $required = !$param->isDefaultValueAvailable();
-                    $default = $required ? null : $param->getDefaultValue();
+            foreach($method->getParameters() as $param) {
 
-                    $exists = array_key_exists($pos, $args);
+                $name = $param->getName();
+                $required = !$param->isDefaultValueAvailable();
+                $default = $required ? null : $param->getDefaultValue();
 
-                    if ($required && !$exists) {
-                        $errors[$name] = "$name is required.";
-                        continue;
-                    }
+                $exists = array_key_exists($name, $args);
 
-                    $positionalArgs[$pos] = $exists ? $args[$pos] : $default;
+                if ($required && !$exists) {
+                    $errors[$name] = "$name is required.";
+                    continue;
+                }
+
+                if ($exists) {
+                    $positionalArgs[$name] = $args[$name];
                     unset($args[$name]);
                 }
-                break;
-
-            case 'put':
-            case 'post':
-                $args = array_merge($args, $this->request->getInputData());
-                foreach($method->getParameters() as $param) {
-
-                    $pos = $param->getPosition();
-                    $name = $param->getName();
-                    $required = !$param->isDefaultValueAvailable();
-                    $default = $required ? null : $param->getDefaultValue();
-                    $item = $default;
-
-                    $exists = array_key_exists($name, $args);
-                    if ($exists) {
-                        $key = $name;
-                        $item = $args[$name];
-                    } else {
-                        $exists = array_key_exists($pos, $args);
-                        if ($exists) {
-                            $key = $pos;
-                            $item = $args[$pos];
-                        }
-                    }
-
-                    if ($required && !$exists) {
-                        $errors[$name] = "$name is required.";
-                        continue;
-                    }
-
-                    $positionalArgs[$key] = $item;
-                    unset($args[$name]);
-                }
-                break;
+            }
         }
 
         if (count($errors)) {
