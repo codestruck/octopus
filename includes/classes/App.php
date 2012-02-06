@@ -565,7 +565,7 @@ class Octopus_App {
       * @deprecated
       */
     public function post($url, $data = array(), $options = array()) {
-        return $this->getPostResponse($url, $data = array(), $options = array());
+        return $this->getPostResponse($url, $data, $options);
     }
 
     public function getPostResponse($url, $data = array(), $options = array()) {
