@@ -4,7 +4,7 @@ function make_password($length) {
     $chars = "234567890abcdefghijkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
     $i = 0;
     $password = "";
-    while ($i <= $length) {
+    while ($i < $length) {
         $password .= $chars{mt_rand(0,strlen($chars) - 1)};
         $i++;
     }
