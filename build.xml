@@ -19,6 +19,7 @@
         <mkdir dir="${basedir}/build/logs"/>
         <mkdir dir="${basedir}/build/pdepend"/>
         <mkdir dir="${basedir}/_private" />
+        <mkdir dir="${basedir}/../_private" />
     </target>
 
     <target name="lint">
@@ -32,7 +33,7 @@
         </fileset>
         </apply>
     </target>
- 
+
     <target name="phploc" description="Measure project size using PHPLOC">
         <exec executable="phploc">
             <arg value="--log-csv" />

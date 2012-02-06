@@ -11,7 +11,10 @@ class Octopus_Logger_File {
 
         if (!$this->_handle = @fopen($this->file, 'a')) {
             print "Can't open log file: $this->file.";
+            exit();
         }
+
+        @chmod($this->file, 0666);
 
     }
 
@@ -29,5 +32,3 @@ class Octopus_Logger_File {
     }
 
 }
-
-?>
