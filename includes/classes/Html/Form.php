@@ -699,6 +699,10 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      */
     protected function createButton($type, $name = null, $value = null, $text = null, $attributes = null) {
 
+    	if ($type instanceof Octopus_Html_Element) {
+    		return $type;
+    	}
+
         $attributes = $attributes ? $attributes : array();
 
         if (is_array($type)) {
