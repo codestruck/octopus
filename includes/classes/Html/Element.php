@@ -5,6 +5,18 @@
  */
 class Octopus_Html_Element {
 
+	/**
+	 * Pass to ::render() to prevent auto-escaping attributes in generated
+	 * HTML.
+	 */
+	const DONT_ESCAPE_ATTRIBUTES = 0;
+
+	/**
+	 * Pass to ::render() to enable escaping of content in attributes. This
+	 * is the default.
+	 */
+	const ESCAPE_ATTRIBUTES = 1;
+
     protected $_parentElement;
     protected $_tag;
     private $_attributes;
@@ -495,9 +507,9 @@ class Octopus_Html_Element {
      * @param $return bool True to return the generated HTML, false to output
      * it.
      */
-    public function render($return = false) {
+    public function render($return = false, $escape = self::ESCAPE_ATTRIBUTES) {
 
-        $open = $this->renderOpenTag();
+        $open = $this->renderOpenTag($escape);
 
         // $open does not include a closing '>', in case this is a content-less
         // tag (e.g. <img />. renderCloseTag appends a '</tag>' ' />' as appropriate.
@@ -529,17 +541,20 @@ class Octopus_Html_Element {
     }
 
     /**
+     * @param $escape The escaping behavior to use. By default, all attribute
+     * values are escaped. If you are passing in pre-escaped values, set this
+     * to ::DONT_ESCAPE_ATTRIBUTES.
      * @return String The full open tag for this element. If the element is
      * content-less and can be rendered as, e.g. <span />, this will not include
      * a closing ">". (That will be provided by renderCloseTag as appropriate.)
      */
-    public function renderOpenTag() {
+    public function renderOpenTag($escape = self::ESCAPE_ATTRIBUTES) {
 
         $result = "\n<" . $this->_tag;
 
         foreach($this->getAttributes() as $key => $value) {
 
-            $rendered = self::renderAttribute($key, $value);
+            $rendered = self::renderAttribute($key, $value, $escape != self::DONT_ESCAPE_ATTRIBUTES);
             if ($rendered) {
                 $result .= ' ' . $rendered;
             }
@@ -662,7 +677,7 @@ class Octopus_Html_Element {
     /**
      * @return string HTML representation of the given attribute/value combo.
      */
-    protected static function renderAttribute($attr, $value, $alreadyEscaped = false) {
+    protected static function renderAttribute($attr, $value, $escape = true) {
 
         // Support e.g., 'autofocus' and 'required', which are rendered
         // without values.
@@ -672,9 +687,9 @@ class Octopus_Html_Element {
             return '';
         }
 
-        if (!$alreadyEscaped) {
-            $attr = htmlspecialchars($attr);
-            $value = htmlspecialchars($value, ENT_QUOTES);
+        if ($escape) {
+            $attr = h($attr);
+            $value = h($value);
         }
 
         if ($hasValue) {
