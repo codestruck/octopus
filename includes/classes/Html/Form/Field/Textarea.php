@@ -37,7 +37,7 @@ class Octopus_Html_Form_Field_Textarea extends Octopus_Html_Form_Field {
         $value = $this->val();
         if ($value === null) $value = '';
 
-        $result['value'] = htmlspecialchars($value);
+        $result['value'] = h($value);
 
         return $result;
     }

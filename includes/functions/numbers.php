@@ -52,7 +52,7 @@
      */
     function html_format_money($amount, $format = null) {
 
-        $formatted = htmlspecialchars(format_money($amount, $format));
+        $formatted = h(format_money($amount, $format));
 
         if ($amount < 0) {
             return '<span class="negative">' . $formatted . '</span>';

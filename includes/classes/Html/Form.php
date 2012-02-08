@@ -858,10 +858,10 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
         foreach($attributes as $attr => $value) {
 
-            $safeAttr = htmlspecialchars($attr);
-            $safeValue = htmlspecialchars($value);
+            $safeAttr = h($attr);
+            $safeValue = h($value);
 
-            $rendered = Octopus_Html_Element::renderAttribute($safeAttr, $safeValue, true);
+            $rendered = Octopus_Html_Element::renderAttribute($safeAttr, $safeValue, false);
 
             if ($rendered) {
 
