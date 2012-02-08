@@ -27,6 +27,7 @@ class SmartyImageTest extends Octopus_App_TestCase {
         $s->reset();
     }
 
+
     function tearDown() {
 
         $app = $this->getApp();
@@ -74,6 +75,25 @@ class SmartyImageTest extends Octopus_App_TestCase {
 
         $this->assertHtmlEquals($expected, $rendered, $message);
     }
+
+    /**
+     * @dataProvider getSiteDirImages
+     */
+    function testDontEscapeAttributes($file, $fileUrl) {
+
+    	$mtime = filemtime($file);
+
+    	$test = <<<END
+{image src="$file" alt="&lt;Test&#039;&gt;"}
+END;
+		$expected = <<<END
+<img src="$fileUrl?$mtime" width="100" height="75" alt="&lt;Test&#039;&gt;" />
+END;
+
+		$this->assertSmartyEquals($expected, $test);
+
+    }
+
 
     /**
      * @dataProvider getSiteDirImages

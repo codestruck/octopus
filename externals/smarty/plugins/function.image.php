@@ -176,7 +176,7 @@ function smarty_function_image($params, $template)
 
             // Just return an empty span
             $span = new Octopus_Html_Element('span', $missingAttrs);
-            return $span->render(true);
+            return $span->render(true, Octopus_Html_Element::DONT_ESCAPE_ATTRIBUTES);
 
         }
 
@@ -231,10 +231,10 @@ function smarty_function_image($params, $template)
     if (isset($linkAttrs['href']) && trim($linkAttrs['href'])) {
         $link = new Octopus_Html_Element('a', $linkAttrs);
         $link->append($img);
-        return $link->render(true);
+        return $link->render(true, Octopus_Html_Element::DONT_ESCAPE_ATTRIBUTES);
     }
 
-    return $img->render(true);
+    return $img->render(true, Octopus_Html_Element::DONT_ESCAPE_ATTRIBUTES);
 }
 
 /**
