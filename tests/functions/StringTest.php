@@ -560,4 +560,19 @@ END
 
     }
 
+    function testPrettyJsonHtml() {
+
+        $data = array(
+            'html' => '<img src="https://s3.amazonaws.com/foo/foo.jpg" alt="foo" />',
+        );
+
+        $this->assertEquals(<<<END
+{
+    "html": "<img src=\"https:\/\/s3.amazonaws.com\/foo\/foo.jpg\" alt=\"foo\" \/>"
+}
+END
+            , pretty_json_encode($data));
+
+    }
+
 }

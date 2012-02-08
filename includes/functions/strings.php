@@ -558,13 +558,14 @@
     function pretty_json_encode($data) {
         $str = json_encode($data);
         $new = '';
+        $prev = null;
         $indent = 0;
         $inQuote = false;
 
         for ($i = 0; $i < strlen($str); $i++) {
             $char = $str[$i];
 
-            if ($char == '"') {
+            if ($char === '"' && $prev !== '\\') {
                 $inQuote = !$inQuote;
             }
 
@@ -590,6 +591,8 @@
             if (!$inQuote && $char == ':') {
                 $new .= ' ';
             }
+
+            $prev = $char;
 
         }
 
