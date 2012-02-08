@@ -574,6 +574,22 @@ END
 
     }
 
+    function testHiddenValue() {
+
+        $form = new Octopus_Html_Form('hiddenValue');
+        $form->add('text', 'name');
+        $form->add('hidden', 'id');
+
+        $_POST['name'] = 'A Name.';
+        $_POST['id'] = 9;
+
+        $values = $form->getValues();
+        $this->assertEquals(array(
+            'name' => 'A Name.',
+            'id' => 9,
+        ), $values);
+    }
+
 }
 
 ?>
