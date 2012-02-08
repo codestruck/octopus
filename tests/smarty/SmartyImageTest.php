@@ -79,6 +79,37 @@ class SmartyImageTest extends Octopus_App_TestCase {
     /**
      * @dataProvider getSiteDirImages
      */
+    function testDontEscapeLinkAttributes($file, $fileUrl) {
+
+    	$mtime = filemtime($file);
+
+    	$test = <<<END
+{image src="$file" alt="&lt;Test&#039;&gt;" href="&gt;test"}
+END;
+		$expected = <<<END
+<a href="&gt;test"><img src="$fileUrl?$mtime" width="100" height="75" alt="&lt;Test&#039;&gt;" /></a>
+END;
+
+		$this->assertSmartyEquals($expected, $test);
+
+    }
+
+    function testDontEscapeMissingAttributes() {
+
+    	$test = <<<END
+{image src="/some/fake/file.jpg" missing_title="&gt;&lt;"}
+END;
+		$expected = <<<END
+<span class="missing" title="&gt;&lt;" />
+END;
+
+		$this->assertSmartyEquals($expected, $test);
+
+    }
+
+    /**
+     * @dataProvider getSiteDirImages
+     */
     function testDontEscapeAttributes($file, $fileUrl) {
 
     	$mtime = filemtime($file);
@@ -93,7 +124,6 @@ END;
 		$this->assertSmartyEquals($expected, $test);
 
     }
-
 
     /**
      * @dataProvider getSiteDirImages

@@ -514,12 +514,13 @@ class Octopus_Html_Element {
         // $open does not include a closing '>', in case this is a content-less
         // tag (e.g. <img />. renderCloseTag appends a '</tag>' ' />' as appropriate.
 
-        $content = $this->renderContent();
+        $content = $this->renderContent($escape);
+
         if (trim($content) || $this->requireCloseTag) {
             $open .= '>';
         }
 
-        $close = $this->renderCloseTag($content);
+        $close = $this->renderCloseTag($content, $escape);
 
         $result = $open . $content . $close;
 
@@ -571,7 +572,7 @@ class Octopus_Html_Element {
      * that allow it, this will just be " />", (e.g. <span />). Otherwise
      * it will be, e.g. "</span>".
      */
-    public function renderCloseTag($renderedContent) {
+    public function renderCloseTag($renderedContent, $escape = self::ESCAPE_ATTRIBUTES) {
 
         if ($renderedContent || $this->requireCloseTag) {
             return '</' . $this->_tag . '>';
@@ -584,7 +585,7 @@ class Octopus_Html_Element {
     /**
      * @return String The HTML content of this element.
      */
-    public function renderContent() {
+    public function renderContent($escape = self::ESCAPE_ATTRIBUTES) {
 
         $content = '';
         $count = 0;
@@ -596,7 +597,11 @@ class Octopus_Html_Element {
             }
             if ($count > 0) $content .= "\n";
 
-            $content .= $c;
+            if ($c instanceof Octopus_Html_Element) {
+            	$content .= $c->render(true, $escape);
+            } else {
+            	$content .= $c;
+            }
         }
 
         return $content;

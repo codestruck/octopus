@@ -509,7 +509,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         return $uri . '?' . http_build_query($qs);
     }
 
-    public function render($return = false) {
+    public function render($return = false, $escape = self::ESCAPE_ATTRIBUTES) {
 
         $this->initFromEnvironment();
 

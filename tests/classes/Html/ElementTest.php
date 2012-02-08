@@ -5,6 +5,26 @@
  */
 class ElementTests extends Octopus_Html_TestCase {
 
+	function testDontEscapeAttributesDeep() {
+
+		$el = new Octopus_Html_Element('span');
+		$el->title = '&gt;';
+
+		$child = new Octopus_Html_Element('span');
+		$child->title = '&lt;';
+
+		$el->append($child);
+
+		$this->assertHtmlEquals(
+			<<<END
+<span title="&gt;"><span title="&lt;" /></span>
+END
+			,
+			$el->render(true, Octopus_Html_Element::DONT_ESCAPE_ATTRIBUTES)
+		);
+
+	}
+
 	function testByDefaultEscapeAttributes() {
 
 		$el = new Octopus_Html_Element('span');
