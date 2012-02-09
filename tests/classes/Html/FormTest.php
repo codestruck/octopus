@@ -576,6 +576,8 @@ END
 
     function testHiddenValue() {
 
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
         $form = new Octopus_Html_Form('hiddenValue');
         $form->add('text', 'name');
         $form->add('hidden', 'id');
