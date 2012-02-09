@@ -90,9 +90,10 @@ END;
         $field->addOption('blue', 'Blue');
         $field->addOption('green', 'Green');
 
-        $form->submit(array('color' => array('pink')));
+        $form->submit(array('color' => 'pink'));
 
-        $this->assertEquals(array('pink'), $field->val());
+        $this->assertEquals('pink', $field->val());
+        $this->assertEquals(array('color' => 'pink'), $form->getValues());
 
         $valid = $form->validate($result);
 
@@ -132,7 +133,7 @@ END;
         $field->addOption('blue', 'Blue');
         $field->addOption('green', 'Green');
 
-        $_POST['color'] = array('pink');
+        $_POST['color'] = 'pink';
         $_POST['__octform'] = $form->getSignature();
         $_SERVER['REQUEST_METHOD'] = 'post';
 
