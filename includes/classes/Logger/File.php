@@ -10,8 +10,7 @@ class Octopus_Logger_File {
     function _open() {
 
         if (!$this->_handle = @fopen($this->file, 'a')) {
-            print "Can't open log file: $this->file.";
-            exit();
+            throw new Octopus_Exception("Can't open log file: $this->file.");
         }
 
         @chmod($this->file, 0666);
