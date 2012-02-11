@@ -40,4 +40,18 @@ if(!function_exists('get_called_class')) {
     }
 }
 
-?>
+/**
+ * bctrunc - Truncates large integer values on 32 systems
+ */
+function bctrunc($strval, $precision = 0) {
+    if (!is_string($strval)) {
+        $strval = sprintf('%0.0f', $strval);
+    }
+
+    if (false !== ($pos = strpos($strval, '.')) && (strlen($strval) - $pos - 1) > $precision) {
+        $zeros = str_repeat("0", $precision);
+        return bcadd($strval, "0.{$zeros}0", $precision);
+    } else {
+        return $strval;
+    }
+} 
