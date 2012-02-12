@@ -599,4 +599,12 @@
         return $new;
     }
 
-?>
+    function remove_extension($str) {
+
+        $dot = strrpos($str, '.');
+        if ($dot !== false) {
+            $str = substr($str, 0, $dot);
+        }
+
+        return $str;
+    }

@@ -575,4 +575,13 @@ END
 
     }
 
+    function testRemoveExtension() {
+        $this->assertEquals('pic', remove_extension('pic.png'));
+        $this->assertEquals('pic.large', remove_extension('pic.large.png'));
+        $this->assertEquals('pic', remove_extension('pic'));
+        $this->assertEquals('pic 978', remove_extension('pic 978.png'));
+        $this->assertEquals('"pic"', remove_extension('"pic".png'));
+        $this->assertEquals('pic_name', remove_extension('pic_name.png'));
+    }
+
 }
