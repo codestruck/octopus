@@ -127,9 +127,14 @@
     }
 
     /**
-     * Alias for htmlspecialchars.
-     * @param mixed Individual strings to escape and concatenate.
-     * @return string All arguments, escaped and concatenated.
+     * Alias for htmlspecialchars. Escapes quotes and assumes UTF-8 string
+     * encoding.
+     * @param mixed Individual strings to escape and concatenate. If h() is
+     * passed a single array as an argument, it will return an array with all
+     * its keys and values escaped (recursively).
+     * @return Mixed If a single array was passed in, returns an array with
+     * all keys and values (recursive) escaped. Otherwise, returns all
+     * arguments passed in escaped and concatenated into a single string.
      */
     function h(/* as many as you want! */) {
 
@@ -140,18 +145,51 @@
             case 0: return '';
 
             case 1:
+
                 $arg = func_get_arg(0);
-                return htmlspecialchars($arg, ENT_QUOTES, 'UTF-8');
+
+                if (is_array($arg)) {
+                	$result = array();
+                	_h_array($arg, $result);
+                	return $result;
+                } else {
+                	return htmlspecialchars($arg, ENT_QUOTES, 'UTF-8');
+                }
 
         }
 
-        $result = '';
+        $result = array();
         for($i = 0; $i < $count; $i++) {
             $arg = func_get_arg($i);
-            $result .= htmlspecialchars($arg, ENT_QUOTES, 'UTF-8');
+            $result[] = htmlspecialchars($arg, ENT_QUOTES, 'UTF-8');
         }
 
-        return $result;
+        return implode('', $result);
+    }
+
+    /**
+     * Internal function used to recursively escape h().
+     */
+    function _h_array(Array $arg, &$dest = null) {
+
+    	if ($dest === null) $dest = array();
+
+    	foreach($arg as $key => $value) {
+
+    		if (!is_numeric($key)) {
+    			$key = h($key);
+    		}
+
+    		if (is_array($value)) {
+    			$dest[$key] = null;
+    			_h_array($value, $dest[$key]);
+    		} else {
+    			$dest[$key] = h($value);
+    		}
+
+    	}
+
+
     }
 
     /**
