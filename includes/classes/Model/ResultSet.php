@@ -441,14 +441,20 @@ END;
      */
     public function map($key, $value = null) {
 
-        $fields = array($key);
-        if ($value) {
-            $fields[] = $value;
+        if (is_array($key)) {
+            $fields = $key;
+        } else {
+            $fields = array($key);
+            if ($value) {
+                $fields[] = $value;
+            }
         }
 
         $select = $this->buildSelect(false, $fields);
 
-        if ($value) {
+        if (is_array($key)) {
+            return $select->fetchAll();
+        } else if ($value) {
             return $select->getMap();
         } else {
             return $select->getOneArray();
