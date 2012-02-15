@@ -453,7 +453,7 @@ END;
         $select = $this->buildSelect(false, $fields);
 
         if (is_array($key)) {
-            return $select->fetchAllValues();
+            return $select->fetchAll();
         } else if ($value) {
             return $select->getMap();
         } else {
