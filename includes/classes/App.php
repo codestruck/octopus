@@ -524,7 +524,7 @@ class Octopus_App {
         }
 
         $this->_currentRequest = $req = $this->createRequest($path, $options);
-        $this->_currentResponse = $resp = $this->createResponse($req, $options['buffer']);
+        $this->_currentResponse = $resp = $this->createResponse($options['buffer']);
 
         $dispatch = new Octopus_Dispatcher($this);
         $dispatch->handleRequest($req, $resp);
@@ -606,7 +606,7 @@ class Octopus_App {
     /**
      * @return Octopus_Response
      */
-    protected function createResponse($request, $buffer = false) {
+    public function createResponse($buffer = false) {
         return new Octopus_Response($buffer);
     }
 
