@@ -205,6 +205,19 @@ class Octopus_DB_Select extends Octopus_DB_Helper {
         return $query->fetchAll();
     }
 
+    function fetchAllValues() {
+
+        $data = array();
+        $query = $this->query();
+
+        while ($result = $query->fetchRow()) {
+            $data[] = array_values($result);
+        }
+
+        return $data;
+
+    }
+
     function getOne() {
 
         $sql = $this->getSql();
