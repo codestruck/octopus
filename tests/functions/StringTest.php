@@ -206,6 +206,9 @@ class StringTests extends PHPUnit_Framework_TestCase
     		'<b>' => '<i>test</i>',
     		2 => array(
     			'<i>' => '<b>test</b>',
+    			'foo' => true,
+    			'bar' => false,
+    			'baz' => null
 	    	)
 	    );
 
@@ -217,11 +220,18 @@ class StringTests extends PHPUnit_Framework_TestCase
 	    	array(
 	    		'&lt;b&gt;' => '&lt;i&gt;test&lt;/i&gt;',
 	    		2 => array(
-	    			'&lt;i&gt;' => '&lt;b&gt;test&lt;/b&gt;'
+	    			'&lt;i&gt;' => '&lt;b&gt;test&lt;/b&gt;',
+	    			'foo' => true,
+	    			'bar' => false,
+	    			'baz' => null
 		    	)
 		    ),
 		    $escaped
 		);
+
+		$this->assertTrue($escaped[2]['foo'] === true, 'true preserved');
+		$this->assertTrue($escaped[2]['bar'] === false, 'false preserved');
+		$this->assertTrue($escaped[2]['baz'] === null, 'null preserved');
     }
 
     function testHObject() {

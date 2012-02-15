@@ -133,7 +133,8 @@
      * passed a single array as an argument, it will return an array with all
      * its keys and values escaped (recursively).
      * @return Mixed If a single array was passed in, returns an array with
-     * all keys and values (recursive) escaped. Otherwise, returns all
+     * all keys and values (recursive) escaped (unless the value is true, false,
+	 * or null-- those are preserved) Otherwise, returns all
      * arguments passed in escaped and concatenated into a single string.
      */
     function h(/* as many as you want! */) {
@@ -183,6 +184,9 @@
     		if (is_array($value)) {
     			$dest[$key] = null;
     			_h_array($value, $dest[$key]);
+    		} else if ($value === true || $value === false || $value === null) {
+    			// Preserve true, false, and null values
+    			$dest[$key] = $value;
     		} else {
     			$dest[$key] = h($value);
     		}
