@@ -32,7 +32,7 @@ class Octopus_Model_Field_Datetime extends Octopus_Model_Field {
     }
 
     public function restrict($expression, $operator, $value, &$s, &$params, $model) {
-        $value = $this->formatDateTime($value);
+        $value = $this->formatDateTime($value, '0000-00-00 00:00:00');
         return parent::restrict($expression, $operator, $value, $s, $params, $model);
     }
 
@@ -73,14 +73,14 @@ class Octopus_Model_Field_Datetime extends Octopus_Model_Field {
     /**
      * @return A standard representation of a datetime value (YYYY-MM-DD HH:MM:SS).
      */
-    protected function formatDateTime($value) {
+    protected function formatDateTime($value, $zeroValue = '') {
 
         if (!is_numeric($value)) {
             $value = $this->parseDateTime($value);
         }
 
         if (!$value) {
-            return '';
+            return $zeroValue;
         }
 
         return date($this->getDateFormat(), $value);
