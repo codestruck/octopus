@@ -302,6 +302,18 @@ END;
      */
     public function limit($offset, $maxRecords = null) {
 
+    	if ($offset === '' || $offset === false) {
+    		$offset = null;
+    	} else {
+    		$offset = max(0, intval($offset));
+    	}
+
+    	if ($maxRecords === '' || $maxRecords === false) {
+    		$maxRecords = null;
+    	}
+
+    	$maxRecords = ($maxRecords === null ? null : max(0, intval($maxRecords)));
+
         if ($offset === $this->_offset && $maxRecords === $this->_maxRecords) {
             return $this;
         }
