@@ -97,7 +97,8 @@ if (!function_exists('fuzzy_date')) {
 
     function add_days($date, $days) {
         $date = get_day($date);
-        return $date + ($days * 24 * 60 * 60);
+        // NOTE: strtotime handles DST etc internally, so rely on it to do the math
+        return strtotime(date("Y-m-d", $date) . ($days >= 0 ? '+' : '-') . $days . ' day');
     }
 
     function get_time_span_parts($seconds) {
