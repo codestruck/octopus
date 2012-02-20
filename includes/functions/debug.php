@@ -1283,12 +1283,15 @@ END;
     private static function getNiceStringLength($str) {
 
         $length = strlen($str);
-        $mblength = mb_strlen($str);
-
         $niceLength = "$length char" . ($length === 1 ? '' : 's');
 
-        if ($mblength !== $length) {
-            $niceLength = "$niceLength ($mblength using mb_strlen)";
+        if (function_exists('mb_strlen')) {
+
+        	$mbLength = mb_strlen($str);
+
+        	if ($mbLength !== $length) {
+            	$niceLength .= " ($mbLength using mb_strlen)";
+            }
         }
 
         return $niceLength;
