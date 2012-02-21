@@ -24,9 +24,15 @@ class DateTest extends PHPUnit_Framework_TestCase {
         );
     }
 
+    function testGetDay() {
+        $this->assertEquals(956214000, get_day('2000-04-20'));
+        $this->assertEquals(956214000, get_day(strtotime('2000-04-20') + 400));
+    }
 
-
+    function testAddDays() {
+        $base = 956214000;
+        $this->assertEquals($base + (86400 * 2), add_days('2000-04-20', 2));
+        $this->assertEquals($base - (86400 * 2), add_days('2000-04-20', -2));
+    }
 
 }
-
-?>
