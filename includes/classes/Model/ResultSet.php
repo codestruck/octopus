@@ -302,6 +302,18 @@ END;
      */
     public function limit($offset, $maxRecords = null) {
 
+    	if ($offset === '' || $offset === false) {
+    		$offset = null;
+    	} else {
+    		$offset = max(0, intval($offset));
+    	}
+
+    	if ($maxRecords === '' || $maxRecords === false) {
+    		$maxRecords = null;
+    	}
+
+    	$maxRecords = ($maxRecords === null ? null : max(0, intval($maxRecords)));
+
         if ($offset === $this->_offset && $maxRecords === $this->_maxRecords) {
             return $this;
         }
@@ -441,14 +453,20 @@ END;
      */
     public function map($key, $value = null) {
 
-        $fields = array($key);
-        if ($value) {
-            $fields[] = $value;
+        if (is_array($key)) {
+            $fields = $key;
+        } else {
+            $fields = array($key);
+            if ($value) {
+                $fields[] = $value;
+            }
         }
 
         $select = $this->buildSelect(false, $fields);
 
-        if ($value) {
+        if (is_array($key)) {
+            return $select->fetchAll();
+        } else if ($value) {
             return $select->getMap();
         } else {
             return $select->getOneArray();

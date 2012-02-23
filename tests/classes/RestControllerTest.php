@@ -59,6 +59,10 @@ class Api1BeetsController extends Octopus_Controller_Rest {
         return \$this->success();
     }
 
+    public function putAction(\$a, \$b = 4) {
+        return compact('a', 'b');
+    }
+
 }
 END
         );
@@ -332,6 +336,21 @@ END
         $this->assertEquals('application/json', $resp->contentType());
         $this->assertEquals(200, $resp->getStatus());
 
+    }
+
+    function testDefaultArguments() {
+        $resp = $this->app->getPutResponse('/api/1/beets', array('a' => 2), true);
+
+        $this->assertEquals(
+            array(
+                'a' => '2',
+                'b' => '4',
+            ),
+            json_decode($resp->getContent(), true)
+        );
+
+        $this->assertEquals('application/json', $resp->contentType());
+        $this->assertEquals(200, $resp->getStatus());
     }
 
 }

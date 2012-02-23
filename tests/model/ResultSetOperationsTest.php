@@ -37,4 +37,23 @@ class ResultSetOperationsTest extends Octopus_DB_TestCase
 
     }
 
+    function testMapArray() {
+
+        $result = array(
+            array(
+                'find_post_id' => 1,
+                'slug' => 'slug-for-post-1',
+                'title' => 'Title for Post 1'
+            ),
+            array(
+                'find_post_id' =>2,
+                'slug' => 'slug-for-post-2',
+                'title' => 'Title for Post 2'
+            ),
+        );
+
+        $this->assertEquals($result, FindPost::all()->limit(2)->map(array('find_post_id', 'slug', 'title')));
+
+    }
+
 }

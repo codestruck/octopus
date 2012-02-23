@@ -111,7 +111,7 @@ abstract class Octopus_Controller_Rest extends Octopus_Controller {
                     $positionalArgs[$pos] = $args[$name];
                     $namedArgs[$name] = $args[$name];
                 } else {
-                    $positionalArgs[$pos] = '';
+                    $positionalArgs[$pos] = $default;
                 }
             }
         }

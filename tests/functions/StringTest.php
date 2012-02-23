@@ -1,5 +1,15 @@
 <?php
 
+class HTestObject {
+
+	public $value;
+
+	public function __toString() {
+		return $this->value;
+	}
+
+}
+
 /**
  * @group core
  * @group string
@@ -187,6 +197,49 @@ class StringTests extends PHPUnit_Framework_TestCase
             start_in('/', '/foo'),
             'failed when not needing to prepend'
         );
+
+    }
+
+    function testHArray() {
+
+    	$array = array(
+    		'<b>' => '<i>test</i>',
+    		2 => array(
+    			'<i>' => '<b>test</b>',
+    			'foo' => true,
+    			'bar' => false,
+    			'baz' => null
+	    	)
+	    );
+
+	    $escaped = h($array);
+
+	    $this->assertTrue(is_array($escaped), 'h(array) returns an array');
+
+	    $this->assertEquals(
+	    	array(
+	    		'&lt;b&gt;' => '&lt;i&gt;test&lt;/i&gt;',
+	    		2 => array(
+	    			'&lt;i&gt;' => '&lt;b&gt;test&lt;/b&gt;',
+	    			'foo' => true,
+	    			'bar' => false,
+	    			'baz' => null
+		    	)
+		    ),
+		    $escaped
+		);
+
+		$this->assertTrue($escaped[2]['foo'] === true, 'true preserved');
+		$this->assertTrue($escaped[2]['bar'] === false, 'false preserved');
+		$this->assertTrue($escaped[2]['baz'] === null, 'null preserved');
+    }
+
+    function testHObject() {
+
+    	$obj = new HTestObject();
+    	$obj->value = "<b>hi there!</b>";
+
+    	$this->assertEquals('&lt;b&gt;hi there!&lt;/b&gt;', h($obj));
 
     }
 
@@ -596,6 +649,15 @@ END
 END
             , pretty_json_encode($data));
 
+    }
+
+    function testRemoveExtension() {
+        $this->assertEquals('pic', remove_extension('pic.png'));
+        $this->assertEquals('pic.large', remove_extension('pic.large.png'));
+        $this->assertEquals('pic', remove_extension('pic'));
+        $this->assertEquals('pic 978', remove_extension('pic 978.png'));
+        $this->assertEquals('"pic"', remove_extension('"pic".png'));
+        $this->assertEquals('pic_name', remove_extension('pic_name.png'));
     }
 
 }
