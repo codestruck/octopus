@@ -262,6 +262,26 @@
 
     }
 
+    /**
+     * Converts urls to links AND adds rel and target
+     */
+    function linkify_external($s) {
+        $s = linkify($s);
+
+        $s = '<p>' . $s . '</p>';
+        $dom = str_get_html($s);
+
+        foreach ($dom->nodes as $el) {
+            if ($el->tag == 'a') {
+                $el->rel = 'nofollow';
+                $el->target = '_blank';
+            }
+        }
+
+        return substr($dom->save(), 3, -4);
+
+    }
+
     function add_link_references($s, $domain, $data) {
 
         Octopus::loadExternal('simplehtmldom');

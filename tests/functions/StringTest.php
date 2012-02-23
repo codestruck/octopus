@@ -412,6 +412,29 @@ END;
 
     }
 
+    function testLinkifyExternal() {
+
+        $text = <<<END
+<a href="http://cnn.com/">CNN</a>
+<a href="http://cnn.com">http://cnn.com/</a>
+http://cnn.com/
+END;
+
+        $result = <<<END
+<a href="http://cnn.com/" rel="nofollow" target="_blank">CNN</a>
+<a href="http://cnn.com" rel="nofollow" target="_blank">http://cnn.com/</a>
+<a href="http://cnn.com/" rel="nofollow" target="_blank">http://cnn.com/</a>
+END;
+
+        $this->assertEquals($result, linkify_external($text));
+
+        $text = 'http://cnn.com/';
+        $result = '<a href="http://cnn.com/" rel="nofollow" target="_blank">http://cnn.com/</a>';
+
+        $this->assertEquals($result, linkify_external($text));
+
+    }
+
     function testLinkifyHtml() {
 
         $text = <<<END
