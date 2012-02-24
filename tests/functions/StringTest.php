@@ -465,6 +465,44 @@ END;
 
     }
 
+    function testLinkifyCasual() {
+
+        $text = <<<END
+<a href="http://cnn.com/">CNN</a>
+<a href="http://cnn.com">cnn.com/</a>
+www.google.com
+www.google.com/foo/bar?abc=1
+facebook.com
+facebook.com/profile
+END;
+
+        $result = <<<END
+<a href="http://cnn.com/">CNN</a>
+<a href="http://cnn.com">cnn.com/</a>
+<a href="http://www.google.com">www.google.com</a>
+<a href="http://www.google.com/foo/bar?abc=1">www.google.com/foo/bar?abc=1</a>
+<a href="http://facebook.com">facebook.com</a>
+<a href="http://facebook.com/profile">facebook.com/profile</a>
+END;
+
+        $this->assertEquals($result, linkify($text));
+
+    }
+
+    function testLinkifyNotTooCasual() {
+
+        $text = <<<END
+My sentance. Oops.a typo.  google.com
+END;
+
+        $result = <<<END
+My sentance. Oops.a typo.  <a href="http://google.com">google.com</a>
+END;
+
+        $this->assertEquals($result, linkify($text));
+
+    }
+
     function testLinkifyExternal() {
 
         $text = <<<END

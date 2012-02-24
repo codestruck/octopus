@@ -288,13 +288,14 @@
         $s = '<p>' . $s . '</p>';
         $dom = str_get_html($s);
         $regex = '/(\s|^)(https?:\/\/[^\s<]+?[^\.])(\.?(\s|$|\)))/ims';
+        $regex2 = '/(\s|^)([^\s<]+\.[^\s<]{2,})(\s|$|\))/ims';
 
         foreach ($dom->nodes as $el) {
-            // dump_r($el->tag, $el->nodetype);
 
             if ($el->tag == 'text') {
                 if (count($el->nodes) == 0 && $el->parent->tag != 'a') {
                     $el->innertext = preg_replace($regex, '$1<a href="$2">$2</a>$3', $el->innertext);
+                    $el->innertext = preg_replace($regex2, '$1<a href="http://$2">$2</a>$3', $el->innertext);
                 }
             }
 
