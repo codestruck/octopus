@@ -15,12 +15,11 @@ class FormFieldTest extends Octopus_Html_TestCase {
 
 		$this->assertEquals('name[]', $sel->name);
 		$this->assertSame($sel, $form->getField('name'));
-		$this->assertSame($sel, $form->getField('name[]'));
 
-		$form->submit(array('name' => array('bar', 'bat')));
+		$form->submit(array('name' => array('foo', 'baz')));
 		$this->assertEquals(
 			array(
-				'name' => array('bar', 'bat')
+				'name' => array('foo', 'baz')
 			),
 			$form->getValues()
 		);
