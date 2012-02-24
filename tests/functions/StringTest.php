@@ -476,6 +476,7 @@ www.google.com
 www.google.com/foo/bar.php?abc=1
 facebook.com
 facebook.com/profile
+(causeway.org)
 END;
 
         $result = <<<END
@@ -485,6 +486,7 @@ END;
 <a href="http://www.google.com/foo/bar.php?abc=1">www.google.com/foo/bar.php?abc=1</a>
 <a href="http://facebook.com">facebook.com</a>
 <a href="http://facebook.com/profile">facebook.com/profile</a>
+(<a href="http://causeway.org">causeway.org</a>)
 END;
 
         $this->assertEquals($result, linkify($text));
