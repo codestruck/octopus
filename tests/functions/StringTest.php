@@ -448,12 +448,14 @@ class StringTests extends PHPUnit_Framework_TestCase
 <a href="http://cnn.com/">CNN</a>
 <a href="http://cnn.com">http://cnn.com/</a>
 http://cnn.com/
+(http://cnn.com/)
 END;
 
         $result = <<<END
 <a href="http://cnn.com/">CNN</a>
 <a href="http://cnn.com">http://cnn.com/</a>
 <a href="http://cnn.com/">http://cnn.com/</a>
+(<a href="http://cnn.com/">http://cnn.com/</a>)
 END;
 
         $this->assertEquals($result, linkify($text));
@@ -471,7 +473,7 @@ END;
 <a href="http://cnn.com/">CNN</a>
 <a href="http://cnn.com">cnn.com/</a>
 www.google.com
-www.google.com/foo/bar?abc=1
+www.google.com/foo/bar.php?abc=1
 facebook.com
 facebook.com/profile
 END;
@@ -480,7 +482,7 @@ END;
 <a href="http://cnn.com/">CNN</a>
 <a href="http://cnn.com">cnn.com/</a>
 <a href="http://www.google.com">www.google.com</a>
-<a href="http://www.google.com/foo/bar?abc=1">www.google.com/foo/bar?abc=1</a>
+<a href="http://www.google.com/foo/bar.php?abc=1">www.google.com/foo/bar.php?abc=1</a>
 <a href="http://facebook.com">facebook.com</a>
 <a href="http://facebook.com/profile">facebook.com/profile</a>
 END;
@@ -493,10 +495,14 @@ END;
 
         $text = <<<END
 My sentance. Oops.a typo.  google.com
+lol...
+being ‘closed.’ It
 END;
 
         $result = <<<END
 My sentance. Oops.a typo.  <a href="http://google.com">google.com</a>
+lol...
+being ‘closed.’ It
 END;
 
         $this->assertEquals($result, linkify($text));
@@ -551,6 +557,7 @@ http://cnn.com/)
 http://cnn.com/.
 http://cnn.com/).
 http://cnn.com/.)
+google.com.
 
 END;
 
@@ -559,6 +566,7 @@ END;
 <a href="http://cnn.com/">http://cnn.com/</a>.
 <a href="http://cnn.com/">http://cnn.com/</a>).
 <a href="http://cnn.com/">http://cnn.com/</a>.)
+<a href="http://google.com">google.com</a>.
 
 END;
 
