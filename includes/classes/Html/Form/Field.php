@@ -445,7 +445,6 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
 
         $name = preg_replace('/\[\]$/', '', $this->name);
         $value = isset($values[$name]) ? $values[$name] : null;
-
         $this->val($value);
 
         return $this;

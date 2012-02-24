@@ -351,10 +351,12 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
         if ($el instanceof Octopus_Html_Form_Field) {
 
+			$elementName = preg_replace('/\[\]$/', '', $el->name);
+
             if ($name === null) {
-                $array[$el->name] = $el;
-            } else if ($el->name === $name) {
-                $array[$el->name] = $el;
+                $array[$elementName] = $el;
+            } else if ($elementName === $name) {
+                $array[$elementName] = $el;
                 return true;
             }
         }

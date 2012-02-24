@@ -6,6 +6,27 @@
  */
 class FormFieldTest extends Octopus_Html_TestCase {
 
+	function testGetArrayFieldByName() {
+
+		$form = new Octopus_Html_Form('getArrayField');
+		$sel = $form->add('select', 'name');
+		$sel->addOptions(array('foo' => 'bar', 'baz' => 'bat'));
+		$sel->multiple = true;
+
+		$this->assertEquals('name[]', $sel->name);
+		$this->assertSame($sel, $form->getField('name'));
+
+		$form->submit(array('name' => array('foo', 'baz')));
+		$this->assertEquals(
+			array(
+				'name' => array('foo', 'baz')
+			),
+			$form->getValues()
+		);
+
+
+	}
+
     function testAddFieldToForm() {
 
         $form = new Octopus_Html_Form('testForm');
