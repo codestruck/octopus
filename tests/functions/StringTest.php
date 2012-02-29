@@ -499,12 +499,14 @@ END;
 My sentance. Oops.a typo.  google.com
 lol...
 being ‘closed.’ It
+problems...they
 END;
 
         $result = <<<END
 My sentance. Oops.a typo.  <a href="http://google.com">google.com</a>
 lol...
 being ‘closed.’ It
+problems...they
 END;
 
         $this->assertEquals($result, linkify($text));
