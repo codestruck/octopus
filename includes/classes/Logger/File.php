@@ -13,7 +13,7 @@ class Octopus_Logger_File {
             throw new Octopus_Exception("Can't open log file: $this->file.");
         }
 
-        @chmod($this->file, 0666);
+        chmod($this->file, 0666);
 
     }
 
@@ -25,7 +25,7 @@ class Octopus_Logger_File {
 
         if ($this->_handle) {
             $line = date('r') . ': ' . $line;
-            @fwrite($this->_handle, $line . "\n");
+            fwrite($this->_handle, $line . "\n");
         }
 
     }

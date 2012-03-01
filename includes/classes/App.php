@@ -207,10 +207,14 @@ class Octopus_App {
         }
 
         $resp = $this->getCurrentResponse();
-        $resp->setStatus(500);
+        if ($resp) {
+            $resp->setStatus(500);
+        }
 
         if ($level & E_ERROR || (DEV && $level & E_WARNING)) {
-            $resp->flush();
+            if ($resp) {
+                $resp->flush();
+            }
         }
 
         if ($this->_prevErrorHandler && !function_exists('xdebug_enable')) {
