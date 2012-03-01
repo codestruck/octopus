@@ -353,4 +353,40 @@ END
         $this->assertEquals(200, $resp->getStatus());
     }
 
+    /**
+     * @zexpectedException PHPUnit_Framework_ExpectationFailedException
+     */
+    function testErrorStatus500() {
+
+        $this->markTestSkipped('hard to test');
+
+        $app = $this->startApp();
+
+        $this->createControllerFile(
+            'RestHasError',
+            <<<END
+<?php
+
+class RestHasErrorController extends Octopus_Controller_Rest {
+
+    public function getAction() {
+        \$this->needs(1);
+        return array('foo' => 'bar');
+    }
+
+    private function needs(\$a, \$b) {
+
+    }
+
+}
+
+?>
+END
+        );
+
+        $resp = $app->getResponse('/rest_has_error', true);
+        $this->assertEquals(500, $resp->getStatus(), $resp->getContent());
+
+    }
+
 }

@@ -160,6 +160,43 @@ END
 
     }
 
+    /**
+     * @zexpectedException PHPUnit_Framework_ExpectationFailedException
+     */
+    function testErrorStatus500() {
+
+        $this->markTestSkipped('hard to test');
+
+        $app = $this->startApp();
+
+        $this->createControllerFile(
+            'HasError',
+            <<<END
+<?php
+
+class HasErrorController extends Octopus_Controller {
+
+    public function test() {
+        \$this->needs(1);
+        return array('foo' => 'bar');
+    }
+
+    private function needs(\$a, \$b) {
+
+    }
+
+}
+
+?>
+END
+        );
+        $this->createViewFile('has_error/test.tpl');
+
+        $resp = $app->getResponse('/has_error/test', true);
+        $this->assertEquals(500, $resp->getStatus());
+
+    }
+
 }
 
 ?>

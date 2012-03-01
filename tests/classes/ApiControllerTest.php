@@ -222,4 +222,41 @@ END
 
     }
 
+    /**
+     * @zexpectedException PHPUnit_Framework_ExpectationFailedException
+     */
+    function testErrorStatus500() {
+
+        $this->markTestSkipped('hard to test');
+
+        $app = $this->startApp();
+
+        $this->createControllerFile(
+            'ApiHasError',
+            <<<END
+<?php
+
+class ApiHasErrorController extends Octopus_Controller_Api {
+
+    public function test() {
+        \$this->needs(1);
+        return array('foo' => 'bar');
+    }
+
+    private function needs(\$a, \$b) {
+
+    }
+
+}
+
+?>
+END
+        );
+
+        $resp = $app->getResponse('/api_has_error/test', true);
+        $this->assertEquals(500, $resp->getStatus(), $resp->getContent());
+
+    }
+
+
 }

@@ -206,8 +206,10 @@ class Octopus_App {
 
         }
 
-        if ($level & E_ERROR) {
-            $resp = $this->getCurrentResponse();
+        $resp = $this->getCurrentResponse();
+        $resp->setStatus(500);
+
+        if ($level & E_ERROR || (DEV && $level & E_WARNING)) {
             $resp->flush();
         }
 
