@@ -1,6 +1,6 @@
 <?php
 
-require_once(dirname(__FILE__) . '/htmlpurifier-4.3.0/library/HTMLPurifier.auto.php');
+Octopus::requireOnce(dirname(__FILE__) . '/htmlpurifier-4.4.0/HTMLPurifier.standalone.php');
 
 /**
  * @param $options Array of options to use to configure the purifier
