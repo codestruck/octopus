@@ -16,12 +16,19 @@ class Octopus_Html_Table_Filter_Text extends Octopus_Html_Table_Filter {
         return $el;
     }
 
-    protected function defaultApplyToResultSet($resultSet) {
+    protected function defaultApply(Octopus_DataSource $dataSource) {
 
-        $field = $resultSet->getModelField($this->id);
-        if (!$field) return $resultSet;
+    	if ($dataSource instanceof Octopus_Model_ResultSet) {
 
-        return $resultSet->where(array("$this->id LIKE" => wildcardify($this->val())));
+    		$field = $dataSource->getModelField($this->id);
+    		if (!$field) return $dataSource;
+
+			return $dataSource->where(array("$this->id LIKE" => wildcardify($this->val())));
+
+    	} else {
+    		return parent::defaultApply($dataSource);
+    	}
+
     }
 }
 
