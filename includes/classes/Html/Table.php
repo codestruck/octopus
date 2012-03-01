@@ -134,6 +134,11 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         'defaultSorting' => array(),
 
         /**
+         * Default filter values to apply.
+         */
+        'defaultFilters' => array(),
+
+        /**
          * Whether or not to store sorting / filters in the session.
          */
         'useSession' => true,
@@ -169,6 +174,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
     private $_pager = null;
 
+    private $_restored = false;
+
     private $_sessionKeys = array();
 
     public function __construct($id, $options = array()) {
@@ -185,9 +192,6 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         parent::__construct('table', $attrs);
 
         $this->_options = array_merge(self::$defaultOptions, $options);
-
-
-        $this->initFromEnvironment();
     }
 
     /**
@@ -556,6 +560,16 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     public function clearFilters() {
         $this->unfilter();
         $this->forgetState('filter');
+        return $this;
+    }
+
+    public function getDefaultFilters() {
+    	return $this->_options['defaultFilters'];
+    }
+
+    public function setDefaultFilters($filters) {
+    	$this->_options['defaultFilters'] = $filters;
+    	return $this;
     }
 
     /**
@@ -577,6 +591,10 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
     public function render($return = false, $escape = self::ESCAPE_ATTRIBUTES) {
 
+    	if (!$this->_restored) {
+    		$this->restore();
+    	}
+
         if ($this->isEmpty()) {
             $this->addClass($this->_options['emptyClass']);
         } else {
@@ -594,6 +612,138 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         } else {
             echo $html;
         }
+    }
+
+    /**
+     * Restores this table's state from the querystring and session storage.
+     * Applies default filtering and sorting if none is specified.
+     */
+    public function restore() {
+
+		//cancel_redirects();
+
+		$qs = $this->getQueryString();
+
+		$this->clearFiltersIfNeeded($qs);
+
+		$restored = array(
+			'sorting' => false,
+			'filters' => false,
+			'page' => false
+		);
+
+
+		// Check querystring / session for sorting information
+		$this->restoreSorting($qs) ||
+			$this->restoreSorting($_SESSION, true) ||
+				$this->sort($this->getDefaultSorting());
+
+		// Check querystring / session for filter data
+		$this->restoreFilters($qs) ||
+			$this->restoreFilters($_SESSION, true) ||
+				$this->filter($this->getDefaultFilters());
+
+		// Check querystring / session for page
+		$this->restorePage($qs) ||
+			$this->restorePage($_SESSION, true);
+
+        $this->ensureQueryStringMatchesTableState();
+
+        $this->_restored = true;
+
+        return $this;
+
+    }
+
+    protected function clearFiltersIfNeeded($qs) {
+
+		// Check if the user has clicked the 'clear filters' link.
+        $clearFiltersArg = $this->_options['clearFiltersArg'];
+
+        if ($clearFiltersArg && !empty($qs[$clearFiltersArg])) {
+
+        	foreach($this->_filters as $id => $filter) {
+        		unset($qs[$id]);
+        	}
+
+            if ($this->_options['resetSortingOnClearFilters']) {
+                $sortArg = $this->_options['sortArg'];
+                unset($qs[$sortArg]);
+            }
+
+            $this->forgetState();
+
+            unset($qs[$clearFiltersArg]);
+
+            return $this->reloadWithNewArgs($qs);
+        }
+
+        return;
+    }
+
+    protected function restorePage($ar, $useSessionKey = false) {
+
+    	$pageArg = $this->_options['pageArg'];
+    	if ($useSessionKey) $pageArg = $this->getSessionKey($pageArg);
+
+    	if (array_key_exists($pageArg, $ar)) {
+
+    		$this->setPage($ar[$pageArg]);
+    		return true;
+
+    	}
+
+    	return false;
+    }
+
+    protected function restoreFilters($ar, $useSessionKey = false) {
+
+    	if (empty($this->_filters)) {
+    		return;
+    	}
+
+    	$key = 'filters';
+    	if ($useSessionKey) $key = $this->getSessionKey('filters');
+    	if (!$key || !array_key_exists($key, $ar)) return false;
+
+    	$ar = $ar[$key];
+
+    	$filterIDs = array_keys($this->_filters);
+    	$filterValues = array();
+
+		foreach($filterIDs as $id) {
+
+			if (array_key_exists($id, $ar)) {
+				$filterValues[$id] = $ar[$id];
+			}
+
+		}
+
+		if (count($filterValues) > 0) {
+			$this->filter($filterValues);
+			return true;
+		}
+
+    	return false;
+
+    }
+
+    protected function restoreSorting($ar, $useSessionKey = false) {
+
+    	$sortArg = $this->_options['sortArg'];
+    	if ($useSessionKey) $sortArg = $this->getSessionKey($sortArg);
+    	if (!$sortArg) return false;
+
+
+		if (!array_key_exists($sortArg, $ar)) {
+			return false;
+		}
+
+    	$sorting = $this->createSortingArray($ar[$sortArg]);
+    	$this->sort($sorting);
+
+    	return true;
+
     }
 
     /**
@@ -724,7 +874,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
         // Let sort(false) == unsort()
         if (count($args) === 1 && $args[0] === false) {
-        	return $this->unsort();
+        	$args = array();
         }
 
         $this->_sorting = $this->resolveSortColumnArgs($args, $newSortingArgs);
@@ -749,18 +899,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      * Removes any sorting applied to this table
      */
     public function unsort() {
-
-    	$this->_sorting = array();
-    	$this->applySorting();
-    	$this->rememberState();
-
-        if ($this->_options['resetPageOnSort']) {
-            $this->setPage(1);
-        }
-
-        $this->invalidate();
-
-        return $this;
+		return $this->sort(false);
     }
 
     /**
@@ -1046,22 +1185,10 @@ END;
     		// Sorting has been set manually, so use that
     		return $this->createSortingArray($this->_sorting);
 
-    	}
-
-    	$qs = $this->getQueryString();
-    	$qsValues = isset($qs[$this->_options['sortArg']]) ? $qs[$this->_options['sortArg']] : array();
-
-    	$sessionKey = $this->getSessionKey('sorting');
-    	if ($sessionKey) {
-    		$sessionValues = isset($_SESSION[$sessionKey]) ? $_SESSION[$sessionKey] : array();
     	} else {
-    		$sessionValues = array();
+    		return $this->getDefaultSorting();
     	}
 
-    	$sorting = $this->createSortingArray($qsValues, $sessionValues);
-    	if (!empty($sorting)) return $sorting;
-
-    	return $this->createSortingArray($this->getDefaultSorting());
     }
 
     private function createSortingArray(/* $arg1, $arg2 */) {
@@ -1205,14 +1332,15 @@ END;
     	}
 
     	$sortArg = $this->_options['sortArg'];
-    	$pageArg = $this->_option['pageArg'];
+    	$pageArg = $this->_options['pageArg'];
 
+    	$uri = $this->getRequestURI(false);
         $actual = $expected = $this->getQueryString();
 
         $sorting = $this->getSortString();
 
         if ($sorting) {
-            $expected[$sortArg] = $sort;
+            $expected[$sortArg] = $sorting;
         } else {
             unset($expected[$sortArg]);
         }
@@ -1242,16 +1370,6 @@ END;
         }
     }
 
-    /**
-     * Looks at external factors, like querystring args and session data,
-     * and restores the table's state.
-     */
-    protected function initFromEnvironment() {
-
-        $this->initFiltersFromEnvironment();
-
-        $this->ensureQueryStringMatchesTableState();
-    }
 
     /**
      * @return Mixed The key used to track $thing in $_SESSION, or false if
@@ -1275,33 +1393,6 @@ END;
     	}
 
     	return ($keys[$thing] = $keys['base'] . $thing);
-    }
-
-    /**
-     * Uses the session and querystring to set initial filter values.
-     */
-    protected function initFiltersFromEnvironment() {
-
-        $qs = $this->getQueryString();
-
- 		// Check if the user has clicked the 'clear filters' link.
-        $clearFiltersArg = $this->_options['clearFiltersArg'];
-
-        if ($clearFiltersArg && !empty($qs[$clearFiltersArg])) {
-
-            $this->clearFilters();
-            unset($qs[$clearFiltersArg]);
-
-            if ($this->_options['resetSortingOnClearFilters']) {
-                $this->sort(false);
-                $sortArg = $this->_options['sortArg'];
-                unset($qs[$sortArg]);
-            }
-
-            return $this->reloadWithNewArgs($qs);
-
-        }
-
     }
 
     /**
@@ -1360,7 +1451,7 @@ END;
 
     	$uri = $this->getRequestURI(false);
 
-		$qs = octopus_http_build_query($qs, '&');
+		$qs = octopus_http_build_query($args, '&');
         if ($qs) $uri .= '?' . $qs;
 
         $this->redirect($uri);

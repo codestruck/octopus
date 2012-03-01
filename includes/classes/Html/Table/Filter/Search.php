@@ -5,12 +5,12 @@
  */
 class Octopus_Html_Table_Filter_Search extends Octopus_Html_Table_Filter_Text {
 
-    public function apply($dataSource, $table) {
+    public function apply(Octopus_DataSource $dataSource) {
 
         $val = $this->val();
 
         if (!$val) {
-            return;
+            return $dataSource;
         }
 
         return $dataSource->matching($val);

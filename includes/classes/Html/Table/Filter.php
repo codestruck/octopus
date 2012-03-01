@@ -77,7 +77,14 @@ abstract class Octopus_Html_Table_Filter {
      * was specified in options.
      */
     protected function defaultApply(Octopus_DataSource $dataSource) {
-    	return $dataSource->filter($this->id, $this->val());
+
+    	$value = trim($this->val());
+
+    	if ($value === '') {
+    		return $dataSource;
+    	}
+
+    	return $dataSource->filter($this->id, $value);
     }
 
     /**
