@@ -163,18 +163,21 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
     // Original data source passed to setDataSource()
     private $_originalDataSource = null;
+
     private $_filteredAndSortedDataSource = null;
-    private $_currentFilters = array();
-    private $_currentSorting = array();
+    private $_currentDataSourceFilters = null; // filter values used when $_filteredAndSortedDataSource was created
+    private $_currentDataSourceSorting = null; // sorting values used when $_filteredAndSortedDataSource was created
 
-    private $_sorting = null;
-    private $_filters = array(); // Octopus_Html_Table_Filter objects, keyed on ID
-    private $_filterValues = array();
-    private $_page = null;
-
-    private $_pager = null;
+    private $_filters = array(); // Keys = id, values = Octopus_Html_Table_Filter object
+    private $_filterValues = array(); // Keys = id, values = corresponding filter
+    private $_page = 1;
+    private $_pager = null; // Octopus_Html_Pager
+    private $_sorting = array();
 
     private $_restored = false;
+    private $_sortCalled = false;
+    private $_filterCalled = false;
+    private $_setPageCalled = false;
 
     private $_sessionKeys = array();
 
@@ -428,12 +431,9 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     public function setPage($page) {
-
-    	$this->_page = $page;
-        $this->rememberState();
-
-        return $this;
+        return $this->internalSetPage($page, true);
     }
+
 
     /**
      * @return Octopus_Html_Pager
@@ -531,6 +531,8 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
         $this->rememberState();
 
+        $this->_filterCalled = true;
+
         return $this;
     }
 
@@ -616,36 +618,37 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
     /**
      * Restores this table's state from the querystring and session storage.
-     * Applies default filtering and sorting if none is specified.
+     * Applies default filtering and sorting if none is specified. If
+     * ::sort(), ::filter(), or ::setPage() have been called before this
+     * method is called, the corresponding thing will not be restored.
      */
     public function restore() {
-
-		//cancel_redirects();
 
 		$qs = $this->getQueryString();
 
 		$this->clearFiltersIfNeeded($qs);
 
-		$restored = array(
-			'sorting' => false,
-			'filters' => false,
-			'page' => false
-		);
-
-
 		// Check querystring / session for sorting information
-		$this->restoreSorting($qs) ||
-			$this->restoreSorting($_SESSION, true) ||
-				$this->sort($this->getDefaultSorting());
+		if (!$this->_sortCalled) {
+			$this->restoreSorting($qs) ||
+				$this->restoreSorting($_SESSION, true) ||
+					$this->sort($this->getDefaultSorting());
+		}
 
 		// Check querystring / session for filter data
-		$this->restoreFilters($qs) ||
-			$this->restoreFilters($_SESSION, true) ||
-				$this->filter($this->getDefaultFilters());
+		if (!$this->_filterCalled) {
+
+			$this->restoreFilters($qs) ||
+				$this->restoreFilters($_SESSION, true) ||
+					$this->filter($this->getDefaultFilters());
+
+		}
 
 		// Check querystring / session for page
-		$this->restorePage($qs) ||
-			$this->restorePage($_SESSION, true);
+		if (!$this->_setPageCalled) {
+			$this->restorePage($qs) ||
+				$this->restorePage($_SESSION, true);
+		}
 
         $this->ensureQueryStringMatchesTableState();
 
@@ -685,10 +688,11 @@ class Octopus_Html_Table extends Octopus_Html_Element {
 
     	$pageArg = $this->_options['pageArg'];
     	if ($useSessionKey) $pageArg = $this->getSessionKey($pageArg);
+    	if (!$pageArg) return false;
 
     	if (array_key_exists($pageArg, $ar)) {
 
-    		$this->setPage($ar[$pageArg]);
+    		$this->internalSetPage($ar[$pageArg], false);
     		return true;
 
     	}
@@ -772,6 +776,10 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      */
     public function &toArray() {
 
+    	if (!$this->_restored) {
+    		$this->restore();
+    	}
+
         $result = array();
 
         $header = array();
@@ -842,6 +850,11 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     	$p->setDataSource($dataSource);
     	$this->_originalDataSource = $p->getDataSource(); // Pager automatically converts e.g. arrays to DataSources
 
+    	$this->_restored = false;
+    	$this->_sortCalled = false;
+    	$this->_filterCalled = false;
+    	$this->_setPageCalled = false;
+
     	$this->invalidate();
 
         return $this;
@@ -887,10 +900,12 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         $this->rememberState();
 
         if ($this->_options['resetPageOnSort']) {
-            $this->setPage(1);
+            $this->internalSetPage(1, false); // set page, but allow restoring page from qs later
         }
 
         $this->invalidate();
+
+        $this->_sortCalled = true;
 
         return $this;
     }
@@ -1024,8 +1039,8 @@ END;
     	$filterValues = $this->getFilterValues();
     	$sorting = $this->getSorting();
 
-    	$filtersChanged = $this->_currentFilters === null ? true : !!array_diff($filterValues, $this->_currentFilters);
-    	$sortingChanged = $this->_currentSorting === null ? true : !!array_diff($sorting, $this->_currentSorting);
+    	$filtersChanged = $this->_currentDataSourceFilters === null ? true : !!array_diff($filterValues, $this->_currentDataSourceFilters);
+    	$sortingChanged = $this->_currentDataSourceSorting === null ? true : !!array_diff($sorting, $this->_currentDataSourceSorting);
 
     	if ($this->_filteredAndSortedDataSource && !($filtersChanged || $sortingChanged)) {
     		return $this->_filteredAndSortedDataSource;
@@ -1057,8 +1072,6 @@ END;
 
         }
 
-        $this->_currentSorting = $sorting;
-        $this->_currentFilters = $filterValues;
         $this->_filteredAndSortedDataSource = $ds;
 
         return $ds;
@@ -1698,6 +1711,13 @@ END;
             }
         }
 
+    }
+
+    private function internalSetPage($page, $markAsCalled) {
+		$this->_page = $page;
+        $this->rememberState();
+        $this->_setPageCalled = $markAsCalled;
+        return $this;
     }
 
     /**

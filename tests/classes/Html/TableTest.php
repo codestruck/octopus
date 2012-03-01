@@ -531,13 +531,15 @@ END
 
         $_GET['page'] = '2';
 
+        $table->restore();
+
         $this->assertEquals(2, $table->getPage());
 
     }
 
     function testInitPageFromQueryStringAfterSort() {
 
-        $table = new Octopus_Html_Table('paging', array('pageSize' => 2));
+        $table = new Octopus_Html_Table('paging', array('pageSize' => 2, 'redirectCallback' => false));
         $table->addColumn('name');
         $table->addColumn('age');
         $table->setDataSource(HtmlTablePerson::all());
@@ -545,6 +547,8 @@ END
         $table->setDefaultSorting('name');
 
         $_GET['page'] = '2';
+
+        $table->restore();
 
         $this->assertEquals(2, $table->getPage());
 
