@@ -4,6 +4,8 @@ class Octopus_DB extends Octopus_Base {
 
     public $queryCount = 0;
 
+    private $_inTransaction = false;
+
     protected function __construct() {
 
         if (class_exists('PDO') && !defined('NO_PDO')) {
@@ -14,6 +16,51 @@ class Octopus_DB extends Octopus_Base {
 
         $this->handle = null;
         $this->queries = array();
+    }
+
+    /**
+     * Starts a new transaction.
+     */
+    public function beginTransaction() {
+
+    	if ($this->_inTransaction) {
+    		throw new Octopus_DB_Exception("A transaction has already been started. You need to commit it or roll it back to start a new one.");
+    	}
+
+    	$this->_inTransaction = true;
+    	$this->driver->beginTransaction();
+    }
+
+    /**
+     * Commits a
+     */
+    public function commitTransaction() {
+
+    	if (!$this->_inTransaction) {
+    		throw new Octopus_DB_Exception("No transaction has been started. Call beginTransaction() before calling commitTransaction() or rollbackTransaction()");
+    	}
+
+    	$this->driver->commitTransaction();
+    	$this->_inTransaction = false;
+    }
+
+    /**
+     * @return Bool Whether ::beginTransaction() has been called, but neither
+     * ::commitTransaction() or ::rollbackTransaction() have been called to
+     * finalize it.
+     */
+    public function inTransaction() {
+    	return $this->_inTransaction;
+    }
+
+    public function rollbackTransaction() {
+
+    	if (!$this->_inTransaction) {
+    		throw new Octopus_DB_Exception("No transaction has been started. Call beginTransaction() before calling commitTransaction() or rollbackTransaction()");
+    	}
+
+    	$this->driver->rollbackTransaction();
+    	$this->_inTransaction = false;
     }
 
     /**

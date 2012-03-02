@@ -87,6 +87,18 @@ class Octopus_DB_Driver_Pdo {
         return $info[2];
     }
 
+    function beginTransaction() {
+    	$this->query('SET AUTOCOMMIT = 0');
+    	$this->query('START TRANSACTION');
+    }
+
+    function commitTransaction() {
+    	$this->query('COMMIT');
+    }
+
+    function rollbackTransaction() {
+    	$this->query('ROLLBACK');
+    }
 }
 
 
