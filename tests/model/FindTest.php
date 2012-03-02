@@ -776,6 +776,40 @@ END;
         $this->assertEquals('Title for Post 2', $result->first()->title);
     }
 
+    function testWhereHasOneNotNull() {
+
+    	// have some 0 and null values
+    	$db = Octopus_DB::singleton();
+    	$db->query('UPDATE find_posts SET author_id = 0 WHERE author_id = 2');
+
+    	$posts = FindPost::find(array(
+    		'author !=' => null
+    	));
+
+    	$this->assertEquals(3, count($posts));
+    	foreach($posts as $p) {
+    		$this->assertTrue(!!$p->author);
+    	}
+
+    }
+
+    function testWhereHasOneNull() {
+
+    	// have some 0 and null values
+    	$db = Octopus_DB::singleton();
+    	$db->query('UPDATE find_posts SET author_id = 0 WHERE author_id = 2');
+
+    	$posts = FindPost::find(array(
+    		'author =' => null
+    	));
+
+    	$this->assertEquals(3, count($posts));
+    	foreach($posts as $p) {
+    		$this->assertFalse(!!$p->author);
+    	}
+
+    }
+
 
     function assertTrueish($condition, $message = null) {
         $this->assertTrue($condition == true, $message);
