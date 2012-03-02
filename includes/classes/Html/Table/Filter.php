@@ -113,7 +113,7 @@ abstract class Octopus_Html_Table_Filter {
      */
     abstract protected function createElement();
 
-    protected function &initializeOptions(&$options) {
+    protected function initializeOptions($options) {
 
         if (is_callable($options)) {
             // Allow passing just a function
