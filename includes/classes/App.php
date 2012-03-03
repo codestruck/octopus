@@ -196,9 +196,18 @@ class Octopus_App {
      */
     public function errorHandler($level, $err, $file, $line) {
 
-        $isErrorOrWarning = ($level & E_ERROR) || ($level & E_WARNING) || ($level & E_USER_WARNING) || ($level & E_USER_ERROR);
+    	if (error_reporting() === 0) {
+    		// This was a suppressed error (@whatever)
+    		return false;
+    	}
 
-        if ($isErrorOrWarning && $this->isDevEnvironment()) {
+    	$isNonSevere = ($level === E_NOTICE) ||
+    				   ($level === E_DEPRECATED) ||
+    				   ($level === E_STRICT) ||
+    				   ($level === E_USER_NOTICE);
+
+        $isSevere = !$isNonSevere;
+        if ($isSevere && $this->isDevEnvironment()) {
 
             if (!empty($this->_options['cancel_redirects_on_error'])) {
                 cancel_redirects();
@@ -207,14 +216,15 @@ class Octopus_App {
         }
 
         $resp = $this->getCurrentResponse();
-        if ($resp) {
-            $resp->setStatus(500);
-        }
 
-        if ($level & E_ERROR || (DEV && $level & E_WARNING)) {
-            if ($resp) {
-                $resp->flush();
+        if ($resp) {
+
+        	if ($isSevere) {
+        		$resp->setStatus(500);
             }
+
+            // Ensure client receives whatever we've been working on.
+			$resp->flush();
         }
 
         if ($this->_prevErrorHandler && !function_exists('xdebug_enable')) {
