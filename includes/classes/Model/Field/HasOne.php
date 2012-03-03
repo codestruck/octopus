@@ -127,7 +127,6 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         $expression = array_filter($expression, 'trim');
 
         if (!$expression) {
-
             // Do simple ID comparison
             if (!$value) {
 
@@ -135,9 +134,13 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
             	// in the column
             	$id = to_id($this->field);
 
-            	if ($operator === '=' || $operator === '!=') {
+            	if ($operator === null || $operator === '=' || $operator === '!=' || $operator === 'NOT') {
 
-            		$conjunction = ($operator === '=' ? 'OR' : 'AND');
+            		if ($operator === '!=' || $operator === 'NOT') {
+            			$conjunction = 'AND';
+            		} else {
+            			$conjunction = 'OR';
+            		}
 
             		$clauses = array(
             			$this->defaultRestrict($id, $operator, $this->getDefaultSearchOperator(), 0, $s, $params, $model),

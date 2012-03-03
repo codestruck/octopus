@@ -5,13 +5,19 @@
     find_author_id="1"
     name="Matt Hinz"
     active="1"
+    favorite_food_id="1"
     />
 
 <find_authors
     find_author_id="2"
     name="Mike Estes"
     active="1"
+    favorite_food_id="0"
     />
+
+<find_foods
+    find_food_id="1"
+    name="Pizza" />
 
 <find_posts
     find_post_id="1"
@@ -35,6 +41,7 @@
     find_post_id="3"
     title="Post 3 - Case Test - FOO"
     slug="post-3-case-test-foo"
+    author_id="0"
     body=""
     display_order="0"
     active="1"

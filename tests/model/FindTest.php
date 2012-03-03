@@ -892,6 +892,31 @@ END;
         $this->assertEquals($item->first()->name, 'Mike Estes');
     }
 
+    function testHasOneNullProperty() {
+
+    	// TODO: dataprovider
+    	$params = array(
+
+    		array(	'', 	2 ),
+    		array(	'=',	2 ),
+    		array(	'!=',	3 ),
+    		array(	'NOT',	3 ),
+
+    	);
+
+    	foreach($params as $p) {
+
+    		list($operator, $expectedCount) = $p;
+	    	if ($operator) $operator = " $operator";
+
+	    	$authors = FindPost::find(array(
+	    		"author.favorite_food{$operator}" => null
+	    	));
+	    	$this->assertEquals($expectedCount, count($authors), "$operator expected $expectedCount");
+	    }
+
+    }
+
 }
 
 
