@@ -2,9 +2,11 @@
 
 class Octopus_Model_Field_Datetime extends Octopus_Model_Field {
 
-    public function __construct($field, $modelClass, $options) {
+    public function __construct($field, $modelClass, $options, $migrateMethod = null) {
 
-        parent::__construct($field, $modelClass, $options);
+    	if (!$migrateMethod) $migrateMethod = 'newDateTime';
+
+        parent::__construct($field, $modelClass, $options, $migrateMethod);
 
         if ($field == 'created') {
             $this->defaultOptions = array(
@@ -21,15 +23,11 @@ class Octopus_Model_Field_Datetime extends Octopus_Model_Field {
         $this->defaultOptions['date_format'] = 'Y-m-d H:i:s';
     }
 
-     public function setValue($model, $value) {
-         $value  = $this->parseDateTime($value);
-         $value = $this->formatDateTime($value);
-         return parent::setValue($model, $value);
-     }
-
-    public function migrate($schema, $table) {
-        $table->newDateTime($this->getFieldName());
-    }
+	public function setValue($model, $value) {
+		$value  = $this->parseDateTime($value);
+		$value = $this->formatDateTime($value);
+		return parent::setValue($model, $value);
+	}
 
     public function restrict($expression, $operator, $value, &$s, &$params, $model) {
         $value = $this->formatDateTime($value, '0000-00-00 00:00:00');

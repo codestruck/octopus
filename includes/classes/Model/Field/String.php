@@ -7,14 +7,16 @@ class Octopus_Model_Field_String extends Octopus_Model_Field {
         $this->defaultOptions['form'] = 'true';
     }
 
-    public function migrate($schema, $table) {
+    public function migrate(Octopus_DB_Schema $schema, Octopus_DB_Schema_Writer $table, $name = null, $autoIncrement = null) {
+
+    	if (!$name) $name = $this->getFieldName();
 
         $length = $this->getLength();
 
         if ($length <= 255) {
-            $table->newTextSmall($this->getFieldName(), $length);
+            $table->newTextSmall($name, $length);
         } else {
-            $table->newTextLarge($this->getFieldName());
+            $table->newTextLarge($name);
         }
 
     }

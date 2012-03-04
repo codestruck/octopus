@@ -32,7 +32,7 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
         return $resultSet;
     }
 
-    public function migrate($schema, $table) {
+    public function migrate(Octopus_DB_Schema $schema, Octopus_DB_Schema_Writer $table, $name = null, $autoIncrement = null) {
 
         $joinTable = $schema->newTable($this->getJoinTableName());
 

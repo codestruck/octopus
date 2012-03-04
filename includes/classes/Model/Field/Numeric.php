@@ -39,18 +39,21 @@ class Octopus_Model_Field_Numeric extends Octopus_Model_Field {
         }
     }
 
-    public function migrate($schema, $table) {
+    public function migrate(Octopus_DB_Schema $schema, Octopus_DB_Schema_Writer $table, $name = null, $autoIncrement = null) {
+
+    	if (!$name) $name = $this->getFieldName();
+    	if ($autoIncrement === null) $autoIncrement = $this->getOption('auto_increment');
 
         if ($decimalPlaces = $this->getOption('decimal_places')) {
             $precision = $this->getOption('precision', 60);
-            $table->newDecimal($this->getFieldName(), $precision, $decimalPlaces);
+            $table->newDecimal($name, $precision, $decimalPlaces);
         } else if ($this->getOption('auto_increment')) {
 
         	// Auto increment == field is being used as ID
-        	$table->newKey($this->getFieldName(), true);
+        	$table->newKey($name, $autoIncrement);
 
         } else {
-            $table->newBigInt($this->getFieldName());
+            $table->newBigInt($name);
         }
 
     }

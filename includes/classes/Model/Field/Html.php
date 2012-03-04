@@ -7,8 +7,9 @@ class Octopus_Model_Field_Html extends Octopus_Model_Field_String {
         $this->defaultOptions['form'] = 'true';
     }
 
-    public function migrate($schema, $table) {
-        $table->newTextLarge($this->getFieldName());
+    public function migrate(Octopus_DB_Schema $schema, Octopus_DB_Schema_Writer $table, $name = null, $autoIncrement = null) {
+    	if (!$name) $name = $this->getFieldName();
+        $table->newTextLarge($name);
     }
 
 }

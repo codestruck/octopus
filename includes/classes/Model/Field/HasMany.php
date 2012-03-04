@@ -31,7 +31,7 @@ class Octopus_Model_Field_HasMany extends Octopus_Model_Field {
         // NOOP
     }
 
-    public function migrate($schema, $table) {
+    public function migrate(Octopus_DB_Schema $schema, Octopus_DB_Schema_Writer $table, $name = null, $autoIncrement = null) {
 
         // TODO: should hasMany require a hasOne on the other class? Or can we
         // do the migration here as well?
