@@ -572,14 +572,6 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
     }
 
     /**
-     * Internal method used to assure this model that its backing DB row still
-     * exists. Used when ResultSets create model instances.
-     */
-    public function recordExists($exists = true) {
-        $this->_exists = $exists;
-    }
-
-    /**
      * Persists this model instance to the database.
      * @return Mixed On save failure, returns false. For models with a single
      * field in their primary key, returns the primary key value. For models

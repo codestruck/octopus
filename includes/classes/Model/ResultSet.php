@@ -627,7 +627,7 @@ END;
         $instance = new $class($id);
         $instance->setData($row);
         $instance->escaped = $this->escaped;
-        $instance->recordExists();
+
         return $instance;
     }
 
