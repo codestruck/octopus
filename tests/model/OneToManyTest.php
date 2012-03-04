@@ -55,7 +55,7 @@ class ModelOneToManyTest extends Octopus_DB_TestCase
         $hammer = new Hammer();
         $hammer->name = 'Using old nail';
         $hammer->nail = 1;
-        $this->assertTrue($hammer->save());
+        $this->assertTrue(!!$hammer->save());
 
         $this->assertEquals('Nail 1', $hammer->nail->name);
     }

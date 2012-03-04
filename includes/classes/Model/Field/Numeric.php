@@ -13,8 +13,13 @@ class Octopus_Model_Field_Numeric extends Octopus_Model_Field {
     public function accessValue($model, $saving = false) {
 
         $value = parent::accessValue($model, $saving);
+        $value = $this->normalizeValue($value, 0);
 
-        return $this->normalizeValue($value, 0);
+        if ($value) {
+        	return $value;
+        }
+
+        return $this->getOption('auto_increment') ? null : $value;
     }
 
     public function setValue($model, $value) {

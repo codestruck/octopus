@@ -51,7 +51,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
     		// We've been passed in an array of data to apply to this instance
     		$this->setData($id);
 
-    	} else {
+    	} elseif (is_numeric($id)) {
 
     		// This is a single, most likely numeric, id. This is going to
     		// happen most of the time.
@@ -64,10 +64,14 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
     		}
 
     		foreach($keys as $key) {
+
     			$key->setValue($this, $id);
     			break;
     		}
 
+    	} else {
+
+    		throw new Octopus_Model_Exception("Bad argument to model constructor: $id");
     	}
 
     }
@@ -324,8 +328,15 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
      * @see ::getDisplayField
      */
     public function getDisplayValue() {
+
         $field = $this->getDisplayField();
-        return $this->getFieldValue($field);
+        $value = $this->getFieldValue($field);
+
+        if ($value === null) {
+        	$value = '';
+        }
+
+        return $value;
     }
 
     /**
