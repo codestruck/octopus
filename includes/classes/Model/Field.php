@@ -106,6 +106,14 @@ abstract class Octopus_Model_Field {
         return $value;
     }
 
+    /**
+     * Called when $model tries to load data from the DB, but the record is
+     * not where it expected it to be.
+     */
+    public function recordDisappeared(Octopus_Model $model) {
+
+    }
+
     public function save($model, $sqlQuery) {
         $sqlQuery->set($this->getFieldName(), $this->accessValue($model, true));
     }

@@ -917,9 +917,20 @@ END;
         if ($row) {
             $this->internalSetData($row, true, false);
             return true;
+        } else {
+
+        	// The record disappeared out from under us!
+        	foreach($this->getFields() as $field) {
+        		// for example, Field_Numeric will reset autoincrement values
+        		// to null here.  This is potentially a different thing than
+        		// an explicit delete
+        		$field->recordDisappeared($this);
+        	}
+
+        	return false;
         }
 
-        return false;
+
     }
 
     /**

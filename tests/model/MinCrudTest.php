@@ -645,7 +645,6 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
     }
 
     function testLazyLoadDoesntOverwriteData() {
-disable_dump_r();
         $post = new Minpost();
         $post->title = "foo";
         $post->display_order = 5;
@@ -654,12 +653,22 @@ disable_dump_r();
         $post = new Minpost($post->id);
         $this->assertEquals("foo", $post->title);
         $this->assertEquals(5, $post->display_order);
-enable_dump_r();
         $post = new Minpost($post->id);
         $post->title = "bar";
 
         $this->assertEquals(5, $post->display_order);
         $this->assertEquals("bar", $post->title);
+
+    }
+
+    function testLazyLoadMissingRecordResetsID() {
+
+    	$post = new Minpost(99999);
+    	$this->assertEquals(99999, $post->id);
+
+    	$this->assertEquals('', $post->title, 'title is empty');
+    	$this->assertEquals(null, $post->id, 'id reset');
+    	$this->assertFalse($post->exists(), 'post does not exist');
 
     }
 

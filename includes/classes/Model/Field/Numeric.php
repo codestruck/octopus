@@ -55,6 +55,14 @@ class Octopus_Model_Field_Numeric extends Octopus_Model_Field {
 
     }
 
+    public function recordDisappeared(Octopus_Model $model) {
+
+    	if ($this->getOption('auto_increment')) {
+    		// reset auto increment values
+    		$model->setInternalValue($this->getFieldName(), null);
+    	}
+    }
+
     public function save($model, $sqlQuery) {
 
     	if ($this->getOption('auto_increment')) {
