@@ -45,7 +45,6 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
      * @param Boolean $cache Whether or not to check for a cached auth result
      */
     public function auth($cache = true) {
-
         if ($cache && $this->checkAuthCache($authed)) {
             return $authed;
         }

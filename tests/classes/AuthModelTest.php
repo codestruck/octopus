@@ -241,6 +241,7 @@ class AuthModelTest extends PHPUnit_Framework_TestCase
         $user = new AuthModelTestUser();
 
         $this->assertTrue($user->login('mike', 'frank'), 'login succeeds');
+        $this->assertEquals(1, $user->id);
         $this->assertTrue($user->auth(), 'auth() succeeds after login');
 
         $d = new Octopus_DB_Delete();

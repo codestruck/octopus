@@ -324,9 +324,16 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
     {
         $post = new Minpost(1);
         $post->delete();
+        $this->assertNull($post->id, 'id reset after delete');
+        $this->assertFalse($post->exists());
 
         $post = new Minpost(1);
-        $this->assertEquals(null, $post->minpost_id);
+        $this->assertEquals(1, $post->minpost_id, 'no existence check run when id passed to constructor');
+        $this->assertFalse($post->exists(), 'existence check fails');
+
+        $post = new Minpost(1);
+        $post->save();
+        $this->assertEquals(3, $post->id, 'id updated when saved after delete');
     }
 
     function testSetBoolToZero()

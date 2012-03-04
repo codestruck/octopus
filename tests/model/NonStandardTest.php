@@ -113,7 +113,7 @@ class ModelNonStandardTest extends PHPUnit_Framework_TestCase
     function testRowNotFound()
     {
         $item = new Different(5);
-        $this->assertEquals(null, $item->different_id);
+        $this->assertEquals(5, $item->different_id);
     }
 
     /**

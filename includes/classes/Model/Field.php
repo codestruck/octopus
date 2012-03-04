@@ -42,6 +42,12 @@ abstract class Octopus_Model_Field {
     }
 
     /**
+     * Hook called after $model is deleted.
+     */
+    public function afterDelete(Octopus_Model $model) {
+    }
+
+    /**
      * @return String The model class this field is defined on.
      */
     public function getModelClass() {

@@ -406,12 +406,13 @@ class ModelManyToManyTest extends Octopus_DB_TestCase
         $count = $db->queryCount;
 
         $group = new Group(1);
+        $this->assertEquals($count, $db->queryCount, 'pass id to ctor does not result in db query');
 
         foreach ($group->products as $product) {
             $this->assertTrue($product->id > 0);
         }
 
-        $this->assertEquals($count + 2, $db->queryCount);
+        $this->assertEquals($count + 1, $db->queryCount, 'read id from everything in many to many takes 1 query');
 
     }
 
@@ -421,12 +422,13 @@ class ModelManyToManyTest extends Octopus_DB_TestCase
         $count = $db->queryCount;
 
         $group = new Group(1);
+        $this->assertEquals($count, $db->queryCount, 'pass id to ctor does not result in db query');
 
         foreach ($group->products as $product) {
             $this->assertTrue($product->id > 0);
         }
 
-        $this->assertEquals($count + 2, $db->queryCount);
+        $this->assertEquals($count + 1, $db->queryCount, 'read id from everything in many to many takes 1 query');
 
     }
 

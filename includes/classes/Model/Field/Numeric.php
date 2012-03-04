@@ -22,6 +22,14 @@ class Octopus_Model_Field_Numeric extends Octopus_Model_Field {
         return $this->getOption('auto_increment') ? null : $value;
     }
 
+    public function afterDelete(Octopus_Model $model) {
+
+    	if ($this->getOption('auto_increment')) {
+    		$model->setInternalValue($this->getFieldName(), null);
+    	}
+
+    }
+
     public function setValue($model, $value) {
 
         $value = $this->normalizeValue($value, false);
