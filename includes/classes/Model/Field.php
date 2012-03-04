@@ -75,6 +75,7 @@ abstract class Octopus_Model_Field {
     }
 
     public function accessValue($model, $saving = false) {
+
         $value = $model->getInternalValue($this->getFieldName());
 
         if ($saving) {

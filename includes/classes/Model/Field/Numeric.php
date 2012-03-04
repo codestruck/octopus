@@ -3,8 +3,11 @@
 class Octopus_Model_Field_Numeric extends Octopus_Model_Field {
 
     public function __construct($field, $modelClass, $options) {
+
         parent::__construct($field, $modelClass, $options);
-        $this->defaultOptions['form'] = 'true';
+
+        $this->defaultOptions['form'] = true;
+        $this->defaultOptions['auto_increment'] = false;
     }
 
     public function accessValue($model, $saving = false) {
@@ -28,6 +31,11 @@ class Octopus_Model_Field_Numeric extends Octopus_Model_Field {
         if ($decimalPlaces = $this->getOption('decimal_places')) {
             $precision = $this->getOption('precision', 60);
             $table->newDecimal($this->getFieldName(), $precision, $decimalPlaces);
+        } else if ($this->getOption('auto_increment')) {
+
+        	// Auto increment == field is being used as ID
+        	$table->newKey($this->getFieldName(), true);
+
         } else {
             $table->newBigInt($this->getFieldName());
         }
@@ -35,6 +43,11 @@ class Octopus_Model_Field_Numeric extends Octopus_Model_Field {
     }
 
     public function save($model, $sqlQuery) {
+
+    	if ($this->getOption('auto_increment')) {
+    		return;
+    	}
+
         $value = $this->accessValue($model, true);
         $sqlQuery->set($this->getFieldName(), $value);
     }
