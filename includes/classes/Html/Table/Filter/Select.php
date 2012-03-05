@@ -65,9 +65,9 @@ class Octopus_Html_Table_Filter_Select extends Octopus_Html_Table_Filter {
     }
 
 
-    protected function &initializeOptions(&$options) {
+    protected function initializeOptions($options) {
 
-        if (is_array($options) && !isset($options['options'])) {
+        if (is_array($options) && !isset($options['options']) && !isset($options['function'])) {
             // Allow passing just the options in
             $htmlOptions = $options;
             $options = array('options' => $htmlOptions);

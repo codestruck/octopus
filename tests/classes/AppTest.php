@@ -198,7 +198,7 @@ END
         $this->errorHandlerCalled = false;
         $this->prevErrorHandler = set_error_handler(array($this, 'errorHandler'));
 
-        @trigger_error('This error should cancel redirects', $level);
+        trigger_error("\n\n(You can ignore this. It is part of a test to make sure redirects are cancelled when errors happen.)\n\n", $level);
         $this->assertEquals($level, $this->errorHandlerCalled, 'error handler was not called: ' . implode(' | ', Octopus_Debug::getErrorReportingFlags($level)));
 
         if ($this->prevErrorHandler) set_error_handler($this->prevErrorHandler);

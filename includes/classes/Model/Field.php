@@ -292,7 +292,7 @@ abstract class Octopus_Model_Field {
         // TODO: if $value is a resultset, do a subquery
 
         // If no operator, and we get an array, then process it as an IN
-        if (strcmp($operator, 'IN') == 0) {
+        if (strcmp($operator, 'IN') === 0) {
 
             $value = is_array($value) ? $value : array($value);
             $expr = '';
@@ -313,8 +313,16 @@ abstract class Octopus_Model_Field {
             }
 
         } else {
-            $params[] = $value;
-            $expr = "`$table`.`$fieldName` $operator ?";
+
+	        if (($operator === '=' || $operator === '!=') && $value === null) {
+	        	// Do is null check
+	        	$n = ($operator === '!=' ? 'NOT ' : '');
+				$expr = "`$table`.`$fieldName` IS {$n}NULL";
+	        } else {
+	        	$params[] = $value;
+	        	$expr = "`$table`.`$fieldName` $operator ?";
+	        }
+
         }
 
         if ($not) {

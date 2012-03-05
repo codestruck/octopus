@@ -776,6 +776,40 @@ END;
         $this->assertEquals('Title for Post 2', $result->first()->title);
     }
 
+    function testWhereHasOneNotNull() {
+
+    	// have some 0 and null values
+    	$db = Octopus_DB::singleton();
+    	$db->query('UPDATE find_posts SET author_id = 0 WHERE author_id = 2');
+
+    	$posts = FindPost::find(array(
+    		'author !=' => null
+    	));
+
+    	$this->assertEquals(3, count($posts));
+    	foreach($posts as $p) {
+    		$this->assertTrue(!!$p->author);
+    	}
+
+    }
+
+    function testWhereHasOneNull() {
+
+    	// have some 0 and null values
+    	$db = Octopus_DB::singleton();
+    	$db->query('UPDATE find_posts SET author_id = 0 WHERE author_id = 2');
+
+    	$posts = FindPost::find(array(
+    		'author =' => null
+    	));
+
+    	$this->assertEquals(3, count($posts));
+    	foreach($posts as $p) {
+    		$this->assertFalse(!!$p->author);
+    	}
+
+    }
+
 
     function assertTrueish($condition, $message = null) {
         $this->assertTrue($condition == true, $message);
@@ -856,6 +890,31 @@ END;
 
         $item = FindAuthor::find(array('find_author_id' => 2));
         $this->assertEquals($item->first()->name, 'Mike Estes');
+    }
+
+    function testHasOneNullProperty() {
+
+    	// TODO: dataprovider
+    	$params = array(
+
+    		array(	'', 	2 ),
+    		array(	'=',	2 ),
+    		array(	'!=',	3 ),
+    		array(	'NOT',	3 ),
+
+    	);
+
+    	foreach($params as $p) {
+
+    		list($operator, $expectedCount) = $p;
+	    	if ($operator) $operator = " $operator";
+
+	    	$authors = FindPost::find(array(
+	    		"author.favorite_food{$operator}" => null
+	    	));
+	    	$this->assertEquals($expectedCount, count($authors), "$operator expected $expectedCount");
+	    }
+
     }
 
 }

@@ -128,6 +128,32 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
 
         if (!$expression) {
             // Do simple ID comparison
+            if (!$value) {
+
+            	// false, null, 0, and '' should all match either zeroes or null values
+            	// in the column
+            	$id = to_id($this->field);
+
+            	if ($operator === null || $operator === '=' || $operator === '!=' || $operator === 'NOT') {
+
+            		if ($operator === '!=' || $operator === 'NOT') {
+            			$conjunction = 'AND';
+            		} else {
+            			$conjunction = 'OR';
+            		}
+
+            		$clauses = array(
+            			$this->defaultRestrict($id, $operator, $this->getDefaultSearchOperator(), 0, $s, $params, $model),
+            			$this->defaultRestrict($id, $operator, $this->getDefaultSearchOperator(), null, $s, $params, $model),
+            			$this->defaultRestrict($id, $operator, $this->getDefaultSearchOperator(), '', $s, $params, $model),
+            		);
+
+            		return '(' . implode(") $conjunction (", $clauses) . ')';
+
+            	}
+
+            }
+
             return $this->defaultRestrict(to_id($this->field), $operator, $this->getDefaultSearchOperator(), $value, $s, $params, $model);
         }
 

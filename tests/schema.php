@@ -14,50 +14,6 @@ function run_creates() {
 
     $db->query($sql);
 
-    // FindTest
-    $sql = "CREATE TABLE find_posts (
-            `find_post_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-            `title` varchar ( 255 ) NOT NULL,
-            `slug` varchar ( 255 ) NOT NULL,
-            `body` text NOT NULL,
-            `author_id` INT( 10 ) NULL,
-            `active` TINYINT NOT NULL DEFAULT 1,
-            `display_order` INT( 10 ) NOT NULL DEFAULT 0,
-            `created` DATETIME NOT NULL,
-            `updated` DATETIME NOT NULL
-            );
-            ";
-
-    $db->query($sql);
-
-    $sql = "
-            CREATE TABLE find_authors (
-            `find_author_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-            `name` varchar ( 255 ) NOT NULL,
-            `active` TINYINT NOT NULL DEFAULT 1
-            )
-            ";
-
-    $db->query($sql);
-
-    $sql = "
-            CREATE TABLE find_categories (
-                `find_category_id` INT(10) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                `name` varchar(255) NOT NULL
-            )
-    ";
-    $db->query($sql);
-
-    $sql = "
-
-            CREATE TABLE find_category_find_post_join (
-                `find_post_id` int not null,
-                `find_category_id` int not null
-            )
-
-    ";
-    $db->query($sql);
-
     // MinCrudTest
     $sql = "CREATE TABLE minposts (
             `minpost_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -102,6 +58,11 @@ function run_creates() {
     $db->query($sql);
 
     // Escape and more
+    Octopus_DB_Schema_Model::makeTable('FindPost');
+    Octopus_DB_Schema_Model::makeTable('FindAuthor');
+    Octopus_DB_Schema_Model::makeTable('FindCategory');
+    Octopus_DB_Schema_Model::makeTable('FindFood');
+
     Octopus_DB_Schema_Model::makeTable('product');
     Octopus_DB_Schema_Model::makeTable('group');
 
@@ -222,6 +183,7 @@ function run_drops() {
     $db->query("DROP TABLE IF EXISTS find_posts");
     $db->query("DROP TABLE IF EXISTS find_authors");
     $db->query("DROP TABLE IF EXISTS find_categories");
+    $db->query("DROP TABLE IF EXISTS find_foods");
 
     $db->query('DROP TABLE IF EXISTS minposts');
 
