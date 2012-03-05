@@ -105,7 +105,10 @@ abstract class Octopus_Html_Table_Filter {
     	}
 
     	$element = $this->createElement();
-    	$this->setElementValue($element, $this->value);
+
+    	if ($element instanceof Octopus_Html_Element) {
+    		$this->setElementValue($element, $this->value);
+    	}
 
     	return $this->element = $element;
     }
@@ -185,7 +188,7 @@ abstract class Octopus_Html_Table_Filter {
 
     	$this->value = $value;
 
-    	if ($this->element) {
+    	if ($this->element && $this->element instanceof Octopus_Html_Element) {
     		$this->setElementValue($this->element, $value);
     	}
 

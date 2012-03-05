@@ -88,7 +88,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         /**
          * Pager to use, or false not to use one.
          */
-        'pager' => 'default',
+        'pager' => true,
 
         /**
          * A function to generate the text for the pager location block.
@@ -606,6 +606,20 @@ class Octopus_Html_Table extends Octopus_Html_Element {
         } else {
             echo $html;
         }
+    }
+
+    /**
+     * Creates an HTML element
+     */
+    public function createPagerElement() {
+
+    	$el = new Octopus_Html_Element('div');
+    	$el->addClass('pager');
+
+    	$pager = $this->getPager();
+    	$pager->renderInto($el);
+
+    	return $el;
     }
 
     /**
@@ -1637,7 +1651,11 @@ END;
                 $wrap->append($label);
             }
 
-            $wrap->append($filter->render(true));
+            $element = $filter->getElement();
+            if ($element) {
+            	$wrap->append($element);
+            }
+
             $parent->append($wrap);
 
             $index++;
@@ -1681,8 +1699,13 @@ END;
     		return '';
     	}
 
-    	$p = $this->getPager();
-    	return $p->render(true);
+    	$el = $this->createPagerElement();
+
+    	if ($el instanceof Octopus_Html_Element) {
+    		return $el->render(true);
+    	} else {
+    		return $el ? $el : '';
+    	}
     }
 
     /**
@@ -1708,6 +1731,7 @@ END;
     private function internalGetPager($updateDataSource = true) {
 
     	if (!$this->_pager) {
+    		$pagerOptions = $this->_options;
     		$this->_pager = new Octopus_Html_Pager($this->_options);
     	}
 

@@ -33,9 +33,29 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
     	'emptyClass' => 'empty',
 
     	/**
+    	 * Class added to the link to the first page
+    	 */
+    	'firstLinkClass' => 'first-page',
+
+    	/**
+    	 * Text used for the link to the first page.
+    	 */
+    	'firstLinkText' => 'First',
+
+    	/**
     	 * Class added to the pager when it is on the first page.
     	 */
     	'firstPageClass' => 'first-page',
+
+    	/**
+    	 * Class used for the link to the last page.
+    	 */
+    	'lastLinkClass' => 'last-page',
+
+    	/**
+    	 * Text used for the link to the last page.
+    	 */
+    	'lastLinkText' => 'Last',
 
     	/**
     	 * Class added to the pager when it is on the last page.
@@ -72,7 +92,7 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
          *
          *	1 2 3 4 <sep> 9 10
          */
-        'separatorText' => '&hellip;'
+        'separatorText' => '&hellip;',
 
     );
 
@@ -82,6 +102,9 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
 
     private $page = null;
     private $pageSize = null;
+
+    private $links = null;
+    private $renderedLinks = false;
 
     protected $requireCloseTag = true;
 
@@ -133,9 +156,22 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
     	$this->dataSource = $ds;
 		$this->limitedDataSource = null;
     	$this->page = null;
-		$this->updateCss();
+		$this->stateChanged();
 
     	return $this;
+    }
+
+    /**
+     * @return Array The Octopus_Html_Elements that make up the paging links.
+     */
+    public function getLinks() {
+
+    	if ($this->links !== null) {
+    		return $this->links;
+    	}
+
+    	return ($this->links = $this->createPagingLinks());
+
     }
 
     /**
@@ -180,7 +216,7 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
     	if ($this->page != $page) {
     		$this->page = $page;
     		$this->limitedDataSource = null;
-    		$this->updateCss();
+    		$this->stateChanged();
     	}
 
     }
@@ -231,7 +267,7 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
     		$this->pageSize = $size;
     		$this->limitedDataSource = null;
     		$this->setPage(1);
-    		$this->updateCss();
+    		$this->stateChanged();
     	}
 
     	return $this;
@@ -297,26 +333,39 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
     }
 
     public function render($return = false, $escape = self::ESCAPE_ATTRIBUTES) {
-    	$this->createPagingLinks();
+
+		if (!$this->renderedLinks) {
+			$this->renderInto($this);
+			$this->renderedLinks = true;
+		}
+
     	return parent::render($return, $escape);
     }
 
+    public function renderInto(Octopus_Html_Element $element) {
+    	foreach($this->getLinks() as $link) {
+    		$element->append($link);
+    	}
+    }
+
     /**
-     * Generates the list of paging links and appends them to the pager.
+     * @return Array Paging link elements.
      */
     protected function createPagingLinks() {
 
     	$o =& $this->options;
-
-    	$this->clear();
-
     	$nums = $this->getPageNumbers();
+		$links = array();
+
     	if (empty($nums)) {
-    		return;
+    		return $links;
     	}
 
+    	$first = $this->createPagingLink(1, $o['firstLinkText'], $o['firstLinkClass']);
+    	if ($first) $links[] = $first;
+
     	$prev = $this->createPagingLink($this->getPreviousPage(), $o['prevLinkText'], $o['prevLinkClass']);
-    	$this->append($prev);
+    	if ($prev) $links[] = $prev;
 
     	$lastNum = null;
     	foreach($nums as $num) {
@@ -327,15 +376,19 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
     		}
 
     		$link = $this->createPagingLink($num);
-    		$this->append($link);
+    		if ($link) $links[] = $link;
 
     		$lastNum = $num;
 
     	}
 
     	$next = $this->createPagingLink($this->getNextPage(), $o['nextLinkText'], $o['nextLinkClass']);
-    	$this->append($next);
+    	if ($next) $links[] = $next;
 
+    	$last = $this->createPagingLink($this->getPageCount(), $o['lastLinkText'], $o['lastLinkClass']);
+    	if ($last) $links[] = $last;
+
+    	return $links;
     }
 
     protected function createPagingLink($page, $text = null, $class = '') {
@@ -346,7 +399,13 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
 
     	$l = new Octopus_Html_Element('a');
     	if ($class) $l->addClass($class);
-    	$l->text($text === null ? $page : $text);
+
+    	if ($text) {
+    		$l->html($text);
+    	} else {
+    		$l->text($page);
+    	}
+
     	$l->href = $this->getPageUrl($page);
 
     	return $l;
@@ -384,7 +443,11 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
     	return $page;
     }
 
-    private function updateCss() {
+    private function stateChanged() {
+
+    	$this->clear(); // TODO: only remove link elements
+    	$this->links = null;
+    	$this->renderedLinks = false;
 
     	$pageCount = $this->getPageCount();
     	$page = $this->getPage();

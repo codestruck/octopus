@@ -287,12 +287,14 @@ END
 		$this->assertHtmlEquals(
 			<<<END
 <div class="pager first-page">
+	<a href="?page=1" class="first-page">First</a>
 	<a href="?page=1" class="prev">Previous</a>
 	<a href="?page=1" class="current">1</a>
 	<a href="?page=2">2</a>
 	<a href="?page=3">3</a>
 	<a href="?page=4">4</a>
 	<a href="?page=2" class="next">Next</a>
+	<a href="?page=10" class="last-page">Last</a>
 </div>
 END
 			,
@@ -317,11 +319,13 @@ END
 		$this->assertHtmlEquals(
 			<<<END
 <div class="pager first-page">
+	<a href="/foo/bar?x=y&amp;active=1&amp;page=1" class="first-page">First</a>
 	<a href="/foo/bar?x=y&amp;active=1&amp;page=1" class="prev">Previous</a>
 	<a href="/foo/bar?x=y&amp;active=1&amp;page=1" class="current">1</a>
 	<a href="/foo/bar?x=y&amp;active=1&amp;page=2">2</a>
 	<a href="/foo/bar?x=y&amp;active=1&amp;page=3">3</a>
 	<a href="/foo/bar?x=y&amp;active=1&amp;page=2" class="next">Next</a>
+	<a href="/foo/bar?x=y&amp;active=1&amp;page=3" class="last-page">Last</a>
 </div>
 END
 			,
