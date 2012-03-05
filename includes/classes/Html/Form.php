@@ -816,7 +816,7 @@ class Octopus_Html_Form extends Octopus_Html_Element {
         }
     }
 
-    public function &renderContent($escape = self::ESCAPE_ATTRIBUTES) {
+    public function renderContent($escape = Octopus_Html_Element::ESCAPE_ATTRIBUTES) {
         // Include the signature field in the rendered content.
         $result = $this->getSignatureFieldHtml() . "\n" . parent::renderContent($escape);
         return $result;

@@ -133,6 +133,7 @@ class Octopus_Image {
         $class = $modes[ $layout['action'] ];
 
         $layoutObj = new StdClass();
+        $layoutObj->constrain = '';
         foreach ($layout as $k => $v) {
             $layoutObj->$k = $v;
         }
