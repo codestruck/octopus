@@ -420,7 +420,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     public function setPageSize($size) {
-    	$p = $this->getPager();
+    	$p = $this->internalGetPager(false);
     	$p->setPageSize($size);
     	return $this;
     }
@@ -439,15 +439,7 @@ class Octopus_Html_Table extends Octopus_Html_Element {
      * @return Octopus_Html_Pager
      */
     public function getPager() {
-
-    	if (!$this->_pager) {
-    		$this->_pager = new Octopus_Html_Pager($this->_options);
-    	}
-
-    	$this->_pager->setDataSource($this->getFilteredAndSortedDataSource());
-    	$this->_pager->setPage($this->getRequestedPage());
-
-    	return $this->_pager;
+    	return $this->internalGetPager(true);
     }
 
     public function getPageCount() {
@@ -1711,6 +1703,21 @@ END;
             }
         }
 
+    }
+
+    private function internalGetPager($updateDataSource = true) {
+
+    	if (!$this->_pager) {
+    		$this->_pager = new Octopus_Html_Pager($this->_options);
+    	}
+
+    	if ($updateDataSource || !$this->_pager->getDataSource()) {
+    		$this->_pager->setDataSource($this->getFilteredAndSortedDataSource());
+    	}
+
+    	$this->_pager->setPage($this->getRequestedPage());
+
+    	return $this->_pager;
     }
 
     private function internalSetPage($page, $markAsCalled) {

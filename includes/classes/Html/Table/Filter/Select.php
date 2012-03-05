@@ -24,6 +24,7 @@ class Octopus_Html_Table_Filter_Select extends Octopus_Html_Table_Filter {
      * @return Octopus_Html_Element The valueless option selected by default.
      */
     public function getDefaultOption() {
+        $this->getElement(); // force <select> creation
         return $this->emptyOption;
     }
 

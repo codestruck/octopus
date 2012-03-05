@@ -291,19 +291,25 @@ abstract class Octopus_Html_Table_Filter {
 
         if (isset(self::$registry[$type])) {
         	$class = self::$registry[$type];
-        } else if (class_exists($type)) {
-        	$class = $type;
 	    } else {
 
-            $class = 'Octopus_Html_Table_Filter_' . camel_case($type, true);
+            $fullClass = 'Octopus_Html_Table_Filter_' . camel_case($type, true);
 
-            if (!class_exists($class)) {
+            if (class_exists($fullClass)) {
+            	$class = $fullClass;
+            } else if (!class_exists($class)) {
                 throw new Octopus_Exception("Filter type not registered: $type");
             }
 
         }
 
-        return new $class($table, $type, $id, $label, $options);
+        $filter = new $class($table, $type, $id, $label, $options);
+
+        if (!$filter instanceof Octopus_Html_Table_Filter) {
+        	throw new Octopus_Exception("Table filter does not extend Octopus_Html_Table_Filter: $class");
+        }
+
+        return $filter;
     }
 
     public static function register($type, $class) {
