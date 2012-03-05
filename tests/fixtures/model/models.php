@@ -100,6 +100,7 @@ class FindAuthor extends Octopus_Model {
             'type' => 'hasMany',
             'model' => 'FindPost'
         ),
+        'favorite_food' => array('type' => 'hasOne', 'model' => 'FindFood'),
         'active'
     );
 
@@ -111,6 +112,10 @@ class FindCategory extends Octopus_Model {
         'name',
     );
 
+}
+
+class FindFood extends Octopus_Model {
+	protected $fields = array('name');
 }
 
 class FindPost extends Octopus_Model {
