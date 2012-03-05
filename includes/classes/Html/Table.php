@@ -1042,13 +1042,7 @@ END;
      */
     protected function getFilteredAndSortedDataSource() {
 
-    	$filterValues = $this->getFilterValues();
-    	$sorting = $this->getSorting();
-
-    	$filtersChanged = $this->_currentDataSourceFilters === null ? true : !!array_diff($filterValues, $this->_currentDataSourceFilters);
-    	$sortingChanged = $this->_currentDataSourceSorting === null ? true : !!array_diff($sorting, $this->_currentDataSourceSorting);
-
-    	if ($this->_filteredAndSortedDataSource && !($filtersChanged || $sortingChanged)) {
+    	if ($this->_filteredAndSortedDataSource) {
     		return $this->_filteredAndSortedDataSource;
     	}
 
@@ -1057,6 +1051,9 @@ END;
     	if (!$ds) {
     		return;
     	}
+
+    	$filterValues = $this->getFilterValues();
+    	$sorting = $this->getSorting();
 
     	foreach($filterValues as $id => $value) {
 
