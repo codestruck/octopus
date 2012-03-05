@@ -175,6 +175,37 @@ abstract class Octopus_App_TestCase extends PHPUnit_Framework_TestCase {
         call_user_func_array(array('Octopus_Html_TestCase', 'staticAssertHtmlEquals'), $args);
     }
 
+    function assertSmartyEquals($expected, $value, $message = '', $replaceMD5 = false, $replaceMtime = false, $assign = array()) {
+
+        $app = $this->getApp();
+
+        $s = Octopus_Smarty::singleton();
+
+        $smartyDir = $this->getSiteDir() . 'smarty/';
+        @mkdir($smartyDir);
+
+        $tplFile = $smartyDir . 'test.' . md5($expected) . '.tpl';
+        @unlink($tplFile);
+
+        file_put_contents($tplFile, $value);
+
+        $s->smarty->template_dir = array($smartyDir);
+
+        $tpl = $s->smarty->createTemplate($tplFile);
+        $tpl->assign($assign);
+        $rendered = $tpl->fetch();
+
+        if ($replaceMD5) {
+            $rendered = preg_replace('/[a-f\d]{32}/i', '[MD5]', $rendered);
+        }
+
+        if ($replaceMtime) {
+            $rendered = preg_replace('/\d{10,}/', '[MTIME]', $rendered);
+        }
+
+        $this->assertHtmlEquals($expected, $rendered, $message);
+    }
+
     function createViewFile($path, $contents = null) {
 
         if (!is_array($path)) {

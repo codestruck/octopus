@@ -5,6 +5,10 @@
      */
     $_SERVER['REQUEST_TIME_MILLISECOND'] = microtime(true);
 
+    if (!defined('E_DEPRECATED')) {
+        define('E_DEPRECATED', 8192);
+    }
+
     /*
      * Flash will send the HTTP_HOST with the port in it on mac
      */

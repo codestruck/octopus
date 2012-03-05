@@ -99,35 +99,4 @@ class UrlTest extends Octopus_App_TestCase {
         $this->assertSmartyEquals($expected, $test, '', false, false);
     }
 
-    // MOVE TO COMMON CLASS OR APP CLASS
-    function assertSmartyEquals($expected, $value, $message = '', $replaceMD5 = false, $replaceMtime = false, $assign = array()) {
-
-        $app = $this->getApp();
-
-        $s = Octopus_Smarty::singleton();
-
-        $smartyDir = $this->getSiteDir() . 'smarty/';
-        @mkdir($smartyDir);
-
-        $tplFile = $smartyDir . 'test.' . md5($expected) . '.tpl';
-        @unlink($tplFile);
-
-        file_put_contents($tplFile, $value);
-
-        $s->smarty->template_dir = array($smartyDir);
-        $tpl = $s->smarty->createTemplate($tplFile, $assign);
-
-        $rendered = $tpl->fetch();
-
-        if ($replaceMD5) {
-            $rendered = preg_replace('/[a-f\d]{32}/i', '[MD5]', $rendered);
-        }
-
-        if ($replaceMtime) {
-            $rendered = preg_replace('/\d{10,}/', '[MTIME]', $rendered);
-        }
-
-        $this->assertHtmlEquals($expected, $rendered, $message);
-    }
-
 }
