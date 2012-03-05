@@ -152,6 +152,10 @@ class Octopus_Debug {
         color: #888;
     }
 
+    table.octopusDebugBacktrace tr.octopusDebugBacktraceSourceSmarty td {
+    	color: #666;
+    }
+
     table.octopusDebugBordered {
         border-collapse: collapse;
     }
@@ -606,6 +610,8 @@ END;
             $class = ($i % 2 ? 'octopusDebugOdd' : 'octopusDebugEven');
             if (preg_match('~^octopus/~', $b['nice_file'])) {
                 $class .= ' octopusDebugBacktraceSourceSys';
+            } else if (preg_match('~^_private/smarty/~', $b['nice_file'])) {
+            	$class .= ' octopusDebugBacktraceSourceSmarty';
             }
             if ($i === 0) $class .= ' octopusDebugFirst';
 

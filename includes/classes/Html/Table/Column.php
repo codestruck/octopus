@@ -51,7 +51,7 @@ class Octopus_Html_Table_Column {
 
     protected $table;
 
-    private $_sorting = false;
+    private $_sort = null; // null = no sort, true = sort asc, false = sort desc
     private $_cell;
     private $_content = array();
     private $_actions = array();
@@ -152,6 +152,18 @@ class Octopus_Html_Table_Column {
         return $this;
     }
 
+    /**
+     * @return $dataSource, with any sorting for this column applied.
+     */
+    public function applySorting(Octopus_DataSource $dataSource) {
+
+    	if ($this->isSorted($dataSource)) {
+    		return $dataSource->sort($this->id, $this->isSortedAsc($dataSource), false);
+    	}
+
+    	return $dataSource;
+    }
+
     public function getAttribute($attr, $default = null) {
         return $this->_cell->getAttribute($attr, $default);
     }
@@ -216,104 +228,70 @@ class Octopus_Html_Table_Column {
 
     /**
      * Sorts this column.
+     * @param Mixed $direction. The direction to sort. Possible values are:
+     *
+     *	ascending - true or 'asc',
+     *  descending - false or 'desc',
+     *
+     * If no argument is supplied, the column is sorted ascending if it is not
+     * already sorted, or the sort direction is inverted.
      */
     public function sort($direction = null) {
 
         if ($direction === null) {
-            if ($this->_sorting && $this->_sorting == OCTOPUS_SORT_ASC) {
-                $direction = OCTOPUS_SORT_DESC;
-            } else {
-                $direction = OCTOPUS_SORT_ASC;
-            }
+
+        	if ($this->_sort === null) {
+        		$direction = true;
+        	} else {
+        		$direction = !$this->_sort;
+        	}
+
         }
 
-        if ($direction === false) {
-            $this->_sorting = false;
-            $this->removeClass('sorted');
-            return $this;
+        if (is_string($direction)) {
+        	$direction = Octopus_Html_Table::parseSortDirection($direction);
         }
 
-        if (is_bool($direction) || is_numeric($direction)) {
-            $direction = $direction ? OCTOPUS_SORT_ASC : OCTOPUS_SORT_DESC;
-        }
-
-        $direction = strtolower($direction);
-        $this->_sorting = $direction;
+        $this->_sort = !!$direction;
         $this->addClass('sorted');
 
         return $this;
     }
 
     /**
-     * Applies this column's sorting to the given result set.
-     * @return A sorted result set.
+     * Removes any sorting applied to this column.
      */
-    public function sortResultSet($resultSet) {
-
-        if (!$this->isSorted($resultSet)) {
-            return $resultSet;
-        }
-
-        $sortCol = $this->options['sortUsing'] ? $this->options['sortUsing'] : $this->id;
-
-        return $resultSet->thenOrderBy(array($sortCol => $this->getSorting()));
+    public function unsort() {
+        $this->_sort = null;
+        $this->removeClass('sorted');
+        return $this;
+    }
+    public function isSorted($dataSource = null) {
+        return $this->_sort !== null && $this->isSortable($dataSource);
     }
 
-    public function getSorting() {
-        return $this->_sorting;
+    public function isSortedAsc($dataSource = null) {
+        return $this->isSorted($dataSource) && ($this->_sort === true);
     }
 
-    public function isSorted(&$dataSource = null) {
-        return $this->isSortable($dataSource) && $this->_sorting;
-    }
-
-    public function isSortedAsc(&$dataSource = null) {
-        return $this->isSorted($dataSource) && (strcasecmp($this->_sorting, OCTOPUS_SORT_ASC) == 0);
-    }
-
-    public function isSortedDesc(&$dataSource = null) {
-        return $this->isSorted($dataSource) && (strcasecmp($this->_sorting, OCTOPUS_SORT_DESC) == 0);
+    public function isSortedDesc($dataSource = null) {
+        return $this->isSorted($dataSource) && ($this->_sort === false);
     }
 
     /**
      * @return bool Whether this column is sortable against the given datasource.
      */
-    public function isSortable(&$dataSource = null) {
+    public function isSortable($dataSource = null) {
 
         if (!$dataSource) {
             return !empty($this->options['sortable']);
         }
 
         if ($this->options['sortable'] === null) {
-            return $this->shouldBeSortable($dataSource);
+        	return $dataSource->isSortable($this->id);
         }
 
         return !!$this->options['sortable'];
-    }
-
-    /**
-     * @return bool Whether this column should be marked as 'sortable' for the
-     * given datasource, all other things being equal.
-     */
-    public function shouldBeSortable(&$dataSource) {
-
-        if (!empty($this->options['sortUsing'])) {
-            return true;
-        } else if (class_exists('Octopus_Model_ResultSet') && $dataSource instanceof Octopus_Model_ResultSet) {
-            return $this->shouldBeSortableAgainstResultSet($dataSource);
-        } else if (is_array($dataSource)) {
-            return true;
-        } else if (is_string($dataSource)) {
-            return true;
-        } else {
-            return false;
-        }
-
-    }
-
-    protected function shouldBeSortableAgainstResultSet($resultSet) {
-        $field = $resultSet->getModelField($this->id);
-        return !!$field;
     }
 
     /**

@@ -5,6 +5,24 @@
  */
 class ElementTests extends Octopus_Html_TestCase {
 
+	function testTextEscapesProperly() {
+
+		$e = new Octopus_Html_Element('span');
+		$e->text(<<<END
+'quotes should be intact, <> but "angle brackets" should be escaped'
+END
+		);
+
+		$this->assertHtmlEquals(
+			<<<END
+<span>'quotes should be intact, &lt;&gt; but "angle brackets" should be escaped'</span>
+END
+			,
+			$e->render(true)
+		);
+
+	}
+
 	function testDontEscapeAttributesDeep() {
 
 		$el = new Octopus_Html_Element('span');

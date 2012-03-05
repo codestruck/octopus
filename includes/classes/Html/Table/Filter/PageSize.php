@@ -18,8 +18,8 @@ class Octopus_Html_Table_Filter_PageSize extends Octopus_Html_Table_Filter {
 
     }
 
-    public function apply($dataSource, $table) {
-        $table->setPageSize($this->val());
+    public function apply(Octopus_DataSource $dataSource) {
+        $this->table->setPageSize($this->val());
         return $dataSource;
     }
 
