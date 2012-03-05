@@ -1191,7 +1191,7 @@ END;
         $pagerData = $this->getPagerData();
 
         if ($pagerData['totalItems'] == 0) {
-            $td = new Octopus_Html_Element('td', array('class' => 'emptyNotice'));
+            $td = new Octopus_Html_Element('td', array('class' => 'emptyNotice', 'colspan' => count($this->_columns)));
             $td->html($this->_options['emptyContent']);
             return '<tbody class="emptyNotice"><tr>' . $td . '</tr></tbody>';
         }
