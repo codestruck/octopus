@@ -9,6 +9,7 @@ class NaturalIdProduct extends Octopus_Model {
 	protected $fields = array(
 		'name',
 		'category' => array('type' => 'hasOne', 'model' => 'NaturalIdCategory'),
+		'favorite_users' => array('type' => 'hasMany', 'model' => 'NaturalIdUser', 'key' => 'favorite_product'),
 		'created',
 		'updated'
 	);
@@ -18,7 +19,7 @@ class NaturalIdProduct extends Octopus_Model {
 class NaturalIdCategory extends Octopus_Model {
 
 	protected $fields = array(
-		'name'
+		'name',
 	);
 
 }
@@ -187,7 +188,9 @@ class NaturalIdTest extends Octopus_App_TestCase {
 
 		$r = new Octopus_DB_Schema_Reader('natural_id_product_natural_id_user_join');
 		$fields = $r->getFields();
-		dump_r($fields);
+		//dump_r($fields);
+
+		// TODO: test that there's a 2-col primary key
 	}
 
 	function testHasOne() {
@@ -304,7 +307,55 @@ class NaturalIdTest extends Octopus_App_TestCase {
 			$s->fetchAll()
 		);
 
+	}
 
+	function testHasMany() {
+
+		$pen = new NaturalIdProduct(array('my_natural_id' => 9999, 'name' => 'pen'));
+		$pen->save();
+
+		$joe = new NaturalIdUser(array('name' => 'joe', 'favorite_product' => $pen));
+		$joe->save();
+
+		$bob = new NaturalIdUser(array('name' => 'bob', 'favorite_product' => $pen));
+		$bob->save();
+
+		$jim = new NaturalIdUser(array('name' => 'jim'));
+		$jim->save();
+
+		$this->assertEquals(2, count($pen->favorite_users), 'correct # of things in hasmany');
+
+		/*
+		TODO: Do we not support ->has* on hasmanys?
+		$this->assertTrue($pen->hasFavoriteUser($joe));
+		$this->assertTrue($pen->hasFavoriteUser($bob));
+		$this->assertFalse($pen->hasFavoriteUser($jim));
+		*/
+
+		$data = array(
+			$joe->id => true,
+			$bob->id => true
+		);
+
+		foreach($pen->favorite_users as $user) {
+			unset($data[$user->id]);
+		}
+
+		$this->assertEquals(0, count($data), 'correct users found in hasmany');
+
+		/*
+		$pen->removeFavoriteUser($joe);
+		$this->assertNull($joe->favorite_product);
+		$this->assertEquals(1, count($pen->favorite_users));
+
+		$pen->addFavoriteUser($joe);
+		$this->assertEquals($pen, $joe->favorite_product);
+		$this->assertEquals(2, count($pen->favorite_users));
+		*/
+
+		$pen->addFavoriteUser($jim);
+		$this->assertTrue($pen->eq($jim->favorite_product));
+		$this->assertEquals(3, count($pen->favorite_users));
 
 	}
 

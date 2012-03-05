@@ -53,8 +53,11 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
         	$joinPrimaryKey[] = $field->getFieldName();
         }
 
+        /*
+        TODO: individual indexes on columns + 2 col primary key currently craps out
         sort($joinPrimaryKey);
         $joinTable->newPrimaryKey($joinPrimaryKey);
+        */
 
     	$joinTable->create();
 
