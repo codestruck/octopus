@@ -309,6 +309,35 @@ abstract class Octopus_Model_Field {
             $table = $model->getTableName();
         }
 
+        if (is_array($fieldName)) {
+
+        	if (empty($fieldName)) {
+        		return '';
+        	}
+
+        	if (!is_array($value)) {
+        		throw new Octopus_Model_Exception("For arrays of field names, values must be an array as well.");
+        	}
+
+        	// Many-to-many uses this for restriction
+        	$result = array();
+        	foreach($fieldName as $field) {
+        		$fieldValue = array_shift($value);
+        		$result[] = self::defaultRestrict(
+        			array($table, $field),
+        			$operator,
+        			$defaultOperator,
+        			$fieldValue,
+        			$s,
+        			$params,
+        			$model
+        		);
+        	}
+
+        	return '(' . implode(') AND (', $result) . ')';
+        }
+
+
         if (!$operator) {
             $operator = is_array($value) ? 'IN' : $defaultOperator;
         }

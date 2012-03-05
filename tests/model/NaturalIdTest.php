@@ -27,6 +27,7 @@ class NaturalIdUser extends Octopus_Model {
 
 	protected $fields = array(
 		'favorite_product' => array('type' => 'hasOne', 'model' => 'NaturalIdProduct'),
+		'cart_product' => array('type' => 'manyToMany', 'model' => 'NaturalIdProduct'),
 		'name'
 	);
 
@@ -46,6 +47,7 @@ class NaturalIdTest extends Octopus_App_TestCase {
 		$db->query('TRUNCATE TABLE natural_id_products');
 		$db->query('TRUNCATE TABLE natural_id_categories');
 		$db->query('TRUNCATE TABLE natural_id_users');
+		$db->query('TRUNCATE TABLE natural_id_product_natural_id_user_join');
 
 	}
 
@@ -182,6 +184,10 @@ class NaturalIdTest extends Octopus_App_TestCase {
 		$expected['index'] = 'INDEX';
 
 		$this->assertEquals($expected, $actual);
+
+		$r = new Octopus_DB_Schema_Reader('natural_id_product_natural_id_user_join');
+		$fields = $r->getFields();
+		dump_r($fields);
 	}
 
 	function testHasOne() {
@@ -203,6 +209,101 @@ class NaturalIdTest extends Octopus_App_TestCase {
 
 		$user = new NaturalIdUser($user->id);
 		$this->assertTrue($product->eq($user->favorite_product), 'related thing loaded by natural id');
+
+
+	}
+
+	function testManyToMany() {
+
+		$pen = new NaturalIdProduct(array(
+			'my_natural_id' => 8888,
+			'name' => 'pen'
+		));
+		$this->assertEquals(8888, $pen->id);
+		$this->assertTrue(!!$pen->save(), 'pen save succeeds');
+
+		$pencil = new NaturalIdProduct(array(
+			'my_natural_id' => 9999,
+			'name' => 'pencil'
+		));
+		$this->assertEquals(9999, $pencil->id);
+		$this->assertTrue(!!$pencil->save(), 'pencil save succeeds');
+
+		$user = new NaturalIdUser(array(
+			'name' => __METHOD__
+		));
+		$user->save();
+
+		$user->addCartProduct($pen);
+		$user->addCartProduct($pencil);
+
+		$this->assertTrue($user->hasCartProduct($pen), 'has pen');
+		$this->assertTrue($user->hasCartProduct($pencil), 'has pencil');
+
+		$s = new Octopus_DB_Select();
+		$s->table('natural_id_product_natural_id_user_join');
+		$this->assertEquals(
+			array(
+				array(
+					'natural_id_user_id' => '1',
+					'my_natural_id' => '8888',
+				),
+				array(
+					'natural_id_user_id' => '1',
+					'my_natural_id' => '9999',
+				)
+			),
+			$s->fetchAll()
+		);
+
+		$user->removeCartProduct($pen);
+
+		$this->assertFalse($user->hasCartProduct($pen), 'pen removed');
+		$this->assertTrue($user->hasCartProduct($pencil), 'has pencil');
+
+		$s = new Octopus_DB_Select();
+		$s->table('natural_id_product_natural_id_user_join');
+		$this->assertEquals(
+			array(
+				array(
+					'natural_id_user_id' => '1',
+					'my_natural_id' => '9999',
+				)
+			),
+			$s->fetchAll()
+		);
+
+		$user->addCartProduct($pen);
+		$this->assertTrue($user->hasCartProduct($pen), 'has pen');
+		$this->assertTrue($user->hasCartProduct($pencil), 'has pencil');
+
+		$s = new Octopus_DB_Select();
+		$s->table('natural_id_product_natural_id_user_join');
+		$this->assertEquals(
+			array(
+				array(
+					'natural_id_user_id' => '1',
+					'my_natural_id' => '9999',
+				),
+				array(
+					'natural_id_user_id' => '1',
+					'my_natural_id' => '8888',
+				),
+			),
+			$s->fetchAll()
+		);
+
+		$user->removeAllCartProducts();
+		$this->assertFalse($user->hasCartProduct($pen), 'pen removed');
+		$this->assertFalse($user->hasCartProduct($pencil), 'pencil removed');
+
+		$s = new Octopus_DB_Select();
+		$s->table('natural_id_product_natural_id_user_join');
+		$this->assertEquals(
+			array(),
+			$s->fetchAll()
+		);
+
 
 
 	}

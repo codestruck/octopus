@@ -36,14 +36,28 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
 
         $joinTable = $schema->newTable($this->getJoinTableName());
 
-        $modelKey = $this->getModelKey();
-        $joinKey = $this->getJoinedKey();
+        $modelKeyFields = $this->getModelKeyFields();
+        $joinKeyFields = $this->getJoinKeyFields();
 
-        $joinTable->newKey($modelKey);
-        $joinTable->newIndex($modelKey);
-        $joinTable->newKey($joinKey);
-        $joinTable->newIndex($joinKey);
-        $joinTable->create();
+        $joinPrimaryKey = array();
+
+        foreach($modelKeyFields as $field) {
+        	$field->migrate($schema, $joinTable, null, false);
+        	$joinTable->newIndex($field->getFieldName());
+        	$joinPrimaryKey[] = $field->getFieldName();
+        }
+
+        foreach($joinKeyFields as $field) {
+        	$field->migrate($schema, $joinTable, null, false);
+        	$joinTable->newIndex($field->getFieldName());
+        	$joinPrimaryKey[] = $field->getFieldName();
+        }
+
+        sort($joinPrimaryKey);
+        $joinTable->newPrimaryKey($joinPrimaryKey);
+
+    	$joinTable->create();
+
     }
 
     /**
@@ -52,10 +66,28 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
     public function restrict($expression, $operator, $value, &$s, &$params, $model) {
 
         $joinTable = $this->getJoinTableName();
-        $s->innerJoin($joinTable, $this->getModelKey(), array());
-        $foreignKey = $this->getJoinedKey();
 
-        return $this->defaultRestrict(array($joinTable, $foreignKey), $operator, $this->getDefaultSearchOperator(), $value, $s, $params, $model);
+        $on = array();
+        foreach($this->getModelKeyFields() as $field) {
+        	$on[] = $field->getFieldName();
+        }
+
+        $s->innerJoin($joinTable, $on, array());
+
+        $foreign = array();
+        foreach($this->getJoinKeyFields() as $field) {
+        	$foreign[] = $field->getFieldName();
+        }
+
+        $foreignCount = count($foreign);
+
+        if ($foreignCount === 0) {
+        	throw new Octopus_Model_Exception("Not enough join key fields");
+        } else if ($foreignCount === 1) {
+        	$foreign = array_shift($foreign);
+        }
+
+        return $this->defaultRestrict(array($joinTable, $foreign), $operator, $this->getDefaultSearchOperator(), $value, $s, $params, $model);
     }
 
     public function getFieldName() {
@@ -80,21 +112,23 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
     }
 
     /**
-     * @return String The key in the join table used by the left side of this
-     * many-to-many relationship. For the relationship "categories" on Product,
-     * this would return "product_id".
+     * @return Array The primary key fields for the model on the lefthand side
+     * of this many-to-many relationship.
      */
-    protected function getModelKey() {
-        return to_id($this->getModelClass());
+    protected function getModelKeyFields() {
+    	$modelClass = $this->getModelClass();
+    	$m = new $modelClass();
+    	return $m->getPrimaryKeyFields();
     }
 
     /**
-     * @return String The key in the join table used by the target of this
-     * many-to-many relationship. For the relationship "categories" on
-     * Product, this would return "category_id".
+     * @return Array The primary key fields for the model on the righthand
+     * side of this many-to-many relationship.
      */
-    protected function getJoinedKey() {
-        return to_id($this->getJoinedModelClass());
+    protected function getJoinKeyFields() {
+        $class = $this->getJoinedModelClass();
+        $m = new $class();
+        return $m->getPrimaryKeyFields();
     }
 
     /**
@@ -193,8 +227,19 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
 
             $i = new Octopus_DB_Insert();
             $i->table($this->getJoinTableName());
-            $i->set($model->getPrimaryKey(), $model->id);
-            $i->set($obj->getPrimaryKey(), $obj->id);
+
+            foreach($this->getModelKeyFields() as $field) {
+            	$name = $field->getFieldName();
+            	$value = $field->accessValue($model);
+            	$i->set($name, $value);
+            }
+
+            foreach($this->getJoinKeyFields() as $field) {
+            	$name = $field->getFieldName();
+            	$value = $field->accessValue($obj);
+            	$i->set($name, $value);
+            }
+
             $i->execute();
         }
 
@@ -203,26 +248,27 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
     /**
      * @return Boolean Whether $obj is present on $model
      */
-    public function checkHas($obj, $model) {
+    public function checkHas($obj, Octopus_Model $model) {
 
-        if (!is_numeric($obj)) {
+    	$joinedClass = $this->getJoinedModelClass();
 
-            $joinedClass = $this->getJoinedModelClass();
-
-            if (!$obj instanceof $joinedClass) {
-                return false;
-            }
-
-            $id = $obj->id;
-
-        } else {
-            $id = $obj;
+    	if (is_numeric($obj)) {
+    		// id
+    		$obj = new $joinedClass($obj);
+    	} else if (!$obj instanceof $joinedClass) {
+            return false;
         }
 
         $s = new Octopus_DB_Select();
         $s->table($this->getJoinTableName());
-        $s->where($this->getModelKey() . ' = ?', $model->id);
-        $s->where($this->getJoinedKey() . ' = ?', $id);
+
+        if (!$this->limitToModel($s, $model)) {
+        	return false;
+        }
+
+        if (!$this->limitToModel($s, $obj)) {
+        	return false;
+        }
 
         $query = $s->query();
 
@@ -236,13 +282,36 @@ class Octopus_Model_Field_ManyToMany extends Octopus_Model_Field {
 
         $d = new Octopus_DB_Delete();
         $d->table($this->getJoinTableName());
-        $d->where($model->getPrimaryKey() . ' = ?', $model->id);
 
-        if ($other) {
-            $d->where($other->getPrimaryKey() . ' = ?', $other->id);
+        if (!$this->limitToModel($d, $model)) {
+        	return;
+        }
+
+        if ($other && !$this->limitToModel($d, $other)) {
+        	return;
         }
 
         $d->execute();
+    }
+
+    /**
+     * Limits a query to the join table to a specific model instance.
+     */
+    private function limitToModel($s, Octopus_Model $model) {
+
+    	$nonFalsey = 0;
+
+    	foreach($model->getPrimaryKeyFields() as $field) {
+
+    		$value = $field->accessValue($model);
+    		if ($value) $nonFalsey++;
+
+    		$s->where($field->getFieldName() . ' = ?', $value);
+
+    	}
+
+    	return $nonFalsey > 0;
+
     }
 
 
