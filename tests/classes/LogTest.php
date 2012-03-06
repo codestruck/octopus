@@ -48,16 +48,37 @@ class LogTest extends Octopus_App_TestCase {
 
 			$this->lastLevel = null;
 			$this->lastMessage = null;
+			$this->lastLog = null;
 
 			Octopus_Log::write(__METHOD__, $testLevel, 'blerg');
 
 			if ($testLevel >= $level) {
 				$this->assertEquals($testLevel, $this->lastLevel);
 				$this->assertEquals('blerg', $this->lastMessage);
+				$this->assertEquals(__METHOD__, $this->lastLog);
 			} else {
 				$this->assertNull($this->lastLevel);
 				$this->assertNull($this->lastMessage);
+				$this->assertNull($this->lastLog);
 			}
+
+			$this->lastLevel = null;
+			$this->lastMessage = null;
+			$this->lastLog = null;
+
+			$convenienceMethod = camel_case(Octopus_Log::getLevelName($testLevel));
+			call_user_func(array('Octopus_Log', $convenienceMethod), __METHOD__, 'blerg');
+
+			if ($testLevel >= $level) {
+				$this->assertEquals($testLevel, $this->lastLevel);
+				$this->assertEquals('blerg', $this->lastMessage);
+				$this->assertEquals(__METHOD__, $this->lastLog);
+			} else {
+				$this->assertNull($this->lastLevel);
+				$this->assertNull($this->lastMessage);
+				$this->assertNull($this->lastLog);
+			}
+
 
 		}
 
@@ -115,7 +136,11 @@ END
 
 		for($i = 1; $i <= 10; $i++) {
 
-			$file = $this->getPrivateDir() . 'test-log-dir/' . to_slug(__METHOD__) . ".$i.log";
+			$num = "0000{$i}";
+			$num = substr($num, -3);
+
+			$dir = $this->getPrivateDir() . 'test-log-dir/';
+			$file = $dir . to_slug(__METHOD__) . ".{$num}.log";
 			if ($i <= 3) {
 				$this->assertTrue(is_file($file), "Exists: $file");
 			} else {
