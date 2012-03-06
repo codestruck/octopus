@@ -609,15 +609,22 @@ class Octopus_Html_Table extends Octopus_Html_Element {
     }
 
     /**
-     * Creates an HTML element
+     * Creates an HTML element that includes paging links.
+     * Octopus_Html_Table_Filter_Pager uses this when rendering a pager in
+     * the filter area.
      */
     public function createPagerElement() {
 
-    	$el = new Octopus_Html_Element('div');
-    	$el->addClass('pager');
-
     	$pager = $this->getPager();
-    	$pager->renderInto($el);
+
+    	$el = new Octopus_Html_Element('div', array('class' => 'pager'));
+
+    	$links = new Octopus_Html_Element('div', array('class' => 'pagerLinks'));
+    	$pager->renderInto($links);
+    	$el->append($links);
+
+		$pos = $this->createPositionElement();
+    	if ($pos) $el->append($pos);
 
     	return $el;
     }
@@ -1746,6 +1753,38 @@ END;
         $this->rememberState();
         $this->_setPageCalled = $markAsCalled;
         return $this;
+    }
+
+    /**
+     * Creates the little note describing where you are in the table.
+     */
+    protected function createPositionElement() {
+
+    	$pager = $this->getPager();
+
+    	$page = $pager->getPage();
+    	$pageCount = $pager->getPageCount();
+    	$pageSize = $pager->getPageSize();
+    	$itemCount = count($pager->getDataSource());
+
+    	if ($itemCount === 0) {
+    		return;
+    	}
+
+    	$first = (($page - 1) * $pageSize) + 1;
+    	$last = min($first + $pageSize - 1, $itemCount);
+
+    	$first = number_format($first);
+    	$last = number_format($last);
+    	$itemCount = number_format($itemCount);
+
+    	$el = new Octopus_Html_Element('div', array('class' => 'pagerLoc'));
+    	$el->html(<<<END
+Showing <span class="pagerRangeStart">$first</span> to <span class="pagerRangeEnd">$last</span> of <span class="pagerItemCount">$itemCount</span>
+END
+		);
+
+		return $el;
     }
 
     /**

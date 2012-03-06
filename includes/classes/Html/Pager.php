@@ -86,6 +86,8 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
 
         'prevLinkText' => 'Previous',
 
+        'renderIrrelevantLinks' => false,
+
         /**
          * Text content for spacers placed between two paging links to indicate
          * there are more pages between them, e.g.:
@@ -361,11 +363,15 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
     		return $links;
     	}
 
-    	$first = $this->createPagingLink(1, $o['firstLinkText'], $o['firstLinkClass']);
-    	if ($first) $links[] = $first;
+    	$pageNum = $this->getPage();
 
-    	$prev = $this->createPagingLink($this->getPreviousPage(), $o['prevLinkText'], $o['prevLinkClass']);
-    	if ($prev) $links[] = $prev;
+    	if ($pageNum > 1 || $o['renderIrrelevantLinks']) {
+    		$first = $this->createPagingLink(1, $o['firstLinkText'], $o['firstLinkClass']);
+    		if ($first) $links[] = $first;
+
+	    	$prev = $this->createPagingLink($this->getPreviousPage(), $o['prevLinkText'], $o['prevLinkClass']);
+    		if ($prev) $links[] = $prev;
+    	}
 
     	$lastNum = null;
     	foreach($nums as $num) {
@@ -382,11 +388,13 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
 
     	}
 
-    	$next = $this->createPagingLink($this->getNextPage(), $o['nextLinkText'], $o['nextLinkClass']);
-    	if ($next) $links[] = $next;
+    	if ($pageNum < $this->getPageCount() || $o['renderIrrelevantLinks']) {
+    		$next = $this->createPagingLink($this->getNextPage(), $o['nextLinkText'], $o['nextLinkClass']);
+    		if ($next) $links[] = $next;
 
-    	$last = $this->createPagingLink($this->getPageCount(), $o['lastLinkText'], $o['lastLinkClass']);
-    	if ($last) $links[] = $last;
+	    	$last = $this->createPagingLink($this->getPageCount(), $o['lastLinkText'], $o['lastLinkClass']);
+    		if ($last) $links[] = $last;
+    	}
 
     	return $links;
     }
@@ -406,6 +414,7 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
     		$l->text($page);
     	}
 
+    	$l->title = 'Page ' . $page;
     	$l->href = $this->getPageUrl($page);
 
     	return $l;

@@ -1244,8 +1244,6 @@ END;
 
     function testPaging() {
 
-    	return $this->markTestSkipped();
-
         $table = new Octopus_Html_Table('paging');
         $table->addColumn('name');
         $table->addColumn('age');
@@ -1278,8 +1276,10 @@ END;
     <tfoot>
         <tr>
             <td class="pager" colspan="2">
-                <div class="pager"><a href="?page=1" class="current">1</span>&nbsp;<a href="?page=2" title="page 2">2</a>&nbsp;<a href="?page=3" title="page 3">3</a>&nbsp;<a href="?page=4" title="page 4">4</a>&nbsp;<a href="?page=5" title="page 5">5</a>&nbsp;<a href="?page=6" title="page 6">6</a>&nbsp;<a href="?page=7" title="page 7">7</a>&nbsp;<a href="?page=8" title="page 8">8</a>&nbsp;<a href="?page=9" title="page 9">9</a>&nbsp;<a href="?page=10" title="page 10">10</a>&nbsp;<a href="?page=2" title="next page">Next &raquo;</a>&nbsp;</div>
-                <div class="pagerLoc"> Showing 1 to 10 of 100 </div>
+            	<div class="pager">
+                	<div class="pagerLinks"><a href="?page=1" class="current" title="Page 1">1</a><a href="?page=2" title="Page 2">2</a><a href="?page=3" title="Page 3">3</a><a href="?page=4" title="Page 4">4</a><a href="?page=2" class="next" title="Page 2">Next</a><a href="?page=10" class="last-page" title="Page 10">Last</a></div>
+                	<div class="pagerLoc">Showing <span class="pagerRangeStart">1</span> to <span class="pagerRangeEnd">10</span> of <span class="pagerItemCount">100</span></div>
+                </div>
             </td>
         </tr>
     </tfoot>
@@ -1316,8 +1316,8 @@ END;
 <table id="paging" border="0" cellpadding="0" cellspacing="0">
     <thead class="columns">
         <tr>
-            <th class="name firstCell sortable"><a href="?sort=name">Name</a></th>
-            <th class="age lastCell sortable"><a href="?sort=age">Age</a></th>
+            <th class="name firstCell sortable"><a href="?sort=name"><span class="sortMarker">Name</span></a></th>
+            <th class="age lastCell sortable"><a href="?sort=age"><span class="sortMarker">Age</span></a></th>
         </tr>
     </thead>
     <tbody>
@@ -1328,8 +1328,10 @@ END;
     <tfoot>
         <tr>
             <td class="pager" colspan="2">
-                <div class="pagerLinks"><a href="?page=1" title="previous page">&laquo; Previous</a>&nbsp;<a href="?page=1" title="page 1">1</a>&nbsp;<span class="current">2</span>&nbsp;<a href="?page=3" title="page 3">3</a>&nbsp;<a href="?page=4" title="page 4">4</a>&nbsp;<a href="?page=5" title="page 5">5</a>&nbsp;<a href="?page=6" title="page 6">6</a>&nbsp;<a href="?page=7" title="page 7">7</a>&nbsp;<a href="?page=8" title="page 8">8</a>&nbsp;<a href="?page=9" title="page 9">9</a>&nbsp;<a href="?page=10" title="page 10">10</a>&nbsp;<a href="?page=3" title="next page">Next &raquo;</a>&nbsp;</div>
-                <div class="pagerLoc"> Showing 11 to 20 of 100 </div>
+            	<div class="pager">
+                	<div class="pagerLinks"><a href="?page=1" class="first-page" title="Page 1">First</a><a href="?page=1" class="prev" title="Page 1">Previous</a><a href="?page=1" title="Page 1">1</a><a href="?page=2" class="current" title="Page 2">2</a><a href="?page=3" title="Page 3">3</a><a href="?page=4" title="Page 4">4</a><a href="?page=3" class="next" title="Page 3">Next</a><a href="?page=10" class="last-page" title="Page 10">Last</a></div>
+                	<div class="pagerLoc">Showing <span class="pagerRangeStart">11</span> to <span class="pagerRangeEnd">20</span> of <span class="pagerItemCount">100</span></div>
+                </div>
             </td>
         </tr>
     </tfoot>
@@ -1357,77 +1359,19 @@ END;
             $table->render(true)
         );
 
-        $sortedFirstPage = str_replace('th class="name firstCell sortable"', 'th class="name sorted firstCell sortable sortAsc"', $firstPage);
-        $sortedFirstPage = str_replace('td class="name firstCell"', 'td class="name sorted firstCell"', $sortedFirstPage);
-        $sortedFirstPage = preg_replace('/\?sort=name/', '?sort=%21name', $sortedFirstPage);
-        $sortedFirstPage = preg_replace('/\?sort=age/', '?sort=age%2Cname', $sortedFirstPage);
+		$table->sort('name');
+		$this->assertEquals(1, $table->getPage(), 'page should be reset on sort');
 
-        $table->sort('name');
-        $this->assertEquals(1, $table->getPage(), 'page should be reset on sort');
-        $this->assertHtmlEquals(
-            $sortedFirstPage,
-            $table->render(true),
-            "should render 1st page after sort"
-        );
+        $expected = str_replace('th class="name firstCell sortable"', 'th class="name sorted firstCell sortable sortAsc"', $firstPage);
+        $expected = str_replace('td class="name firstCell"', 'td class="name sorted firstCell"', $expected);
+        $expected = preg_replace('/\?sort=name/', '?sort=%21name', $expected);
+        $expected = preg_replace('/\?sort=age/', '?sort=age%2Cname', $expected);
+        $expected = preg_replace('/\<tbody\>.*\<\/tbody\>/s', '', $expected);
 
+        $actual = $table->render(true);
+        $actual = preg_replace('/\<tbody\>.*\<\/tbody\>/s', '', $actual);
 
-    }
-
-    function testImageActionsAndToggles() {
-
-        return $this->markTestSkipped("Need to implement image actions and toggles?");
-
-        $expected = <<<END
-<table id="complexTable" border="0" cellpadding="0" cellspacing="0">
-    <thead class="columns">
-        <tr>
-            <th class="name firstCell sortable"><a href="?sort=name"><span class="sortMarker">Name</span></a></th>
-            <th class="actions lastCell">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr class="odd">
-            <td class="name firstCell">Joe Blow</td>
-            <td class="actions lastCell">
-                <a href="/toggle/active/1" class="toggle active toggleActive"></a>
-                <a href="/edit/1" class="action edit">Edit</a>
-                <a href="/delete/1" class="action delete">Delete</a>
-            </td>
-        </tr>
-        <tr class="even">
-            <td class="name firstCell">Joe Smith</td>
-            <td class="actions lastCell">
-                <a href="/toggle/active/2" class="toggle active toggleInactive">Active</a>
-                <a href="/edit/2" class="action edit">Edit</a>
-                <a href="/delete/2" class="action delete">Delete</a>
-            </td>
-        </tr>
-    </tbody>
-</table>
-END;
-
-        $table = new Octopus_Html_Table('complexTable', array('pager' => false ));
-
-        $table->addColumn('name', array('sortable' => true));
-
-        $col = $table->addColumn('actions');
-        $col->addToggle('active', '/toggle/active/{$person_id}');
-        $col->addAction('edit', '/edit/{$person_id}');
-        $col->addAction('delete', '/delete/{$person_id}');
-
-        $table->setDataSource(
-            array(
-                array('person_id' => 1, 'name' => 'Joe Blow', 'age' => 50, 'active' => true),
-                array('person_id' => 2, 'name' => 'Joe Smith', 'age' => 99, 'active' => false)
-            )
-        );
-
-        $this->assertHtmlEquals(
-            $expected,
-            $table->render(true)
-        );
-
-
+        $this->assertHtmlEquals($expected, $actual);
 
     }
 

@@ -287,19 +287,78 @@ END
 		$this->assertHtmlEquals(
 			<<<END
 <div class="pager first-page">
-	<a href="?page=1" class="first-page">First</a>
-	<a href="?page=1" class="prev">Previous</a>
-	<a href="?page=1" class="current">1</a>
-	<a href="?page=2">2</a>
-	<a href="?page=3">3</a>
-	<a href="?page=4">4</a>
-	<a href="?page=2" class="next">Next</a>
-	<a href="?page=10" class="last-page">Last</a>
+	<a href="?page=1" class="current" title="Page 1">1</a>
+	<a href="?page=2" title="Page 2">2</a>
+	<a href="?page=3" title="Page 3">3</a>
+	<a href="?page=4" title="Page 4">4</a>
+	<a href="?page=2" class="next" title="Page 2">Next</a>
+	<a href="?page=10" class="last-page" title="Page 10">Last</a>
 </div>
 END
 			,
 			$p->render(true)
 		);
+
+	}
+
+	function testHideIrrelevantLinks() {
+
+		$data = array();
+		for($i = 0; $i < 30; $i++) {
+			$data[] = array('id' => $i, 'name' => "foo $i");
+		}
+
+		$p = new Octopus_Html_Pager();
+		$p->setDataSource($data);
+
+		$this->assertHtmlEquals(
+			<<<END
+<div class="pager first-page">
+	<a href="?page=1" class="current" title="Page 1">1</a>
+	<a href="?page=2" title="Page 2">2</a>
+	<a href="?page=3" title="Page 3">3</a>
+	<a href="?page=2" class="next" title="Page 2">Next</a>
+	<a href="?page=3" class="last-page" title="Page 3">Last</a>
+</div>
+END
+			,
+			$p->render(true)
+		);
+
+		$p->setPage(2);
+
+		$this->assertHtmlEquals(
+			<<<END
+<div class="pager">
+	<a href="?page=1" class="first-page" title="Page 1">First</a>
+	<a href="?page=1" class="prev" title="Page 1">Previous</a>
+	<a href="?page=1" title="Page 1">1</a>
+	<a href="?page=2" class="current" title="Page 2">2</a>
+	<a href="?page=3" title="Page 3">3</a>
+	<a href="?page=3" class="next" title="Page 3">Next</a>
+	<a href="?page=3" class="last-page" title="Page 3">Last</a>
+</div>
+END
+			,
+			$p->render(true)
+		);
+
+		$p->setPage(3);
+
+		$this->assertHtmlEquals(
+			<<<END
+<div class="pager last-page">
+	<a href="?page=1" class="first-page" title="Page 1">First</a>
+	<a href="?page=2" class="prev" title="Page 2">Previous</a>
+	<a href="?page=1" title="Page 1">1</a>
+	<a href="?page=2" title="Page 2">2</a>
+	<a href="?page=3" class="current" title="Page 3">3</a>
+</div>
+END
+			,
+			$p->render(true)
+		);
+
 
 	}
 
@@ -319,13 +378,11 @@ END
 		$this->assertHtmlEquals(
 			<<<END
 <div class="pager first-page">
-	<a href="/foo/bar?x=y&amp;active=1&amp;page=1" class="first-page">First</a>
-	<a href="/foo/bar?x=y&amp;active=1&amp;page=1" class="prev">Previous</a>
-	<a href="/foo/bar?x=y&amp;active=1&amp;page=1" class="current">1</a>
-	<a href="/foo/bar?x=y&amp;active=1&amp;page=2">2</a>
-	<a href="/foo/bar?x=y&amp;active=1&amp;page=3">3</a>
-	<a href="/foo/bar?x=y&amp;active=1&amp;page=2" class="next">Next</a>
-	<a href="/foo/bar?x=y&amp;active=1&amp;page=3" class="last-page">Last</a>
+	<a href="/foo/bar?x=y&amp;active=1&amp;page=1" class="current" title="Page 1">1</a>
+	<a href="/foo/bar?x=y&amp;active=1&amp;page=2" title="Page 2">2</a>
+	<a href="/foo/bar?x=y&amp;active=1&amp;page=3" title="Page 3">3</a>
+	<a href="/foo/bar?x=y&amp;active=1&amp;page=2" class="next" title="Page 2">Next</a>
+	<a href="/foo/bar?x=y&amp;active=1&amp;page=3" class="last-page" title="Page 3">Last</a>
 </div>
 END
 			,
