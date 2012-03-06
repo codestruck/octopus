@@ -40,7 +40,6 @@ class Octopus_DB_Schema_IndexTest extends PHPUnit_Framework_TestCase {
 
     function testSwitchUniqueKey()
     {
-        return $this->markTestIncomplete("This test fails consistently on Hinz's laptop (PHP 5.3.6, MySQL 5.5.10)");
 
         $this->db->query('DROP TABLE IF EXISTS translation_values');
 
@@ -79,12 +78,10 @@ class Octopus_DB_Schema_IndexTest extends PHPUnit_Framework_TestCase {
 
         $expected = <<<END
 ALTER TABLE `translation_values`
-CHANGE `keyword_id` keyword_id int(10) NOT NULL, DROP PRIMARY KEY,
-DROP COLUMN `value`,
-CHANGE `lang` lang varchar(250) NOT NULL, DROP PRIMARY KEY
+DROP INDEX `value`, ADD INDEX (`value`)
 
 END;
-        // $this->assertEquals($expected, $sql);
+        $this->assertEquals($expected, $sql);
 
     }
 
