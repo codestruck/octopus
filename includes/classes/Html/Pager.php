@@ -88,6 +88,8 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
 
         'renderIrrelevantLinks' => false,
 
+        'singlePageClass' => 'single-page',
+
         /**
          * Text content for spacers placed between two paging links to indicate
          * there are more pages between them, e.g.:
@@ -344,8 +346,8 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
     	return parent::render($return, $escape);
     }
 
-    public function renderInto(Octopus_Html_Element $element) {
-    	foreach($this->getLinks() as $link) {
+    public function renderInto(Octopus_Html_Element $element, $includeIrrelevantLinks = false) {
+    	foreach($this->createPagingLinks($includeIrrelevantLinks) as $link) {
     		$element->append($link);
     	}
     }
@@ -353,7 +355,7 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
     /**
      * @return Array Paging link elements.
      */
-    protected function createPagingLinks() {
+    protected function createPagingLinks($includeIrrelevant = null) {
 
     	$o =& $this->options;
     	$nums = $this->getPageNumbers();
@@ -363,9 +365,11 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
     		return $links;
     	}
 
+    	$includeIrrelevant = ($includeIrrelevant === null ? $o['renderIrrelevantLinks'] : $includeIrrelevant);
+
     	$pageNum = $this->getPage();
 
-    	if ($pageNum > 1 || $o['renderIrrelevantLinks']) {
+    	if ($pageNum > 1 || $includeIrrelevant) {
     		$first = $this->createPagingLink(1, $o['firstLinkText'], $o['firstLinkClass']);
     		if ($first) $links[] = $first;
 
@@ -373,22 +377,25 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
     		if ($prev) $links[] = $prev;
     	}
 
-    	$lastNum = null;
-    	foreach($nums as $num) {
+    	if (count($nums) > 1 || $includeIrrelevant) {
 
-    		if ($lastNum !== null && $lastNum < $num - 1) {
-    			$sep = $this->createSeparator($lastNum, $num);
-    			if ($sep) $this->append($sep);
-    		}
+	    	$lastNum = null;
+	    	foreach($nums as $num) {
 
-    		$link = $this->createPagingLink($num);
-    		if ($link) $links[] = $link;
+	    		if ($lastNum !== null && $lastNum < $num - 1) {
+	    			$sep = $this->createSeparator($lastNum, $num);
+	    			if ($sep) $this->append($sep);
+	    		}
 
-    		$lastNum = $num;
+	    		$link = $this->createPagingLink($num);
+	    		if ($link) $links[] = $link;
 
-    	}
+	    		$lastNum = $num;
 
-    	if ($pageNum < $this->getPageCount() || $o['renderIrrelevantLinks']) {
+	    	}
+	    }
+
+    	if ($pageNum < $this->getPageCount() || $includeIrrelevant) {
     		$next = $this->createPagingLink($this->getNextPage(), $o['nextLinkText'], $o['nextLinkClass']);
     		if ($next) $links[] = $next;
 
@@ -478,6 +485,12 @@ class Octopus_Html_Pager extends Octopus_Html_Element {
     		$this->addClass($o['lastPageClass']);
     	} else {
     		$this->removeClass($o['lastPageClass']);
+    	}
+
+    	if ($pageCount === 1) {
+    		$this->addClass($o['singlePageClass']);
+    	} else {
+    		$this->removeClass($o['singlePageClass']);
     	}
 
     }

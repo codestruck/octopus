@@ -359,7 +359,17 @@ END
 			$p->render(true)
 		);
 
+		$p->setPage(1);
+		$p->setPageSize(30);
 
+		$this->assertHtmlEquals(
+			<<<END
+<div class="pager first-page last-page single-page">
+</div>
+END
+			,
+			$p->render(true)
+		);
 	}
 
 	function testChangeUrlArgs() {
