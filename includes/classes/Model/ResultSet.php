@@ -1059,15 +1059,11 @@ END;
     }
 
     /**
-     * @return Number The # of records in this ResultSet, disregarding any
-     * limits.
+     * @return Number The # of records in this ResultSet.
      */
     public function count() {
-
-    	$rs = $this->unlimit();
-        $s = $rs->buildSelect();
+        $s = $this->buildSelect();
         return $s->numRows();
-
     }
 
     // }}}
