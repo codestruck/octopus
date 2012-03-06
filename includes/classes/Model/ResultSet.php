@@ -3,7 +3,7 @@
 /**
  * Class that handles searching for Octopus_Model instances.
  */
-class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpable {
+class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpable, Octopus_DataSource {
 
     public $escaped = false;
 
@@ -1060,20 +1060,10 @@ END;
 
     /**
      * @return Number The # of records in this ResultSet.
-     * @param $considerLimit Boolean Whether If true, and the resultset has
-     * been limited using limit(), then the result of count() will be at
-     * most the # of records the resultset is limited to.
      */
-    public function count($considerLimit = true) {
-
+    public function count() {
         $s = $this->buildSelect();
-        $count = $s->numRows();
-
-        if ($considerLimit && $this->_maxRecords !== null) {
-            return min($this->_maxRecords, $count);
-        }
-
-        return $count;
+        return $s->numRows();
     }
 
     // }}}
@@ -1114,6 +1104,74 @@ END;
     }
 
     // }}}
+
+    // Octopus_DataSource Implementation
+
+    public function unfilter() {
+
+    	return new Octopus_Model_ResultSet(
+    		$this->_modelClass,
+    		null,
+    		$this->_orderBy
+	    );
+
+    }
+
+    public function sort($col, $asc = true, $replace = true) {
+
+        if ($replace) {
+        	return $this->orderBy(array($col => $asc));
+        } else {
+			$newOrderBy = array($col => $asc);
+			if ($this->_orderBy) {
+				foreach($this->_orderBy as $c => $a) {
+					if (!isset($newOrderBy[$c])) {
+						$newOrderBy[$c] = $a;
+					}
+				}
+			}
+			return $this->orderBy($newOrderBy);
+        }
+    }
+
+    public function filter($field, $value) {
+        return $this->where($field, $value);
+    }
+
+    public function isSortable($field) {
+    	return !!$this->getModelField($field);
+    }
+
+    public function isSortedBy($field, &$asc = null, &$index = 0) {
+
+    	if (!isset($this->_orderBy[$field])) {
+    		return false;
+    	}
+
+    	$index = 0;
+    	foreach($this->_orderBy as $k => $v) {
+    		if ($k == $field) {
+
+    			if (is_string($v) && strcasecmp($v, 'desc') === 0) {
+    				$v = false;
+    			}
+
+    			$asc = !!$v;
+
+    			return true;
+    		}
+    		$index++;
+    	}
+
+    	return false;
+    }
+
+    public function unsort() {
+    	return $this->orderBy();
+    }
+
+
+    // End Octopus_DataSource Implementation
 
 }
 ?>

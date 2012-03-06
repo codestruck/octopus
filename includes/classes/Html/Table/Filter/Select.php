@@ -7,7 +7,7 @@ class Octopus_Html_Table_Filter_Select extends Octopus_Html_Table_Filter {
 
     private $emptyOption;
 
-    public function __construct($type, $id, $label, $options) {
+    public function __construct(Octopus_Html_Table $table, $type, $id, $label, $options) {
 
         if ($options instanceof Octopus_Model_ResultSet) {
             $options = array('options' => $options);
@@ -17,13 +17,14 @@ class Octopus_Html_Table_Filter_Select extends Octopus_Html_Table_Filter {
             $label = null;
         }
 
-        parent::__construct($type, $id, $label, $options);
+        parent::__construct($table, $type, $id, $label, $options);
     }
 
     /**
      * @return Octopus_Html_Element The valueless option selected by default.
      */
     public function getDefaultOption() {
+        $this->getElement(); // force <select> creation
         return $this->emptyOption;
     }
 

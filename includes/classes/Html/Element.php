@@ -618,8 +618,18 @@ class Octopus_Html_Element {
                 return $this->getText();
 
             default:
-                $args = func_get_args();
-                $this->_content = array_map('htmlspecialchars', $args);
+
+                $this->_content = array();
+
+                foreach(func_get_args() as $arg) {
+
+                	// NOTE: Using htmlspecialchars() here rather than h() because
+                	// we need to keep quotes in tact when, e.g. setting the
+                	// text content of a <script> element
+                	$this->_content[] = htmlspecialchars($arg, ENT_NOQUOTES, 'UTF-8');
+
+                }
+
                 return $this;
         }
     }
