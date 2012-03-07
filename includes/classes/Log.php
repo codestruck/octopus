@@ -68,6 +68,10 @@ class Octopus_Log {
 	 *
 	 *  Octopus_Log::addListener(Octopus_Log::INFO, 'myfunction')
 	 *
+	 * Or like this to receive messages for all levels in all logs:
+	 *
+	 * 	Octopus_Log::addListener('myfunction');
+	 *
 	 * @param $log The name of the log to which this listener should apply.
 	 * @param $minLevel The minimum required level that messages must be at
 	 * for this listener to be fired.
@@ -80,9 +84,14 @@ class Octopus_Log {
 	 * and $level is the logging level of the message. This can also be an
 	 * object with a 'write' method in the same format as above.
 	 */
-	public static function addListener($log, $minLevel, $func = null) {
+	public static function addListener($log, $minLevel = null, $func = null) {
 
-		if (is_numeric($log) && $log >= self::LEVEL_DEBUG && $log <= self::LEVEL_FATAL) {
+		if ($minLevel === null && $func === null) {
+			// Allow ::addListener('my_logging_function');
+			$func = $log;
+			$minLevel = self::LEVEL_DEBUG;
+			$log = true;
+		} else if (is_numeric($log) && $log >= self::LEVEL_DEBUG && $log <= self::LEVEL_FATAL) {
 			$func = $minLevel;
 			$minLevel = $log;
 			$log = true;
@@ -146,10 +155,25 @@ class Octopus_Log {
 	}
 
 	/**
-	 * Formats a log message for display.
+	 * Formats a log entry as JSON.
+	 * @param  Mixed $message   	Message being logged
+	 * @param  String $log       	Name of the log being written
+	 * @param  Number $level     	Level of the message
+	 * @param  Number $timestamp 	Timestamp for the entry
+	 * @param  Array  $stack		Stack trace array.
+	 * @return String JSON for the log message.
 	 */
-	public static function formatMessage($message) {
-		return trim($message);
+	public static function formatJson($message, $log, $level, $timestamp, $stack) {
+
+		$message = array(
+			'time' => date('r', $timestamp),
+			'log' => $log,
+			'level' => self::getLevelName($level),
+			'message' => $message,
+			'trace' => self::formatStackTrace($stack),
+		);
+
+		return json_encode($message);
 	}
 
 	/**
@@ -364,6 +388,36 @@ class Octopus_Log {
 				return $args[1];
 
 		}
+	}
+
+	private static function formatStackTrace($trace) {
+
+		$result = array();
+		if (empty($trace)) {
+			return $result;
+		}
+
+		foreach($trace as $item) {
+
+			$item['file'] = $item['nice_file'];
+			unset($item['nice_file']);
+
+			if (count($result) > 0) {
+				$result[] = $item;
+				continue;
+			}
+
+			if ($item['function'] === 'saneBacktrace') {
+				// don't bother including
+				continue;
+			}
+
+			$result[] = $item;
+
+		}
+
+		return $result;
+
 	}
 
 }

@@ -10,6 +10,7 @@ class Octopus_Log_Listener_File {
 	private $rotationDepth = 2;
 	private $logFiles = array();
 	private $extension = '.log';
+	private $formatter = array('Octopus_Log', 'formatJson');
 
 	/**
 	 * Creates a new listener that creates log files in the given directory.
@@ -40,6 +41,25 @@ class Octopus_Log_Listener_File {
 	 */
 	public function setExtension($ext) {
 		$this->extension = ($ext ? start_in('.', $ext) : '');
+	}
+
+	/**
+	 * @return Function The callable used to format log entries for this
+	 * logger. Defaults to Octopus_Log::formatJson
+	 */
+	public function getFormatter() {
+		return $this->formatter;
+	}
+
+	/**
+	 * Sets the formatter function used to format entries for this logger.
+	 * @param Function $formatter Formatting function. Receives args like this:
+	 *
+	 *	function my_formatter($message, $log, $level, $timestamp, $stackTrace);
+	 *
+	 */
+	public function setFormatter($formatter) {
+		$this->formatter = $formatter;
 	}
 
 	/**
@@ -149,12 +169,10 @@ class Octopus_Log_Listener_File {
 			return false;
 		}
 
-		$message = Octopus_Log::formatMessage($message);
-		$level = strtoupper(Octopus_Log::getLevelName($level));
-		$date = date('Y-m-d H:i:s');
+		$entry = call_user_func($this->getFormatter(), $message, $log, $level, time(), $this->getStackTrace());
 
-		$message = "{$level}\t{$date}\t$message\n";
-		fwrite($handle, $message);
+		fwrite($handle, $entry);
+		fwrite($handle, ",\n");
 		fclose($handle);
 
 		// Ensure the file is 0666
@@ -162,6 +180,10 @@ class Octopus_Log_Listener_File {
 
 		return true;
 
+	}
+
+	private function getStackTrace() {
+		return Octopus_Debug::saneBacktrace();
 	}
 
 	/**

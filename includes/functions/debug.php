@@ -913,13 +913,14 @@ ENDHTML;
 
         $result = array();
 
-        $rootDir = '';
-        if (class_exists('Octopus_App') && Octopus_App::isStarted()) {
-            $app = Octopus_App::singleton();
-            $rootDir = $app->getOption('ROOT_DIR');
+        if (function_exists('get_option')) {
+        	$rootDir = get_option('ROOT_DIR');
         } else if (defined('ROOT_DIR')) {
-            $rootDir = ROOT_DIR;
+        	$rootDir = ROOT_DIR;
+        } else {
+        	$rootDir = '';
         }
+
         $rootDirLen = strlen($rootDir);
 
         foreach($bt as $b) {

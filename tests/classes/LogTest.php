@@ -160,7 +160,7 @@ END
 		$this->assertTrue(is_file($file), 'log file exists');
 
 		$size = filesize($file);
-		$this->assertTrue($size > 0 && $size <= 1024, "File size between 0 and 1024 (was $size)");
+		$this->assertTrue($size > 0 && $size <= 2048, "File size between 0 and 2048 (was $size)");
 
 		for($i = 1; $i <= 10; $i++) {
 
@@ -176,6 +176,57 @@ END
 			}
 
 		}
+
+	}
+
+	function testFileLoggingIsJson() {
+
+		$dir = $this->getPrivateDir() . 'file-logging-is-json';
+		$logger = new Octopus_Log_Listener_File($dir);
+		$logger->setMaxFileSize(300 * 1024);
+
+		Octopus_Log::addListener($logger);
+		Octopus_Log::warn('Here is my test warning');
+		Octopus_Log::debug(array('title' => 'foo', 'num' => 42));
+
+		$file = $dir . '/app.log';
+		$this->assertTrue(is_file($file), 'log file found');
+
+		$contents = file_get_contents($file);
+		$this->assertTrue(!!$contents, 'log file not empty');
+		$contents = '[' . trim(trim($contents), ',') . ']';
+
+		$json = json_decode($contents, true);
+		$this->assertTrue(!!$json, 'file contents are json');
+		$this->assertTrue(is_array($json), 'file contents are an array');
+		$this->assertTrue(count($json) > 0, '> 0 things in array');
+
+		foreach($json as &$entry) {
+			$this->assertTrue(array_key_exists('time', $entry), 'time key found on entry');
+			$time = strtotime($entry['time']);
+			$this->assertTrue(time() - $time < 5, 'entry is in the last 5 seconds');
+			unset($entry['time']);
+
+			$trace = $entry['trace'];
+			$this->assertTrue(!empty($trace), 'entry has trace');
+			unset($entry['trace']);
+		}
+
+		$this->assertEquals(
+			array(
+				array(
+					'log' => 'app',
+					'level' => 'WARN',
+					'message' => 'Here is my test warning',
+				),
+				array(
+					'log' => 'app',
+					'level' => 'DEBUG',
+					'message' => array('title' => 'foo', 'num' => 42),
+				)
+			),
+			$json
+		);
 
 	}
 
