@@ -25,6 +25,11 @@ class Octopus_Log {
 	const LEVEL_WARN = 2;
 
 	/**
+	 * Alias for ::LEVEL_WARN
+	 */
+	const LEVEL_WARNING = 2;
+
+	/**
 	 * Logging level for errors.
 	 */
 	const LEVEL_ERROR = 3;
@@ -105,7 +110,9 @@ class Octopus_Log {
 	 *	::debug('here is my message content')
 	 */
 	public static function debug() {
-		return self::doShortcut(Octopus_Log::LEVEL_DEBUG, func_get_args());
+		if (self::$minLevel <= self::LEVEL_DEBUG) {
+			return self::doShortcut(Octopus_Log::LEVEL_DEBUG, func_get_args());
+		}
 	}
 
 	/**
@@ -118,7 +125,9 @@ class Octopus_Log {
 	 *	::error('here is my message content')
 	 */
 	public static function error() {
-		return self::doShortcut(Octopus_Log::LEVEL_ERROR, func_get_args());
+		if (self::$minLevel <= self::LEVEL_ERROR) {
+			return self::doShortcut(Octopus_Log::LEVEL_ERROR, func_get_args());
+		}
 	}
 
 	/**
@@ -131,7 +140,9 @@ class Octopus_Log {
 	 *	::fatal('here is my message content')
 	 */
 	public static function fatal() {
-		return self::doShortcut(Octopus_Log::LEVEL_FATAL, func_get_args());
+		if (self::$minLevel <= self::LEVEL_FATAL) {
+			return self::doShortcut(Octopus_Log::LEVEL_FATAL, func_get_args());
+		}
 	}
 
 	/**
@@ -206,9 +217,66 @@ class Octopus_Log {
 	 *	::info('here is my message content')
 	 */
 	public static function info() {
-		return self::doShortcut(Octopus_Log::LEVEL_INFO, func_get_args());
+		if (self::$minLevel <= self::LEVEL_INFO) {
+			return self::doShortcut(Octopus_Log::LEVEL_INFO, func_get_args());
+		}
 	}
 
+	/**
+	 * @see ::isEnabled
+	 * @return boolean
+	 */
+	public static function isDebugEnabled() {
+		return self::$minLevel <= self::LEVEL_DEBUG;
+	}
+
+	/**
+	 * @param  Number  $level Level to check
+	 * @return boolean Whether the given logging level is enabled.
+	 */
+	public static function isEnabled($level) {
+		return self::$minLevel <= $level;
+	}
+
+	/**
+	 * @see ::isEnabled
+	 * @return boolean
+	 */
+	public static function isErrorEnabled() {
+		return self::$minLevel <= self::LEVEL_ERROR;
+	}
+
+	/**
+	 * @see ::isEnabled
+	 * @return boolean
+	 */
+	public static function isFatalEnabled() {
+		return self::$minLevel <= self::LEVEL_FATAL;
+	}
+
+	/**
+	 * @see ::isEnabled
+	 * @return boolean
+	 */
+	public static function isInfoEnabled() {
+		return self::$minLevel <= self::LEVEL_INFO;
+	}
+
+	/**
+	 * @see ::isEnabled
+	 * @return boolean
+	 */
+	public static function isWarnEnabled() {
+		return self::$minLevel <= self::LEVEL_WARN;
+	}
+
+	/**
+	 * @see ::isEnabled
+	 * @return boolean
+	 */
+	public static function isWarningEnabled() {
+		return self::$minLevel <= self::LEVEL_WARN;
+	}
 
 	/**
 	 * Removes all log listeners and resets call count and write count.
@@ -229,7 +297,9 @@ class Octopus_Log {
 	 *	::warning('here is my message content')
 	 */
 	public static function warn() {
-		return self::doShortcut(Octopus_Log::LEVEL_WARN, func_get_args());
+		if (self::$minLevel <= self::LEVEL_WARN) {
+			return self::doShortcut(Octopus_Log::LEVEL_WARN, func_get_args());
+		}
 	}
 
 
@@ -256,7 +326,6 @@ class Octopus_Log {
 			if ($level < $listener['minLevel']) {
 				continue;
 			}
-
 			if ($listener['log'] === true || $listener['log'] === $log) {
 				call_user_func($listener['func'], $message, $log, $level);
 			}
@@ -295,10 +364,6 @@ class Octopus_Log {
 				return $args[1];
 
 		}
-
-		self::write($log, Octopus_Log::LEVEL_DEBUG, $message);
-
-
 	}
 
 }

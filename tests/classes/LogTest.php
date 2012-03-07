@@ -40,11 +40,40 @@ class LogTest extends Octopus_App_TestCase {
 	/**
 	 * @dataProvider getLogLevels
 	 */
-	function testLoggingThreshold($level) {
+	function testLoggingLevelEnabled($level) {
 
 		Octopus_Log::addListener($level, array($this, 'basicListener'));
 
 		foreach(Octopus_Log::getLevels() as $testLevel) {
+
+			$name = Octopus_Log::getLevelName($testLevel);
+			$method = 'is' . camel_case($name, true) . 'Enabled';
+
+			if ($testLevel < $level) {
+				$this->assertFalse(Octopus_Log::isEnabled($testLevel), "$name not enabled");
+				$this->assertFalse(call_user_func(array('Octopus_Log', $method), "$name not enabled (helper method)"));
+			} else {
+				$this->assertTrue(Octopus_Log::isEnabled($testLevel), "$name enabled");
+				$this->assertTrue(call_user_func(array('Octopus_Log', $method), "$name enabled (helper method)"));
+			}
+
+		}
+
+	}
+
+	/**
+	 * @dataProvider getLogLevels
+	 */
+	function testLoggingThreshold($level) {
+
+		Octopus_Log::addListener($level, array($this, 'basicListener'));
+
+		$thresholdName = Octopus_Log::getLevelName($level);
+
+		foreach(Octopus_Log::getLevels() as $testLevel) {
+
+			$name = Octopus_Log::getLevelName($testLevel);
+			$convenienceMethod = camel_case($name);
 
 			$this->lastLevel = null;
 			$this->lastMessage = null;
@@ -66,17 +95,16 @@ class LogTest extends Octopus_App_TestCase {
 			$this->lastMessage = null;
 			$this->lastLog = null;
 
-			$convenienceMethod = camel_case(Octopus_Log::getLevelName($testLevel));
 			call_user_func(array('Octopus_Log', $convenienceMethod), __METHOD__, 'blerg');
 
 			if ($testLevel >= $level) {
-				$this->assertEquals($testLevel, $this->lastLevel);
-				$this->assertEquals('blerg', $this->lastMessage);
-				$this->assertEquals(__METHOD__, $this->lastLog);
+				$this->assertEquals($testLevel, $this->lastLevel, "$name logged for threshold $thresholdName (convenience method)");
+				$this->assertEquals('blerg', $this->lastMessage, "$name logged for threshold $thresholdName (convenience method)");
+				$this->assertEquals(__METHOD__, $this->lastLog, "$name logged for threshold $thresholdName (convenience method)");
 			} else {
-				$this->assertNull($this->lastLevel);
-				$this->assertNull($this->lastMessage);
-				$this->assertNull($this->lastLog);
+				$this->assertNull($this->lastLevel, "$name not logged for threshold $thresholdName (convenience method)");
+				$this->assertNull($this->lastMessage, "$name not logged for threshold $thresholdName (convenience method)");
+				$this->assertNull($this->lastLog, "$name not logged for threshold $thresholdName (convenience method)");
 			}
 
 
@@ -167,7 +195,7 @@ END
 		$result = array();
 
 		foreach(Octopus_Log::getLevels() as $level) {
-			$result[] = array($level);
+			$result[] = array($level, Octopus_Log::getLevelName($level));
 		}
 
 		return $result;
