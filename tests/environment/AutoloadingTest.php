@@ -5,10 +5,11 @@ class AutoloadingTest extends Octopus_App_TestCase {
     /**
      * @dataProvider getClassTestDirs
      */
-    function testAutoLoadClass($prefix, $dir) {
+    function testAutoLoadClass($prefix, $classDir) {
 
-        $class = "AutoloadingTest_X_" . md5(uniqid());
-        $file = $dir . str_replace('_', '/', $class) . '.php';
+    	$dir = 'AutoloadingTest/X/';
+        $class = str_replace('/', '_', $dir) . md5(uniqid());
+        $file = $classDir . str_replace('_', '/', $class) . '.php';
         $class = $prefix . $class;
 
         recursive_touch($file);
@@ -32,7 +33,7 @@ END
         $instance = new $class();
         $this->assertTrue($instance->doSomething());
 
-        unlink($file);
+        recursive_delete($dir);
 
     }
 
