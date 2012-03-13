@@ -198,7 +198,7 @@ class Octopus_App {
 
     	if (error_reporting() === 0) {
     		// This was a suppressed error (@whatever)
-    		return false;
+    		return true;
     	}
 
     	$isNonSevere = ($level === E_NOTICE) ||

@@ -593,30 +593,43 @@
      */
     function wildcardify($s, $wrap = '%') {
 
-        // Escape wildcard chars
-        $s = escape_wildcards($s);
 
-        $starCount = $questionCount = 0;
+    	$result = '';
+    	$escape = false;
+    	$len = strlen($s);
+    	$foundWildcard = false;
 
-        $s = str_replace('*', '%', $s, $starCount);
-        $s = str_replace('?', '_', $s, $questionCount);
+    	for($i = 0; $i < $len; $i++) {
 
-        if ($wrap && !($starCount + $questionCount)) {
-            $s = $wrap . $s . $wrap;
-        }
+    		$c = substr($s, $i, 1);
 
-        return $s;
+    		if ($escape) {
+    			$result .= $c;
+    			$escape = false;
+    			continue;
+    		} else if ($c === '\\') {
+    			$escape = true;
+    			continue;
+    		}
+
+    		if ($c === '%') $c = '\\%';
+    		if ($c === '_') $c = '\\_';
+
+    		$foundWildcard = $foundWildcard || ($c === '*' || $c === '?');
+
+    		if ($c === '*') $c = '%';
+    		if ($c === '?') $c = '_';
+
+    		$result .= $c;
+    	}
+
+    	if ($wrap && !$foundWildcard) {
+    		$result = "{$wrap}{$result}{$wrap}";
+    	}
+
+    	return $result;
     }
 
-    function escape_wildcards($s) {
-
-        $s = str_replace('\\', '\\\\', $s);
-        $s = str_replace('%', '\\%', $s);
-        $s = str_replace('_', '\\_', $s);
-
-        return $s;
-
-    }
 
     function pretty_json_encode($data) {
         $str = json_encode($data);

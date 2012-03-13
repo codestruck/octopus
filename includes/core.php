@@ -5,6 +5,10 @@
      */
     $_SERVER['REQUEST_TIME_MILLISECOND'] = microtime(true);
 
+    if (!defined('E_DEPRECATED')) {
+        define('E_DEPRECATED', 8192);
+    }
+
     /*
      * Flash will send the HTTP_HOST with the port in it on mac
      */
@@ -30,6 +34,8 @@
     // Core function includes
     ////////////////////////////////////////////////////////////////////////
 
+    require_once(OCTOPUS_CLASSES_DIR . 'Log.php');
+
     require_once(OCTOPUS_FUNCTIONS_DIR . 'debug.php');
     require_once(OCTOPUS_FUNCTIONS_DIR . 'misc.php');
     require_once(OCTOPUS_FUNCTIONS_DIR . 'strings.php');
@@ -42,7 +48,7 @@
     require_once(OCTOPUS_FUNCTIONS_DIR . 'themes.php');
     require_once(OCTOPUS_FUNCTIONS_DIR . 'compat.php');
 
-    require_once(OCTOPUS_DIR . 'includes/classes/Octopus.php');
+    require_once(OCTOPUS_CLASSES_DIR . 'Octopus.php');
 
     require_once(OCTOPUS_FUNCTIONS_DIR . 'security.php');
 

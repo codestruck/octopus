@@ -507,7 +507,7 @@ class Octopus_Html_Element {
      * @param $return bool True to return the generated HTML, false to output
      * it.
      */
-    public function render($return = false, $escape = self::ESCAPE_ATTRIBUTES) {
+    public function render($return = false, $escape = Octopus_Html_Element::ESCAPE_ATTRIBUTES) {
 
         $open = $this->renderOpenTag($escape);
 
@@ -549,7 +549,7 @@ class Octopus_Html_Element {
      * content-less and can be rendered as, e.g. <span />, this will not include
      * a closing ">". (That will be provided by renderCloseTag as appropriate.)
      */
-    public function renderOpenTag($escape = self::ESCAPE_ATTRIBUTES) {
+    public function renderOpenTag($escape = Octopus_Html_Element::ESCAPE_ATTRIBUTES) {
 
         $result = "\n<" . $this->_tag;
 
@@ -572,7 +572,7 @@ class Octopus_Html_Element {
      * that allow it, this will just be " />", (e.g. <span />). Otherwise
      * it will be, e.g. "</span>".
      */
-    public function renderCloseTag($renderedContent, $escape = self::ESCAPE_ATTRIBUTES) {
+    public function renderCloseTag($renderedContent, $escape = Octopus_Html_Element::ESCAPE_ATTRIBUTES) {
 
         if ($renderedContent || $this->requireCloseTag) {
             return '</' . $this->_tag . '>';
@@ -585,7 +585,7 @@ class Octopus_Html_Element {
     /**
      * @return String The HTML content of this element.
      */
-    public function renderContent($escape = self::ESCAPE_ATTRIBUTES) {
+    public function renderContent($escape = Octopus_Html_Element::ESCAPE_ATTRIBUTES) {
 
         $content = '';
         $count = 0;
@@ -618,8 +618,18 @@ class Octopus_Html_Element {
                 return $this->getText();
 
             default:
-                $args = func_get_args();
-                $this->_content = array_map('htmlspecialchars', $args);
+
+                $this->_content = array();
+
+                foreach(func_get_args() as $arg) {
+
+                	// NOTE: Using htmlspecialchars() here rather than h() because
+                	// we need to keep quotes in tact when, e.g. setting the
+                	// text content of a <script> element
+                	$this->_content[] = htmlspecialchars($arg, ENT_NOQUOTES, 'UTF-8');
+
+                }
+
                 return $this;
         }
     }

@@ -35,11 +35,27 @@ class Octopus_DB_Select extends Octopus_DB_Helper {
     }
 
     /**
-     * @return The number of rows matched by this select.
+     * @return The number of rows matched by this select, taking into a
      */
-    public function numRows() {
+    public function numRows($useLimit = true) {
+
         $s = $this->createCountSelect();
-        return $s->getOne();
+        $count = $s->getOne();
+        if (!$count) $count = 0;
+
+        if (!$useLimit) {
+        	return $count;
+        }
+
+        if ($this->limitStart > 0) {
+        	$count = $count - $this->limitStart;
+        }
+
+        if ($this->limitLen !== null) {
+        	$count = min($this->limitLen, $count);
+        }
+
+        return max(0, $count);
     }
 
     /**
