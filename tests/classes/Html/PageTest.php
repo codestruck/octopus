@@ -1272,4 +1272,35 @@ END
 
     }
 
+    function testAddJavascriptWackWack() {
+
+    	$page = new Octopus_Html_Page(array('URL_BASE' => '/some/crazy/url/base/'));
+    	$page->addJavascript('//some-server.local/file.js');
+
+    	$this->assertHtmlEquals(
+    		<<<END
+<script type="text/javascript" src="//some-server.local/file.js"></script>
+END
+			,
+			$page->renderJavascript(true)
+    	);
+
+    }
+
+
+    function testAddCssWackWack() {
+
+    	$page = new Octopus_Html_Page(array('URL_BASE' => '/some/crazy/url/base/'));
+    	$page->addCss('//some-server.local/file.css');
+
+    	$this->assertHtmlEquals(
+    		<<<END
+<link href="//some-server.local/file.css" rel="stylesheet" type="text/css" media="all" />
+END
+			,
+			$page->renderCss(true)
+    	);
+
+    }
+
 }

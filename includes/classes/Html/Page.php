@@ -854,8 +854,7 @@ class Octopus_Html_Page {
         if (!$file) {
             return false;
         }
-
-        if (preg_match('#^(https?)?://#i', $file)) {
+        if (preg_match('#^(https?:)?//#i', $file)) {
             return $file;
         }
 
@@ -893,7 +892,7 @@ class Octopus_Html_Page {
             return call_user_func($this->options['urlifier'], $file, $this->options, $this);
         }
 
-        if (preg_match('#^(https?)?://#i', $file)) {
+        if (preg_match('#^(https?:)?//#i', $file)) {
             return $file;
         }
 
