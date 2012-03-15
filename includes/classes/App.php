@@ -555,12 +555,6 @@ class Octopus_App {
     }
 
     public function getDeleteResponse($path, $data = array(), $options = array()) {
-        $_SERVER['REQUEST_METHOD'] = 'delete';
-        return $this->getResponse($path, $options);
-    }
-
-    public function getPutResponse($path, $data = array(), $options = array()) {
-
         if (is_bool($options)) {
             $buffer = $options;
             $options = array(
@@ -568,10 +562,28 @@ class Octopus_App {
             );
         }
 
-        $file = tempnam('/tmp/', 'octopus_put');
+        return $this->fakeInputdata('delete', $path, $data, $options);
+    }
+
+    public function getPutResponse($path, $data = array(), $options = array()) {
+        if (is_bool($options)) {
+            $buffer = $options;
+            $options = array(
+                'buffer' => $buffer,
+            );
+        }
+
+        return $this->fakeInputdata('put', $path, $data, $options);
+    }
+
+    private function fakeInputData($method, $path, $data, $options) {
+        $method = strtolower($method);
+
+        $file = tempnam('/tmp/', 'octopus_' . $method);
         file_put_contents($file, http_build_query($data));
-        $options['put_data_file'] = $file;
-        $_SERVER['REQUEST_METHOD'] = 'put';
+        $options[$method . '_data_file'] = $file;
+        $_SERVER['REQUEST_METHOD'] = $method;
+
         $response = $this->getResponse($path, $options);
         unlink($file);
         return $response;
