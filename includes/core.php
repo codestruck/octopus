@@ -34,8 +34,6 @@
     // Core function includes
     ////////////////////////////////////////////////////////////////////////
 
-    require_once(OCTOPUS_CLASSES_DIR . 'Log.php');
-
     require_once(OCTOPUS_FUNCTIONS_DIR . 'debug.php');
     require_once(OCTOPUS_FUNCTIONS_DIR . 'misc.php');
     require_once(OCTOPUS_FUNCTIONS_DIR . 'strings.php');
