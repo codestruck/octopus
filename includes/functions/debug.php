@@ -1869,6 +1869,14 @@ END;
 END;
 		}
 
+		$time = @strtotime($str);
+		if ($time !== false && $time !== -1) {
+			$result .= <<<END
+
+	Timestamp: $time
+END;
+		}
+
         if (strlen($str) > 1 && $str[0] === '/' && file_exists($str)) {
 
             $isDir = is_dir($str);

@@ -40,7 +40,8 @@ class DebugTest extends Octopus_App_TestCase {
 		$lightLine = str_repeat(Octopus_Log_Listener_Console::CHAR_LIGHT_LINE, 80);
 
 		$this->assertTrue(is_file($file), 'debug output written to file');
-		$this->assertEquals(
+
+		$expected =
 			<<<END
 
 $boldLine
@@ -51,11 +52,11 @@ $expected
 $boldLine
 
 
-END
-			,
-			file_get_contents($file)
-		);
+END;
 
+		$actual = file_get_contents($file);
+
+		$this->assertEquals($expected, $actual);
 
 	}
 
@@ -175,6 +176,22 @@ END
 "$file"
 	Length: $len chars
 	File: exists, -rw-r--r--, ~1M (1,049,076 bytes)
+END
+		);
+
+	}
+
+	function testDumpDateStringToStdErr() {
+
+		$date = 'May 15, 2003';
+		$len = strlen($date);
+		$time = strtotime($date);
+
+		$this->assertValueDumpedToStdErr(
+			$date,
+			<<<END
+"$date" ($len chars)
+	Timestamp: $time
 END
 		);
 
