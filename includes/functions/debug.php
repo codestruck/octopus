@@ -925,6 +925,9 @@ class Octopus_Log_Listener_Html {
 class Octopus_Log_Listener_Console {
 
 	private $file;
+    const CHAR_BOLD_LINE = '=';
+    const CHAR_LIGHT_LINE = '-';
+
 
 	public function __construct($file = 'php://stderr') {
 		$this->file = $file;
@@ -953,8 +956,8 @@ class Octopus_Log_Listener_Console {
 
 		$time = date('Y-M-d h:n:s');
 
-		$boldLine = str_repeat('*', $width);
-		$lightLine = str_repeat('-', $width);
+		$boldLine = str_repeat(self::CHAR_BOLD_LINE, $width);
+		$lightLine = str_repeat(self::CHAR_LIGHT_LINE, $width);
 
 		$level = Octopus_Log::getLevelName($level);
 
@@ -1258,6 +1261,56 @@ class Octopus_Debug {
     private static $environment = null;
     private static $dumpEnabled = true;
 
+    /**
+     * Sets up the debugging environment if it has not already been set up.
+     */
+    public static function configure() {
+
+    	if (self::$configured) {
+    		return;
+    	}
+
+    	self::$configured = true;
+
+    	$logDir = null;
+    	$fileListener = null;
+
+    	if (defined('LOG_DIR') && is_dir(LOG_DIR)) {
+    		$logDir = LOG_DIR;
+    	} else if (defined('PRIVATE_DIR') && is_dir(PRIVATE_DIR)) {
+    		$logDir = PRIVATE_DIR;
+    	} else if (defined('OCTOPUS_PRIVATE_DIR') && is_dir(OCTOPUS_PRIVATE_DIR)) {
+    		$logDir = OCTOPUS_PRIVATE_DIR;
+    	}
+
+    	if ($logDir) {
+    		$fileListener = new Octopus_Log_Listener_File($logDir);
+    	}
+
+
+		if (self::isLiveEnvironment()) {
+
+			if ($fileListener) {
+				Octopus_Log::addListener(Octopus_Log::LEVEL_WARN, $fileListener);
+			}
+
+		} else if (self::isStagingEnvironment()) {
+
+			if ($fileListener) {
+				Octopus_Log::addListener(Octopus_Log::LEVEL_DEBUG, $fileListener);
+			}
+
+		} else if (self::isDevEnvironment()) {
+
+			if ($fileListener) {
+				Octopus_Log::addListener(Octopus_Log::LEVEL_DEBUG, $fileListener);
+			}
+
+			Octopus_Log::addListener(new Octopus_Log_Listener_Html());
+			Octopus_Log::addListener(new Octopus_Log_Listener_Console());
+		}
+
+    }
 
     /**
      * Writes all arguments passed to it as special debug messages. Only
@@ -1312,63 +1365,13 @@ class Octopus_Debug {
             $format = Octopus_Debug::inWebContext() ? 'html' : 'text';
         }
 
-        if ($fancy) {
+    	if ($format === 'html') {
+    		$result = self::dumpToHtmlString($x, $fancy);
+    	} else {
+    		$result = self::dumpToPlainTextString($x, $fancy);
+    	}
 
-            $result = null;
-
-            if ($format === 'html') {
-
-                if ($x === null) {
-                    $result = '<span class="octopusDebugNull">NULL</span>';
-                } else if (is_bool($x)) {
-                    $result =  '<span class="octopusDebugBoolean">' . ($x ? 'TRUE' : 'FALSE') . '</span>';
-                } else if (is_object($x) && $x instanceof Dumpable) {
-                    $result = $x->__dumpHtml();
-                } else if ($x instanceof Exception) {
-                    $result = self::dumpExceptionToHtml($x);
-                } else if (is_array($x)) {
-                    $result = self::dumpArrayToHtml($x);
-                } else if (is_string($x)) {
-                    $result = self::dumpStringToHtml($x);
-                } else if (is_numeric($x)) {
-                    $result = self::dumpNumberToHtml($x);
-                }
-
-            } else {
-
-                if ($x === null) {
-                    $result = 'NULL';
-                } else if ($x === true || $x === false) {
-                    $result = $x ? 'TRUE' : 'FALSE';
-                } else if (is_string($x)) {
-                    $result = self::dumpStringToText($x);
-                } else if (is_object($x) && $x instanceof Dumpable) {
-                    $result = $x->__dumpText();
-                    if ($result === null) $result = '';
-                } else if ($x instanceof Exception) {
-                    $result = self::dumpExceptionToText($x);
-                }
-
-            }
-
-            if ($result !== null) {
-                return self::sanitizeDebugOutput($result);
-            }
-
-        }
-
-        ob_start();
-        // NOTE: var_export chokes on recursive references, and var_dump is
-        // slightly better at handling them.
-        var_dump($x);
-        $result = self::sanitizeDebugOutput(trim(ob_get_clean()));
-
-        if ($format === 'html') {
-            $result = htmlspecialchars($result, ENT_QUOTES, 'UTF-8');
-            $result = "<pre>$result</pre>";
-        }
-
-        return $result;
+        return self::sanitizeDebugOutput($result);
     }
 
     /**
@@ -1553,7 +1556,7 @@ class Octopus_Debug {
     		return false;
     	}
 
-    	$isLive = !($this->isDevEnvironment() || $this->isStagingEnvironment());
+    	$isLive = !(self::isDevEnvironment() || self::isStagingEnvironment());
 
     	if ($isLive) {
     		self::$environment = 'LIVE';
@@ -1657,57 +1660,6 @@ class Octopus_Debug {
 
     	// TODO: make this ->isBuffered()
     	return $resp->buffer();
-    }
-
-    /**
-     * Sets up the debugging environment if it has not already been set up.
-     */
-    private static function configure() {
-
-    	if (self::$configured) {
-    		return;
-    	}
-
-    	self::$configured = true;
-
-    	$logDir = null;
-    	$fileListener = null;
-
-    	if (defined('LOG_DIR') && is_dir(LOG_DIR)) {
-    		$logDir = LOG_DIR;
-    	} else if (defined('PRIVATE_DIR') && is_dir(PRIVATE_DIR)) {
-    		$logDir = PRIVATE_DIR;
-    	} else if (defined('OCTOPUS_PRIVATE_DIR') && is_dir(OCTOPUS_PRIVATE_DIR)) {
-    		$logDir = OCTOPUS_PRIVATE_DIR;
-    	}
-
-    	if ($logDir) {
-    		$fileListener = new Octopus_Log_Listener_File($logDir);
-    	}
-
-
-		if (self::isLiveEnvironment()) {
-
-			if ($fileListener) {
-				Octopus_Log::addListener(Octopus_Log::LEVEL_WARN, $fileListener);
-			}
-
-		} else if (self::isStagingEnvironment()) {
-
-			if ($fileListener) {
-				Octopus_Log::addListener(Octopus_Log::LEVEL_DEBUG, $fileListener);
-			}
-
-		} else if (self::isDevEnvironment()) {
-
-			if ($fileListener) {
-				Octopus_Log::addListener(Octopus_Log::LEVEL_DEBUG, $fileListener);
-			}
-
-			Octopus_Log::addListener(new Octopus_Log_Listener_Html());
-			Octopus_Log::addListener(new Octopus_Log_Listener_Console());
-		}
-
     }
 
     /**
@@ -1856,6 +1808,35 @@ END;
         return $result;
     }
 
+    private static function dumpNumberToText($x) {
+
+    	$result = self::dumpToPlainTextString($x, false);
+
+    	if (is_int($x)) {
+
+    		$result .=
+    			"\n\t" .
+    			sprintf('octal:        0%o', $x) .
+    			"\n\t" .
+    			sprintf('hex:          0x%X', $x);
+
+    	}
+
+    	if (self::looksLikeTimestamp($x)) {
+    		$result .=
+    			"\n\t" .
+    			        "timestamp:    " . date('r', $x);
+    	}
+
+    	if (self::looksLikeFilePermissions($x)) {
+    		$result .=
+    			"\n\t" .
+    					"permissions:  " . self::getNumberAsFilePermissions($x);
+    	}
+
+    	return $result;
+    }
+
     /**
      * @return String A nice HTML representation of a string.
      */
@@ -1875,32 +1856,153 @@ END;
      * @return A string with some extra metadata.
      */
     private static function dumpStringToText($str) {
+
         $length = self::getNiceStringLength($str);
-        $result = '"' . $str . '" - ' . $length;
+        $result = <<<END
+"$str" ($length)
+END;
+
+		if (strlen($result) > 80) {
+			$result = <<<END
+"$str"
+	Length: $length
+END;
+		}
 
         if (strlen($str) > 1 && $str[0] === '/' && file_exists($str)) {
 
             $isDir = is_dir($str);
             $isLink = is_link($str);
 
-            $type = 'file';
-            if ($isDir) $type = 'directory';
+            $type = 'File';
+            if ($isDir) $type = 'Directory';
             if ($isLink) $type .= ' (link)';
 
-            $result .= "\n\tExists and is a $type";
+            $info = array('exists');
+
+            $perms = @fileperms($str);
+
+            if ($perms) {
+            	$info[] = self::getNumberAsFilePermissions($perms);
+            }
 
             if ($isDir) {
-                $contents = @glob(rtrim($str, '/') . '/*');
-                if ($contents) {
-                    $result .= "\n\t" . count($contents) . ' file(s):';
-                    foreach($contents as $f) {
-                        $result .= "\n\t\t" . basename($f);
-                    }
-                }
+
+            	$handle = @opendir($str);
+
+            	if ($handle) {
+
+            		$count = 0;
+            		while(($entry = readdir($handle)) !== false) {
+            			if ($entry != '.' && $entry != '..') {
+            				$count++;
+            			}
+            		}
+            		closedir($handle);
+
+            		$info[] = 'contains ' . number_format($count) . ' file' . ($count === 1 ? '' : 's');
+            	}
+
+            } else {
+
+            	$size = @filesize($str);
+            	if ($size !== false) {
+
+            		$levels = array('G', 'M', 'K', 'B');
+            		$niceSize = '';
+
+            		foreach($levels as $index => $symbol) {
+
+            			$index = count($levels) - $index - 1;
+            			$threshold = ($index === 0 ? 0 : pow(1024, $index));
+
+            			if ($size >= $threshold) {
+            				$niceSize = $size / $threshold;
+
+            				$niceSize =
+            					(floor($niceSize) === $niceSize ? '' : '~') .
+            					number_format($niceSize) .
+            					$symbol .
+            					($threshold > 0 ? ' (' . number_format($size) . ' bytes)' : '');
+            					break;
+            			}
+            		}
+
+            		if ($niceSize) {
+            			$info[] = $niceSize;
+            		}
+            	}
+
             }
+
+            if ($info) {
+            	$info = ': ' . implode(', ', $info);
+            } else {
+            	$info = '';
+            }
+
+            $result .= "\n\t$type{$info}";
+
         }
 
         return $result;
+
+    }
+
+    private static function dumpToHtmlString($x, $fancy) {
+
+    	if ($fancy) {
+
+            if ($x === null) {
+                return '<span class="octopusDebugNull">NULL</span>';
+            } else if (is_bool($x)) {
+                return  '<span class="octopusDebugBoolean">' . ($x ? 'TRUE' : 'FALSE') . '</span>';
+            } else if (is_object($x) && $x instanceof Dumpable) {
+                return $x->__dumpHtml();
+            } else if ($x instanceof Exception) {
+                return self::dumpExceptionToHtml($x);
+            } else if (is_array($x)) {
+                return self::dumpArrayToHtml($x);
+            } else if (is_string($x)) {
+                return self::dumpStringToHtml($x);
+            } else if (is_numeric($x)) {
+                return self::dumpNumberToHtml($x);
+            }
+
+        }
+
+        return
+        	'<pre class="octopusDebugRawVarDump">' .
+        	htmlspecialchars(self::dumpToPlainTextString($x, $fancy), ENT_QUOTES, 'UTF-8') .
+        	'</pre>';
+    }
+
+    private static function dumpToPlainTextString($x, $fancy) {
+
+    	if ($fancy) {
+
+	        if ($x === null) {
+	            return 'NULL';
+	        } else if ($x === true || $x === false) {
+	            return $x ? 'TRUE' : 'FALSE';
+	        } else if (is_string($x)) {
+	            return self::dumpStringToText($x);
+	        } else if (is_numeric($x)) {
+	        	return self::dumpNumberToText($x);
+	        } else if (is_object($x) && $x instanceof Dumpable) {
+	            $result = $x->__dumpText();
+	            return ($result === null ? '' : $result);
+	        } else if ($x instanceof Exception) {
+	            return self::dumpExceptionToText($x);
+	        }
+
+	    }
+
+        ob_start();
+        // NOTE: var_export chokes on recursive references, and var_dump is
+        // slightly better at handling them.
+        var_dump($x);
+        return trim(ob_get_clean());
 
     }
 
@@ -1965,7 +2067,7 @@ END;
             $info = 'p';
         } else {
             // Unknown
-            $info = 'u';
+            $info = '';
         }
 
         // Owner
@@ -2009,6 +2111,31 @@ END;
 
     }
 
+    private static function looksLikeFilePermissions($x) {
+
+    	if (!is_int($x) || $x < 0 || $x > 0777) {
+    		return false;
+    	}
+
+    	// basic sanity filter to avoid interpreting everything as
+    	// permissions
+    	$x = self::getNumberAsFilePermissions($x);
+    	return !preg_match('/(-w-)/', $x);
+
+    }
+
+    private static function looksLikeTimestamp($x) {
+
+    	if (!is_int($x)) {
+    		return false;
+    	}
+
+        $minDate = strtotime('-10 years');
+        $maxDate = strtotime('+10 years');
+
+        return ($x >= $minDate && $x <= $maxDate);
+    }
+
     /**
      * Remove certain sensitive strings from debug output.
      */
@@ -2049,8 +2176,8 @@ class Octopus_Debug_Dumped_Vars implements Dumpable, ArrayAccess {
 
 		$result = array();
 		foreach($this->vars as $key => $var) {
-			if ($result) $result[] = str_repeat('-', 80);
-			$result[] = Octopus_Debug::dumpToString($var, 'text');
+			if ($result) $result[] = str_repeat(Octopus_Log_Listener_Console::CHAR_LIGHT_LINE, 80);
+			$result[] = Octopus_Debug::dumpToString($var, 'text', true);
 		}
 
 		return implode("\n", $result);
