@@ -12,11 +12,13 @@ AddDefaultCharset UTF-8
     # Block access to _private
     RewriteRule "^(.*/)?_private/" - [F,L]
 
-    # TODO Remove PW-specific stuff
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^ui(\.php)?/?(.*) /pricewaiter/index$2 [R=301,L]
+    # If maintenance.html is present in the root, serve it up
+    RewriteCond %{DOCUMENT_ROOT}/maintenance/index.html -f
+    RewriteCond %{REQUEST_URI} !/(maintenance)/.* [NC]
+    RewriteCond %{REQUEST_URI} !\.(jpe?g|png|gif) [NC]
+    RewriteRule .* /maintenance/index.html [L]
 
+    # Redirect requests to the octopus driver
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^(.*)$ index.php?__path=$1 [L,QSA]
