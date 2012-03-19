@@ -1,1 +1,0 @@
-<?php class TestController extends Octopus_Controller { } ?>
