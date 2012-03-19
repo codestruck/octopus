@@ -1578,11 +1578,24 @@ END;
             // are removed from it.
             foreach($minified as $minifiedUrl => $oldUrls) {
 
+            	// Find the min weight for the combined item
+                $minWeight = null;
+                foreach($oldUrls as $old) {
+                	if (!isset($itemsByUrl[$old])) {
+                		continue;
+                	}
+                	$item = $itemsByUrl[$old];
+                	if ($minWeight === null || $item['weight'] < $minWeight) {
+                		$minWeight = $item['weight'];
+                	}
+                }
+
                 $oldUrl = array_shift($oldUrls);
 
                 $item =& $itemsByUrl[$oldUrl];
                 $item['file'] = $minifiedUrl;
                 $item['old_url'] = $oldUrl;
+                $item['weight'] = $minWeight;
 
                 foreach($oldUrls as $old) {
                     unset($itemsByUrl[$old]);
@@ -1596,8 +1609,9 @@ END;
                 foreach($noUrlItems as $item) {
                     $items[] = $item;
                  }
-                 usort($items, array('Octopus_Html_Page', 'compareWeights'));
             }
+
+            usort($items, array('Octopus_Html_Page', 'compareWeights'));
         }
 
          return $items;
