@@ -281,4 +281,27 @@ END
     	}
 
     }
+
+    function testFullCacheClearCacheDir() {
+
+		$pageTpl = $this->getSiteDir() . 'themes/default/templates/html/page.php';
+    	file_put_contents($pageTpl, '<div class="page-tpl"> <?php echo $view_content ?> </div>');
+
+    	$controllerFile = $this->createControllerFile('TestFullCache');
+    	$this->createViewFile(array(
+    		'test_full_cache/cached.tpl',
+    	), __METHOD__);
+
+    	$app = $this->getApp();
+    	$renderer = $app->getRenderer();
+    	$renderer->enableFullCache();
+
+		$resp = $app->getGetResponse('/test-full-cache/cached');
+		$cacheFile = $this->getCacheDir() . 'full/test-full-cache/cached/index.html';
+
+    	$this->assertTrue(is_file($cacheFile), 'cache file written');
+    	Octopus_Renderer::clearFullCache();
+    	$this->assertFalse(is_file($cacheFile), 'cache file not present after clear');
+
+    }
 }

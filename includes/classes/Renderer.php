@@ -93,6 +93,27 @@ class Octopus_Renderer {
     }
 
     /**
+     * Deletes the contents of the full cache so that cache files are re-created
+     * on the next request.
+     * @return Boolean True on success, false otherwise.
+     */
+    public static function clearFullCache() {
+
+    	if (!Octopus_App::isStarted()) {
+    		return false;
+    	}
+
+    	$app = Octopus_App::singleton();
+    	$cacheDir = $app->OCTOPUS_CACHE_DIR . 'full/';
+
+    	if (!is_dir($cacheDir)) {
+    		return true;
+    	}
+
+    	return recursive_delete($cacheDir);
+    }
+
+    /**
      * Gives themes a chance to hook into the rendering process. Looks for and
      * loads the 'theme.php' file in the current theme's directory, and adds
      * the theme's directory as potential paths for js and css files.
