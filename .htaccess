@@ -18,6 +18,13 @@ AddDefaultCharset UTF-8
     RewriteCond %{REQUEST_URI} !\.(jpe?g|png|gif) [NC]
     RewriteRule .* /maintenance/index.html [L]
 
+    # Support wpsupercache style functionality for GET requests with no
+    # querystring args
+    RewriteCond %{REQUEST_METHOD} GET
+    RewriteCond %{QUERY_STRING} !.+
+    RewriteCond %{DOCUMENT_ROOT}/cache/full/$1/index.html -f
+    RewriteRule ^(.*) %{DOCUMENT_ROOT}/cache/full/$1/index.html [L]
+
     # Redirect requests to the octopus driver
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d

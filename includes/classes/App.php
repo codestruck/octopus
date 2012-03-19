@@ -112,6 +112,8 @@ class Octopus_App {
     private $_haveSiteControllers = false;
     private $_haveSiteConfig = false;
 
+    private $_renderer = null;
+
     private function __construct($options = array()) {
 
         $this->_options = empty($options) ? self::$defaults : array_merge(self::$defaults, $options);
@@ -338,8 +340,13 @@ class Octopus_App {
      * @return An Octopus_Renderer instance to use to find views and render
      * the final page.
      */
-    public function createRenderer() {
-        return Octopus::create('Octopus_Renderer', array($this));
+    public function getRenderer() {
+
+    	if ($this->_renderer) {
+    		return $this->_renderer;
+    	}
+
+        return ($this->_renderer = Octopus::create('Octopus_Renderer', array($this)));
     }
 
     /**
