@@ -76,17 +76,16 @@ class Octopus_Smarty {
     		$compileDir = $this->app->getOption('SMARTY_COMPILE_DIR');
     		if ($compileDir) return $compileDir;
 
-    		return $this->app->OCTOPUS_PRIVATE_DIR . 'smarty';
+    		return $this->app->OCTOPUS_PRIVATE_DIR . 'smarty/' . SMARTY_VERSION;
     	}
 
         $compileDir = get_option('SMARTY_COMPILE_DIR');
         if ($compileDir) return $compileDir;
 
         $compileDir = get_option('OCTOPUS_PRIVATE_DIR');
-        if ($compileDir) return $compileDir . 'smarty';
+        if ($compileDir) return $compileDir . 'smarty/' . SMARTY_VERSION;
 
         return sys_get_temp_dir();
-
     }
 
     public function getTemplateDir() {
