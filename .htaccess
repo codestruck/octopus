@@ -12,7 +12,7 @@ AddDefaultCharset UTF-8
     # Block access to _private
     RewriteRule "^(.*/)?_private/" - [F,L]
 
-    # If maintenance.html is present in the root, serve it up
+    # If maintenance/index.html is present in the root, serve it up
     RewriteCond %{DOCUMENT_ROOT}/maintenance/index.html -f
     RewriteCond %{REQUEST_URI} !/(maintenance)/.* [NC]
     RewriteCond %{REQUEST_URI} !\.(jpe?g|png|gif) [NC]
