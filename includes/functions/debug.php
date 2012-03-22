@@ -1421,7 +1421,7 @@ class Octopus_Debug {
 
             // Remove ROOT_DIR from beginning of file name if possible
             if ($rootDirLen && substr($niceItem['file'], 0, $rootDirLen) == $rootDir) {
-                $niceItem['nice_file'] = substr($b['file'], $rootDirLen);
+                $niceItem['nice_file'] = substr($niceItem['file'], $rootDirLen);
             } else {
                 $niceItem['nice_file'] = $niceItem['file'];
             }
