@@ -1210,7 +1210,8 @@ class Octopus_Debug {
      * Writes all arguments passed to it as special debug messages. Only
      * works when the app is in DEV mode.
      * @see dump_r
-     * @return Mixed The first argument passed in.
+     * @return Mixed The first argument passed in, unless called from a
+     * smarty template, in which case nothing is returned.
      */
     public static function dump($x) {
 
@@ -1227,6 +1228,15 @@ class Octopus_Debug {
 
     	$vars = new Octopus_Debug_Dumped_Vars(func_get_args());
     	Octopus_Log::debug('dump', $vars);
+
+    	// This is kind of a hack. When we are calling dump_r from smarty
+    	// templates, we don't want to return the value because it will get
+    	// rendered.
+    	$line = self::getMostRelevantTraceLine();
+
+    	if ($line && preg_match('/\.tpl\.php/', $line['file'])) {
+    		return;
+    	}
 
     	return $x;
     }
