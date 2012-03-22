@@ -160,7 +160,7 @@ END
 		$this->assertTrue(is_file($file), 'log file exists');
 
 		$size = filesize($file);
-		$this->assertTrue($size > 0 && $size <= 2048, "File size between 0 and 2048 (was $size)");
+		$this->assertTrue($size > 0 && $size <= 6000, "File size between 0 and 6000 (was $size)");
 
 		for($i = 1; $i <= 10; $i++) {
 
