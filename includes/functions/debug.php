@@ -2265,6 +2265,8 @@ class Octopus_Log_Listener_Html_Message {
 		$this->title = $title;
 		$this->log = $log;
 		$this->level = $level;
+
+		$this->addClass('octopus-debug-level-' . strtolower(Octopus_Log::getLevelName($level)));
 	}
 
 	/**
