@@ -1,5 +1,7 @@
 <?php
 
+	require_once(dirname(dirname(__FILE__)) . '/includes/functions/debug.php');
+
 	$description = <<<END
 
 octopus/tail
@@ -40,7 +42,7 @@ END;
 	if (!$added) {
 
 		// nothing == monitor LOG_DIR
-		$monitor->addDir(dirname(dirname(dirname(__FILE__))) . '/_private/log');
+		$monitor->addDir(dirname(dirname(dirname(__FILE__))) . '/_private');
 
 	}
 
@@ -98,17 +100,73 @@ END;
 		return $hash;
 	}
 
-	function octopus_display_log_item($item) {
+	function octopus_display_log_item($item, $width = 80) {
+
+		$dim = "\033[2m";
+		$bright = "\033[1m";
+		$reset = "\033[0m";
+
+		$whiteBG = "\033[47m";
+		$blackText = "\033[30m";
+
+		$levelColors = array(
+			'INFO' => 	"\033[34m", // blue
+			'WARN' => 	"\033[31m", // yellow
+			'ERROR' => 	"\033[31m", // red
+		);
+
+		$levelColor = '';
+		if (isset($levelColors[$item['level']])) {
+			$levelColor = $levelColors[$item['level']];
+		}
+
+		$defaultFormat = "{$bright}{$whiteBG}{$blackText}";
+
+		$boldLine = 	str_repeat('*', $width);
+		$lightLine = 	str_repeat('-', $width);
+
+		$space = ' ';
+
+		$time = date('r', strtotime($item['time']));
+		$logAndLevel = $item['log'] . ' ' . $item['level'];
+
+		$time = str_pad($time, 39);
+		$logAndLevel = str_pad($logAndLevel, 39, ' ', STR_PAD_LEFT);
+
+		$message = $item['message'];
+
+		// Pad message out to full width
+		$messageLen = strlen($message);
+		$pad = floor($messageLen / $width);
+
+		if ($pad < $messageLen / $width) {
+			$pad++;
+		}
+
+		$message = str_pad($message, $pad * $width);
+
+		$trace = '';
+		if ($item['trace']) {
+
+			$trace = Octopus_Debug::getMostRelevantTraceLine($item['trace'], array(__FILE__));
+			if ($trace) {
+				$trace = "{$trace['nice_file']}, line {$trace['line']}";
+				$trace = ' ' . str_pad($trace, $width - 1);
+			} else {
+				$trace = '';
+			}
+		}
 
 		echo <<<END
-
-{$item['time']}
+{$defaultFormat}{$levelColor}
+{$boldLine}
+ {$time}{$logAndLevel}{$space}
+{$lightLine}
+{$message}
+{$lightLine}{$trace}
+{$boldLine}{$reset}
 
 END;
-
-		var_dump($item['message']);
-
-		echo "\n";
 
 	}
 
@@ -147,26 +205,59 @@ class Octopus_Log_Monitor {
 				continue;
 			}
 
-			foreach($this->findLogFilesInDir($dir) as $logFile) {
-
-				$mtime = @filemtime($logFile);
-				if (!$mtime) continue; // file not found
-
-				if (!isset($this->lastMods[$logFile])) {
-					echo "\nMonitoring $logFile...";
-				}
-
-				$this->lastMods[$logFile] = filemtime($logFile);
-				$lastItem = isset($this->lastItems[$logFile]) ? $this->lastItems[$logFile] : false;
-
-				$func = $this->callback;
-				$this->lastItems[$logFile] = $func($logFile, $lastItem);
-
-				$hadChanges = true;
-			}
-
+			$hadChanges = $this->pollDirectory($dir) || $hadChanges;
 
 		}
+
+		return $hadChanges;
+	}
+
+	private function pollDirectory($dir) {
+
+		$hadChanges = false;
+
+		$dir = rtrim($dir, '/') . '/';
+
+		$h = opendir($dir);
+		if (!$h) {
+			echo "Could not open directory $dir\n\n";
+			continue;
+		}
+
+		while(($item = readdir($h)) !== false) {
+
+			if ($item == '.' || $item == '..') {
+				continue;
+			}
+
+			$file = $dir . $item;
+
+			if (is_dir($file)) {
+				$this->pollDirectory($file);
+				continue;
+			}
+
+			if (!preg_match('/\.log$/', $item) || preg_match('/\.\d+\.log$/', $item)) {
+				continue;
+			}
+
+			$mtime = @filemtime($file);
+			if (!$mtime) continue; // file not found
+
+			if (!isset($this->lastMods[$file])) {
+				echo "Monitoring $file...\n\n";
+			}
+
+			$this->lastMods[$file] = filemtime($file);
+			$lastItem = isset($this->lastItems[$file]) ? $this->lastItems[$file] : false;
+
+			$func = $this->callback;
+			$this->lastItems[$file] = $func($file, $lastItem);
+
+			$hadChanges = true;
+		}
+
+		closedir($h);
 
 		return $hadChanges;
 	}

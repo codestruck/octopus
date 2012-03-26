@@ -498,16 +498,12 @@ class Octopus_Log {
 
 		foreach($trace as $item) {
 
-			$item['file'] = $item['nice_file'];
-			unset($item['nice_file']);
-
 			if (count($result) > 0) {
 				$result[] = $item;
 				continue;
 			}
 
-			if ($item['function'] === 'saneBacktrace') {
-				// don't bother including
+			if ($item['file'] === __FILE__) {
 				continue;
 			}
 
@@ -868,7 +864,11 @@ class Octopus_Log_Listener_Html {
 			$message = $message->__dumpHtml();
 		}
 
-		$html->add('Variable(s)', $message);
+		if ($message instanceof Octopus_Debug_Dumped_Vars) {
+			$html->add('Variable(s)', $message);
+		} else {
+			$html->add('Message', $message);
+		}
 
 		// Add metadata to the message
         foreach(array('_GET', '_POST', '_SERVER', '_SESSION', '_FILES') as $arname) {
@@ -1344,7 +1344,7 @@ class Octopus_Debug {
      * @return Mixed An item from a backtrace array that is the best thing to
      * show the user.
      */
-    public static function getMostRelevantTraceLine($trace = null) {
+    public static function getMostRelevantTraceLine($trace = null, $filesToIgnore = array()) {
 
     	if ($trace === null) {
     		$trace = self::getNiceBacktrace();
@@ -1361,6 +1361,10 @@ class Octopus_Debug {
 
 			// Skip stuff in this file
 			if ($traceLine['file'] === __FILE__) {
+				continue;
+			}
+
+			if (in_array($traceLine['file'], $filesToIgnore)) {
 				continue;
 			}
 
