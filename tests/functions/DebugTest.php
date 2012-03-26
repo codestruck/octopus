@@ -5,7 +5,7 @@ class DebugTest extends Octopus_App_TestCase {
 	public static $temp = null;
 
 	function setUp() {
-		return $this->markTestSkipped();
+
 		parent::setUp();
 		Octopus_Debug::reset();
 		self::$temp = null;
@@ -40,21 +40,17 @@ class DebugTest extends Octopus_App_TestCase {
 		$lightLine = str_repeat(Octopus_Log_Listener_Console::CHAR_LIGHT_LINE, 80);
 
 		$this->assertTrue(is_file($file), 'debug output written to file');
-
-		$expected =
-			<<<END
-
-$boldLine
- dump - DEBUG                            DebugTest::assertValueDumpedToStdErr()
-                                 octopus/tests/functions/DebugTest.php, line 37
-$lightLine
-$expected
-$boldLine
-
-
-END;
-
 		$actual = file_get_contents($file);
+		$actual = preg_replace('/^.*?' . Octopus_Log_Listener_Console::CHAR_LIGHT_LINE . '{80}\n/s', '', $actual);
+		$actual = preg_replace('/' . Octopus_Log_Listener_Console::CHAR_LIGHT_LINE . '{80}.*$/s', '', $actual);
+
+		$actual = trim($actual);
+		$actual = explode("\n", $actual);
+		$actual = array_map('trim', $actual);
+
+		$expected = trim($expected);
+		$expected = explode("\n", $expected);
+		$expected = array_map('trim', $expected);
 
 		$this->assertEquals($expected, $actual);
 
