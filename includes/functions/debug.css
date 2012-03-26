@@ -128,8 +128,12 @@ ul.octopus-debug-nav li {
     opacity: 0.8;
     padding: 5px 0;
     text-align: center;
-    width: 100px;
     -webkit-transition: opacity 0.1s linear;
+}
+
+ul.octopus-debug-nav li a {
+    display: block;
+    padding: 0 5px;
 }
 
 ul.octopus-debug-nav li.octopus-debug-active,

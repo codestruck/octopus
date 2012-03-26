@@ -214,11 +214,9 @@ class Octopus_Log {
 	 * A custom PHP exception handler that routes exceptions through the
 	 * logging infrastructure. Exceptions are logged, then die() is called.
 	 */
-	public static function exceptionHandler($ex) {
-
+	public static function exceptionHandler(Exception $ex) {
 		self::error('errors', $ex);
 		die();
-
 	}
 
 	/**
@@ -727,7 +725,14 @@ class Octopus_Log_Listener_File {
 			return false;
 		}
 
-		$entry = call_user_func($this->getFormatter(), $message, $log, $level, time(), $this->getStackTrace());
+		if ($message instanceof Exception) {
+			$trace = Octopus_Debug::getNiceBacktrace($message->getTrace());
+			$message = Octopus_Debug::dumpToString($message, 'text', true);
+		} else {
+			$trace = $this->getStackTrace();
+		}
+
+		$entry = call_user_func($this->getFormatter(), $message, $log, $level, time(), $trace);
 
 		fwrite($handle, $entry);
 		fwrite($handle, ",\n");
@@ -856,12 +861,15 @@ class Octopus_Log_Listener_Html {
 
 	public function write($message, $log, $level) {
 
-		$html = new Octopus_Log_Listener_Html_Message('', $log, $level);
+		$html = new Octopus_Log_Listener_Html_Message($log, $level);
 
 		$niceMessage = ($message instanceof Dumpable) ? $message->__dumpHtml() : $message;
+		$isException = ($message instanceof Exception);
 
 		if ($message instanceof Octopus_Debug_Dumped_Vars) {
 			$html->add('Variable(s)', $niceMessage);
+		} else if ($isException) {
+			$html->add(get_class($message), new Octopus_Debug_Html_Exception($message));
 		} else {
 			$html->add('Message', $niceMessage);
 		}
@@ -876,7 +884,21 @@ class Octopus_Log_Listener_Html {
 
         }
 
-        //$html->addFooterElement('error_reporting', self::getErrorReportingHtml());
+     	if ($isException) {
+       		$trace = Octopus_Debug::getNiceBacktrace($message->getTrace());
+       		$html->title = get_class($message);
+       	} else {
+       		$trace = Octopus_Debug::getNiceBacktrace();
+       	}
+
+       	if ($trace) {
+       		$html->add('Trace', new Octopus_Log_Listener_Html_Trace($trace));
+
+       		$line = Octopus_Debug::getMostRelevantTraceLine($trace, array(__FILE__));
+       		if ($line) {
+       			$html->title .= ($html->title ? ' at ' : '') . "{$line['nice_file']}, line {$line['line']}";
+       		}
+       	}
 
         // Add console output in an HTML comment before the actual HTML
         $mem = fopen('php://temp', 'r+');
@@ -1039,6 +1061,14 @@ class Octopus_Log_Listener_Console {
 		$logAndLevel = "{$log} {$level}";
 		$logAndLevel = str_pad($logAndLevel, ($width / 2) - 1, ' ', STR_PAD_LEFT);
 
+		if ($message instanceof Dumpable) {
+			$message = $message->__dumpText();
+		} else if (is_array($message)) {
+			$message = Octopus_Debug::dumpToString($message, 'text', false);
+		} else {
+			$message = (string)$message;
+		}
+
 		// Pad message out to full width (this keeps backgrounds looking nice
 		// when in color)
 		if ($color) {
@@ -1138,7 +1168,7 @@ class Octopus_Log_Listener_Html_Trace {
 END;
 
         $i = 0;
-        $trace = Octopus_Debug::getSaneBacktrace($this->trace);
+        $trace = Octopus_Debug::getNiceBacktrace($this->trace);
 
         foreach($trace as $b) {
 
@@ -1201,18 +1231,29 @@ class Octopus_Debug {
     /**
      * Sets up the debugging environment if it has not already been set up.
      */
-    public static function configure() {
+    public static function configure($options = array()) {
 
-    	if (self::$configured) {
+    	if (self::$configured && empty($options)) {
     		return;
     	}
-
+    	/*
+echo '<pre>';
+var_dump($options);
+echo '</pre>';
+die();
+*/
     	self::$configured = true;
 
     	$logDir = null;
     	$fileListener = null;
 
-    	if (defined('LOG_DIR') && is_dir(LOG_DIR)) {
+    	if (isset($options['LOG_DIR'])) {
+    		$logDir = $options['LOG_DIR'];
+    	} else if (isset($options['PRIVATE_DIR'])) {
+    		$logDir = rtrim($options['PRIVATE_DIR'], '/') . '/log';
+    	} else if (isset($options['OCTOPUS_PRIVATE_DIR'])) {
+    		$logDir = rtrim($options['OCTOPUS_PRIVATE_DIR'], '/') . '/log';
+    	} else if (defined('LOG_DIR') && is_dir(LOG_DIR)) {
     		$logDir = LOG_DIR;
     	} else if (defined('PRIVATE_DIR') && is_dir(PRIVATE_DIR)) {
     		$logDir = PRIVATE_DIR;
@@ -1224,19 +1265,19 @@ class Octopus_Debug {
     		$fileListener = new Octopus_Log_Listener_File($logDir);
     	}
 
-		if (self::isLiveEnvironment()) {
+		if (!empty($options['LIVE']) || self::isLiveEnvironment()) {
 
 			if ($fileListener) {
 				Octopus_Log::addListener(Octopus_Log::LEVEL_WARN, $fileListener);
 			}
 
-		} else if (self::isStagingEnvironment()) {
+		} else if (!empty($options['STAGING']) || self::isStagingEnvironment()) {
 
 			if ($fileListener) {
 				Octopus_Log::addListener(Octopus_Log::LEVEL_DEBUG, $fileListener);
 			}
 
-		} else if (self::isDevEnvironment()) {
+		} else if (!empty($options['DEV']) || self::isDevEnvironment()) {
 
 			if ($fileListener) {
 				Octopus_Log::addListener(Octopus_Log::LEVEL_DEBUG, $fileListener);
@@ -1249,6 +1290,8 @@ class Octopus_Debug {
 			}
 		}
 
+		Octopus_Log::registerExceptionHandler();
+		Octopus_Log::registerErrorHandler();
     }
 
     /**
@@ -1724,7 +1767,7 @@ END;
 
         $file = htmlspecialchars($file, ENT_QUOTES, 'UTF-8');
         $line = $ex->getLine();
-        $trace = self::getBacktraceHtml($ex->getTrace());
+        $trace = new Octopus_Log_Listener_Html_Trace($ex->getTrace());
 
         $html .= <<<END
 <div class="octopusDebugExceptionTrace">
@@ -1740,34 +1783,45 @@ END;
     /**
      * @return Formats an exception as plain text.
      */
-    private static function dumpExceptionToText($ex) {
+    private static function dumpExceptionToText(Exception $ex) {
 
-        $class = get_class($ex);
-        $message = $ex->getMessage();
-        $trace = self::saneBacktrace($ex->getTrace());
+    	$result = '';
+		$filterTraceLocations = '#^(/usr/local/pear/|/usr/bin/phpunit$)#';
 
-        $filterTraceLocations = '#^(/usr/local/pear/|/usr/bin/phpunit$)#';
+    	do {
 
-        $result = <<<END
+	        $class = get_class($ex);
+	        $message = $ex->getMessage();
+	        $trace = self::getNiceBacktrace($ex->getTrace());
+
+	        $result .= <<<END
 {$message}
-{__octopus_debug_line__}
+
 
 END;
 
-        foreach($trace as $i) {
+	        foreach($trace as $i) {
 
-            if (preg_match($filterTraceLocations, $i['file'])) {
-                continue;
-            }
+	            if (preg_match($filterTraceLocations, $i['file'])) {
+	                continue;
+	            }
 
-            $result .= <<<END
-{$i['nice_file']}: {$i['line']}
+	            if (empty($i['nice_file'])) {
+	            	continue;
+	            }
+
+	            $result .= <<<END
+	  {$i['nice_file']}: {$i['line']}
 
 END;
-        }
+	        }
 
-        return $result;
+	        $result .= "\n\n";
 
+    		$ex = $ex->getPrevious();
+    	} while($ex);
+
+        return trim($result);
     }
 
     /**
@@ -2222,6 +2276,59 @@ class Octopus_Debug_Dumped_Vars implements Dumpable, ArrayAccess {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
+// class Octopus_Debug_Html_Exception
+//
+////////////////////////////////////////////////////////////////////////////////
+
+class Octopus_Debug_Html_Exception {
+
+	private $exception;
+
+	public function __construct(Exception $ex) {
+		$this->exception = $ex;
+	}
+
+	public function render() {
+
+		$ex = $this->exception;
+		$first = true;
+
+		$result = array();
+
+		do {
+
+			if (!$first) {
+				$result[] = '<hr class="octopus-debug-exception-sep" />';
+
+				$result[] = '<h3 class="octopus-inner-exception">';
+				$result[] = get_class($ex);
+
+				$trace = Octopus_Debug::getNiceBacktrace($ex->getTrace());
+				$line = Octopus_Debug::getMostRelevantTraceLine($trace, array(__FILE__));
+				if ($line) {
+					$result[] = "at {$line['nice_file']}, line {$line['line']}";
+				}
+
+				$result[] = '</h3>';
+			}
+			$first = false;
+
+			$result[] = htmlspecialchars($ex->getMessage(), ENT_QUOTES, 'UTF-8');
+
+			$ex = $ex->getPrevious();
+		} while($ex);
+
+		return implode(' ', $result);
+	}
+
+	public function __toString() {
+		return $this->render();
+	}
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
 // interface Dumpable
 //
 ////////////////////////////////////////////////////////////////////////////////
@@ -2315,7 +2422,8 @@ if (!function_exists('dump_r')) {
  */
 class Octopus_Log_Listener_Html_Message {
 
-	private $title;
+	public $title = '';
+
 	private $sections = array();
 	private $footer = array();
 	private $classes = array();
@@ -2327,8 +2435,7 @@ class Octopus_Log_Listener_Html_Message {
 	 * Creates a new block with the given title.
 	 * @param String $title Title for this debug
 	 */
-	public function __construct($title, $log, $level) {
-		$this->title = $title;
+	public function __construct($log, $level) {
 		$this->log = $log;
 		$this->level = $level;
 

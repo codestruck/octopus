@@ -128,6 +128,7 @@ class Octopus_App {
         $this->_examineSiteDir();
         $this->_loadSiteConfig();
         $this->_setEnvironmentFlags();
+        $this->_configureLoggingAndDebugging();
         $this->ensureDirectoriesExist();
         $this->_initSettings();
         $this->watchForErrors();
@@ -721,6 +722,10 @@ class Octopus_App {
         Octopus::removeClassDir($o['SITE_DIR'] . 'classes/');
         Octopus::removeControllerDir($o['SITE_DIR'] . 'controllers/');
 
+    }
+
+    private function _configureLoggingAndDebugging() {
+    	Octopus_Debug::configure($this->_options);
     }
 
 
