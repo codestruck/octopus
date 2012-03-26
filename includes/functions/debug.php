@@ -1003,12 +1003,18 @@ class Octopus_Log_Listener_Console {
 		$this->file = $file;
 	}
 
-	public function write($message, $log, $level) {
-
+	/**
+	 * @return String What would be written for the given message.
+	 */
+	public function getOutput($message, $log, $level) {
 		$trace = Octopus_Debug::getNiceBacktrace();
 		$time = time();
+		return self::formatForDisplay($message, $log, $level, $time, $trace);
+	}
 
-		$message = self::formatForDisplay($message, $log, $level, $time, $trace);
+	public function write($message, $log, $level) {
+
+		$message = $this->getOutput($message, $log, $level);
 
 		if (is_resource($this->file)) {
 			fputs($this->file, "\n$message\n");
@@ -1104,6 +1110,72 @@ END;
 
 	}
 
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// class Octopus_Log_Listener_Mail
+//
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * A log listener that fires off emails.
+ */
+class Octopus_Log_Listener_Mail {
+
+	private $to = array();
+
+	public function __construct($to = null) {
+
+		foreach(func_get_args() as $arg) {
+			$this->addRecipient($arg);
+		}
+
+	}
+
+	public function addRecipient($addr) {
+
+		if (!is_array($addr)) {
+			return $this->addRecipient(explode(',', $addr));
+		}
+
+		foreach($addr as $to) {
+			$to = trim($to);
+			$this->to[$to] = true;
+		}
+
+	}
+
+	public function write($message, $log, $level) {
+
+		if (class_exists('Octopus_Mail')) {
+			$this->writeUsingOctopusMail($message, $log, $level);
+		} else {
+			// TODO: native php mail()
+		}
+
+	}
+
+	private function writeUsingOctopusMail($message, $log, $level) {
+
+		$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : trim(`hostname`);
+
+		$body = Octopus_Log_Listener_Console::getOutput($message, $log, $level);
+		$subject = Octopus_Log::getLevelName($level) . ' in ' . $log . ' on ' . $host;
+
+		$htmlBody = htmlspecialchars($body, ENT_QUOTES, 'UTF-8');
+		$htmlBody = nl2br($htmlBody);
+		$htmlBody = "<pre>{$htmlBody}</pre>";
+
+		$mail = new Octopus_Mail();
+		$mail->to(array_keys($this->to));
+		$mail->subject($subject);
+		$mail->text($body);
+		$mail->html($htmlBody);
+		$mail->from(Octopus_Log::getLevelName($level));
+		$mail->send();
+
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
