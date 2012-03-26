@@ -151,7 +151,6 @@ class Octopus_Log {
 		}
 
 		self::$listeners[] = compact('log', 'minLevel', 'func');
-
 	}
 
 	/**
@@ -388,7 +387,7 @@ class Octopus_Log {
 	 * Octopus apps use this by default.
 	 * @see ::errorHandler()
 	 */
-	public function registerErrorHandler() {
+	public static function registerErrorHandler() {
 		set_error_handler(array('Octopus_Log', 'errorHandler'));
 	}
 
@@ -398,7 +397,7 @@ class Octopus_Log {
 	 * Octopus apps use this by default.
 	 * @see ::exceptionHandler()
 	 */
-	public function registerExceptionHandler() {
+	public static function registerExceptionHandler() {
 		set_exception_handler(array('Octopus_Log', 'exceptionHandler'));
 	}
 
@@ -445,7 +444,6 @@ class Octopus_Log {
 		self::$writeCount++;
 
 		foreach(self::$listeners as $listener) {
-
 			if ($level < $listener['minLevel']) {
 				continue;
 			}
@@ -861,6 +859,10 @@ class Octopus_Log_Listener_Html {
 
 	public function write($message, $log, $level) {
 
+		// Don't allow redirecting after an HTML message is displayed (so you
+		// have a chance to review it in-browser).
+		Octopus_Debug::disableRedirects();
+
 		$html = new Octopus_Log_Listener_Html_Message($log, $level);
 
 		$niceMessage = ($message instanceof Dumpable) ? $message->__dumpHtml() : $message;
@@ -1036,6 +1038,14 @@ class Octopus_Log_Listener_Console {
 		$defaultFormat = '';
 		$levelColors = array();
 
+		if ($message instanceof Dumpable) {
+			$message = $message->__dumpText();
+		} else if (is_array($message)) {
+			$message = Octopus_Debug::dumpToString($message, 'text', false);
+		} else {
+			$message = (string)$message;
+		}
+
 		if ($color) {
 
 			$dim = "\033[2m";
@@ -1056,6 +1066,23 @@ class Octopus_Log_Listener_Console {
 			}
 
 			$defaultFormat = "{$bright}{$whiteBG}{$blackText}";
+
+			// Since we're using colors, break into 80-char lines and
+			// pad each one for nice BG colors
+			$message = str_replace("\t", "    ", $message);
+			$message = wordwrap($message, $width, "\n", true);
+			$lines = array();
+			foreach(explode("\n", $message) as $line) {
+
+				$lineLen = strlen($line);
+				$pad = floor($lineLen / $width);
+				if ($pad < $lineLen / $width) {
+					$pad++;
+				}
+				$lines[] = str_pad($line, $pad * $width);
+
+			}
+			$message = implode("\n", $lines);
 		}
 
 		$boldLine = 	str_repeat(self::CHAR_BOLD_LINE, $width);
@@ -1066,25 +1093,6 @@ class Octopus_Log_Listener_Console {
 		$time = str_pad($time, ($width / 2) - 1);
 		$logAndLevel = "{$log} {$level}";
 		$logAndLevel = str_pad($logAndLevel, ($width / 2) - 1, ' ', STR_PAD_LEFT);
-
-		if ($message instanceof Dumpable) {
-			$message = $message->__dumpText();
-		} else if (is_array($message)) {
-			$message = Octopus_Debug::dumpToString($message, 'text', false);
-		} else {
-			$message = (string)$message;
-		}
-
-		// Pad message out to full width (this keeps backgrounds looking nice
-		// when in color)
-		if ($color) {
-			$messageLen = strlen($message);
-			$pad = floor($messageLen / $width);
-			if ($pad < $messageLen / $width) {
-				$pad++;
-			}
-			$message = str_pad($message, $pad * $width);
-		}
 
 		if ($trace) {
 
@@ -1299,6 +1307,7 @@ class Octopus_Debug {
     private static $configured = false;
     private static $environment = null;
     private static $dumpEnabled = true;
+    private static $redirectsEnabled = true;
 
     /**
      * Sets up the debugging environment if it has not already been set up.
@@ -1308,12 +1317,8 @@ class Octopus_Debug {
     	if (self::$configured && empty($options)) {
     		return;
     	}
-    	/*
-echo '<pre>';
-var_dump($options);
-echo '</pre>';
-die();
-*/
+
+    	self::reset();
     	self::$configured = true;
 
     	$logDir = null;
@@ -1423,11 +1428,7 @@ die();
      * @param  boolean $fancy  [description]
      * @return String String representation of $x
      */
-    public static function dumpToString($x, $format = null, $fancy = true) {
-
-        if (!$format) {
-            $format = Octopus_Debug::inWebContext() ? 'html' : 'text';
-        }
+    public static function dumpToString($x, $format, $fancy = true) {
 
     	if ($format === 'html') {
     		$result = self::dumpToHtmlString($x, $fancy);
@@ -1692,6 +1693,18 @@ die();
    	}
 
    	/**
+   	 * Enables/disables redirects. When redirects are disabled, ::shouldRedirect
+   	 * will return false.
+   	 */
+    public static function enableRedirects($enable = true) {
+    	self::$redirectsEnabled = !!$enable;
+    }
+
+    public static function disableRedirects() {
+    	return self::enableRedirects(false);
+    }
+
+   	/**
    	 * Writes a slightly cleaned-up backtrace out to stderr.
    	 */
 	public static function printBacktrace($limit, $file = 'php://stderr') {
@@ -1709,7 +1722,7 @@ die();
 
         fputs($fp, "\n");
 
-        foreach(self::saneBacktrace($bt) as $item) {
+        foreach(self::getNiceBacktrace($bt) as $item) {
             if ($limit && $count >= $limit) {
                 break;
             }
@@ -1725,10 +1738,28 @@ die();
      * @see Octopus_Log::reset()
      */
 	public static function reset() {
-   		Octopus_Log::reset();
    		self::$configured = false;
    		self::$environment = null;
    		self::$dumpEnabled = true;
+   		self::$redirectsEnabled = true;
+   		Octopus_Log::reset();
+   	}
+
+   	/**
+   	 * @return Boolean Whether or not the app should redirect the user to
+   	 * $location.
+   	 * @param String $location Location the user is to be sent to.
+   	 */
+   	public static function shouldRedirect($location) {
+
+   		if (self::$redirectsEnabled) {
+   			return true;
+   		}
+
+   		// Notify about cancelled redirect!
+   		Octopus_Log::debug('dump', "Cancelled redirect to $location");
+   		return false;
+
    	}
 
    	/**
@@ -1748,7 +1779,7 @@ die();
 
    	}
 
-   /**
+    /**
      * @return Whether we are currently operating in an Octopus environment.
      */
     public static function usingOctopus() {
@@ -2436,7 +2467,7 @@ if (!function_exists('dump_r')) {
      * @return String The results of var_dump for $var.
      */
     function debug_var($var) {
-        return Octopus_Debug::dumpToString($var);
+        return Octopus_Debug::dumpToString($var, 'text');
     }
 
     /**

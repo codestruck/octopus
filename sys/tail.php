@@ -48,8 +48,11 @@ END;
 
 	$lastItem = 0;
 	$nextDelay = OCTOPUS_TAIL_DELAY_ACTIVE;
+	$toDisplay = array();
 
 	while(true) {
+
+		$toDisplay = array();
 
 		if ($monitor->poll()) {
 			$nextDelay = OCTOPUS_TAIL_DELAY_ACTIVE;
@@ -57,10 +60,18 @@ END;
 			$nextDelay = OCTOPUS_TAIL_DELAY_IDLE;
 		}
 
+		usort($toDisplay, 'octopus_compare_log_items');
+
+		foreach($toDisplay as $item) {
+			octopus_display_log_item($item);
+		}
+
 		sleep($nextDelay);
 	}
 
 	function octopus_display_log($file, $lastItemHash) {
+
+		global $toDisplay;
 
 		$contents = @file_get_contents($file);
 		if (!$contents) return $lastItemHash;
@@ -93,7 +104,7 @@ END;
 
 		foreach($contents as &$item) {
 			if ($item['show'] || (!$lastFound && $item['show'] === null)) {
-				octopus_display_log_item($item);
+				$toDisplay[] = $item;
 			}
 		}
 
@@ -112,13 +123,29 @@ END;
 			$width
 		);
 
-		echo $text;
+		$fp = fopen('php://stderr', 'w');
+		if ($fp) {
+			fputs($fp, $text);
+			fclose($fp);
+		}
 
 	}
 
 	function octopus_get_log_file($file) {
 
 		return $file;
+
+	}
+
+	function octopus_compare_log_items($x, $y) {
+
+		$xTime = $x['time'];
+		$yTime = $y['time'];
+
+		if (!is_numeric($xTime)) $xTime = strtotime($xTime);
+		if (!is_numeric($yTime)) $yTime = strtotime($yTime);
+
+		return $xTime - $yTime;
 
 	}
 
@@ -208,22 +235,5 @@ class Octopus_Log_Monitor {
 		return $hadChanges;
 	}
 
-	private function findLogFilesInDir($dir) {
-
-		$found = array();
-
-		$dir = rtrim($dir, '/') . '/';
-		foreach(glob($dir . '*.log') as $file) {
-
-			$name = basename($file, '.log');
-			if (preg_match('/\.\d\d\d$/', $name)) {
-				continue;
-			}
-
-			$found[] = $file;
-		}
-
-		return $found;
-	}
 
 }

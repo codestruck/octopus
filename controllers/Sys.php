@@ -69,12 +69,6 @@ class SysController extends Octopus_Controller {
 
     	if ($form->wasSubmitted()) {
 
-    		$listener = new Octopus_Log_Listener_Html();
-    		Octopus_Log::addListener('test', Octopus_Log::LEVEL_DEBUG, $listener);
-
-    		$listener = new Octopus_Log_Listener_File(OCTOPUS_PRIVATE_DIR . 'log');
-    		Octopus_Log::addListener($listener);
-
     		$values = $form->getValues();
     		$values['log'] = preg_replace('/[^a-z0-9_-]/i', '', $values['log']);
     		if (empty($values['log'])) $values['log'] = 'test';
