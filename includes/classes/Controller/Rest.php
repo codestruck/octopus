@@ -89,30 +89,27 @@ abstract class Octopus_Controller_Rest extends Octopus_Controller {
             }
         }
 
-        $httpMethod = $this->request->getMethod();
-        if ($httpMethod === 'put' || $httpMethod === 'post' || $httpMethod === 'get') {
-            $args = $this->request->getInputData();
+        $args = $this->request->getInputData();
 
-            foreach($method->getParameters() as $param) {
+        foreach($method->getParameters() as $param) {
 
-                $pos = $param->getPosition();
-                $name = $param->getName();
-                $required = !$param->isDefaultValueAvailable();
-                $default = $required ? null : $param->getDefaultValue();
+            $pos = $param->getPosition();
+            $name = $param->getName();
+            $required = !$param->isDefaultValueAvailable();
+            $default = $required ? null : $param->getDefaultValue();
 
-                $exists = array_key_exists($name, $args);
+            $exists = array_key_exists($name, $args);
 
-                if ($required && !$exists) {
-                    $errors[$name] = "$name is required.";
-                    continue;
-                }
+            if ($required && !$exists) {
+                $errors[$name] = "$name is required.";
+                continue;
+            }
 
-                if ($exists) {
-                    $positionalArgs[$pos] = $args[$name];
-                    $namedArgs[$name] = $args[$name];
-                } else {
-                    $positionalArgs[$pos] = $default;
-                }
+            if ($exists) {
+                $positionalArgs[$pos] = $args[$name];
+                $namedArgs[$name] = $args[$name];
+            } else {
+                $positionalArgs[$pos] = $default;
             }
         }
 

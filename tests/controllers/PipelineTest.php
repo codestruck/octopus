@@ -211,7 +211,7 @@ END
         $this->createControllerFile(
             'PrivateAndProtectedActions',
             <<<END
-            <?php
+<?php
 
             class PrivateAndProtectedActionsController extends Octopus_Controller {
 
@@ -266,7 +266,7 @@ END
         $this->createControllerFile(
             'BeforeAndAfterNotActions',
             <<<END
-            <?php
+<?php
             class BeforeAndAfterNotActionsController extends Octopus_Controller {
 
                 var \$i = 0;
@@ -385,7 +385,7 @@ END
         $this->createControllerFile(
             'DontPassQsInAction',
             <<<END
-            <?php
+<?php
 
             class DontPassQsInActionController extends Octopus_Controller {
 
@@ -438,7 +438,4 @@ END
 
     }
 
-
 }
-
-?>
