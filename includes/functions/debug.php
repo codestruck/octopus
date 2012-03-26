@@ -37,6 +37,8 @@
  *
  */
 
+error_reporting(E_ALL);
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 // class Octopus_Log
@@ -860,14 +862,12 @@ class Octopus_Log_Listener_Html {
 
 		$html = new Octopus_Log_Listener_Html_Message('', $log, $level);
 
-		if ($message instanceof Dumpable) {
-			$message = $message->__dumpHtml();
-		}
+		$niceMessage = ($message instanceof Dumpable) ? $message->__dumpHtml() : $message;
 
 		if ($message instanceof Octopus_Debug_Dumped_Vars) {
-			$html->add('Variable(s)', $message);
+			$html->add('Variable(s)', $niceMessage);
 		} else {
-			$html->add('Message', $message);
+			$html->add('Message', $niceMessage);
 		}
 
 		// Add metadata to the message
@@ -881,6 +881,32 @@ class Octopus_Log_Listener_Html {
         }
 
         //$html->addFooterElement('error_reporting', self::getErrorReportingHtml());
+
+        // Add console output in an HTML comment before the actual HTML
+        $mem = fopen('php://temp', 'r+');
+        if ($mem) {
+        	$console = new Octopus_Log_Listener_Console($mem);
+        	$console->write($message, $log, $level);
+        	fseek($mem, 0);
+        	$lines = array();
+        	while(($line = fgets($mem)) !== false) {
+        		$lines[] = $line;
+        	}
+        	$lines = trim(implode("\n", $lines));
+        	fclose($mem);
+
+        	// HACK: for light lines used by console logger, use em dashes
+        	$lines = str_replace(str_repeat('-', 80), str_repeat('—', 80), $lines);
+        	$lines = str_replace('--', '', $lines);
+
+        	$html = <<<END
+<!--
+{$lines}
+-->
+{$html}
+END;
+        }
+
 
 		if (Octopus_Debug::usingOctopus()) {
 
@@ -974,58 +1000,92 @@ class Octopus_Log_Listener_Console {
 
 	public function write($message, $log, $level) {
 
-		if (!self::shouldWrite()) {
-			return;
-		}
-
 		$trace = Octopus_Debug::getNiceBacktrace();
-		$message = $this->formatMessage($message, $log, $level, $trace);
+		$time = time();
 
-        $fp = fopen($this->file, 'w');
-        fputs($fp, "\n$message\n");
-        fclose($fp);
+		$message = self::formatForDisplay($message, $log, $level, $time, $trace);
 
-	}
-
-	public function shouldWrite() {
-		return (php_sapi_name() === 'cli');
-	}
-
-	private function formatMessage($message, $log, $level, Array $trace, $width = 80, $indent = 1) {
-
-		$time = date('Y-M-d h:n:s');
-
-		$boldLine = str_repeat(self::CHAR_BOLD_LINE, $width);
-		$lightLine = str_repeat(self::CHAR_LIGHT_LINE, $width);
-
-		$level = Octopus_Log::getLevelName($level);
-
-		$headerWidth = $width - ($indent / 2);
-		$titleWidth = floor($headerWidth / 4);
-		$title = str_pad("$log - $level", $titleWidth);
-
-		$traceLine = Octopus_Debug::getMostRelevantTraceLine($trace);
-
-		if ($traceLine) {
-			$traceFunction = str_pad($traceLine['scope_function'] . '()', $headerWidth - $titleWidth - $indent, ' ', STR_PAD_LEFT);
-			$traceFile = <<<END
-{$traceLine['nice_file']}, line {$traceLine['line']}
-END;
-			$traceFile = str_pad($traceFile, $headerWidth - $indent, ' ', STR_PAD_LEFT);
-
+		if (is_resource($this->file)) {
+			fputs($this->file, "\n$message\n");
 		} else {
-			$traceFunction = $traceFile = '';
+	        $fp = fopen($this->file, 'w');
+        	fputs($fp, "\n$message\n");
+        	fclose($fp);
+        }
+
+	}
+
+	public static function formatForDisplay($message, $log, $level, $time, $trace, $color = false, $width = 80) {
+
+		if (is_numeric($level)) {
+			$level = Octopus_Log::getLevelName($level);
 		}
 
-		$indentChars = str_repeat(' ', $indent);
+		$dim = $bright = $reset = $whiteBG = $blackText = $levelColor = '';
+		$defaultFormat = '';
+		$levelColors = array();
+
+		if ($color) {
+
+			$dim = "\033[2m";
+			$bright = "\033[1m";
+			$reset = "\033[0m";
+
+			$whiteBG = "\033[47m";
+			$blackText = "\033[30m";
+
+			$levelColors = array(
+				'INFO' => 	"\033[34m", // blue
+				'WARN' => 	"\033[31m", // yellow
+				'ERROR' => 	"\033[31m", // red
+			);
+
+			if (isset($levelColors[$level])) {
+				$levelColor = $levelColors[$level];
+			}
+
+			$defaultFormat = "{$bright}{$whiteBG}{$blackText}";
+		}
+
+		$boldLine = 	str_repeat(self::CHAR_BOLD_LINE, $width);
+		$lightLine = 	str_repeat(self::CHAR_LIGHT_LINE, $width);
+		$space = 		' ';
+
+		$time = is_numeric($time) ? date('r', $time) : $time;
+		$time = str_pad($time, ($width / 2) - 1);
+		$logAndLevel = "{$log} {$level}";
+		$logAndLevel = str_pad($logAndLevel, ($width / 2) - 1, ' ', STR_PAD_LEFT);
+
+		// Pad message out to full width (this keeps backgrounds looking nice
+		// when in color)
+		if ($color) {
+			$messageLen = strlen($message);
+			$pad = floor($messageLen / $width);
+			if ($pad < $messageLen / $width) {
+				$pad++;
+			}
+			$message = str_pad($message, $pad * $width);
+		}
+
+		if ($trace) {
+
+			$trace = Octopus_Debug::getMostRelevantTraceLine($trace, array(__FILE__));
+			if ($trace) {
+				$trace = "{$trace['nice_file']}, line {$trace['line']}";
+				$trace = ' ' . str_pad($trace, $width - 1);
+				$trace = "\n{$lightLine}\n{$trace}";
+			} else {
+				$trace = '';
+			}
+		}
 
 		return <<<END
+{$defaultFormat}{$levelColor}
 {$boldLine}
-{$indentChars}{$title}{$traceFunction}
-{$indentChars}{$traceFile}
+ {$time}{$logAndLevel}{$space}
 {$lightLine}
-{$message}
-{$boldLine}
+{$message}{$trace}
+{$boldLine}{$reset}
 
 END;
 
@@ -2400,7 +2460,6 @@ END;
 		{$header}
 		{$content}
 		{$nav}
-		{$footer}
 	</div>
 </div>
 END;

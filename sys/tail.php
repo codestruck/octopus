@@ -102,71 +102,17 @@ END;
 
 	function octopus_display_log_item($item, $width = 80) {
 
-		$dim = "\033[2m";
-		$bright = "\033[1m";
-		$reset = "\033[0m";
-
-		$whiteBG = "\033[47m";
-		$blackText = "\033[30m";
-
-		$levelColors = array(
-			'INFO' => 	"\033[34m", // blue
-			'WARN' => 	"\033[31m", // yellow
-			'ERROR' => 	"\033[31m", // red
+		$text = Octopus_Log_Listener_Console::formatForDisplay(
+			$item['message'],
+			$item['log'],
+			$item['level'],
+			strtotime($item['time']),
+			$item['trace'],
+			true,
+			$width
 		);
 
-		$levelColor = '';
-		if (isset($levelColors[$item['level']])) {
-			$levelColor = $levelColors[$item['level']];
-		}
-
-		$defaultFormat = "{$bright}{$whiteBG}{$blackText}";
-
-		$boldLine = 	str_repeat('*', $width);
-		$lightLine = 	str_repeat('-', $width);
-
-		$space = ' ';
-
-		$time = date('r', strtotime($item['time']));
-		$logAndLevel = $item['log'] . ' ' . $item['level'];
-
-		$time = str_pad($time, 39);
-		$logAndLevel = str_pad($logAndLevel, 39, ' ', STR_PAD_LEFT);
-
-		$message = $item['message'];
-
-		// Pad message out to full width
-		$messageLen = strlen($message);
-		$pad = floor($messageLen / $width);
-
-		if ($pad < $messageLen / $width) {
-			$pad++;
-		}
-
-		$message = str_pad($message, $pad * $width);
-
-		$trace = '';
-		if ($item['trace']) {
-
-			$trace = Octopus_Debug::getMostRelevantTraceLine($item['trace'], array(__FILE__));
-			if ($trace) {
-				$trace = "{$trace['nice_file']}, line {$trace['line']}";
-				$trace = ' ' . str_pad($trace, $width - 1);
-			} else {
-				$trace = '';
-			}
-		}
-
-		echo <<<END
-{$defaultFormat}{$levelColor}
-{$boldLine}
- {$time}{$logAndLevel}{$space}
-{$lightLine}
-{$message}
-{$lightLine}{$trace}
-{$boldLine}{$reset}
-
-END;
+		echo $text;
 
 	}
 
