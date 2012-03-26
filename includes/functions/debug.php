@@ -856,10 +856,6 @@ class Octopus_Log_Listener_Html {
 
 	public function write($message, $log, $level) {
 
-		if (!self::shouldWrite()) {
-			return;
-		}
-
 		$html = new Octopus_Log_Listener_Html_Message('', $log, $level);
 
 		$niceMessage = ($message instanceof Dumpable) ? $message->__dumpHtml() : $message;
@@ -924,19 +920,6 @@ END;
 
 		echo($html);
 		echo(self::getCssAndJs()) ;
-	}
-
-	/**
-	 * @return Boolean Whether this thing should actually write stuff out.
-	 */
-	public static function shouldWrite() {
-		return (
-				// Write HTML if this is a web request...
-				!empty($_SERVER['HTTP_USER_AGENT']) &&
-
-				// ...but not for XHR
-			   	empty($_SERVER['HTTP_X_REQUESTED_WITH'])
-		);
 	}
 
 	private static function getCssAndJs() {
@@ -1241,7 +1224,6 @@ class Octopus_Debug {
     		$fileListener = new Octopus_Log_Listener_File($logDir);
     	}
 
-
 		if (self::isLiveEnvironment()) {
 
 			if ($fileListener) {
@@ -1260,8 +1242,11 @@ class Octopus_Debug {
 				Octopus_Log::addListener(Octopus_Log::LEVEL_DEBUG, $fileListener);
 			}
 
-			Octopus_Log::addListener(new Octopus_Log_Listener_Html());
 			Octopus_Log::addListener(new Octopus_Log_Listener_Console());
+
+			if (self::shouldUseHtmlLogging()) {
+				Octopus_Log::addListener(new Octopus_Log_Listener_Html());
+			}
 		}
 
     }
@@ -1629,6 +1614,23 @@ class Octopus_Debug {
    		self::$configured = false;
    		self::$environment = null;
    		self::$dumpEnabled = true;
+   	}
+
+   	/**
+   	 * @return Boolean Whether or not HTML-formatted log messages should be
+   	 * sent to output. This is true for web requests that are NOT XHR requests.
+   	 */
+   	public static function shouldUseHtmlLogging() {
+
+   		return
+
+   			// Don't use on command line
+   			php_sapi_name() != 'cli' &&
+   			!empty($_SERVER['HTTP_USER_AGENT']) &&
+
+   			// Don't use for XHR requests
+   			empty($_SERVER['HTTP_X_REQUESTED_WITH']);
+
    	}
 
    /**
