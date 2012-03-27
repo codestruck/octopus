@@ -57,41 +57,41 @@ class Octopus_Log {
 	 * Logging level reserved for debugging messages. Should be disabled
 	 * in a production environment.
 	 */
-	const LEVEL_DEBUG = 0;
+	const DEBUG = 5;
 
 	/**
 	 * Logging level for informational messages.
 	 */
-	const LEVEL_INFO = 1;
+	const INFO = 4;
 
 	/**
 	 * Logging level for warnings.
 	 */
-	const LEVEL_WARN = 2;
+	const WARN = 3;
 
 	/**
-	 * Alias for ::LEVEL_WARN
+	 * Alias for ::WARN
 	 */
-	const LEVEL_WARNING = 2;
+	const WARNING = 3;
 
 	/**
 	 * Logging level for errors.
 	 */
-	const LEVEL_ERROR = 3;
+	const ERROR = 2;
 
 	/**
 	 * Logging level for fatal errors.
 	 */
-	const LEVEL_FATAL = 4;
+	const FATAL = 1;
 
 	/**
 	 * Log level used for null logging. Messages logged at this level will
 	 * never get logged.
 	 */
-	const LEVEL_NONE = PHP_INT_MAX;
+	const NONE = 0;
 
 	private static $listeners = array();
-	private static $minLevel = self::LEVEL_NONE;
+	private static $minLevel = self::NONE;
 	private static $callCount = 0;
 	private static $writeCount = 0;
 
@@ -134,15 +134,15 @@ class Octopus_Log {
 		if ($minLevel === null && $func === null) {
 			// Allow ::addListener('my_logging_function');
 			$func = $log;
-			$minLevel = self::LEVEL_DEBUG;
+			$minLevel = self::DEBUG;
 			$log = true;
-		} else if (is_numeric($log) && $log >= self::LEVEL_DEBUG && $log <= self::LEVEL_FATAL) {
+		} else if (is_numeric($log) && $log > self::NONE) {
 			$func = $minLevel;
 			$minLevel = $log;
 			$log = true;
 		}
 
-		if ($minLevel < self::$minLevel) {
+		if ($minLevel > self::$minLevel) {
 			self::$minLevel = $minLevel;
 		}
 
@@ -151,6 +151,7 @@ class Octopus_Log {
 		}
 
 		self::$listeners[] = compact('log', 'minLevel', 'func');
+
 	}
 
 	/**
@@ -163,8 +164,8 @@ class Octopus_Log {
 	 *	::debug('here is my message content')
 	 */
 	public static function debug() {
-		if (self::$minLevel <= self::LEVEL_DEBUG) {
-			return self::doShortcut(Octopus_Log::LEVEL_DEBUG, func_get_args());
+		if (self::$minLevel >= self::DEBUG) {
+			return self::doShortcut(Octopus_Log::DEBUG, func_get_args());
 		}
 	}
 
@@ -178,8 +179,8 @@ class Octopus_Log {
 	 *	::error('here is my message content')
 	 */
 	public static function error() {
-		if (self::$minLevel <= self::LEVEL_ERROR) {
-			return self::doShortcut(Octopus_Log::LEVEL_ERROR, func_get_args());
+		if (self::$minLevel >= self::ERROR) {
+			return self::doShortcut(Octopus_Log::ERROR, func_get_args());
 		}
 	}
 
@@ -198,7 +199,7 @@ class Octopus_Log {
 
 		$level = self::getLogLevelForPhpError($errno);
 
-		if ($level === Octopus_Log::LEVEL_NONE) {
+		if ($level === Octopus_Log::NONE) {
 			// We can't appropriately log it, so let PHP take over.
 			return false;
 		}
@@ -228,8 +229,8 @@ class Octopus_Log {
 	 *	::fatal('here is my message content')
 	 */
 	public static function fatal() {
-		if (self::$minLevel <= self::LEVEL_FATAL) {
-			return self::doShortcut(Octopus_Log::LEVEL_FATAL, func_get_args());
+		if (self::$minLevel >= self::FATAL) {
+			return self::doShortcut(Octopus_Log::FATAL, func_get_args());
 		}
 	}
 
@@ -267,19 +268,28 @@ class Octopus_Log {
 	 */
 	public static function getLevelName($level) {
 
+		if ($level <= self::NONE) {
+			return '';
+		}
+
 		if (!self::$namesByLevel) {
 
 			self::$namesByLevel = array(
-				self::LEVEL_DEBUG => 'DEBUG',
-				self::LEVEL_INFO => 'INFO',
-				self::LEVEL_WARN => 'WARN',
-				self::LEVEL_ERROR => 'ERROR',
-				self::LEVEL_FATAL => 'FATAL'
+				self::DEBUG => 'DEBUG',
+				self::INFO => 'INFO',
+				self::WARN => 'WARN',
+				self::ERROR => 'ERROR',
+				self::FATAL => 'FATAL'
 			);
 
 		}
 
-		return isset(self::$namesByLevel[$level]) ? self::$namesByLevel[$level] : '';
+		if (isset(self::$namesByLevel[$level])) {
+			return self::$namesByLevel[$level];
+		}
+
+		// DEBUG1, DEBUG2, DEBUG3, etc.
+		return 'DEBUG' . ($level - self::DEBUG);
 	}
 
 	/**
@@ -290,15 +300,23 @@ class Octopus_Log {
 		if (!self::$levelsByName) {
 
 			self::$levelsByName = array(
-				'DEBUG' => self::LEVEL_DEBUG,
-				'INFO' => self::LEVEL_INFO,
-				'WARN' => self::LEVEL_WARN,
-				'ERROR' => self::LEVEL_ERROR,
-				'FATAL' => self::LEVEL_FATAL,
+				'DEBUG' => self::DEBUG,
+				'INFO' => self::INFO,
+				'WARN' => self::WARN,
+				'ERROR' => self::ERROR,
+				'FATAL' => self::FATAL,
 			);
 		}
 
 		return self::$levelsByName;
+	}
+
+	/**
+	 * @return Number The minimum level at which a message needs to be logged
+	 * in order to actually do something.
+	 */
+	public static function getThreshold() {
+		return self::$minLevel;
 	}
 
 	/**
@@ -320,8 +338,8 @@ class Octopus_Log {
 	 *	::info('here is my message content')
 	 */
 	public static function info() {
-		if (self::$minLevel <= self::LEVEL_INFO) {
-			return self::doShortcut(Octopus_Log::LEVEL_INFO, func_get_args());
+		if (self::$minLevel >= self::INFO) {
+			return self::doShortcut(Octopus_Log::INFO, func_get_args());
 		}
 	}
 
@@ -330,7 +348,7 @@ class Octopus_Log {
 	 * @return boolean
 	 */
 	public static function isDebugEnabled() {
-		return self::$minLevel <= self::LEVEL_DEBUG;
+		return self::$minLevel <= self::DEBUG;
 	}
 
 	/**
@@ -346,7 +364,7 @@ class Octopus_Log {
 	 * @return boolean
 	 */
 	public static function isErrorEnabled() {
-		return self::$minLevel <= self::LEVEL_ERROR;
+		return self::$minLevel <= self::ERROR;
 	}
 
 	/**
@@ -354,7 +372,7 @@ class Octopus_Log {
 	 * @return boolean
 	 */
 	public static function isFatalEnabled() {
-		return self::$minLevel <= self::LEVEL_FATAL;
+		return self::$minLevel <= self::FATAL;
 	}
 
 	/**
@@ -362,7 +380,7 @@ class Octopus_Log {
 	 * @return boolean
 	 */
 	public static function isInfoEnabled() {
-		return self::$minLevel <= self::LEVEL_INFO;
+		return self::$minLevel <= self::INFO;
 	}
 
 	/**
@@ -370,7 +388,7 @@ class Octopus_Log {
 	 * @return boolean
 	 */
 	public static function isWarnEnabled() {
-		return self::$minLevel <= self::LEVEL_WARN;
+		return self::$minLevel <= self::WARN;
 	}
 
 	/**
@@ -378,7 +396,7 @@ class Octopus_Log {
 	 * @return boolean
 	 */
 	public static function isWarningEnabled() {
-		return self::$minLevel <= self::LEVEL_WARN;
+		return self::$minLevel <= self::WARN;
 	}
 
 	/**
@@ -393,7 +411,7 @@ class Octopus_Log {
 
 	/**
 	 * Registers a PHP exception handler that logs all exceptions as
-	 * ::LEVEL_ERROR.
+	 * ::ERROR.
 	 * Octopus apps use this by default.
 	 * @see ::exceptionHandler()
 	 */
@@ -407,7 +425,7 @@ class Octopus_Log {
 	public static function reset() {
 		self::$callCount = self::$writeCount = 0;
 		self::$listeners = array();
-		self::$minLevel = self::LEVEL_NONE;
+		self::$minLevel = self::NONE;
 	}
 
 	/**
@@ -420,8 +438,8 @@ class Octopus_Log {
 	 *	::warning('here is my message content')
 	 */
 	public static function warn() {
-		if (self::$minLevel <= self::LEVEL_WARN) {
-			return self::doShortcut(Octopus_Log::LEVEL_WARN, func_get_args());
+		if (self::$minLevel >= self::WARN) {
+			return self::doShortcut(Octopus_Log::WARN, func_get_args());
 		}
 	}
 
@@ -437,14 +455,13 @@ class Octopus_Log {
 
 		self::$callCount++;
 
-		if ($level < self::$minLevel || $level === self::LEVEL_NONE) {
+		if ($level > self::$minLevel || $level <= self::NONE) {
 			return;
 		}
 
 		self::$writeCount++;
-
 		foreach(self::$listeners as $listener) {
-			if ($level < $listener['minLevel']) {
+			if ($level > $listener['minLevel']) {
 				continue;
 			}
 			if ($listener['log'] === true || $listener['log'] === $log) {
@@ -520,22 +537,22 @@ class Octopus_Log {
 			case E_DEPRECATED:
 			case E_USER_DEPRECATED:
 			case E_STRICT:
-				return Octopus_Log::LEVEL_DEBUG;
+				return Octopus_Log::DEBUG;
 
 			case E_NOTICE:
 			case E_USER_NOTICE:
-				return Octopus_Log::LEVEL_INFO;
+				return Octopus_Log::INFO;
 
 			case E_WARNING:
 			case E_USER_WARNING:
-				return Octopus_Log::LEVEL_WARN;
+				return Octopus_Log::WARN;
 
 			case E_ERROR:
 			case E_USER_ERROR:
-				return Octopus_Log::LEVEL_ERROR;
+				return Octopus_Log::ERROR;
 
 			default:
-				return Octopus_Log::LEVEL_NONE;
+				return Octopus_Log::NONE;
 
 		}
 
@@ -1345,19 +1362,19 @@ class Octopus_Debug {
 		if (!empty($options['LIVE']) || self::isLiveEnvironment()) {
 
 			if ($fileListener) {
-				Octopus_Log::addListener(Octopus_Log::LEVEL_WARN, $fileListener);
+				Octopus_Log::addListener(Octopus_Log::WARN, $fileListener);
 			}
 
 		} else if (!empty($options['STAGING']) || self::isStagingEnvironment()) {
 
 			if ($fileListener) {
-				Octopus_Log::addListener(Octopus_Log::LEVEL_DEBUG, $fileListener);
+				Octopus_Log::addListener(Octopus_Log::DEBUG, $fileListener);
 			}
 
 		} else if (!empty($options['DEV']) || self::isDevEnvironment()) {
 
 			if ($fileListener) {
-				Octopus_Log::addListener(Octopus_Log::LEVEL_DEBUG, $fileListener);
+				Octopus_Log::addListener(Octopus_Log::DEBUG, $fileListener);
 			}
 
 			Octopus_Log::addListener(new Octopus_Log_Listener_Console());

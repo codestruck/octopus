@@ -193,4 +193,15 @@ END
 
 	}
 
+	function testGetLevelNameBiggerThanDebug() {
+
+		$this->assertEquals('DEBUG', Octopus_Log::getLevelName(Octopus_Log::DEBUG));
+		$this->assertEquals('DEBUG1', Octopus_Log::getLevelName(Octopus_Log::DEBUG + 1));
+		$this->assertEquals('DEBUG2', Octopus_Log::getLevelName(Octopus_Log::DEBUG + 2));
+		$this->assertEquals('DEBUG3', Octopus_Log::getLevelName(Octopus_Log::DEBUG + 3));
+		$this->assertEquals('DEBUG50', Octopus_Log::getLevelName(Octopus_Log::DEBUG + 50));
+
+	}
+
+
 }

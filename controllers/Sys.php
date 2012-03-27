@@ -57,11 +57,11 @@ class SysController extends Octopus_Controller {
     	$form = new Octopus_Html_Form('log');
     	$form->add('select', 'level')
     		->addOptions(array(
-    			Octopus_Log::LEVEL_DEBUG => 'Debug',
-    			Octopus_Log::LEVEL_INFO => 'Info',
-    			Octopus_Log::LEVEL_WARN => 'Warn',
-    			Octopus_Log::LEVEL_ERROR => 'Error',
-    			Octopus_Log::LEVEL_FATAL => 'Fatal',
+    			Octopus_Log::DEBUG => 'Debug',
+    			Octopus_Log::INFO => 'Info',
+    			Octopus_Log::WARN => 'Warn',
+    			Octopus_Log::ERROR => 'Error',
+    			Octopus_Log::FATAL => 'Fatal',
     		));
     	$form->add('log');
     	$form->add('textarea', 'message');
