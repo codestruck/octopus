@@ -1359,10 +1359,16 @@ class Octopus_Debug {
     		$fileListener = new Octopus_Log_Listener_File($logDir);
     	}
 
+    	$consoleListener = new Octopus_Log_Listener_Console();
+
 		if (!empty($options['LIVE']) || self::isLiveEnvironment()) {
 
 			if ($fileListener) {
 				Octopus_Log::addListener(Octopus_Log::WARN, $fileListener);
+			}
+
+			if (self::isCommandLineEnvironment()) {
+				Octopus_Log::addListener(Octopus_Log::ERROR, $consoleListener);
 			}
 
 		} else if (!empty($options['STAGING']) || self::isStagingEnvironment()) {
@@ -1371,13 +1377,21 @@ class Octopus_Debug {
 				Octopus_Log::addListener(Octopus_Log::DEBUG, $fileListener);
 			}
 
+			if (self::isCommandLineEnvironment()) {
+				Octopus_Log::addListener(Octopus_Log::WARN, $consoleListener);
+			}
+
 		} else if (!empty($options['DEV']) || self::isDevEnvironment()) {
 
 			if ($fileListener) {
 				Octopus_Log::addListener(Octopus_Log::DEBUG, $fileListener);
 			}
 
-			Octopus_Log::addListener(new Octopus_Log_Listener_Console());
+			if (self::isCommandLineEnvironment()) {
+				Octopus_Log::addListener(Octopus_Log::INFO, $consoleListener);
+			} else {
+				Octopus_Log::addListener(new Octopus_Log_Listener_Console());
+			}
 
 			if (self::shouldUseHtmlLogging()) {
 				Octopus_Log::addListener(new Octopus_Log_Listener_Html());
@@ -1629,6 +1643,14 @@ class Octopus_Debug {
     }
 
     /**
+     * @return boolean Whether we are currently running on the command line.
+     */
+    public static function isCommandLineEnvironment() {
+		return php_sapi_name() === 'cli' &&
+   		       empty($_SERVER['HTTP_USER_AGENT']);
+    }
+
+    /**
      * @return Boolean Whether the DEV flag is set.
      */
     public static function isDevEnvironment() {
@@ -1787,9 +1809,7 @@ class Octopus_Debug {
 
    		return
 
-   			// Don't use on command line
-   			php_sapi_name() != 'cli' &&
-   			!empty($_SERVER['HTTP_USER_AGENT']) &&
+   			!self::isCommandLineEnvironment() &&
 
    			// Don't use for XHR requests
    			empty($_SERVER['HTTP_X_REQUESTED_WITH']);

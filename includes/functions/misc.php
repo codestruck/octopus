@@ -89,8 +89,11 @@
 
     }
 
+    /**
+     * @see Octopus_Debug::isCommandLineEnvironment
+     */
     function is_command_line() {
-        return php_sapi_name() == 'cli' && empty($_SERVER['REMOTE_ADDR']);
+    	return Octopus_Debug::isCommandLineEnvironment();
     }
 
     /**
