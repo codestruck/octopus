@@ -1359,16 +1359,14 @@ class Octopus_Debug {
     		$fileListener = new Octopus_Log_Listener_File($logDir);
     	}
 
-    	$consoleListener = new Octopus_Log_Listener_Console();
+    	if (self::isCommandLineEnvironment()) {
+    		Octopus_Log::addListener(new Octopus_Log_Listener_Console());
+    	}
 
 		if (!empty($options['LIVE']) || self::isLiveEnvironment()) {
 
 			if ($fileListener) {
 				Octopus_Log::addListener(Octopus_Log::WARN, $fileListener);
-			}
-
-			if (self::isCommandLineEnvironment()) {
-				Octopus_Log::addListener(Octopus_Log::ERROR, $consoleListener);
 			}
 
 		} else if (!empty($options['STAGING']) || self::isStagingEnvironment()) {
@@ -1377,19 +1375,13 @@ class Octopus_Debug {
 				Octopus_Log::addListener(Octopus_Log::DEBUG, $fileListener);
 			}
 
-			if (self::isCommandLineEnvironment()) {
-				Octopus_Log::addListener(Octopus_Log::WARN, $consoleListener);
-			}
-
 		} else if (!empty($options['DEV']) || self::isDevEnvironment()) {
 
 			if ($fileListener) {
 				Octopus_Log::addListener(Octopus_Log::DEBUG, $fileListener);
 			}
 
-			if (self::isCommandLineEnvironment()) {
-				Octopus_Log::addListener(Octopus_Log::INFO, $consoleListener);
-			} else {
+			if (!self::isCommandLineEnvironment()) {
 				Octopus_Log::addListener(new Octopus_Log_Listener_Console());
 			}
 

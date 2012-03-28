@@ -673,7 +673,7 @@ class Octopus_App {
     }
 
     public function isDevEnvironment() {
-        return $this->_options['DEV'];
+        return !empty($this->_options['DEV']);
     }
 
     /**
@@ -684,11 +684,11 @@ class Octopus_App {
     }
 
     public function isLiveEnvironment() {
-        return $this->_options['LIVE'];
+        return !empty($this->_options['LIVE']);
     }
 
     public function isStagingEnvironment() {
-        return $this->_options['STAGING'];
+        return !empty($this->_options['STAGING']);
     }
 
     public function makeUrl($path, $querystring = null, $options = array()) {
