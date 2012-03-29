@@ -245,6 +245,8 @@ class NaturalIdTest extends Octopus_App_TestCase {
 
 		$s = new Octopus_DB_Select();
 		$s->table('natural_id_product_natural_id_user_join');
+		$s->orderBy('my_natural_id');
+
 		$this->assertEquals(
 			array(
 				array(
