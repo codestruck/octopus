@@ -3,7 +3,6 @@
 /**
  * TODO
  * decode chunking responses
- * timeouts
  */
 
 class Octopus_Http_Request {
