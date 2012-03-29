@@ -1272,4 +1272,79 @@ END
 
     }
 
+    function testAddJavascriptWackWack() {
+
+    	$page = new Octopus_Html_Page(array('URL_BASE' => '/some/crazy/url/base/'));
+    	$page->addJavascript('//some-server.local/file.js');
+
+    	$this->assertHtmlEquals(
+    		<<<END
+<script type="text/javascript" src="//some-server.local/file.js"></script>
+END
+			,
+			$page->renderJavascript(true)
+    	);
+
+    }
+
+
+    function testAddCssWackWack() {
+
+    	$page = new Octopus_Html_Page(array('URL_BASE' => '/some/crazy/url/base/'));
+    	$page->addCss('//some-server.local/file.css');
+
+    	$this->assertHtmlEquals(
+    		<<<END
+<link href="//some-server.local/file.css" rel="stylesheet" type="text/css" media="all" />
+END
+			,
+			$page->renderCss(true)
+    	);
+
+    }
+
+    function testCombinedJavascriptFilesGetWeightOfHeaviestElement() {
+    	return $this->markTestSkipped('Is this the best way to do this?');
+    	$scriptDir = $this->getRootDir() . 'script/';
+    	mkdir($scriptDir);
+
+    	file_put_contents($scriptDir . '/combine1.js', '/* combine 1 */');
+    	file_put_contents($scriptDir . '/combine2.js', '/* combine 2 */');
+    	file_put_contents($scriptDir . '/combine3.js', '/* combine 3 */');
+
+    	$page = new Octopus_Html_Page();
+
+    	$page->addJavascript('/script/combine1.js', 500);
+    	$page->addJavascript('/script/combine2.js', -1000);
+    	$page->addJavascript('http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js', 200);
+
+    	$page->setJavascriptMinifier('combine');
+
+    	$files = $this->unsetIndexes($page->getJavascriptFiles());
+
+    	$this->assertEquals(2, count($files), 'combined into 2 files');
+
+    	$file1 = array_shift($files);
+    	$file2 = array_shift($files);
+
+    	$this->assertEquals('http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js', $file1['file'], '1st file is cdn jquery');
+    	$this->assertEquals(200, $file1['weight'], 'cdn jquery keeps weight');
+
+    	$contents = file_get_contents(rtrim($this->getRootDir(), '/') . preg_replace('/\?.*/', '', $file2['file']));
+
+    	$this->assertEquals(
+    		<<<END
+/* combine 2 */
+
+/* combine 1 */
+END
+			,
+			$contents,
+			'weights are preserved in combined file'
+    	);
+
+    	$this->assertEquals(500, $file2['weight'], 'first file gets heaviest combined weight');
+
+    }
+
 }

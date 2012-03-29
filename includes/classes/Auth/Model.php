@@ -2,6 +2,9 @@
 
 Octopus::loadExternal('phpass');
 
+/**
+ * Base for implementing a User model that supports cookie-based login.
+ */
 abstract class Octopus_Auth_Model extends Octopus_Model {
 
     /**
@@ -14,10 +17,15 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
      */
     public $realm = null;
 
+    /**
+     * Set to true to make the login cookie SSL-only.
+     * @var boolean
+     */
+	protected $cookieSsl = false;
+
     protected $password_algo_strength = 8;
     protected $portable_passwords = FALSE;
     protected $cookiePath = '/';
-    protected $cookieSsl = false;
     protected $rememberDays = 14;
 
     /**
