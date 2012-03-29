@@ -156,6 +156,8 @@ END
 		$len = strlen($file);
 
 		file_put_contents($file, str_repeat('x', 1024 + 500));
+		$this->assertTrue(is_file($file), 'test file exists');
+
 		$this->assertValueDumpedToStdErr(
 			$file,
 			<<<END
