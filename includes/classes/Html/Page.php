@@ -1564,7 +1564,6 @@ END;
         foreach($minifiers as $m) {
 
             self::indexItemsByUrl($items, $itemsByUrl, $noUrlItems);
-
             $minified = $m->minify(array_keys($itemsByUrl));
 
             if (!$minified) {
@@ -1596,6 +1595,7 @@ END;
                 $item['file'] = $minifiedUrl;
                 $item['old_url'] = $oldUrl;
                 $item['weight'] = $minWeight;
+                unset($item);
 
                 foreach($oldUrls as $old) {
                     unset($itemsByUrl[$old]);
@@ -1604,7 +1604,6 @@ END;
 
             // Recombine the $itemsByUrl and $noUrlItems arrays
             $items = array_values($itemsByUrl);
-
             if ($noUrlItems) {
                 foreach($noUrlItems as $item) {
                     $items[] = $item;
@@ -1613,7 +1612,6 @@ END;
 
             usort($items, array('Octopus_Html_Page', 'compareWeights'));
         }
-
          return $items;
     }
 
