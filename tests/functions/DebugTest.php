@@ -1,145 +1,200 @@
 <?php
 
-class DebugTest extends Octopus_Html_TestCase {
+class DebugTest extends Octopus_App_TestCase {
 
-    function testDumpPlainTextVariable() {
+	public static $temp = null;
 
-        $d = new Octopus_Debug();
+	function setUp() {
 
-        $d->addVariable('bar', 'foo');
-        $this->assertEquals(
-            <<<END
-********************************************************************************
-* foo (string) | "bar" - 3 chars                                               *
-********************************************************************************
-END
-            ,
-            $d->renderText(true)
-        );
-    }
+		parent::setUp();
+		Octopus_Debug::reset();
+		self::$temp = null;
 
-    function testDumpPlainTextContent() {
+	}
 
-        $d = new Octopus_Debug();
-        $d->add('My Content', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.');
+	function tearDown() {
+		Octopus_Debug::reset();
+		parent::tearDown();
+	}
 
-        $this->assertEquals(
-            <<<END
-********************************************************************************
-* My Content | Lorem ipsum dolor sit amet, consectetur adipiscing elit.        *
-********************************************************************************
-END
-            ,
-            $d->renderText(true)
-        );
 
-    }
+	function assertValueDumpedToStdErr($value, $expected) {
 
-    function testDumpPlainTextWrappingContent() {
+		$file = sys_get_temp_dir() . '/assertValueDumpedToStdErr';
+		if (is_file($file)) unlink($file);
 
-        $d = new Octopus_Debug();
-        $d->add('My Content', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.');
+		if (1) {
+			Octopus_Debug::configure();
+			Octopus_Log::reset(); // remove default dump_r processor
+		}
 
-        $this->assertEquals(
-            <<<END
-********************************************************************************
-* My Content | Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem  *
-*            | ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum  *
-*            | dolor sit amet, consectetur adipiscing elit.                    *
-********************************************************************************
-END
-            ,
-            $d->renderText(true)
-        );
+		$listener = new Octopus_Log_Listener_Console($file);
+		Octopus_Log::addListener($listener);
 
-    }
+		// If tests are failing, it is probably because the line number in the
+		// block of text below does not match that of the line immediately
+		// following this comment
+		Octopus_Debug::dump($value);
 
-    function testDumpPlainTextCombinedVariableAndContent() {
+		$boldLine = str_repeat(Octopus_Log_Listener_Console::CHAR_BOLD_LINE, 80);
+		$lightLine = str_repeat(Octopus_Log_Listener_Console::CHAR_LIGHT_LINE, 80);
 
-        $d = new Octopus_Debug();
-        $d->addVariable('bar', 'foo');
-        $d->add('My Content', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.');
+		$this->assertTrue(is_file($file), 'debug output written to file');
 
-        $this->assertEquals(
-            <<<END
-********************************************************************************
-* foo (string) | "bar" - 3 chars                                               *
-********************************************************************************
-* My Content   | Lorem ipsum dolor sit amet, consectetur adipiscing elit.      *
-********************************************************************************
-END
-            ,
-            $d->renderText(true)
-        );
+		$expected =
+			<<<END
 
-    }
+$boldLine
+ dump - DEBUG                            DebugTest::assertValueDumpedToStdErr()
+                                 octopus/tests/functions/DebugTest.php, line 37
+$lightLine
+$expected
+$boldLine
 
-    function testDumpPlainTextSquashedRedirect() {
 
-        $d = new Octopus_Debug();
-        $d->addSquashedRedirect('/some/path/in/the/app');
-
-        $this->assertEquals(
-            <<<END
-********************************************************************************
-* Suppressed Redirect | /some/path/in/the/app                                  *
-********************************************************************************
-END
-            ,
-            $d->renderText(true)
-        );
-
-    }
-
-    function testDumpVariableToHtml() {
-
-        $d = new Octopus_Debug();
-        $d->addVariable('bar', 'foo');
-
-        $text = $d->renderText(true);
-
-        $css = Octopus_Debug::$css;
-        $js = Octopus_Debug::$js;
-
-        $expected = <<<END
-<!--
-
-BEGIN dump_r Output {{{
-
-Here is a plain-text version of what's below in case you need it:
-
-$text
--->
-$css
-$js
-<div id="octopusDebug1" class="octopusDebug">
-    <ul class="octopusDebugTabButtons">
-        <li id="octopusDebug2" class="octopusDebugTabButton octopusDebugTabButtonSelected">
-            <a href="#" onclick="__octopus_openTab('octopusDebug3', 'octopusDebug2'); return false;">foo</a>
-        </li>
-    </ul>
-    <div class="octopusDebugTabs">
-        <div id="octopusDebug3" class="octopusDebugTab octopusDebugFirst octopusDebugLast">
-            <div id="octopusDebug4" class="octopusDebugNiceOutput">
-                <span class="octopusDebugString"> &quot;bar&quot;<span class="octopusDebugStringLength">&nbsp;&mdash;&nbsp;3 chars</span></span>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- END dump_r Output }}} -->
 END;
 
-        $expected = preg_replace('/([\'"])octopusDebug\d+\1/', '', $expected);
-        $actual =   preg_replace('/([\'"])octopusDebug\d+\1/', '', $d->renderHtml(true));
+		$actual = file_get_contents($file);
 
-        $this->assertHtmlEquals(
-            $expected,
-            $actual
-        );
+		$this->assertEquals($expected, $actual);
 
-    }
+	}
+
+	function testDumpIntToStdErr() {
+
+		$this->assertValueDumpedToStdErr(
+			42,
+			<<<END
+int(42)
+	octal:        052
+	hex:          0x2A
+END
+		);
+
+	}
+
+	function testDumpFloatToStdErr() {
+
+		$this->assertValueDumpedToStdErr(
+			3.14,
+			'float(3.14)'
+		);
+
+	}
+
+	function testDumpTimestampToStdErr() {
+
+		$time = time();
+		$niceTime= date('r', $time);
+
+		$octal = sprintf('0%o', $time);
+		$hex = sprintf('0x%X', $time);
+
+		$this->assertValueDumpedToStdErr(
+			$time,
+			<<<END
+int({$time})
+	octal:        {$octal}
+	hex:          {$hex}
+	timestamp:    {$niceTime}
+END
+		);
+	}
+
+	function testDumpFilePermsToStdErr() {
+
+		$value = 0666;
+		$this->assertValueDumpedToStdErr(
+			$value,
+			<<<END
+int({$value})
+	octal:        0666
+	hex:          0x1B6
+	permissions:  rw-rw-rw-
+END
+		);
+	}
+
+	function testDumpShortStringToStdErr() {
+
+		$value = "Lorem ipsum dolor sit amet";
+		$len = strlen($value);
+
+		$this->assertValueDumpedToStdErr(
+			$value,
+			<<<END
+"{$value}" ($len chars)
+END
+		);
+
+	}
+
+	function testDumpDirectoryNameToStdErr() {
+
+		$dir = sys_get_temp_dir() . '/test-dump-dir';
+		if (is_dir($dir)) recursive_delete($dir);
+
+		mkdir($dir);
+		touch($dir . '/file1');
+		touch($dir . '/file2');
+
+		$len = strlen($dir);
+
+		$this->assertValueDumpedToStdErr(
+			$dir,
+			<<<END
+"$dir" ($len chars)
+	Directory: exists, drwxr-xr-x, contains 2 files
+END
+		);
+
+	}
+
+	function testDumpFileNameToStdErr() {
+
+		$dir = sys_get_temp_dir() . '/test-dump-dir';
+		recursive_delete($dir);
+		mkdir($dir);
+
+		$file = $dir . '/testdumpfile';
+		$len = strlen($file);
+
+		file_put_contents($file, str_repeat('x', 1024 + 500));
+		$this->assertValueDumpedToStdErr(
+			$file,
+			<<<END
+"$file"
+	Length: $len chars
+	File: exists, -rw-r--r--, ~1K (1,524 bytes)
+END
+		);
+
+		file_put_contents($file, str_repeat('x', 1024 * 1024 + 500));
+		$this->assertValueDumpedToStdErr(
+			$file,
+			<<<END
+"$file"
+	Length: $len chars
+	File: exists, -rw-r--r--, ~1M (1,049,076 bytes)
+END
+		);
+
+	}
+
+	function testDumpDateStringToStdErr() {
+
+		$date = 'May 15, 2003';
+		$len = strlen($date);
+		$time = strtotime($date);
+
+		$this->assertValueDumpedToStdErr(
+			$date,
+			<<<END
+"$date" ($len chars)
+	Timestamp: $time
+END
+		);
+
+	}
 
 }
-
-?>
