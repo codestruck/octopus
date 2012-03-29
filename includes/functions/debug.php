@@ -640,7 +640,7 @@ class Octopus_Log_Listener_File {
 			return $this->logFiles[$log];
 		}
 
-		$file = strtolower($log);
+		$file = $log;
 
 		$ext = $this->getExtension();
 		if ($ext) {
