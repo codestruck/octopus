@@ -130,6 +130,7 @@ class Octopus_App {
         $this->_examineSiteDir();
         $this->_loadSiteConfig();
         $this->_setEnvironmentFlags();
+        $this->_configureLoggingAndDebugging();
         $this->ensureDirectoriesExist();
         $this->_initSettings();
         $this->watchForErrors();
@@ -672,7 +673,7 @@ class Octopus_App {
     }
 
     public function isDevEnvironment() {
-        return $this->_options['DEV'];
+        return !empty($this->_options['DEV']);
     }
 
     /**
@@ -683,11 +684,11 @@ class Octopus_App {
     }
 
     public function isLiveEnvironment() {
-        return $this->_options['LIVE'];
+        return !empty($this->_options['LIVE']);
     }
 
     public function isStagingEnvironment() {
-        return $this->_options['STAGING'];
+        return !empty($this->_options['STAGING']);
     }
 
     public function makeUrl($path, $querystring = null, $options = array()) {
@@ -740,6 +741,10 @@ class Octopus_App {
         Octopus::removeClassDir($o['SITE_DIR'] . 'classes/');
         Octopus::removeControllerDir($o['SITE_DIR'] . 'controllers/');
 
+    }
+
+    private function _configureLoggingAndDebugging() {
+    	Octopus_Debug::configure($this->_options);
     }
 
 

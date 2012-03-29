@@ -4,6 +4,7 @@ class LogTest extends Octopus_App_TestCase {
 
 	function setUp() {
 		parent::setUp();
+		Octopus_Debug::configure();
 		Octopus_Log::reset();
 	}
 
@@ -22,16 +23,16 @@ class LogTest extends Octopus_App_TestCase {
 
 	function testListenerLogFiltering() {
 
-		Octopus_Log::addListener('payments', Octopus_Log::LEVEL_WARN, array($this, 'basicListener'));
+		Octopus_Log::addListener('payments', Octopus_Log::WARN, array($this, 'basicListener'));
 
 		$this->lastLevel = $this->lastMessage = null;
 
-		Octopus_Log::write('payments', Octopus_Log::LEVEL_ERROR, __METHOD__);
-		$this->assertEquals(Octopus_Log::LEVEL_ERROR, $this->lastLevel);
+		Octopus_Log::write('payments', Octopus_Log::ERROR, __METHOD__);
+		$this->assertEquals(Octopus_Log::ERROR, $this->lastLevel);
 		$this->assertEquals(__METHOD__, $this->lastMessage);
 
 		$this->lastLevel = $this->lastMessage = null;
-		Octopus_Log::write('some-other-log', Octopus_Log::LEVEL_ERROR, __METHOD__);
+		Octopus_Log::write('some-other-log', Octopus_Log::ERROR, __METHOD__);
 		$this->assertNull($this->lastLevel);
 		$this->assertNull($this->lastMessage);
 
@@ -67,6 +68,7 @@ class LogTest extends Octopus_App_TestCase {
 	function testLoggingThreshold($level) {
 
 		Octopus_Log::addListener($level, array($this, 'basicListener'));
+		$this->assertEquals($level, Octopus_Log::getThreshold(), "Threshold is " . Octopus_Log::getLevelName($level));
 
 		$thresholdName = Octopus_Log::getLevelName($level);
 
@@ -81,14 +83,14 @@ class LogTest extends Octopus_App_TestCase {
 
 			Octopus_Log::write(__METHOD__, $testLevel, 'blerg');
 
-			if ($testLevel >= $level) {
-				$this->assertEquals($testLevel, $this->lastLevel);
-				$this->assertEquals('blerg', $this->lastMessage);
-				$this->assertEquals(__METHOD__, $this->lastLog);
+			if ($testLevel <= $level) {
+				$this->assertEquals($testLevel, $this->lastLevel, "$name logged for threshold $thresholdName (::write)");
+				$this->assertEquals('blerg', $this->lastMessage, "$name logged for threshold $thresholdName (::write)");
+				$this->assertEquals(__METHOD__, $this->lastLog, "$name logged for threshold $thresholdName (::write)");
 			} else {
-				$this->assertNull($this->lastLevel);
-				$this->assertNull($this->lastMessage);
-				$this->assertNull($this->lastLog);
+				$this->assertNull($this->lastLevel, "$name not logged for threshold $thresholdName (::write)");
+				$this->assertNull($this->lastMessage, "$name not logged for threshold $thresholdName (::write)");
+				$this->assertNull($this->lastLog, "$name not logged for threshold $thresholdName (::write)");
 			}
 
 			$this->lastLevel = null;
@@ -97,14 +99,14 @@ class LogTest extends Octopus_App_TestCase {
 
 			call_user_func(array('Octopus_Log', $convenienceMethod), __METHOD__, 'blerg');
 
-			if ($testLevel >= $level) {
-				$this->assertEquals($testLevel, $this->lastLevel, "$name logged for threshold $thresholdName (convenience method)");
-				$this->assertEquals('blerg', $this->lastMessage, "$name logged for threshold $thresholdName (convenience method)");
-				$this->assertEquals(__METHOD__, $this->lastLog, "$name logged for threshold $thresholdName (convenience method)");
+			if ($testLevel <= $level) {
+				$this->assertEquals($testLevel, $this->lastLevel, "$name logged for threshold $thresholdName (::$convenienceMethod)");
+				$this->assertEquals('blerg', $this->lastMessage, "$name logged for threshold $thresholdName (::$convenienceMethod)");
+				$this->assertEquals(__METHOD__, $this->lastLog, "$name logged for threshold $thresholdName (::$convenienceMethod)");
 			} else {
-				$this->assertNull($this->lastLevel, "$name not logged for threshold $thresholdName (convenience method)");
-				$this->assertNull($this->lastMessage, "$name not logged for threshold $thresholdName (convenience method)");
-				$this->assertNull($this->lastLog, "$name not logged for threshold $thresholdName (convenience method)");
+				$this->assertNull($this->lastLevel, "$name not logged for threshold $thresholdName (::$convenienceMethod)");
+				$this->assertNull($this->lastMessage, "$name not logged for threshold $thresholdName (::$convenienceMethod)");
+				$this->assertNull($this->lastLog, "$name not logged for threshold $thresholdName (::$convenienceMethod)");
 			}
 
 
@@ -140,12 +142,12 @@ class LogTest extends Octopus_App_TestCase {
 		$logger->setMaxFileSize(1024);
 		$logger->setRotationDepth(3);
 
-		Octopus_Log::addListener(Octopus_Log::LEVEL_INFO, $logger);
+		Octopus_Log::addListener(Octopus_Log::INFO, $logger);
 		for($i = 0; $i < 100; $i++) {
 
 			Octopus_Log::write(
 				__METHOD__,
-				Octopus_Log::LEVEL_WARN,
+				Octopus_Log::WARN,
 				<<<END
 Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
 tempor incididunt ut labore et dolore magna aliqua.
@@ -160,7 +162,7 @@ END
 		$this->assertTrue(is_file($file), 'log file exists');
 
 		$size = filesize($file);
-		$this->assertTrue($size > 0 && $size <= 2048, "File size between 0 and 2048 (was $size)");
+		$this->assertTrue($size > 0 && $size <= 6000, "File size between 0 and 6000 (was $size)");
 
 		for($i = 1; $i <= 10; $i++) {
 

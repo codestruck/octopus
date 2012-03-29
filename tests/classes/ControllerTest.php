@@ -62,20 +62,13 @@ END
         );
 
         cancel_redirects();
+        Octopus_Log::reset(); // prevent dump_r message because of canceled redirect
 
         $resp = new Octopus_Response(true);
         $controller = new ControllerTestController($app, new Octopus_Request($app, ''), $resp);
         $controller->do_redirect('foo');
 
-        $resp = preg_replace('/-+/', '', trim($resp));
-        $resp = preg_replace('/\s+/', ' ', $resp);
-        $resp = preg_replace('/>\s+</', '><', $resp);
-        $resp = trim($resp);
-
-        $this->assertTrue(
-            !!preg_match('#HTTP/1.1 200 OK.*Suppressed.*redirect#im', trim($resp)),
-            '<< ' . trim($resp) . ' >>'
-        );
+        $this->assertEquals(418, $resp->getStatus()); // I'm a teapot
     }
 
     function dontTestRenderJson() {
