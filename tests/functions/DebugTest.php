@@ -136,10 +136,16 @@ END
 
 		$len = strlen($dir);
 
+		if ($len > 67) {
+			$lenMarker = "\n    Length: $len chars";
+		} else {
+			$lenMarker = " ($len chars)";
+		}
+
 		$this->assertValueDumpedToStdErr(
 			$dir,
 			<<<END
-"$dir" ($len chars)
+"$dir"{$lenMarker}
 	Directory: exists, drwxr-xr-x, contains 2 files
 END
 		);
@@ -156,11 +162,17 @@ END
 		$len = strlen($file);
 
 		file_put_contents($file, str_repeat('x', 1024 + 500));
+
+		if ($len > 67) {
+			$lenMarker = "\n    Length: $len chars";
+		} else {
+			$lenMarker = " ($len chars)";
+		}
+
 		$this->assertValueDumpedToStdErr(
 			$file,
 			<<<END
-"$file"
-	Length: $len chars
+"$file"{$lenMarker}
 	File: exists, -rw-r--r--, ~1K (1,524 bytes)
 END
 		);
@@ -169,8 +181,7 @@ END
 		$this->assertValueDumpedToStdErr(
 			$file,
 			<<<END
-"$file"
-	Length: $len chars
+"$file"{$lenMarker}
 	File: exists, -rw-r--r--, ~1M (1,049,076 bytes)
 END
 		);
