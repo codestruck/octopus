@@ -36,7 +36,7 @@ class Octopus_Dispatcher {
             $data = array('data' => $data);
         }
 
-        $renderer = $this->app->createRenderer();
+        $renderer = $this->app->getRenderer();
 
         $renderer->render($controller, $data, $request, $response);
     }

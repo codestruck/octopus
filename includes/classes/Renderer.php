@@ -6,12 +6,41 @@
 class Octopus_Renderer {
 
     protected $app;
+    private $fullCacheEnabled = false;
 
     /**
      * Creates a new renderer for the given app instance.
      */
     public function __construct(Octopus_App $app) {
         $this->app = $app;
+    }
+
+    /**
+     * Sets whether or not to write a full cache file after rendering. If
+     * written, the cache file can be picked up by .htaccess and served out
+     * directly.
+     * @param Boolean $enable Whether to write a full cache file.
+     * @return $this;
+     */
+    public function enableFullCache($enable = true) {
+    	$this->fullCacheEnabled = !!$enable;
+    	return $this;
+    }
+
+    /**
+     * Turns off cache file writing.
+     * @see ::enableFullCache
+     */
+    public function disableFullCache() {
+    	return $this->enableFullCache(false);
+    }
+
+    /**
+     * @return boolean Whether a cache file should written after the renderer
+     * is done.
+     */
+    public function isFullCacheEnabled() {
+    	return $this->fullCacheEnabled;
     }
 
     /**
@@ -60,6 +89,28 @@ class Octopus_Renderer {
         $templateContent = $this->renderTemplate($controller, $request, $response, $viewContent, $data);
         $response->append($templateContent);
 
+        $this->saveCacheFile($request, $templateContent);
+    }
+
+    /**
+     * Deletes the contents of the full cache so that cache files are re-created
+     * on the next request.
+     * @return Boolean True on success, false otherwise.
+     */
+    public static function clearFullCache() {
+
+    	if (!Octopus_App::isStarted()) {
+    		return false;
+    	}
+
+    	$app = Octopus_App::singleton();
+    	$cacheDir = $app->OCTOPUS_CACHE_DIR . 'full/';
+
+    	if (!is_dir($cacheDir)) {
+    		return true;
+    	}
+
+    	return recursive_delete($cacheDir);
     }
 
     /**
@@ -118,7 +169,6 @@ class Octopus_Renderer {
     protected function renderTemplate(Octopus_Controller $controller, Octopus_Request $request, Octopus_Response $response, $viewContent, Array $data) {
 
         $templateFile = $this->findTemplateForRender($controller, $request);
-
         if (!$templateFile) {
             return $viewContent;
         }
@@ -161,13 +211,13 @@ class Octopus_Renderer {
      *    _GET -        $_GET
      *    _POST -        $_POST
      *
-     *      HOST - Current hostname, normalized to remove 'www.' and in all
+     *    HOST - Current hostname, normalized to remove 'www.' and in all
      *           lowercase.
      *
      *    QS -         $_GET as a string with no '?' at the beginning.
      *    FULL_QS    -    $_GET as a string with a '?' at the beginning.
      *    QS_AND -    Character to use to build on FULL_QS (if FULL_QS is
-     *              not '', this is '&'. Otherwise, it is '?').
+     *                not '', this is '&'. Otherwise, it is '?').
      *
      *    URL_BASE -    Prefix for the app's public root.
      *
@@ -258,6 +308,58 @@ class Octopus_Renderer {
      */
     protected function getViewNotFoundViewFile(Octopus_Request $request, $controller) {
         return $this->findViewFile($request, $controller, '404');
+    }
+
+    /**
+     * Writes a cache file out for the given request, WP Super Cache style.
+     * Octopus's .htaccess picks this up and serves it out if found.
+     */
+    protected function saveCacheFile(Octopus_Request $request, $content) {
+
+    	if (!$this->isFullCacheEnabled()) {
+    		return;
+    	}
+
+    	// Only GET requests can be cached
+    	if (!$request->isGet()) {
+    		return;
+    	}
+
+    	// Only GET requests w/o querystring can be cached
+    	if (!empty($_GET)) {
+    		return;
+    	}
+
+    	// The cache dir must exist
+    	$app = $request->getApp();
+    	$cacheDir = $app->OCTOPUS_CACHE_DIR;
+    	if (!is_dir($cacheDir)) {
+    		return;
+    	}
+
+    	$dir = $cacheDir . 'full/' . $request->getPath();
+    	$dir = rtrim($dir, '/') . '/';
+
+    	// We must be able to create the subdir in the cache dir
+    	if (!is_dir($dir) && !@mkdir($dir, 0777, true)) {
+    		return;
+    	}
+
+    	$fp = fopen($dir . 'index.html', 'w');
+    	if (!$fp) {
+    		return;
+    	}
+
+    	$time = time();
+
+    	fputs($fp, $content);
+    	fputs($fp, <<<END
+
+<!-- $time -->
+END
+		);
+    	fclose($fp);
+
     }
 
     private function augmentViewData(Array &$data, Octopus_Request $request, Octopus_Response $response) {

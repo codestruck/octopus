@@ -46,7 +46,7 @@ abstract class Octopus_Minify_Strategy {
      * @return Whether $file looks like a local file.
      */
     protected function looksLikeLocalFile($file) {
-        return !preg_match('#^[a-z0-9_-]*://#i', $file);
+        return !preg_match('#^([a-z0-9_-]*:)?//#i', $file);
     }
 
     /**

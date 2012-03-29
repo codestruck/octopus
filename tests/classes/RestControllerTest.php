@@ -82,6 +82,10 @@ class Api1AdditionsController extends Octopus_Controller_Rest {
         return array('result' => \$this->result);
     }
 
+    public function deleteAction(\$num, \$data) {
+        return array('id' => \$this->resource_id, 'data' => \$data);
+    }
+
 }
 END
         );
@@ -90,7 +94,7 @@ END
 
     function testGetResource() {
 
-        $resp = $this->app->getResponse('/api/1/apples/2', true);
+        $resp = $this->app->getGetResponse('/api/1/apples/2');
 
         $this->assertEquals(
             array(
@@ -112,7 +116,7 @@ END
             'name' => 'foo',
             'color' => 'green',
         );
-        $resp = $this->app->getPostResponse('/api/1/apples', $args, true);
+        $resp = $this->app->getPostResponse('/api/1/apples', $args);
 
         $this->assertEquals(
             array(
@@ -133,7 +137,7 @@ END
             'name' => 'foo',
             'color' => 'green',
         );
-        $resp = $this->app->getPutResponse('/api/1/apples/2', $args, true);
+        $resp = $this->app->getPutResponse('/api/1/apples/2', $args);
 
         $this->assertEquals(
             array(
@@ -151,7 +155,7 @@ END
 
     function testDeleteResource() {
 
-        $resp = $this->app->getDeleteResponse('/api/1/apples/2', true);
+        $resp = $this->app->getDeleteResponse('/api/1/apples/2');
 
         $this->assertEquals(
             array(
@@ -235,7 +239,7 @@ END
 
     function testMissingDelete() {
 
-        $resp = $this->app->getDeleteResponse('/api/1/apples', true);
+        $resp = $this->app->getDeleteResponse('/api/1/apples', array(), true);
 
         $this->assertEquals(
             array(
@@ -351,6 +355,23 @@ END
 
         $this->assertEquals('application/json', $resp->contentType());
         $this->assertEquals(200, $resp->getStatus());
+    }
+
+    function testDeleteArguments() {
+
+        $resp = $this->app->getDeleteResponse('/api/1/additions/22', array('num' => 4, 'data' => 'foo'), true);
+
+        $this->assertEquals(
+            array(
+                'id' => 22,
+                'data' => 'foo',
+            ),
+            json_decode($resp->getContent(), true)
+        );
+
+        $this->assertEquals('application/json', $resp->contentType());
+        $this->assertEquals(200, $resp->getStatus());
+
     }
 
     /**
