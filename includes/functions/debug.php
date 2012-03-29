@@ -2394,7 +2394,6 @@ END;
 		{$header}
 		{$content}
 		{$nav}
-		{$footer}
 	</div>
 </div>
 END;
