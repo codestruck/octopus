@@ -20,7 +20,13 @@ class Octopus_Http_Request_Sockets extends Octopus_Http_Request_Base {
             $ip = 'ssl://' . $ip;
         }
 
-        $handle = fsockopen($ip, $port);
+        $timeout = ini_get("default_socket_timeout");
+
+        if (!empty($args['timeout'])) {
+            $timeout = $args['timeout'];
+        }
+
+        $handle = fsockopen($ip, $port, $errno, $errstr, $timeout);
         $request = '';
         $request .= strtoupper($this->args['method']) . " $path HTTP/{$this->args['http_version']}\r\n";
         $request .= "Host: $host\r\n";
