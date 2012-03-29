@@ -40,21 +40,17 @@ class DebugTest extends Octopus_App_TestCase {
 		$lightLine = str_repeat(Octopus_Log_Listener_Console::CHAR_LIGHT_LINE, 80);
 
 		$this->assertTrue(is_file($file), 'debug output written to file');
-
-		$expected =
-			<<<END
-
-$boldLine
- dump - DEBUG                            DebugTest::assertValueDumpedToStdErr()
-                                 octopus/tests/functions/DebugTest.php, line 37
-$lightLine
-$expected
-$boldLine
-
-
-END;
-
 		$actual = file_get_contents($file);
+		$actual = preg_replace('/^.*?' . Octopus_Log_Listener_Console::CHAR_LIGHT_LINE . '{80}\n/s', '', $actual);
+		$actual = preg_replace('/' . Octopus_Log_Listener_Console::CHAR_LIGHT_LINE . '{80}.*$/s', '', $actual);
+
+		$actual = trim($actual);
+		$actual = explode("\n", $actual);
+		$actual = array_map('trim', $actual);
+
+		$expected = trim($expected);
+		$expected = explode("\n", $expected);
+		$expected = array_map('trim', $expected);
 
 		$this->assertEquals($expected, $actual);
 
@@ -196,5 +192,16 @@ END
 		);
 
 	}
+
+	function testGetLevelNameBiggerThanDebug() {
+
+		$this->assertEquals('DEBUG', Octopus_Log::getLevelName(Octopus_Log::DEBUG));
+		$this->assertEquals('DEBUG1', Octopus_Log::getLevelName(Octopus_Log::DEBUG + 1));
+		$this->assertEquals('DEBUG2', Octopus_Log::getLevelName(Octopus_Log::DEBUG + 2));
+		$this->assertEquals('DEBUG3', Octopus_Log::getLevelName(Octopus_Log::DEBUG + 3));
+		$this->assertEquals('DEBUG50', Octopus_Log::getLevelName(Octopus_Log::DEBUG + 50));
+
+	}
+
 
 }
