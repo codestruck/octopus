@@ -1,7 +1,19 @@
 <?php
 
-define('SMARTY_VERSION', '3.0.8');
-require_once(dirname(__FILE__) . '/Smarty-' . SMARTY_VERSION . '/libs/Smarty.class.php');
+/**
+ * Smarty version # used by Octopus.
+ */
+define('OCTOPUS_SMARTY_VERSION', '3.0.8');
+
+/**
+ * The subdirectory under /_private in which Octopus tells smarty to compile its
+ * build files. If for some reason you change something smarty-related (e.g.,
+ * significantly alter a custom plugin or something) such that all Smarty build
+ * files need to be recreated, you should increment this.
+ */
+define('OCTOPUS_SMARTY_COMPILE_SUBDIR', 'smarty/' . OCTOPUS_SMARTY_VERSION . '-0');
+
+require_once(dirname(__FILE__) . '/Smarty-' . OCTOPUS_SMARTY_VERSION . '/libs/Smarty.class.php');
 
 /**
  * Wrapper around a Smarty instance. Use Octopus_Smarty::trusted() to get an
@@ -76,17 +88,16 @@ class Octopus_Smarty {
     		$compileDir = $this->app->getOption('SMARTY_COMPILE_DIR');
     		if ($compileDir) return $compileDir;
 
-    		return $this->app->OCTOPUS_PRIVATE_DIR . 'smarty';
+    		return $this->app->OCTOPUS_PRIVATE_DIR . OCTOPUS_SMARTY_COMPILE_SUBDIR;
     	}
 
         $compileDir = get_option('SMARTY_COMPILE_DIR');
         if ($compileDir) return $compileDir;
 
         $compileDir = get_option('OCTOPUS_PRIVATE_DIR');
-        if ($compileDir) return $compileDir . 'smarty';
+        if ($compileDir) return $compileDir . OCTOPUS_SMARTY_COMPILE_SUBDIR;
 
         return sys_get_temp_dir();
-
     }
 
     public function getTemplateDir() {
@@ -198,7 +209,7 @@ class Octopus_Smarty {
         // we can override some of them
         $instance->plugins_dir = array(
             OCTOPUS_DIR . 'externals/smarty/plugins/',
-            dirname(__FILE__) . '/Smarty-' . SMARTY_VERSION . '/libs/plugins/',
+            dirname(__FILE__) . '/Smarty-' . OCTOPUS_SMARTY_VERSION . '/libs/plugins/',
         );
 
     	if ($this->debug) {

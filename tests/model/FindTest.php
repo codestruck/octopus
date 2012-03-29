@@ -362,30 +362,6 @@ END;
 
     }
 
-    function testHasOneCount() {
-
-        $this->markTestIncomplete();
-
-        $authors = FindAuthor::all()->whereActive();
-        $authors = $authors->where('count(posts) >', 5);
-
-        $this->assertSqlEquals(
-            "
-            SELECT
-                `find_authors`.*,
-                COUNT(`find_posts`.*) posts_count
-            FROM
-                `find_authors`
-            WHERE
-                (`find_authors`.`active` = 1)
-            HAVING
-                posts_count > 5
-            ",
-            $authors
-        );
-
-    }
-
     function testOrderByHasOne() {
 
         $posts = FindPost::all()->orderBy('author');

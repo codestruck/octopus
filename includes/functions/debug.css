@@ -79,6 +79,7 @@ div.octopus-debug {
     border-radius: 5px;
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     font-size: 12px;
+    margin: 10px auto;
     padding: 10px;
     position: relative;
     width: 620px;
@@ -127,8 +128,12 @@ ul.octopus-debug-nav li {
     opacity: 0.8;
     padding: 5px 0;
     text-align: center;
-    width: 100px;
     -webkit-transition: opacity 0.1s linear;
+}
+
+ul.octopus-debug-nav li a {
+    display: block;
+    padding: 0 5px;
 }
 
 ul.octopus-debug-nav li.octopus-debug-active,
@@ -167,12 +172,22 @@ div.octopus-debug a {
 
 div.octopus-debug.octopus-debug-level-info {
     background: #F3F9FF;
-    border-color: #485561;
+    border-color: #608AB2;
     color: #032240;
 }
 
 div.octopus-debug.octopus-debug-level-info a {
     color: #032240;
+}
+
+.octopus-debug-level-info ul.octopus-debug-nav li.octopus-debug-active,
+.octopus-debug-level-info ul.octopus-debug-nav li:hover {
+    background: #608AB2;
+}
+
+.octopus-debug-level-info ul.octopus-debug-nav li.octopus-debug-active a,
+.octopus-debug-level-info ul.octopus-debug-nav li:hover a {
+    color: #fff;
 }
 
 .octopus-debug-level-info .octopusDebugEven {
@@ -181,27 +196,32 @@ div.octopus-debug.octopus-debug-level-info a {
 
 /* warning - http://colorschemedesigner.com/#1311TkSvnOcP7 */
 
-div.octopus-debug.octopus-debug-level-warning {
+div.octopus-debug.octopus-debug-level-warn {
     background: #faca57;
     border-color: #96855B;
     color: #6E5008;
 }
 
-div.octopus-debug.octopus-debug-level-warning a {
+div.octopus-debug.octopus-debug-level-warn a {
     color: #6E5008;
 }
 
-.octopus-debug-level-warning div.octopus-debug-content {
+.octopus-debug-level-warn div.octopus-debug-content {
     background: #FFFFee;
 }
 
-.octopus-debug-level-warning .octopusDebugEven {
+.octopus-debug-level-warn .octopusDebugEven {
     background: #FEF1D2;
 }
 
 /* error */
 div.octopus-debug.octopus-debug-level-error {
     background: #BC4C44;
+    color: #fff;
+}
+
+.octopus-debug-level-error h1,
+.octopus-debug-level-error h2 {
     color: #fff;
 }
 

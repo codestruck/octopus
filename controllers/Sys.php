@@ -50,6 +50,39 @@ class SysController extends Octopus_Controller {
     }
 
     /**
+     * Action for demoing / testing app logging.
+     */
+    public function logAction() {
+
+    	$form = new Octopus_Html_Form('log');
+    	$form->add('select', 'level')
+    		->addOptions(array(
+    			Octopus_Log::DEBUG => 'Debug',
+    			Octopus_Log::INFO => 'Info',
+    			Octopus_Log::WARN => 'Warn',
+    			Octopus_Log::ERROR => 'Error',
+    			Octopus_Log::FATAL => 'Fatal',
+    		));
+    	$form->add('log');
+    	$form->add('textarea', 'message');
+    	$form->addButton('submit', 'Log');
+
+    	if ($form->wasSubmitted()) {
+
+    		$values = $form->getValues();
+    		$values['log'] = preg_replace('/[^a-z0-9_-]/i', '', $values['log']);
+    		if (empty($values['log'])) $values['log'] = 'test';
+
+    		Octopus_Log::write($values['log'], $values['level'], $values['message']);
+
+    	} else {
+    		$form->setValue('log', 'test');
+    	}
+
+    	return compact('form');
+    }
+
+    /**
      *
      */
     public function settings() {

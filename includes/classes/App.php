@@ -112,6 +112,8 @@ class Octopus_App {
     private $_haveSiteControllers = false;
     private $_haveSiteConfig = false;
 
+    private $_renderer = null;
+
     private function __construct($options = array()) {
 
         $this->_options = empty($options) ? self::$defaults : array_merge(self::$defaults, $options);
@@ -128,6 +130,7 @@ class Octopus_App {
         $this->_examineSiteDir();
         $this->_loadSiteConfig();
         $this->_setEnvironmentFlags();
+        $this->_configureLoggingAndDebugging();
         $this->ensureDirectoriesExist();
         $this->_initSettings();
         $this->watchForErrors();
@@ -338,8 +341,13 @@ class Octopus_App {
      * @return An Octopus_Renderer instance to use to find views and render
      * the final page.
      */
-    public function createRenderer() {
-        return Octopus::create('Octopus_Renderer', array($this));
+    public function getRenderer() {
+
+    	if ($this->_renderer) {
+    		return $this->_renderer;
+    	}
+
+        return ($this->_renderer = Octopus::create('Octopus_Renderer', array($this)));
     }
 
     /**
@@ -555,12 +563,6 @@ class Octopus_App {
     }
 
     public function getDeleteResponse($path, $data = array(), $options = array()) {
-        $_SERVER['REQUEST_METHOD'] = 'delete';
-        return $this->getResponse($path, $options);
-    }
-
-    public function getPutResponse($path, $data = array(), $options = array()) {
-
         if (is_bool($options)) {
             $buffer = $options;
             $options = array(
@@ -568,10 +570,28 @@ class Octopus_App {
             );
         }
 
-        $file = tempnam('/tmp/', 'octopus_put');
+        return $this->fakeInputdata('delete', $path, $data, $options);
+    }
+
+    public function getPutResponse($path, $data = array(), $options = array()) {
+        if (is_bool($options)) {
+            $buffer = $options;
+            $options = array(
+                'buffer' => $buffer,
+            );
+        }
+
+        return $this->fakeInputdata('put', $path, $data, $options);
+    }
+
+    private function fakeInputData($method, $path, $data, $options) {
+        $method = strtolower($method);
+
+        $file = tempnam('/tmp/', 'octopus_' . $method);
         file_put_contents($file, http_build_query($data));
-        $options['put_data_file'] = $file;
-        $_SERVER['REQUEST_METHOD'] = 'put';
+        $options[$method . '_data_file'] = $file;
+        $_SERVER['REQUEST_METHOD'] = $method;
+
         $response = $this->getResponse($path, $options);
         unlink($file);
         return $response;
@@ -653,7 +673,7 @@ class Octopus_App {
     }
 
     public function isDevEnvironment() {
-        return $this->_options['DEV'];
+        return !empty($this->_options['DEV']);
     }
 
     /**
@@ -664,11 +684,11 @@ class Octopus_App {
     }
 
     public function isLiveEnvironment() {
-        return $this->_options['LIVE'];
+        return !empty($this->_options['LIVE']);
     }
 
     public function isStagingEnvironment() {
-        return $this->_options['STAGING'];
+        return !empty($this->_options['STAGING']);
     }
 
     public function makeUrl($path, $querystring = null, $options = array()) {
@@ -721,6 +741,10 @@ class Octopus_App {
         Octopus::removeClassDir($o['SITE_DIR'] . 'classes/');
         Octopus::removeControllerDir($o['SITE_DIR'] . 'controllers/');
 
+    }
+
+    private function _configureLoggingAndDebugging() {
+    	Octopus_Debug::configure($this->_options);
     }
 
 

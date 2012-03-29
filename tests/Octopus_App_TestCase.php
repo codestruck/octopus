@@ -10,6 +10,7 @@ abstract class Octopus_App_TestCase extends PHPUnit_Framework_TestCase {
     private static $sessionID = null;
 
     function setUp() {
+    	Octopus_Debug::reset();
         $this->initEnvironment();
         $this->clear($_GET);
         $this->clear($_POST);

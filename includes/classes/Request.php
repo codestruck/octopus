@@ -19,6 +19,7 @@ class Octopus_Request {
 
         $defaults = array(
             'put_data_file' => 'php://input',
+            'delete_data_file' => 'php://input',
         );
 
         $this->app = $app;
@@ -85,7 +86,8 @@ class Octopus_Request {
     }
 
     public function getInputData() {
-        switch ($this->getMethod()) {
+        $method = $this->getMethod();
+        switch ($method) {
             case 'get':
                 return $_GET;
                 break;
@@ -93,8 +95,9 @@ class Octopus_Request {
                 return $_POST;
                 break;
             case 'put':
-                parse_str(file_get_contents($this->options['put_data_file']), $put);
-                return $put;
+            case 'delete':
+                parse_str(file_get_contents($this->options[$method . '_data_file']), $data);
+                return $data;
                 break;
         }
 

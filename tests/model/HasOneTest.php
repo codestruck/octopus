@@ -183,8 +183,7 @@ class HasOneTest extends Octopus_App_TestCase {
 
     function testCascadeDelete() {
 
-        $this->markTestIncomplete("TODO: implement cascading delete");
-        return;
+        $this->markTestSkipped("TODO: implement cascading delete");
 
         $cat = new HasOneCategory();
         $cat->name = __METHOD__;

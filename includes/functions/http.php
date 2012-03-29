@@ -118,19 +118,15 @@
 
     /**
      * Cancels any upcoming redirects.
+     * @deprecated Use Octopus_Debug::enableRedirects
      */
     function cancel_redirects($cancel = true) {
-
-        $GLOBALS['__OCTOPUS_CANCEL_REDIRECT__'] = $cancel;
-
-        if (defined('DEV') && DEV && class_exists('Octopus_Debug')) {
-            $GLOBALS['__OCTOPUS_CANCEL_REDIRECT_BACKTRACE'] = debug_backtrace();
-        }
-
-
-        return $cancel;
+    	Octopus_Debug::enableRedirects(!$cancel);
     }
 
+    /**
+     * @deprecated Use Octopus_Debug::enableDirects
+     */
     function uncancel_redirects() {
         return cancel_redirects(false);
     }
@@ -241,41 +237,13 @@
 
         $newLocation = u($newLocation);
 
-        if (should_redirect()) {
-            header($permanent ? 'HTTP/1.1 301 Moved Permanently' : 'HTTP/1.1 302 Found');
-            header('Location: ' . u($newLocation));
-        } else {
-
-            notify_of_squashed_redirect($newLocation);
-            return false;
+        if (!Octopus_Debug::shouldRedirect($newLocation)) {
+        	return false;
         }
 
+        header($permanent ? 'HTTP/1.1 301 Moved Permanently' : 'HTTP/1.1 302 Found');
+        header('Location: ' . u($newLocation));
         exit();
-    }
-
-    function notify_of_squashed_redirect($location, $resp = null) {
-
-        // TODO: log?
-
-        if (defined('DEV') && DEV && class_exists('Octopus_Debug')) {
-
-            $d = new Octopus_Debug();
-            $d->addSquashedRedirect($location);
-
-            $d->add('Backtrace', Octopus_Debug::getBacktraceHtml());
-
-            if (!empty($GLOBALS['__OCTOPUS_CANCEL_REDIRECT_BACKTRACE'])) {
-                $d->add('Cancellation Source Backtrace', Octopus_Debug::getBacktraceHtml($GLOBALS['__OCTOPUS_CANCEL_REDIRECT_BACKTRACE']));
-            }
-
-
-            if ($resp) {
-                $resp->append($d->render(true));
-            } else {
-                $d->render();
-            }
-        }
-
     }
 
     /**
@@ -284,19 +252,6 @@
     function reload() {
         redirect($_SERVER['REQUEST_URI']);
     }
-
-    /**
-     * @return bool Whether you should process a redirect.
-     */
-    function should_redirect() {
-
-        if (!isset($GLOBALS['__OCTOPUS_CANCEL_REDIRECT__'])) {
-            return true;
-        }
-
-        return !$GLOBALS['__OCTOPUS_CANCEL_REDIRECT__'];
-    }
-
 
     /**
      * Redirect based on a session key, with default destination

@@ -401,10 +401,10 @@ abstract class Octopus_Controller {
 
         $path = u($pathOrAction);
 
-        if (should_redirect()) {
+        if (Octopus_Debug::shouldRedirect($path)) {
             $this->response->redirect($path);
         } else {
-            notify_of_squashed_redirect($path, $this->response);
+        	$this->response->setStatus(418); // I'm a teapot
         }
     }
 

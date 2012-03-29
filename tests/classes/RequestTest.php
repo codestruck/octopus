@@ -233,16 +233,18 @@ class RequestTest extends Octopus_App_TestCase {
         $this->assertEquals(array('foo2' => 'bar2'), $request->getInputData());
 
         $_SERVER['REQUEST_METHOD'] = 'PUT';
-        $file = tempnam('/tmp/', 'phpunit');
+        $file = tempnam('/tmp/', 'phpunit_put');
         file_put_contents($file, 'foo3=bar3');
         $request = $app->createRequest('/', array('put_data_file' => $file));
         $this->assertEquals(array('foo3' => 'bar3'), $request->getInputData());
         unlink($file);
 
         $_SERVER['REQUEST_METHOD'] = 'DELETE';
-        $request = $app->createRequest('/');
-        $this->assertEquals(array(), $request->getInputData());
-
+        $file = tempnam('/tmp/', 'phpunit_delete');
+        file_put_contents($file, 'foo4=bar4');
+        $request = $app->createRequest('/', array('delete_data_file' => $file));
+        $this->assertEquals(array('foo4' => 'bar4'), $request->getInputData());
+        unlink($file);
 
     }
 
