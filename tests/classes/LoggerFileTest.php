@@ -14,7 +14,7 @@ class Logger_File_Test extends PHPUnit_Framework_TestCase
         $l->log($msg);
 
         $contents = file_get_contents($file);
-        $this->assertTrue(strpos($contents, $msg) > 0);
+        $this->assertTrue(strpos($contents, $msg) > 0, "message found in file '$file'");
     }
 
     function testFileNotExists()
