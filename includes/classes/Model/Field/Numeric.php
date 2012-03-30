@@ -76,6 +76,16 @@ class Octopus_Model_Field_Numeric extends Octopus_Model_Field {
         $sqlQuery->set($this->getFieldName(), $value);
     }
 
+    public function addToForm(Octopus_Html_Form $form) {
+
+    	if ($this->getOption('auto_increment')) {
+    		return;
+    	}
+
+    	return parent::addToForm($form);
+
+    }
+
     public function addToTable(Octopus_Html_Table $table) {
 
         if (!$this->getOption('table', true)) {
