@@ -26,7 +26,15 @@ class Octopus_Http_Request_Sockets extends Octopus_Http_Request_Base {
             $timeout = $args['timeout'];
         }
 
-        $handle = fsockopen($ip, $port, $errno, $errstr, $timeout);
+        $handle = stream_socket_client($ip . ':' . $port, $errno, $errstr, $timeout);
+        if (!$handle) {
+            throw new Octopus_Exception("Could not create socket: $errno, $errstr");
+        }
+
+        if (!empty($args['timeout'])) {
+            socket_set_timeout($handle, $args['timeout']);
+        }
+
         $request = '';
         $request .= strtoupper($this->args['method']) . " $path HTTP/{$this->args['http_version']}\r\n";
         $request .= "Host: $host\r\n";
