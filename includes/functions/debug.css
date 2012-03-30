@@ -1,0 +1,287 @@
+.octopus-debug html, .octopus-debug body, .octopus-debug div, .octopus-debug span, .octopus-debug applet, .octopus-debug object, .octopus-debug iframe,
+.octopus-debug h1, .octopus-debug h2, .octopus-debug h3, .octopus-debug h4, .octopus-debug h5, .octopus-debug h6, .octopus-debug p, .octopus-debug blockquote, .octopus-debug pre,
+.octopus-debug a, .octopus-debug abbr, .octopus-debug acronym, .octopus-debug address, .octopus-debug big, .octopus-debug cite, .octopus-debug code,
+.octopus-debug del, .octopus-debug dfn, .octopus-debug em, .octopus-debug img, .octopus-debug ins, .octopus-debug kbd, .octopus-debug q, .octopus-debug s, .octopus-debug samp,
+.octopus-debug small, .octopus-debug strike, .octopus-debug strong, .octopus-debug sub, .octopus-debug sup, .octopus-debug tt, .octopus-debug var,
+.octopus-debug b, .octopus-debug u, .octopus-debug i, .octopus-debug center,
+.octopus-debug dl, .octopus-debug dt, .octopus-debug dd, .octopus-debug ol, .octopus-debug ul, .octopus-debug li,
+.octopus-debug fieldset, .octopus-debug form, .octopus-debug label, .octopus-debug legend,
+.octopus-debug table, .octopus-debug caption, .octopus-debug tbody, .octopus-debug tfoot, .octopus-debug thead, .octopus-debug tr, .octopus-debug th, .octopus-debug td,
+.octopus-debug article, .octopus-debug aside, .octopus-debug canvas, .octopus-debug details, .octopus-debug embed,
+.octopus-debug figure, .octopus-debug figcaption, .octopus-debug footer, .octopus-debug header, .octopus-debug hgroup,
+.octopus-debug menu, .octopus-debug nav, .octopus-debug output, .octopus-debug ruby, .octopus-debug section, .octopus-debug summary,
+.octopus-debug time, .octopus-debug mark, .octopus-debug audio, .octopus-debug video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+.octopus-debug article, .octopus-debug aside, .octopus-debug details, .octopus-debug figcaption, .octopus-debug figure,
+.octopus-debug footer, .octopus-debug header, .octopus-debug hgroup, .octopus-debug menu, .octopus-debug nav, .octopus-debug section {
+    display: block;
+}
+.octopus-debug body {
+    line-height: 1;
+}
+.octopus-debug ol, .octopus-debug ul {
+    list-style: none;
+}
+.octopus-debug blockquote, .octopus-debug q {
+    quotes: none;
+}
+blockquote.octopus-debug:before, blockquote.octopus-debug:after,
+q.octopus-debug:before, q.octopus-debug:after {
+    content: '';
+    content: none;
+}
+.octopus-debug table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+/*******************************************************************************
+ *
+ * Elements
+ *
+ ******************************************************************************/
+
+.octopus-debug a {
+    text-decoration: none;
+}
+
+.octopus-debug a:hover {
+    text-decoration: underline;
+}
+
+.octopus-debug table {
+    width: 100%;
+}
+
+.octopus-debug h1,
+.octopus-debug h2,
+.octopus-debug h3,
+.octopus-debug ul,
+.octopus-debug ol {
+    margin-bottom: 10px;
+}
+
+/*******************************************************************************
+ *
+ * Basic structure
+ *
+ ******************************************************************************/
+
+div.octopus-debug {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    margin: 10px auto;
+    padding: 10px;
+    position: relative;
+    width: 620px;
+}
+
+div.octopus-debug-inner {
+    overflow: hidden;
+}
+
+div.octopus-debug-header { }
+
+div.octopus-debug-header h1 {
+    cursor: default;
+}
+
+div.octopus-debug-header h2 {
+    bottom: 0;
+    cursor: default;
+    font-weight: bold;
+    position: absolute;
+    right: 10px;
+    text-align: right;
+    width: 20%;
+}
+
+div.octopus-debug-content {
+    background: #fff;
+    border-radius: 5px;
+    clear: both;
+    font-family: Monaco, 'Courier New', monospace;
+    height: 150px;
+    margin-bottom: 10px;
+    overflow: auto;
+    padding: 10px;
+}
+
+ul.octopus-debug-nav {
+    clear: both;
+    font-size: 14px;
+}
+
+ul.octopus-debug-nav li {
+    display: inline;
+    float: left;
+    margin-right: 5px;
+    opacity: 0.8;
+    padding: 5px 0;
+    text-align: center;
+    -webkit-transition: opacity 0.1s linear;
+}
+
+ul.octopus-debug-nav li a {
+    display: block;
+    padding: 0 5px;
+}
+
+ul.octopus-debug-nav li.octopus-debug-active,
+ul.octopus-debug-nav li:hover {
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 5px;
+    color: #000;
+    opacity: 1;
+}
+
+ul.octopus-debug-nav a:hover {
+    text-decoration: none;
+}
+
+/*******************************************************************************
+ *
+ * Levels
+ *
+ ******************************************************************************/
+
+div.octopus-debug {
+    background: #e9e9e9;
+    border-color: #ccc;
+    color: #333;
+}
+
+div.octopus-debug a {
+    color: #800;
+}
+
+.octopusDebugEven {
+    background: #fafafa;
+}
+
+/* info - http://colorschemedesigner.com/#3.11Tg0..Vw-- */
+
+div.octopus-debug.octopus-debug-level-info {
+    background: #F3F9FF;
+    border-color: #608AB2;
+    color: #032240;
+}
+
+div.octopus-debug.octopus-debug-level-info a {
+    color: #032240;
+}
+
+.octopus-debug-level-info ul.octopus-debug-nav li.octopus-debug-active,
+.octopus-debug-level-info ul.octopus-debug-nav li:hover {
+    background: #608AB2;
+}
+
+.octopus-debug-level-info ul.octopus-debug-nav li.octopus-debug-active a,
+.octopus-debug-level-info ul.octopus-debug-nav li:hover a {
+    color: #fff;
+}
+
+.octopus-debug-level-info .octopusDebugEven {
+    background: #F3F9FF;
+}
+
+/* warning - http://colorschemedesigner.com/#1311TkSvnOcP7 */
+
+div.octopus-debug.octopus-debug-level-warn {
+    background: #faca57;
+    border-color: #96855B;
+    color: #6E5008;
+}
+
+div.octopus-debug.octopus-debug-level-warn a {
+    color: #6E5008;
+}
+
+.octopus-debug-level-warn div.octopus-debug-content {
+    background: #FFFFee;
+}
+
+.octopus-debug-level-warn .octopusDebugEven {
+    background: #FEF1D2;
+}
+
+/* error */
+div.octopus-debug.octopus-debug-level-error {
+    background: #BC4C44;
+    color: #fff;
+}
+
+.octopus-debug-level-error h1,
+.octopus-debug-level-error h2 {
+    color: #fff;
+}
+
+div.octopus-debug.octopus-debug-level-error a {
+    color: #fff;
+}
+
+.octopus-debug-level-error div.octopus-debug-content,
+.octopus-debug-level-error ul.octopus-debug-nav li.octopus-debug-active {
+    background: #FED5D2;
+    color: #670700;
+}
+
+.octopus-debug-level-error ul.octopus-debug-nav li.octopus-debug-active a,
+.octopus-debug-level-error ul.octopus-debug-nav li:hover a {
+    color: #670700;
+}
+
+.octopus-debug-level-error .octopusDebugEven {
+    background: #fcc6c2;
+}
+
+/*******************************************************************************
+ *
+ * Strings
+ *
+ ******************************************************************************/
+
+span.octopusDebugStringLength {
+    font-size: 10px;
+}
+
+/*******************************************************************************
+ *
+ * Arrays
+ *
+ ******************************************************************************/
+
+.octopusDebugArrayDump td {
+    padding: 2px 5px;
+}
+
+td.octopusDebugArrayIndex {
+    color: #666;
+    font-size: 10px;
+    vertical-align: center;
+}
+
+td.octopusDebugArrayKey {
+    padding: 0 5px;
+}
+
+
+
+/*******************************************************************************
+ *
+ * Helpers
+ *
+ ******************************************************************************/
+
+.octopus-debug-hidden {
+    display: none;
+}

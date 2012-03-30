@@ -101,10 +101,10 @@ class Octopus_DB extends Octopus_Base {
     function query($sql, $safe = false, $params = array()) {
 
         if (defined('DB_LOG_QUERIES')) {
-            if (!$safe) {
+
+            if (1 || !$safe) {
 
                 $loc = $this->getFileCall();
-
                 if (defined('LOG_DIR')) {
                     $log = new Octopus_Logger_File(LOG_DIR . 'app.txt');
                     $log->log(sprintf('UNSAFE SQL: %s %s', $loc, $sql));

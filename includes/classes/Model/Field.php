@@ -6,6 +6,7 @@ abstract class Octopus_Model_Field {
     protected $modelClass;
     protected $options;
     protected $defaultOptions = array();
+    private $migrateMethod = null;
 
     /**
      * For fields w/ certain conventional names, some default options.
@@ -35,10 +36,24 @@ abstract class Octopus_Model_Field {
         'file' => array('type' => 'virtual', 'form_type' => 'file'),
     );
 
-    public function __construct($field, $modelClass, $options) {
+    /**
+     * @param $field Field name
+     * @param $modelClass Class to which this field is being added
+     * @param $options Array of options
+     * @param $migrateMethod Method on Octopus_DB_Schema_Writer to use to create
+     * a column for this field, if any.
+     */
+    public function __construct($field, $modelClass, $options, $migrateMethod = null) {
         $this->field = $field;
         $this->modelClass = $modelClass;
         $this->options = $options;
+        $this->migrateMethod = $migrateMethod;
+    }
+
+    /**
+     * Hook called after $model is deleted.
+     */
+    public function afterDelete(Octopus_Model $model) {
     }
 
     /**
@@ -75,6 +90,7 @@ abstract class Octopus_Model_Field {
     }
 
     public function accessValue($model, $saving = false) {
+
         $value = $model->getInternalValue($this->getFieldName());
 
         if ($saving) {
@@ -97,6 +113,14 @@ abstract class Octopus_Model_Field {
         }
 
         return $value;
+    }
+
+    /**
+     * Called when $model tries to load data from the DB, but the record is
+     * not where it expected it to be.
+     */
+    public function recordDisappeared(Octopus_Model $model) {
+
     }
 
     public function save($model, $sqlQuery) {
@@ -147,8 +171,22 @@ abstract class Octopus_Model_Field {
      * Creates DB resources required by this field.
      * @param $schema Octopus_DB_Schema
      * @param $table Main table being built.
+     * @param $name If provided, this should be used as the column name for
+     * this field. This functionality is used by Octopus_Model_Field_HasOne.
+     * @param $autoIncrement If false, disables auto incrementing on the
+     * generated field. If null, defaults to the field's current auto
+     * incrementing option.
      */
-    abstract public function migrate($schema, $table);
+    public function migrate(Octopus_DB_Schema $schema, Octopus_DB_Schema_Writer $table, $name = null, $autoIncrement = null) {
+
+    	if (!$this->migrateMethod) {
+    		return;
+    	}
+
+    	if (!$name) $name = $this->getFieldName();
+    	$table->{$this->migrateMethod}($name);
+
+    }
 
     /**
      * Called after migrations have been performed and
@@ -270,6 +308,35 @@ abstract class Octopus_Model_Field {
         } else {
             $table = $model->getTableName();
         }
+
+        if (is_array($fieldName)) {
+
+        	if (empty($fieldName)) {
+        		return '';
+        	}
+
+        	if (!is_array($value)) {
+        		throw new Octopus_Model_Exception("For arrays of field names, values must be an array as well.");
+        	}
+
+        	// Many-to-many uses this for restriction
+        	$result = array();
+        	foreach($fieldName as $field) {
+        		$fieldValue = array_shift($value);
+        		$result[] = self::defaultRestrict(
+        			array($table, $field),
+        			$operator,
+        			$defaultOperator,
+        			$fieldValue,
+        			$s,
+        			$params,
+        			$model
+        		);
+        	}
+
+        	return '(' . implode(') AND (', $result) . ')';
+        }
+
 
         if (!$operator) {
             $operator = is_array($value) ? 'IN' : $defaultOperator;

@@ -31,23 +31,6 @@ class Minpost extends Octopus_Model {
     );
 }
 
-class FindExistingIdTestModel extends Octopus_Model {
-
-    protected $fields = array(
-        'name',
-        'age' => 'numeric'
-    );
-
-    public $calls = 0;
-
-    protected function findExistingID() {
-        $this->calls++;
-        $existing = FindExistingIdTestModel::get(array('name' => $this->name));
-        return $existing ? $existing->id : null;
-    }
-
-}
-
 /**
  * @group Model
  */
@@ -57,33 +40,6 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
     function __construct()
     {
         parent::__construct('model/crud-data.xml');
-    }
-
-    function testFindExistingIdHook() {
-
-        Octopus_DB_Schema_Model::makeTable('FindExistingIdTestModel');
-
-        $a = new FindExistingIdTestModel();
-        $a->name = "foo";
-
-        $b = new FindExistingIdTestModel();
-        $b->name = "foo";
-
-        $this->assertTrue($a->save(), 'save of a succeeds');
-        $this->assertTrue($b->save(), 'save of b succeeds');
-
-        $this->assertTrue(!!$a->id, "Record A saved");
-        $this->assertTrue(!!$b->id, "Record B saved");
-        $this->assertEquals($a->id, $b->id, "No duplicate records generated");
-
-        $this->assertEquals(1, $a->calls, "called 1x on a");
-        $this->assertEquals(1, $b->calls, "called 1x on b");
-
-        $b->age = 50;
-        $this->assertTrue($b->save(), 'second save of b succeeds');
-
-        $this->assertEquals(1, $b->calls, "still called 1x on b");
-
     }
 
     function testTableName()
@@ -103,7 +59,7 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
         $post = new Minpost();
         $post->title = 'Test post';
         $post->body = 'Contents of post.';
-        $this->assertTrue($post->save());
+        $this->assertTrue(!!$post->save());
         $this->assertTrue($post->minpost_id > 0);
     }
 
@@ -368,9 +324,16 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
     {
         $post = new Minpost(1);
         $post->delete();
+        $this->assertNull($post->id, 'id reset after delete');
+        $this->assertFalse($post->exists());
 
         $post = new Minpost(1);
-        $this->assertEquals(null, $post->minpost_id);
+        $this->assertEquals(1, $post->minpost_id, 'no existence check run when id passed to constructor');
+        $this->assertFalse($post->exists(), 'existence check fails');
+
+        $post = new Minpost(1);
+        $post->save();
+        $this->assertEquals(3, $post->id, 'id updated when saved after delete');
     }
 
     function testSetBoolToZero()
@@ -518,7 +481,7 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
         $post = new Minpost(1);
 
         $i = 0;
-        foreach ($post as $item) {
+        foreach ($post as $key => $item) {
             switch ($i) {
                 case 0:
                     $this->assertEquals(1, $item);
@@ -682,17 +645,30 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
     }
 
     function testLazyLoadDoesntOverwriteData() {
-
         $post = new Minpost();
         $post->title = "foo";
         $post->display_order = 5;
-        $post->save();
+        $this->assertTrue(!!$post->save(), 'save succeeds');
 
+        $post = new Minpost($post->id);
+        $this->assertEquals("foo", $post->title);
+        $this->assertEquals(5, $post->display_order);
         $post = new Minpost($post->id);
         $post->title = "bar";
 
         $this->assertEquals(5, $post->display_order);
         $this->assertEquals("bar", $post->title);
+
+    }
+
+    function testLazyLoadMissingRecordResetsID() {
+
+    	$post = new Minpost(99999);
+    	$this->assertEquals(99999, $post->id);
+
+    	$this->assertEquals('', $post->title, 'title is empty');
+    	$this->assertEquals(null, $post->id, 'id reset');
+    	$this->assertFalse($post->exists(), 'post does not exist');
 
     }
 

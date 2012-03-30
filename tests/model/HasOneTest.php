@@ -103,14 +103,14 @@ class HasOneTest extends Octopus_App_TestCase {
         $person = new HasOnePerson();
         $person->category = $cat;
 
-        $this->assertTrue($person->save(), "save() succeeds");
+        $this->assertTrue(!!$person->save(), "save() succeeds");
 
         $person = new HasOnePerson($person->id);
         $this->assertEquals($cat->id, $person->category->id);
 
         $person->category = null;
         $this->assertNull($person->category);
-        $this->assertTrue($person->save(), "save() succeeds after nulling");
+        $this->assertTrue(!!$person->save(), "save() succeeds after nulling");
 
         $person = new HasOnePerson($person->id);
         $this->assertFalse(!!$person->category, "category is unset");

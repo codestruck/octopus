@@ -46,7 +46,7 @@
     require_once(OCTOPUS_FUNCTIONS_DIR . 'themes.php');
     require_once(OCTOPUS_FUNCTIONS_DIR . 'compat.php');
 
-    require_once(OCTOPUS_DIR . 'includes/classes/Octopus.php');
+    require_once(OCTOPUS_CLASSES_DIR . 'Octopus.php');
 
     require_once(OCTOPUS_FUNCTIONS_DIR . 'security.php');
 
@@ -68,7 +68,6 @@
 
             'start_app' => true,
 
-            'handle_exceptions' => true,
         );
 
         $options = $options ? array_merge($defaults, $options) : $defaults;
@@ -84,13 +83,6 @@
         ////////////////////////////////////////////////////////////////////////
 
         if ($options['start_app']) {
-
-            if ($options['handle_exceptions']) {
-                if (set_exception_handler('octopus_handle_exception') !== null) {
-                    restore_exception_handler();
-                }
-            }
-
             Octopus_App::start($options);
         }
 
@@ -120,22 +112,3 @@
 
         $response->flush();
     }
-
-    /**
-     * Global exception handler.
-     */
-    function octopus_handle_exception($ex) {
-
-        dump_r($ex);
-
-        if (class_exists('Octopus_App') && Octopus_App::isStarted()) {
-            $app = Octopus_App::singleton();
-            $response = $app->getCurrentResponse();
-            if ($response) $response->flush();
-        }
-
-
-        die();
-    }
-
-?>

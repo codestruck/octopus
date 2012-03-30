@@ -200,7 +200,6 @@ class Octopus_DB_Schema_Writer {
         $field = $info['field'];
         if (!empty($current['index']) && !in_array($field, $this->hasIndexes)) {
             $indexName = $this->getIndexName($field);
-
             if ($indexName) {
                 $sql .= sprintf('DROP INDEX `%s`', $indexName);
             }
@@ -214,8 +213,10 @@ class Octopus_DB_Schema_Writer {
 
             if ($desired != $current) {
                 $indexName = $this->getIndexName($field);
-                $sql .= sprintf('DROP INDEX `%s`', $indexName);
-                $sql .= ', ADD ' . $this->indexes[ $field ];
+                if ($indexName) {
+                	$sql .= sprintf('DROP INDEX `%s`', $indexName);
+                	$sql .= ', ADD ' . $this->indexes[ $field ];
+                }
             }
         }
 
@@ -285,6 +286,7 @@ class Octopus_DB_Schema_Writer {
         }
 
         $sql = $this->toSql();
+
         if (trim($sql) != '') {
             $this->db->query($sql, true);
         }

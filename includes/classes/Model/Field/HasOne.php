@@ -114,10 +114,32 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         $sqlQuery->set($col, $value ? $value->id : '');
     }
 
-    public function migrate($schema, $table) {
-        $col = to_id($this->getFieldName());
-        $table->newKey($col);
-        $table->newIndex($col);
+    public function migrate(Octopus_DB_Schema $schema, Octopus_DB_Schema_Writer $table, $name = null, $autoIncrement = null) {
+
+    	if (!$name) $name = $this->getColumn();
+
+    	if ($this->getOption('filter')) {
+
+    		// for filtered stuff, id must be numeric, auto increment
+    		$pkField = new Octopus_Model_Field_Numeric('item_id', $this->modelClass, array('auto_increment' => true));
+
+    	} else {
+
+	    	$itemClass = $this->getItemClass();
+    		$item = new $itemClass();
+
+	    	$pkFields = $item->getPrimaryKeyFields();
+
+	    	if (count($pkFields) !== 1) {
+	    		throw new Octopus_Model_Exception("HasOne relationships currently not supported for models with compound primary keys.");
+	    	}
+
+	    	$pkField = array_shift($pkFields);
+	    }
+
+    	// Migrate the item's primary key field with our custom name.
+    	$pkField->migrate($schema, $table, $name, false);
+    	$table->newIndex($name);
     }
 
     public function restrict($expression, $operator, $value, &$s, &$params, $model) {
@@ -264,7 +286,7 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         return to_id($this->getFieldName());
     }
 
-    private function getItemClass($model= null) {
+    private function getItemClass($model = null) {
 
         if ($model && $this->getOption('filter', false)) {
             return ucfirst($model->item_type);

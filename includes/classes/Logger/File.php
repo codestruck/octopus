@@ -1,33 +1,29 @@
 <?php
 
+/**
+ * @deprecated Use Octopus_Log.
+ */
 class Octopus_Logger_File {
 
-    function __construct($file) {
-        $this->file = $file;
-        $this->_handle = null;
-    }
+	private $logger;
+	private $name;
 
-    function _open() {
+    public function __construct($file) {
 
-        if (!$this->_handle = @fopen($this->file, 'a')) {
-            throw new Octopus_Exception("Can't open log file: $this->file.");
-        }
-
-        chmod($this->file, 0666);
+    	$this->logger = new Octopus_Log_Listener_File(dirname($file));
+    	$this->logger->setExtension(''); // extension is already on $file
+    	$this->name = basename($file);
 
     }
 
-    function log($line) {
-
-        if (!$this->_handle) {
-            $this->_open();
-        }
-
-        if ($this->_handle) {
-            $line = date('r') . ': ' . $line;
-            fwrite($this->_handle, $line . "\n");
-        }
-
+    /**
+     * Writes $line to a log file.
+     * @throws Octopus_Exception If logging fails.
+     */
+    public function log($line) {
+    	if (!$this->logger->write($line, $this->name, Octopus_Log::DEBUG)) {
+    		throw new Octopus_Exception("Failed to write to file log: " . $this->logger->getLogFile($this->name));
+    	}
     }
 
 }
