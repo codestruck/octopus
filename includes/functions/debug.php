@@ -163,7 +163,8 @@ class Octopus_Log {
 	 */
 	public static function debug() {
 		if (self::$minLevel >= self::DEBUG) {
-			return self::doShortcut(Octopus_Log::DEBUG, func_get_args());
+			$args = func_get_args(); // PHP 5.2 craps out if you try to pass func_get_args() directly
+			return self::doShortcut(Octopus_Log::DEBUG, $args);
 		}
 	}
 
@@ -178,7 +179,8 @@ class Octopus_Log {
 	 */
 	public static function error() {
 		if (self::$minLevel >= self::ERROR) {
-			return self::doShortcut(Octopus_Log::ERROR, func_get_args());
+			$args = func_get_args(); // PHP 5.2 craps out if you try to pass func_get_args() directly
+			return self::doShortcut(Octopus_Log::ERROR, $args);
 		}
 	}
 
@@ -228,7 +230,8 @@ class Octopus_Log {
 	 */
 	public static function fatal() {
 		if (self::$minLevel >= self::FATAL) {
-			return self::doShortcut(Octopus_Log::FATAL, func_get_args());
+			$args = func_get_args(); // PHP 5.2 craps out if you try to pass func_get_args() directly
+			return self::doShortcut(Octopus_Log::FATAL, $args);
 		}
 	}
 
@@ -337,7 +340,8 @@ class Octopus_Log {
 	 */
 	public static function info() {
 		if (self::$minLevel >= self::INFO) {
-			return self::doShortcut(Octopus_Log::INFO, func_get_args());
+			$args = func_get_args(); // PHP 5.2 craps out if you try to pass func_get_args() directly
+			return self::doShortcut(Octopus_Log::INFO, $args);
 		}
 	}
 
@@ -437,7 +441,8 @@ class Octopus_Log {
 	 */
 	public static function warn() {
 		if (self::$minLevel >= self::WARN) {
-			return self::doShortcut(Octopus_Log::WARN, func_get_args());
+			$args = func_get_args(); // PHP 5.2 craps out if you try to pass func_get_args() directly
+			return self::doShortcut(Octopus_Log::WARN, $args);
 		}
 	}
 
@@ -1412,7 +1417,8 @@ class Octopus_Debug {
     	// infrastructure to the 'dump' log. This gets picked up by the file,
     	// html, and stderr listeners and rendered appropriately.
 
-    	$vars = new Octopus_Debug_Dumped_Vars(func_get_args());
+    	$args = func_get_args();
+    	$vars = new Octopus_Debug_Dumped_Vars($args);
     	Octopus_Log::debug('dump', $vars);
 
     	// This is kind of a hack. When we are calling dump_r from smarty
@@ -1436,7 +1442,8 @@ class Octopus_Debug {
     		return $x;
     	}
 
-    	call_user_func_array(array('Octopus_Debug', 'dump'), func_get_args());
+		$args = func_get_args(); // PHP 5.2 craps out if you try to pass func_get_args() directly
+    	call_user_func_array(array('Octopus_Debug', 'dump'), $args);
     	self::flushBufferedOctopusResponse();
 
     	exit(1337);
@@ -2518,7 +2525,8 @@ if (!function_exists('dump_r')) {
      * @see Octopus_Debug::dump
      */
     function dump_r() {
-    	return call_user_func_array(array('Octopus_Debug', 'dump'), func_get_args());
+    	$args = func_get_args(); // PHP 5.2 craps out if you try to pass func_get_args() directly
+    	return call_user_func_array(array('Octopus_Debug', 'dump'), $args);
     }
 
     /**
@@ -2528,7 +2536,8 @@ if (!function_exists('dump_r')) {
      * @see Octopus_Debug::dumpAndExit()
      */
     function dump_x() {
-    	return call_user_func_array(array('Octopus_Debug', 'dumpAndExit'), func_get_args());
+    	$args = func_get_args(); // PHP 5.2 craps out if you try to pass func_get_args() directly
+    	return call_user_func_array(array('Octopus_Debug', 'dumpAndExit'), $args);
     }
 
     /**
