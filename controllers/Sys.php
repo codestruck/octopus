@@ -95,7 +95,14 @@ class SysController extends Octopus_Controller {
 
     }
 
-    public function welcome() {
+    public function welcomeAction() {
+
+    	$siteDir = $this->app->SITE_DIR;
+    	if (is_dir($siteDir)) {
+    		// A site dir exists, so show /home
+    		$this->view = 'home';
+    	}
+
     }
 
 }
