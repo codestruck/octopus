@@ -1955,7 +1955,13 @@ END;
 
 	        $result .= "\n\n";
 
-    		$ex = $ex->getPrevious();
+	        // NOTE: 5.2 doesn't support getPrevious
+	        if (method_exists($ex, 'getPrevious')) {
+    			$ex = $ex->getPrevious();
+    		} else {
+    			$ex = null;
+    		}
+
     	} while($ex);
 
         return trim($result);
@@ -2452,7 +2458,13 @@ class Octopus_Debug_Html_Exception {
 
 			$result[] = htmlspecialchars($ex->getMessage(), ENT_QUOTES, 'UTF-8');
 
-			$ex = $ex->getPrevious();
+			// NOTE: 5.2 doesn't support getPrevious
+			if (method_exists($ex, 'getPrevious')) {
+				$ex = $ex->getPrevious();
+			} else {
+				$ex = null;
+			}
+
 		} while($ex);
 
 		return implode(' ', $result);
