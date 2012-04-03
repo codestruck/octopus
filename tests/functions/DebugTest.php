@@ -214,5 +214,15 @@ END
 
 	}
 
+	function testZeroDumpedToStdErr() {
+
+		$this->assertValueDumpedToStdErr(
+			0,
+			<<<END
+int(0)
+END
+		);
+
+	}
 
 }

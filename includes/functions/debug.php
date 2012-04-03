@@ -2008,7 +2008,7 @@ END;
 
     	$result = self::dumpToPlainTextString($x, false);
 
-    	if (is_int($x)) {
+    	if ($x && is_int($x)) {
 
     		$result .=
     			"\n\t" .
@@ -2018,13 +2018,13 @@ END;
 
     	}
 
-    	if (self::looksLikeTimestamp($x)) {
+    	if ($x && self::looksLikeTimestamp($x)) {
     		$result .=
     			"\n\t" .
     			        "timestamp:    " . date('r', $x);
     	}
 
-    	if (self::looksLikeFilePermissions($x)) {
+    	if ($x && self::looksLikeFilePermissions($x)) {
     		$result .=
     			"\n\t" .
     					"permissions:  " . self::getNumberAsFilePermissions($x);
