@@ -142,11 +142,13 @@ class LogTest extends Octopus_App_TestCase {
 		$logger->setMaxFileSize(1024);
 		$logger->setRotationDepth(3);
 
+		$logName = 'test_file_logging';
+
 		Octopus_Log::addListener(Octopus_Log::INFO, $logger);
 		for($i = 0; $i < 100; $i++) {
 
 			Octopus_Log::write(
-				__METHOD__,
+				$logName,
 				Octopus_Log::WARN,
 				<<<END
 Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
@@ -158,7 +160,7 @@ END
 
 		$this->assertEquals(100, Octopus_Log::getWriteCount(), '100x write count');
 
-		$file = $this->getPrivateDir() . 'test-log-dir/' . to_slug(__METHOD__) . '.log';
+		$file = $this->getPrivateDir() . 'test-log-dir/' . $logName . '.log';
 		$this->assertTrue(is_file($file), 'log file exists');
 
 		$size = filesize($file);
@@ -170,7 +172,7 @@ END
 			$num = substr($num, -3);
 
 			$dir = $this->getPrivateDir() . 'test-log-dir/';
-			$file = $dir . to_slug(__METHOD__) . ".{$num}.log";
+			$file = $dir . $logName . ".{$num}.log";
 			if ($i <= 3) {
 				$this->assertTrue(is_file($file), "Exists: $file");
 			} else {
