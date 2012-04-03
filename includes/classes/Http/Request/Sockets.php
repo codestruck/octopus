@@ -13,11 +13,17 @@ class Octopus_Http_Request_Sockets extends Octopus_Http_Request_Base {
         $ip = gethostbyname($host);
 
         if ($secure) {
-            $protos = stream_get_transports();
-            if (!in_array('ssl', $protos)) {
-                throw new Octopus_Exception('No SSL Support in fsockopen');
+            $sslProto = 'ssl';
+            if (!empty($args['ssl_version'])) {
+                $sslProto = 'sslv3';
             }
-            $ip = 'ssl://' . $ip;
+
+            $protos = stream_get_transports();
+            if (!in_array($sslProto, $protos)) {
+                throw new Octopus_Exception("No $sslProto Support in fsockopen");
+            }
+
+            $ip = $sslProto . '://' . $ip;
         }
 
         $timeout = ini_get("default_socket_timeout");
@@ -26,17 +32,7 @@ class Octopus_Http_Request_Sockets extends Octopus_Http_Request_Base {
             $timeout = $args['timeout'];
         }
 
-        $context = array();
-
-        if (!empty($args['ssl_version'])) {
-            $context = stream_context_create(array(
-                'ssl' => array(
-                    'ciphers' => 'SSLv' . $args['ssl_version'],
-                ),
-            ));
-        }
-
-        $handle = stream_socket_client($ip . ':' . $port, $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $context);
+        $handle = stream_socket_client($ip . ':' . $port, $errno, $errstr, $timeout);
         if (!$handle) {
             throw new Octopus_Exception("Could not create socket: $errno, $errstr");
         }
