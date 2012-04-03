@@ -20,6 +20,10 @@ class Octopus_Http_Request_Curl extends Octopus_Http_Request_Base {
         curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($handle, CURLOPT_FOLLOWLOCATION, false);
 
+        if (!empty($args['ssl_version'])) {
+            curl_setopt($handle, CURLOPT_SSLVERSION, $args['ssl_version']);
+        }
+
         if (!empty($args['timeout'])) {
             curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, $args['timeout']);
             curl_setopt($handle, CURLOPT_TIMEOUT, $args['timeout']);

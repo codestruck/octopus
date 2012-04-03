@@ -26,7 +26,17 @@ class Octopus_Http_Request_Sockets extends Octopus_Http_Request_Base {
             $timeout = $args['timeout'];
         }
 
-        $handle = stream_socket_client($ip . ':' . $port, $errno, $errstr, $timeout);
+        $context = array();
+
+        if (!empty($args['ssl_version'])) {
+            $context = stream_context_create(array(
+                'ssl' => array(
+                    'ciphers' => 'SSLv' . $args['ssl_version'],
+                ),
+            ));
+        }
+
+        $handle = stream_socket_client($ip . ':' . $port, $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $context);
         if (!$handle) {
             throw new Octopus_Exception("Could not create socket: $errno, $errstr");
         }
