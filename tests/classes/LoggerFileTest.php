@@ -31,9 +31,9 @@ class Logger_File_Test extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException Octopus_Exception
+     *
      */
-    function testOpenFileError()
+    function testOpenFileErrorThrowsNoException()
     {
         $file = '/root/noperm';
         $msg = 'unique new york';

@@ -21,9 +21,7 @@ class Octopus_Logger_File {
      * @throws Octopus_Exception If logging fails.
      */
     public function log($line) {
-    	if (!$this->logger->write($line, $this->name, Octopus_Log::DEBUG)) {
-    		throw new Octopus_Exception("Failed to write to file log: " . $this->logger->getLogFile($this->name));
-    	}
+    	return $this->logger->write($line, $this->name, Octopus_Log::DEBUG);
     }
 
 }
