@@ -155,6 +155,18 @@ class FormFieldTest extends Octopus_Html_TestCase {
 
     }
 
+    function testFieldNameToID() {
+
+    	$form = new Octopus_Html_Form('nameToID');
+    	$field = $form->add('text', 'my_name');
+
+    	$this->assertEquals('my_nameInput', $field->id);
+    	$this->assertTrue(!!preg_match('/\bmy_name\b/', $field->class), 'my_name present in field class');
+
+    	$wrapper = $field->wrapper;
+    	$this->assertEquals('my_nameField', $wrapper->id);
+    	$this->assertTrue(!!preg_match('/\bmy_name\b/', $wrapper->class), 'my_name present in wrapper class');
+    }
 
 }
 
