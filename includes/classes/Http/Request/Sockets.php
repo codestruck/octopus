@@ -4,6 +4,8 @@ class Octopus_Http_Request_Sockets extends Octopus_Http_Request_Base {
 
     public function request($url, $data = null, $args = array()) {
 
+    	// TODO: Support check_ssl arg to disable SSL cert verification
+
         $this->requestUrl = $url;
         $this->requestData = $data;
         $this->args = array_merge($this->defaults, $args);

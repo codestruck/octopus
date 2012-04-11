@@ -14,6 +14,7 @@ class Octopus_Http_Request_Base {
             'method' => 'GET',
             'max_redirects' => 5,
             'http_version' => '1.1',
+            'check_ssl' => true,
             'User-Agent' => 'Mozilla/5.0 (X11; Linux i686; rv:5.0) Gecko/20100101 Firefox/5.0',
             'Accept-Encoding' => 'gzip,deflate',
             'Accept' => '*/*',
@@ -145,15 +146,16 @@ class Octopus_Http_Request_Base {
 
         // the 400's and 500's are bad news
         if ($this->responseNumber >= 400) {
-            if (DEV) {
+
+            if (Octopus_Log::isDebugEnabled()) {
+
                 $message = "error {$this->responseNumber}\nURL: {$this->requestUrl}\n";
                 if ($this->requestData) {
                     $message .= "params: " . print_r($this->requestData, 1);
                 }
                 $message .= $content;
 
-                $log = new Octopus_Logger_File(OCTOPUS_PRIVATE_DIR . 'http.log');
-                $log->log($message);
+                Octopus_Log::write('http', Octopus_Log::DEBUG, $message);
             }
 
             $content = '';
