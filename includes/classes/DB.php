@@ -4,8 +4,6 @@ class Octopus_DB extends Octopus_Base {
 
     public $queryCount = 0;
 
-    private $_inTransaction = false;
-
     protected function __construct() {
 
         if (class_exists('PDO') && !defined('NO_PDO')) {
@@ -19,48 +17,66 @@ class Octopus_DB extends Octopus_Base {
     }
 
     /**
-     * Starts a new transaction.
+     * Starts a new transaction. Only one transaction can be running at a
+     * time.
+     * @return Octopus_DB_Transaction
+     * @throws Octopus_DB_Exception If another transaction can be started.
      */
     public function beginTransaction() {
 
-    	if ($this->_inTransaction) {
+    	if (Octopus_DB_Transaction::getCurrent()) {
     		throw new Octopus_DB_Exception("A transaction has already been started. You need to commit it or roll it back to start a new one.");
     	}
 
-    	$this->_inTransaction = true;
-    	$this->driver->beginTransaction();
+    	return new Octopus_DB_Transaction($this, $this->driver);
     }
 
     /**
-     * Commits a
+     * @return Mixed If an uncommitted transaction has been started, returns
+     * it. Otherwise, returns null.
      */
-    public function commitTransaction() {
-
-    	if (!$this->_inTransaction) {
-    		throw new Octopus_DB_Exception("No transaction has been started. Call beginTransaction() before calling commitTransaction() or rollbackTransaction()");
-    	}
-
-    	$this->driver->commitTransaction();
-    	$this->_inTransaction = false;
+    public function getTransaction() {
+    	return Octopus_DB_Transaction::getCurrent();
     }
 
     /**
-     * @return Bool Whether ::beginTransaction() has been called, but neither
-     * ::commitTransaction() or ::rollbackTransaction() have been called to
-     * finalize it.
+     * Begins a new transaction and executes $callback. If $callback does not
+     * commit or roll back the transaction, it is committed automatically.
+     * If $callback throws an exception, the transaction is rolled back
+     * before the exception is rethrown.
+     * @param  function $callback Callback function to execute inside the
+     * transaction. Will be passed 2 arguments: An Octopus_DB_Transaction
+     * instance and this Octopus_DB instance. So the signature is:
+     *
+     * 	function(Octopus_DB_Transaction $tx, Octopus_DB $db)
+     *
+     * @return boolean True if the transaction is committed, false otherwise.
      */
-    public function inTransaction() {
-    	return $this->_inTransaction;
-    }
+    public function runTransaction($callback) {
 
-    public function rollbackTransaction() {
+    	$tx = null;
 
-    	if (!$this->_inTransaction) {
-    		throw new Octopus_DB_Exception("No transaction has been started. Call beginTransaction() before calling commitTransaction() or rollbackTransaction()");
+    	try {
+
+    		$tx = $this->beginTransaction();
+    		call_user_func($callback, $tx, $this);
+
+    		if ($tx->canCommit()) {
+    			$tx->commit();
+    		}
+
+    		return $tx->isCommitted();
+
+    	} catch(Exception $ex) {
+
+    		if ($tx && $tx->canRollBack()) {
+    			$tx->rollback();
+    		}
+
+    		throw $ex;
+
     	}
 
-    	$this->driver->rollbackTransaction();
-    	$this->_inTransaction = false;
     }
 
     /**
