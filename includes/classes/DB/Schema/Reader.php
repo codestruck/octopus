@@ -69,6 +69,13 @@ class Octopus_DB_Schema_Reader {
 
     }
 
+    public function getEngine() {
+        $sql = "SHOW TABLE STATUS WHERE Name = '$this->tableName'";
+        $query = $this->db->query($sql, true);
+        $result = $query->fetchRow();
+        return $result['Engine'];
+    }
+
     private function getColumnIndex($field) {
 
         $indexes = $this->getIndexes();

@@ -2,11 +2,15 @@
 
 class Octopus_DB_Schema_Writer {
 
-    function __construct($tableName, $db = null) {
+    const DEFAULT_ENGINE = 'MyISAM';
+    public $engine;
+
+    function __construct($tableName, $db = null, $engine = '') {
         $this->tableName = $tableName;
         $this->fields = array();
         $this->indexes = array();
         $this->hasIndexes = array();
+        $this->engine = $engine ? $engine : self::DEFAULT_ENGINE;
 
         $this->db = $db ? $db : Octopus_DB::singleton();
     }
@@ -313,7 +317,7 @@ class Octopus_DB_Schema_Writer {
         $lines = array_merge($fieldLines, $this->indexes);
 
         $sql .= implode(",\n", $lines);
-        $sql .= "\n);";
+        $sql .= "\n) ENGINE={$this->engine};";
 
         return $sql;
     }
@@ -367,6 +371,10 @@ class Octopus_DB_Schema_Writer {
 
         foreach ($fields as $field) {
             $sql[] = $this->alterAddField($field);
+        }
+
+        if ($reader->getEngine() !== $this->engine) {
+            $sql[] = 'ENGINE=' . $this->engine;
         }
 
         $sql = array_filter($sql, 'trim');
