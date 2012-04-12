@@ -40,6 +40,7 @@ class Octopus_DB_Schema_IndexTest extends PHPUnit_Framework_TestCase {
 
     function testSwitchUniqueKey()
     {
+        $this->markTestSkipped();
 
         $this->db->query('DROP TABLE IF EXISTS translation_values');
 
