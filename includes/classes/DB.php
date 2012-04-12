@@ -49,17 +49,18 @@ class Octopus_DB extends Octopus_Base {
      * instance and this Octopus_DB instance. So the signature is:
      *
      * 	function(Octopus_DB_Transaction $tx, Octopus_DB $db)
-     *
+     * @param $retval Gets set to the value returned from $callback
      * @return boolean True if the transaction is committed, false otherwise.
      */
-    public function runTransaction($callback) {
+    public function runTransaction($callback, &$retval = null) {
 
     	$tx = null;
+    	$retval = null;
 
     	try {
 
     		$tx = $this->beginTransaction();
-    		call_user_func($callback, $tx, $this);
+    		$retval = call_user_func($callback, $tx, $this);
 
     		if ($tx->canCommit()) {
     			$tx->commit();

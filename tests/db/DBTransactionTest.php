@@ -115,6 +115,19 @@ class DBTransactionTest extends PHPUnit_Framework_TestCase {
 
 	}
 
+
+	function testCallbackReturnValue() {
+
+		$db = Octopus_DB::singleton();
+		$this->assertTrue($db->runTransaction(array($this, 'callbackThatReturnsAValue'), $retval));
+		$this->assertEquals('blarg', $retval);
+
+	}
+
+	function callbackThatReturnsAValue() {
+		return "blarg";
+	}
+
 	function testCallbackRollback() {
 
 		$db = Octopus_DB::singleton();
