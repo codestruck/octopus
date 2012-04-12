@@ -33,7 +33,7 @@ END
         $instance = new $class();
         $this->assertTrue($instance->doSomething());
 
-        recursive_delete($dir);
+        recursive_delete($classDir . 'AutoloadingTest');
 
     }
 
