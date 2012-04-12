@@ -20,6 +20,10 @@ class Octopus_Http_Request_Curl extends Octopus_Http_Request_Base {
         curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($handle, CURLOPT_FOLLOWLOCATION, false);
 
+        if (!empty($args['ssl_version'])) {
+            curl_setopt($handle, CURLOPT_SSLVERSION, $args['ssl_version']);
+        }
+
         if (!empty($args['timeout'])) {
             curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, $args['timeout']);
             curl_setopt($handle, CURLOPT_TIMEOUT, $args['timeout']);
@@ -56,6 +60,9 @@ class Octopus_Http_Request_Curl extends Octopus_Http_Request_Base {
         }
         unset($args['Accept-Encoding']);
 
+        if (!empty($args['check_ssl'])) {
+        	curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, false);
+        }
 
         $request_headers = array();
 
@@ -82,7 +89,6 @@ class Octopus_Http_Request_Curl extends Octopus_Http_Request_Base {
         list($headers, $empty_body) = $this->splitResponse($this->raw_headers);
         $this->headers = $headers;
         unset($this->headers['Content-Encoding']);
-
         $body = $this->checkHeaders($body);
 
         return $body;

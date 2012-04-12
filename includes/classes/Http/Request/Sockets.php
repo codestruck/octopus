@@ -4,6 +4,8 @@ class Octopus_Http_Request_Sockets extends Octopus_Http_Request_Base {
 
     public function request($url, $data = null, $args = array()) {
 
+    	// TODO: Support check_ssl arg to disable SSL cert verification
+
         $this->requestUrl = $url;
         $this->requestData = $data;
         $this->args = array_merge($this->defaults, $args);
@@ -13,11 +15,17 @@ class Octopus_Http_Request_Sockets extends Octopus_Http_Request_Base {
         $ip = gethostbyname($host);
 
         if ($secure) {
-            $protos = stream_get_transports();
-            if (!in_array('ssl', $protos)) {
-                throw new Octopus_Exception('No SSL Support in fsockopen');
+            $sslProto = 'ssl';
+            if (!empty($args['ssl_version'])) {
+                $sslProto = 'sslv3';
             }
-            $ip = 'ssl://' . $ip;
+
+            $protos = stream_get_transports();
+            if (!in_array($sslProto, $protos)) {
+                throw new Octopus_Exception("No $sslProto Support in fsockopen");
+            }
+
+            $ip = $sslProto . '://' . $ip;
         }
 
         $timeout = ini_get("default_socket_timeout");

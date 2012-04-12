@@ -10,7 +10,7 @@ class Octopus_DB_Schema_Model {
 
 		$schema = new Octopus_DB_Schema();
 
-    	call_user_func(array($modelClass, 'migrate'), $schema);
+    	call_user_func(array($modelClass, 'migrate'), $schema, $modelClass);
 
     }
 

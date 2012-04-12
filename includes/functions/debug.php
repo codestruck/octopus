@@ -743,10 +743,17 @@ class Octopus_Log_Listener_File {
 			return false;
 		}
 
+
+
 		if ($message instanceof Exception) {
 			$trace = Octopus_Debug::getNiceBacktrace($message->getTrace());
 			$message = Octopus_Debug::dumpToString($message, 'text', true);
 		} else {
+
+			if ($message instanceof Octopus_Debug_Dumped_Vars) {
+				$message = (string)$message;
+			}
+
 			$trace = $this->getStackTrace();
 		}
 
@@ -2008,7 +2015,7 @@ END;
 
     	$result = self::dumpToPlainTextString($x, false);
 
-    	if (is_int($x)) {
+    	if ($x && is_int($x)) {
 
     		$result .=
     			"\n\t" .
@@ -2018,13 +2025,13 @@ END;
 
     	}
 
-    	if (self::looksLikeTimestamp($x)) {
+    	if ($x && self::looksLikeTimestamp($x)) {
     		$result .=
     			"\n\t" .
     			        "timestamp:    " . date('r', $x);
     	}
 
-    	if (self::looksLikeFilePermissions($x)) {
+    	if ($x && self::looksLikeFilePermissions($x)) {
     		$result .=
     			"\n\t" .
     					"permissions:  " . self::getNumberAsFilePermissions($x);

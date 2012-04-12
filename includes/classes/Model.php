@@ -708,12 +708,16 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
      * Generates the tables this model requires to function.
      * @param Octopus_DB_Schema $schema The schema instance used to create
      * tables.
+     * @param Mixed $php52ClassNameHack If you are calling ::migrate from a
+     * place that needs to support PHP 5.2, provide the class name being
+     * migrated here. This is to compensate for 5.2's lack of get_called_class
+     * support.
      */
-    public static function migrate(Octopus_DB_Schema $schema) {
+    public static function migrate(Octopus_DB_Schema $schema, $php52ClassNameHack = null) {
 
     	// TODO: Make field stuff static on model
 
-    	$modelClass = self::getClassName();
+    	$modelClass = $php52ClassNameHack ? $php52ClassNameHack : self::getClassName();
     	$model = new $modelClass();
 
 		foreach($model->getFields() as $field) {
