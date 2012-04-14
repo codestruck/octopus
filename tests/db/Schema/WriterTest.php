@@ -26,7 +26,7 @@ class Octopus_DB_Schema_Writer_Test extends PHPUnit_Framework_TestCase
         $test = "CREATE TABLE `test` (
 `test_id` int(10) NOT NULL,
 `test_name` varchar(250) NOT NULL
-);";
+) ENGINE=MyISAM;";
 
 
         $this->assertEquals($test, $sql);
@@ -45,7 +45,7 @@ class Octopus_DB_Schema_Writer_Test extends PHPUnit_Framework_TestCase
 `test_id` int(10) NOT NULL AUTO_INCREMENT,
 `test_name` varchar(250) NOT NULL,
 PRIMARY KEY (`test_id`)
-);";
+) ENGINE=MyISAM;";
 
 
         $this->assertEquals($test, $sql);
@@ -78,7 +78,7 @@ PRIMARY KEY (`test_id`)
 `test_time` time NOT NULL,
 `test_decimal` decimal(7,2) NOT NULL,
 `test_enum` enum('a','b') NOT NULL default 'a'
-);";
+) ENGINE=MyISAM;";
 
 
         $this->assertEquals($test, $sql);
@@ -393,7 +393,7 @@ CREATE TABLE `translation_values` (
 `keyword_id` int(10) NOT NULL,
 `lang` varchar(250) NOT NULL,
 UNIQUE (`keyword_id`,`lang`)
-);
+) ENGINE=MyISAM;
 END;
         $this->assertEquals($expected, $sql);
 
@@ -446,7 +446,7 @@ END;
 CREATE TABLE `prim_test` (
 `id` int(10) NOT NULL AUTO_INCREMENT,
 PRIMARY KEY (`id`)
-);
+) ENGINE=MyISAM;
 END;
         $this->assertEquals($expected, $sql);
 
@@ -468,7 +468,7 @@ END;
 CREATE TABLE `prim_test` (
 `id` int(10) NOT NULL AUTO_INCREMENT,
 INDEX (`id`)
-);
+) ENGINE=MyISAM;
 END;
         $this->assertEquals($expected, $sql);
 
@@ -490,7 +490,7 @@ END;
 CREATE TABLE `prim_test` (
 `id` int(10) NOT NULL AUTO_INCREMENT,
 INDEX (`id`)
-);
+) ENGINE=MyISAM;
 END;
         $this->assertEquals($expected, $sql);
 

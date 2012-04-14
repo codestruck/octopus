@@ -49,8 +49,8 @@ class Octopus_DB_Schema {
      * @return Octopus_DB_Schema_Writer
      * @param $tableName string db table name to create or update
      */
-    public function newTable($tableName) {
-        return new Octopus_DB_Schema_Writer($tableName);
+    public function newTable($tableName, $engine = '') {
+        return new Octopus_DB_Schema_Writer($tableName, $this->db, $engine);
     }
 
     public function removeTable($tableName) {
