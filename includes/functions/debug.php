@@ -456,6 +456,10 @@ class Octopus_Log {
 	 */
 	public static function write($log, $level, $message) {
 
+		if (preg_match('/Only variables/', $message)) {
+			print_backtrace();
+		}
+
 		self::$callCount++;
 
 		if ($level > self::$minLevel || $level <= self::NONE) {
@@ -743,8 +747,6 @@ class Octopus_Log_Listener_File {
 			return false;
 		}
 
-
-
 		if ($message instanceof Exception) {
 			$trace = Octopus_Debug::getNiceBacktrace($message->getTrace());
 			$message = Octopus_Debug::dumpToString($message, 'text', true);
@@ -923,7 +925,9 @@ class Octopus_Log_Listener_Html {
        	if ($trace) {
        		$html->add('Trace', new Octopus_Log_Listener_Html_Trace($trace));
 
-       		$line = Octopus_Debug::getMostRelevantTraceLine($trace, array(__FILE__));
+       		$lines = Octopus_Debug::getMostRelevantTraceLines(1, $trace);
+       		$line = array_shift($lines);
+
        		if ($line) {
        			$html->title .= ($html->title ? ' at ' : '') . "{$line['nice_file']}, line {$line['line']}";
        		}
@@ -1023,8 +1027,30 @@ END;
  */
 class Octopus_Log_Listener_Console {
 
+	/**
+	 * The number of lines of stack trace to render. Less than zero means
+	 * render all lines.
+	 * @var Number
+	 */
+	public $stackTraceLines = 1;
+
+	/**
+	 * Whether to render output in color using ANSI terminal codes. If null,
+	 * color is used only on stdout and stderr.
+	 * @var
+	 */
+	public $renderInColor = null;
+
+	/**
+	 * Width, in characters, of output.
+	 * @var integer
+	 */
+	public $width = 80;
+
 	private $file;
+
     const CHAR_BOLD_LINE = '=';
+
     const CHAR_LIGHT_LINE = '-';
 
 
@@ -1032,22 +1058,13 @@ class Octopus_Log_Listener_Console {
 		$this->file = $file;
 	}
 
-	/**
-	 * @return String What would be written for the given message.
-	 */
-	public function getOutput($message, $log, $level) {
-		$trace = Octopus_Debug::getNiceBacktrace();
-		$time = time();
-		return self::formatForDisplay($message, $log, $level, $time, $trace);
-	}
-
 	public function write($message, $log, $level) {
 
-		$message = $this->getOutput($message, $log, $level);
+		$message = $this->formatForDisplay($message, $log, $level);
 
 		if (is_resource($this->file)) {
 			fputs($this->file, "\n$message\n");
-		} else {
+		} else if (is_string($this->file)) {
 	        $fp = fopen($this->file, 'w');
         	fputs($fp, "\n$message\n");
         	fclose($fp);
@@ -1055,7 +1072,21 @@ class Octopus_Log_Listener_Console {
 
 	}
 
-	public static function formatForDisplay($message, $log, $level, $time, $trace, $color = false, $width = 80) {
+	/**
+	 * @param  Mixed  $message  Message being displayed
+	 * @param  String  $log     Name of log being written to.
+	 * @param  Number  $level   Log level
+	 * @return String The formatted output.
+	 */
+	public function formatForDisplay($message, $log, $level) {
+
+		$time = time();
+		$width = $this->width;
+		$color = $this->renderInColor;
+
+		if ($color === null) {
+			$color = ($this->file === 'php://stderr' || $this->file === 'php://stdout');
+		}
 
 		if (is_numeric($level)) {
 			$level = Octopus_Log::getLevelName($level);
@@ -1121,17 +1152,31 @@ class Octopus_Log_Listener_Console {
 		$logAndLevel = "{$log} {$level}";
 		$logAndLevel = str_pad($logAndLevel, ($width / 2) - 1, ' ', STR_PAD_LEFT);
 
-		if ($trace) {
+		$trace = '';
 
-			$trace = Octopus_Debug::getMostRelevantTraceLine($trace, array(__FILE__));
-			if ($trace) {
-				$trace = "{$trace['nice_file']}, line {$trace['line']}";
-				$trace = ' ' . str_pad($trace, $width - 1);
-				$trace = "\n{$lightLine}\n{$trace}";
-			} else {
-				$trace = '';
+		if ($this->stackTraceLines) {
+
+			$lines = Octopus_Debug::getNiceBacktrace();
+			$lines = Octopus_Debug::getMostRelevantTraceLines($this->stackTraceLines > 0 ? $this->stackTraceLines : count($lines), $lines);
+
+			if ($this->stackTraceLines > 0 && count($lines) > $this->stackTraceLines) {
+				$lines = array_slice($lines, 0, $this->stackTraceLines);
 			}
+
+			foreach($lines as $line) {
+
+				$line = "{$line['nice_file']}, line {$line['line']}";
+				$line = ' ' . str_pad($line, $width - 1);
+				$trace .= "\n{$line}";
+
+			}
+
+			if ($trace) {
+				$trace = "\n{$lightLine}{$trace}";
+			}
+
 		}
+
 
 		return <<<END
 {$defaultFormat}{$levelColor}
@@ -1195,7 +1240,11 @@ class Octopus_Log_Listener_Mail {
 
 		$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : trim(`hostname`);
 
-		$body = Octopus_Log_Listener_Console::getOutput($message, $log, $level);
+		$console = new Octopus_Log_Listener_Console(false);
+		$console->renderInColor = false;
+		$console->stackTraceLines = -1; // full stack trace
+
+		$body = $console->formatForDisplay($message, $log, $level);
 		$subject = Octopus_Log::getLevelName($level) . ' in ' . $log . ' on ' . $host;
 
 		$htmlBody = htmlspecialchars($body, ENT_QUOTES, 'UTF-8');
@@ -1339,17 +1388,21 @@ class Octopus_Debug {
     private static $environment = null;
     private static $dumpEnabled = true;
     private static $redirectsEnabled = true;
+    private static $inDump = false;
 
     /**
      * Sets up the debugging environment if it has not already been set up.
+     * @param Array $options Options, including directory locations etc.
+     * @param Boolean $reset Whether to reset the environment before
+     * configuring.
      */
-    public static function configure($options = array()) {
+    public static function configure($options = array(), $reset = true) {
 
     	if (self::$configured && empty($options)) {
     		return;
     	}
 
-    	self::reset();
+    	if ($reset) self::reset();
     	self::$configured = true;
 
     	$logDir = null;
@@ -1374,7 +1427,9 @@ class Octopus_Debug {
     	}
 
     	if (self::isCommandLineEnvironment()) {
-    		Octopus_Log::addListener(new Octopus_Log_Listener_Console());
+    		$console = new Octopus_Log_Listener_Console();
+    		$console->stackTraceLines = -1;
+    		Octopus_Log::addListener($console);
     	}
 
 		if (!empty($options['LIVE']) || self::isLiveEnvironment()) {
@@ -1421,6 +1476,13 @@ class Octopus_Debug {
     		return $x;
     	}
 
+    	if (self::$inDump) {
+    		// Avoid infinite recursion when debugging
+    		return $x;
+    	}
+
+    	self::$inDump = true;
+
     	// Ensure all log listeners are in place.
     	self::configure();
 
@@ -1432,10 +1494,13 @@ class Octopus_Debug {
     	$vars = new Octopus_Debug_Dumped_Vars($args);
     	Octopus_Log::debug('dump', $vars);
 
+    	self::$inDump = false;
+
     	// This is kind of a hack. When we are calling dump_r from smarty
     	// templates, we don't want to return the value because it will get
     	// rendered.
-    	$line = self::getMostRelevantTraceLine();
+    	$lines = self::getMostRelevantTraceLines(1);
+    	$line = array_shift($lines);
 
     	if ($line && preg_match('/\.tpl\.php/', $line['file'])) {
     		return;
@@ -1541,18 +1606,27 @@ class Octopus_Debug {
     }
 
     /**
-     * @return Mixed An item from a backtrace array that is the best thing to
-     * show the user.
+     * @param Number $count The number of lines to return (max).
+     * @param Array|null $trace The trace from which to work.
+     * @param Array $filesToIgnore If a line from the trace originates from
+     * any file in here, it is regarded as irrelevant. Note that this ALWAYS
+     * includes octopus/includes/functions/debug.php
+     * @return Array The top $count most relevant lines from $trace. Lines
+     * originating from any files in $filesToIgnore are ignored until a line
+     * in another file is found, after which $count lines are returned, whether
+     * or not the associated files appear in $filesToIgnore.
      */
-    public static function getMostRelevantTraceLine($trace = null, $filesToIgnore = array()) {
+    public static function getMostRelevantTraceLines($count, $trace = null, $filesToIgnore = array()) {
 
     	if ($trace === null) {
     		$trace = self::getNiceBacktrace();
     	}
 
+    	$result = array();
+
 		// Find the first line of the stack trace that is not in this file
 		// to display.
-		while($traceLine = array_shift($trace)) {
+		while(count($result) < $count && $traceLine = array_shift($trace)) {
 
 			// Skip closures
 			if (empty($traceLine['file'])) {
@@ -1568,10 +1642,11 @@ class Octopus_Debug {
 				continue;
 			}
 
-			return $traceLine;
+			$result[] = $traceLine;
 		}
 
-    }
+		return $result;
+	}
 
     /**
      * @param  Mixed $bt The backtrace to format. If not provided, a new
@@ -2458,7 +2533,10 @@ class Octopus_Debug_Html_Exception {
 				$result[] = get_class($ex);
 
 				$trace = Octopus_Debug::getNiceBacktrace($ex->getTrace());
-				$line = Octopus_Debug::getMostRelevantTraceLine($trace, array(__FILE__));
+
+				$lines = Octopus_Debug::getMostRelevantTraceLines(1, $trace);
+				$line = array_shift($lines);
+
 				if ($line) {
 					$result[] = "at {$line['nice_file']}, line {$line['line']}";
 				}
@@ -2651,7 +2729,10 @@ class Octopus_Log_Listener_Html_Message {
 		$title = trim($this->title);
 		$loc = '';
 		if (!$title) {
-			$line = self::getMostRelevantTraceLine();
+
+			$lines = Octopus_Debug::getMostRelevantTraceLines(1);
+			$line = array_shift($lines);
+
 			if ($line) {
 				$file = $line['nice_file'] ? $line['nice_file'] : basename($line['file']);
 				$title = "{$file}, line {$line['line']}";
@@ -2769,29 +2850,6 @@ END;
         </ul>
 END;
 
-
-    }
-
-    private static function getMostRelevantTraceLine() {
-
-    	foreach(Octopus_Debug::getNiceBacktrace() as $line) {
-
-    		if (empty($line['file'])) {
-    			continue;
-    		}
-
-    		if ($line['file'] === __FILE__) {
-    			continue;
-    		}
-
-    		if (preg_match('/Response\.php$/', $line['file'])) {
-    			continue;
-    		}
-
-    		return $line;
-
-
-    	}
 
     }
 
