@@ -1291,9 +1291,13 @@ END;
             $file .= htmlspecialchars($b['nice_file'], ENT_QUOTES, 'UTF-8');
             $file .= '</td>';
 
-            $line = '<td class="octopusDebugBacktraceLine">Line ' .
-                    (isset($b['line']) ? $b['line'] : '') .
-                    '</td>';
+            $line = '<td class="octopusDebugBacktraceLine">';
+
+            if (!empty($b['line'])) {
+            	$line .= 'Line ' . $b['line'];
+            }
+
+            $line .= '</td>';
 
             $class = ($i % 2 ? 'octopusDebugOdd' : 'octopusDebugEven');
             if (preg_match('~^octopus/~', $b['nice_file'])) {
