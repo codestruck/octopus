@@ -113,7 +113,9 @@ END;
 
 	function octopus_display_log_item($item, $width = 80) {
 
-		$text = Octopus_Log_Listener_Console::formatForDisplay(
+		$console = new Octopus_Log_Listener_Console(false);
+
+		$text = $console->formatForDisplay(
 			$item['message'],
 			$item['log'],
 			$item['level'],
