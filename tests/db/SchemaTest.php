@@ -11,6 +11,7 @@ class Octopus_DB_Schema_Test extends PHPUnit_Framework_TestCase
         $db = Octopus_DB::singleton();
         $db->query('DROP TABLE IF EXISTS `new_table`');
         $db->query('DROP TABLE IF EXISTS `renamed_table`');
+        $db->query('DROP TABLE IF EXISTS `engine_test`');
     }
 
     function testAddTable()
@@ -64,6 +65,52 @@ class Octopus_DB_Schema_Test extends PHPUnit_Framework_TestCase
         $this->assertTrue($d->checkTable($table2));
 
     }
+
+    function tableTypes() {
+        return array(
+            array('', 'MyISAM'),
+            array('InnoDB', 'InnoDB'),
+            array('MyISAM', 'MyISAM'),
+        );
+    }
+
+    /**
+     * @dataProvider tableTypes
+     */
+    function testEngineType($type, $expected) {
+        $d = new Octopus_DB_Schema();
+        $t = $d->newTable('engine_test', $type);
+        $t->newKey('id');
+        $t->create();
+
+        $db = Octopus_DB::singleton();
+        $query = $db->query("SHOW TABLE STATUS WHERE Name = 'engine_test'");
+        $result = $query->fetchRow();
+        $this->assertEquals($expected, $result['Engine']);
+
+    }
+
+    /**
+     * @dataProvider tableTypes
+     */
+    function testChangeEngineTypeFromMyISAM($type, $expected) {
+        $d = new Octopus_DB_Schema();
+        $t = $d->newTable('engine_test', 'MyISAM');
+        $t->newKey('id');
+        $t->create();
+
+        $d = new Octopus_DB_Schema();
+        $t = $d->newTable('engine_test', $type);
+        $t->newKey('id');
+        $t->create();
+
+        $db = Octopus_DB::singleton();
+        $query = $db->query("SHOW TABLE STATUS WHERE Name = 'engine_test'");
+        $result = $query->fetchRow();
+        $this->assertEquals($expected, $result['Engine']);
+
+    }
+
 }
 
 ?>

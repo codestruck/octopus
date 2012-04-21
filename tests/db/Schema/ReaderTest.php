@@ -11,6 +11,10 @@ class Octopus_DB_Schema_Reader_Test extends PHPUnit_Framework_TestCase
 
         $sql = "DROP TABLE IF EXISTS test";
         $db->query($sql);
+        $sql = "DROP TABLE IF EXISTS test_innodb";
+        $db->query($sql);
+        $sql = "DROP TABLE IF EXISTS test_myisam";
+        $db->query($sql);
 
         $sql = "CREATE TABLE test (
 `test_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -21,6 +25,17 @@ UNIQUE (`test_uname`)
 )
 ";
         $db->query($sql);
+
+        $sql = "CREATE TABLE test_innodb (
+`test_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY
+) ENGINE=InnoDB;";
+        $db->query($sql);
+
+        $sql = "CREATE TABLE test_myisam (
+`test_id` INT( 10 ) NOT NULL AUTO_INCREMENT PRIMARY KEY
+) ENGINE=MyISAM;";
+        $db->query($sql);
+
     }
 
     function tearDown() {
@@ -64,6 +79,13 @@ UNIQUE (`test_uname`)
         $this->assertEquals('PRIMARY', $fields['test_id']['index']);
         $this->assertEquals('INDEX', $fields['test_name']['index']);
         $this->assertEquals('UNIQUE', $fields['test_uname']['index']);
+    }
+
+    function testReadEngine() {
+        $r = new Octopus_DB_Schema_Reader('test_innodb');
+        $this->assertEquals('InnoDB', $r->getEngine());
+        $r = new Octopus_DB_Schema_Reader('test_myisam');
+        $this->assertEquals('MyISAM', $r->getEngine());
     }
 
 }

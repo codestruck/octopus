@@ -713,7 +713,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
      * migrated here. This is to compensate for 5.2's lack of get_called_class
      * support.
      */
-    public static function migrate(Octopus_DB_Schema $schema, $php52ClassNameHack = null) {
+    public static function migrate(Octopus_DB_Schema $schema, $php52ClassNameHack, $engine = '') {
 
     	// TODO: Make field stuff static on model
 
@@ -724,7 +724,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
             $field->beforeMigrate($schema);
         }
 
-        $table = $schema->newTable($model->getTableName());
+        $table = $schema->newTable($model->getTableName(), $engine);
 
         /*
         $table->newKey(to_id($modelClass), true);

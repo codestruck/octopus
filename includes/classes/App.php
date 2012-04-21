@@ -197,12 +197,12 @@ class Octopus_App {
     /**
      * Custom PHP error handler used by the application.
      */
-    public function errorHandler($level, $err, $file, $line) {
+    public function errorHandler($level, $err, $file, $line, $context) {
 
-    	if (error_reporting() === 0) {
-    		// This was a suppressed error (@whatever)
-    		return true;
-    	}
+		if (!(error_reporting() & $level)) {
+			// This error should not be shown.
+			return true;
+		}
 
     	$isNonSevere = ($level === E_NOTICE) ||
     				   ($level === E_DEPRECATED) ||
@@ -210,6 +210,7 @@ class Octopus_App {
     				   ($level === E_USER_NOTICE);
 
         $isSevere = !$isNonSevere;
+
         if ($isSevere && $this->isDevEnvironment()) {
 
             if (!empty($this->_options['cancel_redirects_on_error'])) {
@@ -220,12 +221,14 @@ class Octopus_App {
 
         $resp = $this->getCurrentResponse();
 
+        if ($resp && $isSevere) {
+    		$resp->setStatus(500);
+        }
+
+		// Pass errors on to Octopus_Log to distribute them to listeners
+        Octopus_Log::errorHandler($level, $err, $file, $line, $context);
+
         if ($resp) {
-
-        	if ($isSevere) {
-        		$resp->setStatus(500);
-            }
-
             // Ensure client receives whatever we've been working on.
 			$resp->flush();
         }
@@ -235,7 +238,7 @@ class Octopus_App {
             call_user_func_array($this->_prevErrorHandler, $args);
         }
 
-        return false;
+        return true;
     }
 
     public function __get($name) {
@@ -744,7 +747,7 @@ class Octopus_App {
     }
 
     private function _configureLoggingAndDebugging() {
-    	Octopus_Debug::configure($this->_options);
+    	Octopus_Debug::configure($this->_options, false);
     }
 
 

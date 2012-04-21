@@ -25,23 +25,22 @@ abstract class Octopus_Html_TestCase extends PHPUnit_Framework_TestCase {
         $expected = self::normalizeHtml($expected, $strict);
         $actual = self::normalizeHtml($actual, $strict);
 
-        if ($expected != $actual) {
+        if (strcmp($expected, $actual) !== 0) {
 
             $len = min(strlen($expected), strlen($actual));
 
             for($i = 0; $i < $len; $i++) {
 
-                if ($expected[$i] != $actual[$i]) {
+                if (strcmp($expected[$i], $actual[$i]) !== 0) {
 
                     $around = 23;
                     $start = max(0, $i - $around);
-                    $end = min($len, $i+$around);
+                    $end = min($len, $i + $around);
 
                     $expectedExcerpt = substr($expected, $start, $end - $start);
                     $actualExcerpt = substr($actual, $start, $end - $start);
 
                     $arrow = str_repeat('-', $i - $start) . '^';
-
 
                     if ($start > 0) {
                         $expectedExcerpt = '...' . $expectedExcerpt;
@@ -117,6 +116,9 @@ END
 
         $html = preg_replace('#(<(style|script)[^>]*>)\s+#i', '$1', $html);
         $html = preg_replace('#\s+(</(style|script)>)#i', '$1', $html);
+
+        $html = str_replace('<', "\n<", $html);
+
 
         return $html;
     }
