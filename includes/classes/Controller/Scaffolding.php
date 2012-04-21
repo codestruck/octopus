@@ -20,6 +20,11 @@ abstract class Octopus_Controller_Scaffolding extends Octopus_Controller {
         $this->view = 'scaffold_add';
 
         $model = $this->getModel();
+
+        if (!$model) {
+        	return $this->notFound();
+        }
+
         $item = new $model();
         $form = $this->createScaffoldForm($item, 'add');
 
@@ -52,11 +57,12 @@ abstract class Octopus_Controller_Scaffolding extends Octopus_Controller {
         $this->view = 'scaffold_delete';
 
         $model = $this->getModel();
-        $item = call_user_func(array($model, 'get'), $id);
 
         if (!$item) {
             return $this->notFound();
         }
+
+        $item = call_user_func(array($model, 'get'), $id);
 
         set_title("Delete " . humanize($model));
 
@@ -93,6 +99,11 @@ abstract class Octopus_Controller_Scaffolding extends Octopus_Controller {
         $this->view = 'scaffold_edit';
 
         $model = $this->getModel();
+
+        if (!$model) {
+        	return $this->notFound();
+        }
+
         $item = call_user_func(array($model, 'get'), $id);
 
         if (!$item) {
@@ -140,11 +151,24 @@ abstract class Octopus_Controller_Scaffolding extends Octopus_Controller {
 
         $model = $this->getModel();
 
-        set_title(pluralize(humanize($model)));
+        $table = null;
+        $add_url = '';
 
-        $table = $this->createScaffoldTable($model);
+        if ($model) {
 
-        $add_url = $this->getActionUrl('add');
+        	// NOTE: Unlike all the other actions, 'index' can still be valid
+        	// if no scaffolding model is set for this class.
+
+	        set_title(pluralize(humanize($model)));
+
+    	    $table = $this->createScaffoldTable($model);
+	        $add_url = $this->getActionUrl('add');
+
+	    } else {
+
+	    	set_title(guess_site_name());
+
+	    }
 
         $controller_links = $this->getControllerLinks();
 
@@ -159,6 +183,11 @@ abstract class Octopus_Controller_Scaffolding extends Octopus_Controller {
         $this->view = 'scaffold_view';
 
         $model = $this->getModel();
+
+        if (!$model) {
+        	return $this->notFound();
+        }
+
         $item = call_user_func(array($model, 'get'), $id);
 
         if (!$item) {
@@ -213,9 +242,6 @@ abstract class Octopus_Controller_Scaffolding extends Octopus_Controller {
      */
     protected function getModel() {
 
-    	if (!$this->scaffold) {
-    		throw new Octopus_Exception('$scaffold variable is not set');
-    	}
     	return $this->scaffold;
 
     }
