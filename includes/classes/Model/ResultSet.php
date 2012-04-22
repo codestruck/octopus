@@ -336,7 +336,11 @@ END;
             return $this;
         }
 
-        return $this->createChild(null, null, null);
+        $result = $this->createChild(null, null, null);
+        $result->_offset = null;
+        $result->_maxRecords = null;
+
+        return $result;
     }
 
     /**
@@ -554,6 +558,10 @@ END;
 
         $child = new Octopus_Model_ResultSet($this, $criteria, $orderBy, $conjunction);
         $child->escaped = $this->escaped;
+
+        $child->_offset = $this->_offset;
+        $child->_maxRecords = $this->_maxRecords;
+
 
         return $child;
     }
