@@ -12,25 +12,67 @@ AddDefaultCharset UTF-8
     # Block access to _private
     RewriteRule "^(.*/)?_private/" - [F,L]
 
-    # If maintenance/index.html is present in the root, serve it up
+    ############################################################################
+    #
+    # MAINTENANCE/INDEX.HTML SUPPORT
+    #   If maintenance/index.html file is present, redirect all non-asset
+    #   requests to that.
+    #
+    ############################################################################
+
     RewriteCond %{DOCUMENT_ROOT}/maintenance/index.html -f
     RewriteCond %{REQUEST_URI} !/(maintenance)/.* [NC]
-    RewriteCond %{REQUEST_URI} !\.(jpe?g|png|gif) [NC]
+    RewriteCond %{REQUEST_URI} !\.(jpe?g|png|gif|css|js) [NC]
     RewriteRule .* /maintenance/index.html [L]
 
-    # Support wpsupercache style functionality for GET requests with no
-    # querystring args
-    RewriteCond %{REQUEST_METHOD} GET
+    ############################################################################
+    #
+    # FULL CACHE SUPPORT
+    #   If actions set $this->cache to true, the contents of the response are
+    #   written to the cache/full directory. Here we check for those cache files
+    #   so we can potentially avoid even spinning up PHP in the first place.
+    #
+    ############################################################################
+
+    AddEncoding x-gzip .gz
+
+    <FilesMatch .*\.html.gz>
+        # Note that this means that Octopus can only support full-caching
+        # responses that are text/html-- setting $this->cache = true for an
+        # action that returns a different content type will have no effect.
+        ForceType text/html
+    </FilesMatch>
+
+    # Ideally, serve up gzipped content directly
+    RewriteCond %{REQUEST_METHOD} =GET
     RewriteCond %{QUERY_STRING} !.+
+    # See Octopus_Auth_Model for explanation of 0x7A69
+    RewriteCond %{HTTP_COOKIE} !.+=0x7A69(;|\s|$)
+    RewriteCond %{HTTP:Accept-Encoding} gzip
+    RewriteCond %{DOCUMENT_ROOT}/cache/full/$1/index.html.gz -f
+    RewriteRule ^(.*) %{DOCUMENT_ROOT}/cache/full/$1/index.html.gz [L]
+
+    # Fall back to plain text
+    RewriteCond %{REQUEST_METHOD} =GET
+    RewriteCond %{QUERY_STRING} !.+
+    # See Octopus_Auth_Model for explanation of 0x7A69
+    RewriteCond %{HTTP_COOKIE} !.+=0x7A69(;|\s|$)
     RewriteCond %{DOCUMENT_ROOT}/cache/full/$1/index.html -f
     RewriteRule ^(.*) %{DOCUMENT_ROOT}/cache/full/$1/index.html [L]
 
-    # Redirect requests to the octopus driver
+    ############################################################################
+    #
+    # REDIRECT REQUESTS TO OCTOPUS DRIVER
+    #   This enables nice urls.
+    #
+    ############################################################################
+
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^(.*)$ index.php?__path=$1 [L,QSA]
 
 </IfModule>
+
 
 # Block access to settings.yaml
 <Files "settings.yaml">

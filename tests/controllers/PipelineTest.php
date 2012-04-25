@@ -441,7 +441,7 @@ END
 
     	$this->createFullCacheTestFiles('DisabledByDefault');
 
-    	$app = $this->getApp();
+    	$app = $this->startApp(array('full_cache' => true));
     	$app->clearFullCache();
 
     	$resp = $app->getResponse('test-full-cache-disabled-by-default/default-cache');
@@ -454,7 +454,7 @@ END
 
     	$this->createFullCacheTestFiles('OnlyGet');
 
-    	$app = $this->getApp();
+    	$app = $this->startApp(array('full_cache' => true));
 
     	foreach(array('POST', 'PUT', 'DELETE', 'GET') as $method) {
 
@@ -471,8 +471,7 @@ END
 
     	$this->createFullCacheTestFiles('EmptyQuerystring');
 
-    	$app = $this->getApp();
-    	$app->clearFullCache();
+    	$app = $this->startApp(array('full_cache' => true));
 
     	foreach(array('GET', 'POST', 'PUT', 'DELETE') as $method) {
 
@@ -489,8 +488,7 @@ END
 
     	$this->createFullCacheTestFiles('ClearCacheDir');
 
-    	$app = $this->getApp();
-    	$app->clearFullCache();
+    	$app = $this->startApp(array('full_cache' => true));
 
 		$resp = $app->getGetResponse('/test-full-cache-clear-cache-dir/cache');
 
@@ -504,8 +502,7 @@ END
 
     	$this->createFullCacheTestFiles('AppendTimestamp');
 
-		$app = $this->getApp();
-    	$app->clearFullCache();
+		$app = $this->startApp(array('full_cache' => true));
 
     	$resp = $app->getGetResponse('/test-full-cache-append-timestamp/cache');
 
@@ -515,18 +512,15 @@ END
 
     }
 
-    function testFullCacheDoesNotAppendTimestampForNonHtml() {
+    function testNoFullCacheForNotHtml() {
 
-    	$this->createFullCacheTestFiles('AppendTimestampNonHtml');
+    	$this->createFullCacheTestFiles('NonHtml');
 
-		$app = $this->getApp();
-    	$app->clearFullCache();
+		$app = $this->startApp(array('full_cache' => true));
 
-    	$resp = $app->getGetResponse('/test-full-cache-append-timestamp-non-html/cache-plain-text');
+    	$resp = $app->getGetResponse('/test-full-cache-non-html/cache-plain-text');
 
-    	$cacheContents = file_get_contents($app->OCTOPUS_CACHE_DIR . 'full/test-full-cache-append-timestamp-non-html/cache-plain-text/index.html');
-
-    	$this->assertFalse(!!preg_match('/<!-- ots(\d+) -->/', $cacheContents, $m), 'timestamp comment not found in non html');
+    	$this->assertCacheFilesExist(false, '/test-full-cache-non-html/cache-plain-text');
 
     }
 

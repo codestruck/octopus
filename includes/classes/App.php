@@ -31,8 +31,11 @@ class Octopus_App {
          * DOES NOT AUTOMATICALLY CACHE ALL RESPONSES. If this is true, it is
          * up to individual actions to set the $cache property of their
          * controller to TRUE to cache that action.
+         *
+         * If null, full cache is enabled as long as the current mode is not
+         * DEV.
          */
-        'full_cache' => true,
+        'full_cache' => null,
 
         /**
          * Alias to define for the '/' path. Set to false to not define one.
@@ -142,6 +145,7 @@ class Octopus_App {
         $this->ensureDirectoriesExist();
         $this->_initSettings();
         $this->watchForErrors();
+        $this->cleanFullCache();
         $this->_includeSiteFunctions();
 
     }
@@ -383,9 +387,19 @@ class Octopus_App {
      * it DOES NOT MEAN that cache files are written for all responses. Rather,
      * it is up to individual actions to set the $cache property on their
      * controller to true to have their response cached.
+     *
+     * NOTE: In DEV, full cache is disabled by default. To enable it, set
+     * the 'full_cache' option to TRUE.
+     *
+     * Pages full_cached in DEV will have a nasty 'THIS IS A CACHED PAGE' notice
+     * across the top.
+     *
+     * When not running in DEV, Octopus will reset the full cache if it detects
+     * any pages in it were generated while in DEV.
      */
     public function isFullCacheEnabled() {
-    	return $this->getOption('full_cache', true);
+    	$enabled = $this->getOption('full_cache', null);
+    	return $enabled || ($enabled === null && !$this->DEV);
     }
 
     /**
@@ -1085,6 +1099,20 @@ class Octopus_App {
             $tz = 'America/Los_Angeles';
         }
         date_default_timezone_set($tz);
+
+    }
+
+    /**
+     * Checks for the presence of a .generated_in_dev file in the full cache
+     * directory. If found, and we are not running in DEV, clears the cache.
+     */
+    private function cleanFullCache() {
+
+    	$file = $this->OCTOPUS_CACHE_DIR . 'full/.generated_in_dev';
+    	if (is_file($file) && !$this->DEV) {
+    		Octopus_Log::info("Full cache files generated in DEV found while running in STAGING or LIVE-- clearing full cache.");
+    		$this->clearFullCache();
+    	}
 
     }
 

@@ -37,10 +37,9 @@ class Octopus_Dispatcher {
         }
 
         $renderer = $this->app->getRenderer();
-
         $contents = $renderer->render($controller, $data, $request, $response);
 
-        if ($controller->cache) {
+        if ($controller->cache && $response->isHtml()) {
         	$this->saveFullCacheFile($request, $response, $contents);
         }
 
@@ -84,14 +83,25 @@ class Octopus_Dispatcher {
     		return false;
     	}
 
-    	$timestamp = null;
+    	// Since full cache is only supported for text/html, we can append
+    	// an HTML comment with a timestamp to aid in debugging.
+		$timestamp = '<!-- ots' . time() . ' -->';
+		$DEV = $this->app->DEV;
 
-    	// For HTML requests, we can add a timestamp in as an HTML comment to
-    	// aid in debugging (like, if this comment is present, you are looking
-    	// at a cached version of the page).
-    	if ($response->isHtml()) {
-    		$timestamp = '<!-- ots' . time() . ' -->';
-    	}
+		if ($DEV) {
+
+			// NOTE: By default, Octopus_App::isFullCacheEnabled() returns false
+			// for DEV. So in practice, this notice won't end up getting written
+			// out. But it is left here to maybe help debugging.
+
+			$timestamp .= <<<END
+
+<div style="background: #800; color: #fff; padding: 10px; text-align: center; position: fixed; top: 0; left: 0; width: 100%; opacity: 0.8;">
+	<div style="font-size: 14px; font-weight: bold; margin-bottom:10px;">THIS IS A CACHED PAGE</div>
+	If not running in DEV, <a style="color: #fff; text-decoration: underline;" href="?clear-full-cache">go here to clear the cache</a>.
+</div>
+END;
+		}
 
     	$fp = fopen($dir . 'index.html', 'w');
     	if ($fp) {
@@ -112,9 +122,34 @@ class Octopus_Dispatcher {
 
 	    		if ($fp) {
 	    			fputs($fp, $content);
-	    			if ($timestamp) fputs($fp, $timestamp);
+
+	    			if ($timestamp) {
+
+	    				if ($DEV) {
+	    					$timestamp = str_replace('CACHED', 'GZIPPED, CACHED', $timestamp);
+	    				}
+
+	    				fputs($fp, $timestamp);
+	    			}
+
 	    			fclose($fp);
 	    		}
+	    	}
+
+	    }
+
+	    if ($DEV) {
+
+	    	// Leave a marker on the filesystem indicating that there are
+	    	// full-cache pages generated in DEV. Octopus_App, when running
+	    	// in LIVE or STAGING, will check for the presence of this file
+	    	// and clear the cache if it exists (in case you switch from
+	    	// DEV -> STAGING or DEV -> LIVE on a production server).
+	    	$file = $this->app->OCTOPUS_CACHE_DIR . 'full/.generated_in_dev';
+
+	    	if (!@file_put_contents($file, '1')) {
+	    		Octopus_Log::warn("Could not save the .generated_in_dev file in the full cache dir. Disabling full cache writing.");
+	    		$this->app->clearFullCache();
 	    	}
 
 	    }
