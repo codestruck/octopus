@@ -5,12 +5,66 @@
  */
 abstract class Octopus_Controller {
 
+	/**
+	 * The current app instance.
+	 * @var Octopus_App
+	 */
+	public $app;
+
+	/**
+	 * If set to true during an action, the full contents of the response will
+	 * be written to static HTML cache file, which will be served up for
+	 * subsequent requests for the same URI provided:
+	 *
+	 * <ul>
+	 * 	<li>The request comes via HTTP GET (not POST, PUT, or DELETE)</li>
+	 * 	<li>There is no querystring</li>
+	 * 	<li>The user is not logged in (if Octopus_Auth_Model is in use)
+	 * </ul>
+	 *
+	 * See octopus/.htaccess for how these cached requests are served up.
+	 * See also the WP Super Cache plugin for the general idea.
+	 *
+	 * If Octopus_App::isFullCacheEnabled() returns false, setting this
+	 * variable will have no effect--no cache file will be written.
+	 *
+	 * @var boolean
+	 */
+	public $cache = false;
+
+	/**
+	 * If set in an action, this is the template/layout into which the view
+	 * will be rendered. If not set, the default version is used.
+	 * @var String
+	 */
     public $template;
-    public $view;
+
+    /**
+     * If set in an action, the theme to use when rendering that action. If
+     * not set, the current theme is used.
+     * @var String
+     */
     public $theme;
-    public $app;
+
+    /**
+     * The incoming Octopus_Request.
+     * @var Octopus_Request.
+     */
     public $request;
+
+    /**
+     * The Octopus_Response being built to send to the client.
+     * @var Octopus_Response
+     */
     public $response;
+
+    /**
+     * If set in an action, this is the view to be rendered for that action.
+     * If not set, the default view will be used.
+     * @var [type]
+     */
+    public $view;
+
 
     private $executedActions = array();
 

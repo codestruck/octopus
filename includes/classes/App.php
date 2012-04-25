@@ -27,6 +27,14 @@ class Octopus_App {
         'create_dirs' => true,
 
         /**
+         * Whether full cache is enabled for the app. Setting this to true
+         * DOES NOT AUTOMATICALLY CACHE ALL RESPONSES. If this is true, it is
+         * up to individual actions to set the $cache property of their
+         * controller to TRUE to cache that action.
+         */
+        'full_cache' => true,
+
+        /**
          * Alias to define for the '/' path. Set to false to not define one.
          */
         'root_alias' => 'sys/welcome',
@@ -335,6 +343,7 @@ class Octopus_App {
 
     /**
      * Logs an error.
+     * @deprecated WTF
      */
     public function error($message, $level = E_USER_WARNING) {
         trigger_error($message, $level);
@@ -351,6 +360,32 @@ class Octopus_App {
     	}
 
         return ($this->_renderer = Octopus::create('Octopus_Renderer', array($this)));
+    }
+
+    /**
+     * Deletes the contents of the full cache so that cache files are re-created
+     * on the next request.
+     * @return Boolean True on success, false otherwise.
+     */
+    public function clearFullCache() {
+
+    	$cacheDir = $this->OCTOPUS_CACHE_DIR . 'full/';
+
+    	if (!is_dir($cacheDir)) {
+    		return true;
+    	}
+
+    	return recursive_delete($cacheDir);
+    }
+
+    /**
+     * @return boolean Whether full caching is enabled for this app. If true,
+     * it DOES NOT MEAN that cache files are written for all responses. Rather,
+     * it is up to individual actions to set the $cache property on their
+     * controller to true to have their response cached.
+     */
+    public function isFullCacheEnabled() {
+    	return $this->getOption('full_cache', true);
     }
 
     /**
