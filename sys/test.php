@@ -39,7 +39,8 @@ END;
         exit(1);
     }
 
-
+    // Using passthru, colors are not used by default
+    $phpUnit = "$phpUnit --colors";
 
     $octopusDir = dirname(dirname(__FILE__)) . '/';
 
