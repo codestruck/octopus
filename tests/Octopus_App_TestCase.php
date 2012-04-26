@@ -316,6 +316,8 @@ abstract class Octopus_App_TestCase extends PHPUnit_Framework_TestCase {
         $this->assertTrue(!!$this->app, 'Octopus_App::start() did not return an app instance.');
         $this->assertSame($this->app, Octopus_App::singleton(), "Test's app instance is available in global context");
 
+        $this->app->clearFullCache();
+
         return $this->app;
     }
 

@@ -400,6 +400,23 @@ END;
 
     }
 
+	function testInheritLimit() {
+
+        $posts = FindPost::all()->limit(10, 30)->where('title', 'foo');
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`title` = 'foo' LIMIT 10, 30", $posts);
+
+        $posts = $posts->unlimit();
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`title` = 'foo'", $posts);
+
+        $posts = $posts->limit(10, 30)->orderBy('title');
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`title` = 'foo' ORDER BY `find_posts`.`title` ASC LIMIT 10, 30", $posts);
+
+        $posts = $posts->unlimit();
+        $this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`title` = 'foo' ORDER BY `find_posts`.`title` ASC", $posts);
+
+
+    }
+
 
     function numberOfTestPosts($criteria = null) {
         $db = Octopus_DB::singleton();

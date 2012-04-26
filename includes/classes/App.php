@@ -27,6 +27,17 @@ class Octopus_App {
         'create_dirs' => true,
 
         /**
+         * Whether full cache is enabled for the app. Setting this to true
+         * DOES NOT AUTOMATICALLY CACHE ALL RESPONSES. If this is true, it is
+         * up to individual actions to set the $cache property of their
+         * controller to TRUE to cache that action.
+         *
+         * If null, full cache is enabled as long as the current mode is not
+         * DEV.
+         */
+        'full_cache' => null,
+
+        /**
          * Alias to define for the '/' path. Set to false to not define one.
          */
         'root_alias' => 'sys/welcome',
@@ -134,6 +145,7 @@ class Octopus_App {
         $this->ensureDirectoriesExist();
         $this->_initSettings();
         $this->watchForErrors();
+        $this->cleanFullCache();
         $this->_includeSiteFunctions();
 
     }
@@ -197,12 +209,12 @@ class Octopus_App {
     /**
      * Custom PHP error handler used by the application.
      */
-    public function errorHandler($level, $err, $file, $line) {
+    public function errorHandler($level, $err, $file, $line, $context) {
 
-    	if (error_reporting() === 0) {
-    		// This was a suppressed error (@whatever)
-    		return true;
-    	}
+		if (!(error_reporting() & $level)) {
+			// This error should not be shown.
+			return true;
+		}
 
     	$isNonSevere = ($level === E_NOTICE) ||
     				   ($level === E_DEPRECATED) ||
@@ -210,6 +222,7 @@ class Octopus_App {
     				   ($level === E_USER_NOTICE);
 
         $isSevere = !$isNonSevere;
+
         if ($isSevere && $this->isDevEnvironment()) {
 
             if (!empty($this->_options['cancel_redirects_on_error'])) {
@@ -220,12 +233,14 @@ class Octopus_App {
 
         $resp = $this->getCurrentResponse();
 
+        if ($resp && $isSevere) {
+    		$resp->setStatus(500);
+        }
+
+		// Pass errors on to Octopus_Log to distribute them to listeners
+        Octopus_Log::errorHandler($level, $err, $file, $line, $context);
+
         if ($resp) {
-
-        	if ($isSevere) {
-        		$resp->setStatus(500);
-            }
-
             // Ensure client receives whatever we've been working on.
 			$resp->flush();
         }
@@ -235,7 +250,7 @@ class Octopus_App {
             call_user_func_array($this->_prevErrorHandler, $args);
         }
 
-        return false;
+        return true;
     }
 
     public function __get($name) {
@@ -332,6 +347,7 @@ class Octopus_App {
 
     /**
      * Logs an error.
+     * @deprecated WTF
      */
     public function error($message, $level = E_USER_WARNING) {
         trigger_error($message, $level);
@@ -348,6 +364,42 @@ class Octopus_App {
     	}
 
         return ($this->_renderer = Octopus::create('Octopus_Renderer', array($this)));
+    }
+
+    /**
+     * Deletes the contents of the full cache so that cache files are re-created
+     * on the next request.
+     * @return Boolean True on success, false otherwise.
+     */
+    public function clearFullCache() {
+
+    	$cacheDir = $this->OCTOPUS_CACHE_DIR . 'full/';
+
+    	if (!is_dir($cacheDir)) {
+    		return true;
+    	}
+
+    	return recursive_delete($cacheDir);
+    }
+
+    /**
+     * @return boolean Whether full caching is enabled for this app. If true,
+     * it DOES NOT MEAN that cache files are written for all responses. Rather,
+     * it is up to individual actions to set the $cache property on their
+     * controller to true to have their response cached.
+     *
+     * NOTE: In DEV, full cache is disabled by default. To enable it, set
+     * the 'full_cache' option to TRUE.
+     *
+     * Pages full_cached in DEV will have a nasty 'THIS IS A CACHED PAGE' notice
+     * across the top.
+     *
+     * When not running in DEV, Octopus will reset the full cache if it detects
+     * any pages in it were generated while in DEV.
+     */
+    public function isFullCacheEnabled() {
+    	$enabled = $this->getOption('full_cache', null);
+    	return $enabled || ($enabled === null && !$this->DEV);
     }
 
     /**
@@ -744,7 +796,7 @@ class Octopus_App {
     }
 
     private function _configureLoggingAndDebugging() {
-    	Octopus_Debug::configure($this->_options);
+    	Octopus_Debug::configure($this->_options, false);
     }
 
 
@@ -1047,6 +1099,20 @@ class Octopus_App {
             $tz = 'America/Los_Angeles';
         }
         date_default_timezone_set($tz);
+
+    }
+
+    /**
+     * Checks for the presence of a .generated_in_dev file in the full cache
+     * directory. If found, and we are not running in DEV, clears the cache.
+     */
+    private function cleanFullCache() {
+
+    	$file = $this->OCTOPUS_CACHE_DIR . 'full/.generated_in_dev';
+    	if (is_file($file) && !$this->DEV) {
+    		Octopus_Log::info("Full cache files generated in DEV found while running in STAGING or LIVE-- clearing full cache.");
+    		$this->clearFullCache();
+    	}
 
     }
 

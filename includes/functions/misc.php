@@ -58,6 +58,8 @@
             $name = $parts[0];
         }
 
+        $name = str_replace('-', ' ', $name);
+
         return humanize($name);
 
     }

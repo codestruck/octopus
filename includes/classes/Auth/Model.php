@@ -8,9 +8,26 @@ Octopus::loadExternal('phpass');
 abstract class Octopus_Auth_Model extends Octopus_Model {
 
     /**
-     *
+     * Name of the cookie in which login status is stored.
+     * @var String
      */
     public $cookieName;
+
+    /**
+     * When ::$cookieSsl is true, we set a non-https cookie with this
+     * name to ::INSECURE_COOKIE_VALUE
+     * @var String
+     */
+    public $insecureCookieName = 'probably_signed_in';
+
+    /**
+     * This is stored as the value for insecure login cookies. In practice,
+     * Auth_Model accepts any true-ish value in the login cookie, but by
+     * setting this unique value it makes it easier for the .htaccess
+     * (specifically the full-cache stuff) to identify the presence of a login
+     * cookie.
+     */
+    const INSECURE_COOKIE_VALUE = '0x7A69';
 
     /**
      * Login realm.
@@ -471,17 +488,15 @@ END;
             }
 
             $expire = $remember ? time() + ($this->rememberDays * 24 * 60 * 60) : 0;
-               Octopus_Cookie::set($this->cookieName, $hash, $expire, $this->cookiePath, null, $this->cookieSsl);
 
-            // set a cookie to trigger ssl redirect if we set secure only auth cookie
-            if ($this->cookieSsl) {
-                Octopus_Cookie::set('probably_signed_in', '1', $expire, $this->cookiePath, null, false);
-            }
+          	Octopus_Cookie::set($this->cookieName, $hash, $expire, $this->cookiePath, null, $this->cookieSsl);
+	        Octopus_Cookie::set($this->insecureCookieName, self::INSECURE_COOKIE_VALUE, $expire, $this->cookiePath, null, false);
 
         } else {
 
             if ($this->cookieName) {
                 Octopus_Cookie::destroy($this->cookieName);
+                Octopus_Cookie::destroy($this->insecureCookieName);
             }
 
             if ($this->id && isset($h[$realm])) {

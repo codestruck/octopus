@@ -54,15 +54,18 @@ class Octopus_Response {
     }
 
     /**
-     * Turns buffering on and off.
+     * Turns buffering on and off. Turning buffering off calls ::flush
+     * implicitly.
+     * @param Boolean $buffer Whether to buffer.
+     * @return boolean|Octopus_Response If $buffer is specified, $this is
+     * returned. Otherwise The current buffering state is returned.
      */
-    public function buffer(/* $buffer */) {
+    public function buffer($buffer = null) {
 
-        if (func_num_args() == 0) {
-            return $this->_buffer;
+        if (func_num_args() === 0) {
+            return $this->isBuffered();
         }
 
-        $buffer = func_get_args(0);
         if (!$buffer && $this->_buffer) {
             $this->flush();
         }
@@ -71,15 +74,51 @@ class Octopus_Response {
         return $this;
     }
 
-    public function contentType(/* $contentType */) {
+    /**
+     * @return boolean Whether this response is buffered. Buffered responses
+     * are not written out to the client until ::flush() is called. Unbuffered
+     * responses are written right away.
+     */
+    public function isBuffered() {
+    	return $this->_buffer;
+    }
 
-        if (func_num_args() == 0) {
-            return $this->getHeader('Content-type', 'text/html');
+    /**
+     * Fluent accessor for ::getContentType and ::setContentType
+     * @param  Mixed $type If specified, the new content type.
+     * @return String|Octopus_Response If $type is specified, $this is returned.
+     * Otherwise, the current content type is returned.
+     * @see ::getContentType
+     * @see ::setContentType
+     * @deprecated Use ::getContentType and ::setContentType
+     */
+    public function contentType($type = null) {
+
+        if (func_num_args() === 0) {
+            return $this->getContentType();
         } else {
-            $contentType = func_get_arg(0);
-            return $this->addHeader('Content-type', $contentType);
+            return $this->setContentType($type);
         }
 
+    }
+
+    /**
+     * @return String The Content-type header for this response.
+     * @see ::setContentType
+     */
+    public function getContentType() {
+		return $this->getHeader('Content-type', 'text/html');
+    }
+
+    /**
+     * Sets the Content-type header for this response.
+     * @param String $type Content type string, e.g. 'text/html' or
+     * 'text/plain'.
+     * @return Octopus_Response $this
+     * @see ::getContentType
+     */
+    public function setContentType($type) {
+		return $this->addHeader('Content-type', $type);
     }
 
     /**
@@ -189,6 +228,14 @@ class Octopus_Response {
         return !empty($this->_headers);
     }
 
+    /**
+     * @return boolean Whether this response's content type is text/html.
+     */
+    public function isHtml() {
+    	return !!preg_match('/^text\/html\b/i', $this->contentType());
+    }
+
+
     public function removeHeader($name) {
         unset($this->_headers[$name]);
         return $this;
@@ -207,14 +254,14 @@ class Octopus_Response {
      * @return bool Whether this response is 403 forbidden.
      */
     public function isForbidden() {
-        return $this->getStatus() == 403;
+        return $this->getStatus() === 403;
     }
 
     /**
      * @return bool Whether this response is 404 Not Found
      */
     public function isNotFound() {
-        return $this->getStatus() == 404;
+        return $this->getStatus() === 404;
     }
 
     /**

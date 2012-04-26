@@ -1,16 +1,14 @@
 #!/bin/sh
 
-if [ -f .htaccess ] 
+if [ ! -f .htaccess ] 
 then
-	rm .htaccess
+    ln -s octopus/.htaccess
 fi
-ln -s octopus/.htaccess
 
-if [ -f index.php ]
+if [ ! -f index.php ]
 then
-	rm index.php
+    ln -s octopus/index.php
 fi
-ln -s octopus/index.php
 
 if [ ! -d _private ]
 then
