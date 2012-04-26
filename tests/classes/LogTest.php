@@ -214,6 +214,9 @@ END
 			$trace = $entry['trace'];
 			$this->assertTrue(!empty($trace), 'entry has trace');
 			unset($entry['trace']);
+
+			unset($entry['id']);
+			unset($entry['index']);
 		}
 
 		$this->assertEquals(
@@ -239,7 +242,7 @@ END
 	var $lastMessage = null;
 	var $lastLog = null;
 
-	function basicListener($message, $log, $level) {
+	function basicListener($id, $message, $log, $level) {
 		$this->lastLevel = $level;
 		$this->lastLog = $log;
 		$this->lastMessage = $message;

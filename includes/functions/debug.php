@@ -237,6 +237,7 @@ class Octopus_Log {
 
 	/**
 	 * Formats a log entry as JSON.
+	 * @param  String $id
 	 * @param  Mixed $message   	Message being logged
 	 * @param  String $log       	Name of the log being written
 	 * @param  Number $level     	Level of the message
@@ -244,10 +245,12 @@ class Octopus_Log {
 	 * @param  Array  $stack		Stack trace array.
 	 * @return String JSON for the log message.
 	 */
-	public static function formatJson($message, $log, $level, $timestamp, $stack) {
+	public static function formatJson($id, $message, $log, $level, $timestamp, $stack, $index = 0) {
 
 		$message = array(
-			'time' => date('r', $timestamp),
+			'id' => $id,
+			'index' => $index,
+			'time' => $timestamp,
 			'log' => $log,
 			'level' => self::getLevelName($level),
 			'message' => $message,
@@ -456,23 +459,22 @@ class Octopus_Log {
 	 */
 	public static function write($log, $level, $message) {
 
-		if (preg_match('/Only variables/', $message)) {
-			print_backtrace();
-		}
-
 		self::$callCount++;
 
 		if ($level > self::$minLevel || $level <= self::NONE) {
 			return;
 		}
 
+		$id = uniqid($log);
+
 		self::$writeCount++;
+
 		foreach(self::$listeners as $listener) {
 			if ($level > $listener['minLevel']) {
 				continue;
 			}
 			if ($listener['log'] === true || $listener['log'] === $log) {
-				call_user_func($listener['func'], $message, $log, $level);
+				call_user_func($listener['func'], $id, $message, $log, $level, self::$writeCount);
 			}
 
 		}
@@ -565,6 +567,9 @@ class Octopus_Log {
 
 	}
 
+	private static function getNextIDForLog($log) {
+		return uniqid($log);
+	}
 
 }
 
@@ -709,13 +714,17 @@ class Octopus_Log_Listener_File {
 
 	/**
 	 * Writes a message to this logger.
+	 * @param $id Unique message id.
 	 * @param $message The message to write
 	 * @param $log The name of the log being written
 	 * @param $level The level of the message.
+	 * @param $index The incrementing index of this write.
 	 * @see Octopus_Log::write
 	 * @return Boolean Whether the write succeeded.
 	 */
-	public function write($message, $log, $level) {
+	public function write($id, $message, $log, $level, $index) {
+
+		$time = microtime(true);
 
 		$file = $this->getLogFile($log);
 
@@ -759,7 +768,7 @@ class Octopus_Log_Listener_File {
 			$trace = $this->getStackTrace();
 		}
 
-		$entry = call_user_func($this->getFormatter(), $message, $log, $level, time(), $trace);
+		$entry = call_user_func($this->getFormatter(), $id, $message, $log, $level, $time, $trace, $index);
 
 		fwrite($handle, $entry);
 		fwrite($handle, ",\n");
@@ -886,7 +895,7 @@ class Octopus_Log_Listener_Html {
 
     private static $writtenCssAndJs = false;
 
-	public function write($message, $log, $level) {
+	public function write($id, $message, $log, $level) {
 
 		// Don't allow redirecting after an HTML message is displayed (so you
 		// have a chance to review it in-browser).
@@ -1058,7 +1067,7 @@ class Octopus_Log_Listener_Console {
 		$this->file = $file;
 	}
 
-	public function write($message, $log, $level) {
+	public function write($id, $message, $log, $level) {
 
 		$message = $this->formatForDisplay($message, $log, $level);
 
@@ -1078,9 +1087,10 @@ class Octopus_Log_Listener_Console {
 	 * @param  Number  $level   Log level
 	 * @return String The formatted output.
 	 */
-	public function formatForDisplay($message, $log, $level) {
+	public function formatForDisplay($message, $log, $level, $time = null, $trace = null) {
 
-		$time = time();
+		if ($time === null) $time = time();
+
 		$width = $this->width;
 		$color = $this->renderInColor;
 
@@ -1147,32 +1157,45 @@ class Octopus_Log_Listener_Console {
 		$lightLine = 	str_repeat(self::CHAR_LIGHT_LINE, $width);
 		$space = 		' ';
 
-		$time = is_numeric($time) ? date('r', $time) : $time;
+		$time = is_numeric($time) ? date('r', floor($time)) : $time;
 		$time = str_pad($time, ($width / 2) - 1);
 		$logAndLevel = "{$log} {$level}";
 		$logAndLevel = str_pad($logAndLevel, ($width / 2) - 1, ' ', STR_PAD_LEFT);
 
-		$trace = '';
+		$traceAsText = '';
 
 		if ($this->stackTraceLines) {
 
-			$lines = Octopus_Debug::getNiceBacktrace();
+			$lines = Octopus_Debug::getNiceBacktrace($trace);
 			$lines = Octopus_Debug::getMostRelevantTraceLines($this->stackTraceLines > 0 ? $this->stackTraceLines : count($lines), $lines);
 
 			if ($this->stackTraceLines > 0 && count($lines) > $this->stackTraceLines) {
 				$lines = array_slice($lines, 0, $this->stackTraceLines);
 			}
 
-			foreach($lines as $line) {
+			foreach($lines as $l) {
 
-				$line = "{$line['nice_file']}, line {$line['line']}";
-				$line = ' ' . str_pad($line, $width - 1);
-				$trace .= "\n{$line}";
+				$line = "{$l['nice_file']}, line {$l['line']}";
+
+				$call = array(
+					isset($l['class']) ? $l['class'] : '',
+					isset($l['type']) ? $l['type'] : '',
+					isset($l['function']) ? $l['function'] : ''
+				);
+				$call = array_filter($call);
+
+				if ($call) {
+					$line .= ' - ' . implode('', $call);
+				}
+
+				$l = ' ' . str_pad($line, $width - 1);
+				$traceAsText .= "\n{$line}";
 
 			}
 
-			if ($trace) {
-				$trace = "\n{$lightLine}{$trace}";
+
+			if ($traceAsText) {
+				$traceAsText = "\n{$lightLine}{$traceAsText}";
 			}
 
 		}
@@ -1183,7 +1206,7 @@ class Octopus_Log_Listener_Console {
 {$boldLine}
  {$time}{$logAndLevel}{$space}
 {$lightLine}
-{$message}{$trace}
+{$message}{$traceAsText}
 {$boldLine}{$reset}
 
 END;
@@ -1226,7 +1249,7 @@ class Octopus_Log_Listener_Mail {
 
 	}
 
-	public function write($message, $log, $level) {
+	public function write($id, $message, $log, $level) {
 
 		if (class_exists('Octopus_Mail')) {
 			$this->writeUsingOctopusMail($message, $log, $level);
@@ -1663,6 +1686,10 @@ class Octopus_Debug {
 
         $result = array();
         $rootDir = trim(self::getOption('ROOT_DIR'));
+
+        if (!$rootDir) {
+        	$rootDir = dirname(dirname(dirname(dirname(__FILE__))));
+        }
 
         if ($rootDir) {
         	$rootDir = rtrim($rootDir, '/') . '/';

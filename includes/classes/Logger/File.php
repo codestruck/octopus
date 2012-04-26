@@ -18,10 +18,9 @@ class Octopus_Logger_File {
 
     /**
      * Writes $line to a log file.
-     * @throws Octopus_Exception If logging fails.
      */
     public function log($line) {
-    	return $this->logger->write($line, $this->name, Octopus_Log::DEBUG);
+    	return $this->logger->write(md5($line . microtime()), $line, $this->name, Octopus_Log::DEBUG, 0);
     }
 
 }

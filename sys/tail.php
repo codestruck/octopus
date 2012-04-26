@@ -11,7 +11,13 @@ octopus/tail
 
 	Usage:
 
-		> octopus/tail [path/to/log/file]
+		> octopus/tail [path/to/log/dir] [options]
+
+	Options:
+
+		--full-stack
+			Display full stack traces, rather than just the line that
+			triggered the log event.
 
 
 END;
@@ -20,15 +26,21 @@ END;
 
 	array_shift($argv); // Remove script name
 
-	define('OCTOPUS_TAIL_DELAY_IDLE', 3);
+	define('OCTOPUS_TAIL_DELAY_IDLE', 1);
 	define('OCTOPUS_TAIL_DELAY_ACTIVE', 1);
 
 	$monitor = new Octopus_Log_Monitor('octopus_display_log');
 	$added = 0;
+	$fullStackTraces = false;
 
 	if (count($argv) > 0) {
 
 		while($arg = array_shift($argv)) {
+
+			if (strcmp($arg, '--full-stack') === 0) {
+				$fullStackTraces = true;
+				continue;
+			}
 
 			if (is_dir($arg)) {
 				$monitor->addDir($arg);
@@ -69,12 +81,12 @@ END;
 		sleep($nextDelay);
 	}
 
-	function octopus_display_log($file, $lastItemHash) {
+	function octopus_display_log($file, $lastItemID) {
 
 		global $toDisplay;
 
 		$contents = @file_get_contents($file);
-		if (!$contents) return $lastItemHash;
+		if (!$contents) return $lastItemID;
 
 		$contents = trim($contents);
 		$contents = trim($contents, ',');
@@ -84,36 +96,44 @@ END;
 			return false;
 		}
 
-		$hash = md5($file);
-		$lastFound = false;
+		$newLastItemID = $lastItemID;
+		$lastFound = !$lastItemID;
+
+		$show = array();
 
 		foreach($contents as &$item) {
-			$hash = md5($hash . serialize($item));
-			$item['hash'] = $hash;
 
-			if ($item['hash'] === $lastItemHash) {
+			if (!isset($item['id'])) {
+				$item['id'] = md5($file . serialize($item));
+			}
+
+			if ($item['id'] === $lastItemID) {
 				// this was the last item shown
-				$item['show'] = false;
 				$lastFound = true;
 			} else if ($lastFound) {
-				$item['show'] = true;
-			} else {
-				$item['show'] = null;
+				$show[] = $item;
+				$newLastItemID = $item['id'];
 			}
 		}
 
-		foreach($contents as &$item) {
-			if ($item['show'] || (!$lastFound && $item['show'] === null)) {
-				$toDisplay[] = $item;
-			}
+		if (!$lastItemID && count($show) > 1) {
+			$show = array(array_pop($show));
 		}
 
-		return $hash;
+		foreach($show as $itemToShow) {
+			$toDisplay[] = $itemToShow;
+		}
+
+		return $newLastItemID;
 	}
 
 	function octopus_display_log_item($item, $width = 80) {
 
+		global $fullStackTraces;
+
 		$console = new Octopus_Log_Listener_Console(false);
+		$console->stackTraceLines = $fullStackTraces ? -1 : 1;
+		$console->renderInColor = true;
 
 		$text = $console->formatForDisplay(
 			$item['message'],
@@ -147,7 +167,22 @@ END;
 		if (!is_numeric($xTime)) $xTime = strtotime($xTime);
 		if (!is_numeric($yTime)) $yTime = strtotime($yTime);
 
-		return $xTime - $yTime;
+		$result = $xTime - $yTime;
+
+		if (!$result) {
+			return $result;
+		}
+
+		$xIndex = isset($x['index']) ? $x['index'] : 0;
+		$yIndex = isset($y['index']) ? $y['index'] : 0;
+
+		$result = $xIndex - $yIndex;
+
+		if (!$result) {
+			return $result;
+		}
+
+		return strcmp($x['id'], $y['id']);
 
 	}
 
