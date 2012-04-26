@@ -149,7 +149,7 @@ class Octopus_Http_Request_Base {
 
             if (Octopus_Log::isDebugEnabled()) {
 
-                $message = "error {$this->responseNumber}\nURL: {$this->requestUrl}\n";
+                $message = "error {$this->responseNumber}\nmethod: {$this->args['method']}\nURL: {$this->requestUrl}\n";
                 if ($this->requestData) {
                     $message .= "params: " . print_r($this->requestData, 1);
                 }

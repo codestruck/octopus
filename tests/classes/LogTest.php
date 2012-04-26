@@ -207,8 +207,7 @@ END
 
 		foreach($json as &$entry) {
 			$this->assertTrue(array_key_exists('time', $entry), 'time key found on entry');
-			$time = strtotime($entry['time']);
-			$this->assertTrue(time() - $time < 5, 'entry is in the last 5 seconds');
+			$this->assertTrue(time() - $entry['time'] < 5, 'entry is in the last 5 seconds');
 			unset($entry['time']);
 
 			$trace = $entry['trace'];
