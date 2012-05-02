@@ -946,7 +946,7 @@ class Octopus_Log_Listener_Html {
         $mem = fopen('php://temp', 'r+');
         if ($mem) {
         	$console = new Octopus_Log_Listener_Console($mem);
-        	$console->write($message, $log, $level);
+        	$console->write($id, $message, $log, $level);
         	fseek($mem, 0);
         	$lines = array();
         	while(($line = fgets($mem)) !== false) {
