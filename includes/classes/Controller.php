@@ -364,6 +364,14 @@ abstract class Octopus_Controller {
     }
 
     /**
+     * @uses ::actionExists
+     */
+    public function __actionExists($action) {
+    	// TODO: Don't have this double-underscored version
+    	return $this->actionExists($action);
+    }
+
+    /**
      * @return bool Whether the given action exists on this controller.
      */
     protected function actionExists($action) {
