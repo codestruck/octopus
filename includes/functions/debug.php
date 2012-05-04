@@ -1535,7 +1535,7 @@ class Octopus_Debug {
     /**
      * Calls ::dump() and then exits.
      */
-    public function dumpAndExit($x) {
+    public static function dumpAndExit($x) {
 
     	if (!self::$dumpEnabled || !self::isDevEnvironment()) {
     		return $x;
@@ -2234,13 +2234,14 @@ END;
             			$threshold = ($index === 0 ? 0 : pow(1024, $index));
 
             			if ($size >= $threshold) {
-            				$niceSize = $size / $threshold;
 
+            				$niceSize = $threshold ? $size / $threshold : $size;
             				$niceSize =
             					(floor($niceSize) === $niceSize ? '' : '~') .
             					number_format($niceSize) .
             					$symbol .
             					($threshold > 0 ? ' (' . number_format($size) . ' bytes)' : '');
+
             					break;
             			}
             		}
