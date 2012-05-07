@@ -7,92 +7,139 @@
 
      Usage:
 
-       octopus/test [all | sys | site ]
+       octopus/test [site|sys] [--help] [--include-slow] [PHPUnit args]
 
+    Options:
+
+    	site | sys
+    		'Site' runs site tests, 'sys' runs Octopus system tests. If not
+    		specified, site tests are run (unless 'test' is called from
+    		the Octopus dir).
+
+    	--help
+    		Display this message.
+
+    	--include-slow
+    		Also run tests from group 'slow', which is excluded by default.
+
+    	--only-slow
+    		Only run tests from group 'slow'
+
+    Any other arguments are forwarded to PHPUnit.
 
 END;
 
-    $testSys = null;
-    $testSite = null;
-
-    array_shift($argv); // remove script name
-    $what = strtolower(array_shift($argv));
-
-    $testSys = ($what === 'sys' || $what === 'all');
-    $testSite = ($what === 'site' || $what === 'all');
-
-    if (!($testSys || $testSite)) {
-        $testSite = true;
-        array_unshift($argv, $what);
-    }
-
-    $extraArgs = implode(' ', $argv);
-
     $phpUnit = trim(`which phpunit`);
+
     if (!$phpUnit) {
         echo <<<END
 
-PHPUnit not found. Maybe install it?
+Octopus uses PHPUnit to run tests, but it doesn't seem to be installed on your
+system. To install, go here:
+
+	http://www.phpunit.de/manual/3.6/en/installation.html
 
 
 END;
         exit(1);
     }
 
-    // Using passthru, colors are not used by default
-    $phpUnit = "$phpUnit --colors";
+    array_shift($argv); // remove script name
 
     $octopusDir = dirname(dirname(__FILE__)) . '/';
+    $siteDir = dirname($octopusDir) . '/site/';
 
-    if ($testSys) {
+    $toTest = (strcmp(getcwd() . '/', $octopusDir) === 0) ? 'sys' : 'site';
+    $includeSlow = false;
+    $onlySlow = false;
 
-        $xml = $octopusDir . 'phpunit.xml';
-        $testDir = $octopusDir . 'tests';
+    $args = array(
+    	'--colors', 			// Colors are disabled by default when
+    	                        // using passthr()
 
-        passthru("$phpUnit --configuration \"$xml\" $extraArgs \"$testDir\"");
+    	'--no-configuration',	// We configure from the command line
+
+    );
+
+    $extraPhpUnitArgs = array();
+
+
+    foreach($argv as $arg) {
+
+    	switch($arg) {
+
+    		case 'site':
+    		case 'sys':
+    			$toTest = $arg;
+    			break;
+
+    		case '--include-slow':
+    			$includeSlow = true;
+    			break;
+
+    		case '--only-slow':
+    			$onlySlow = true;
+    			break;
+
+    		case '--help':
+    			echo $usage;
+    			exit();
+    			break;
+
+    		default:
+    			$extraPhpUnitArgs[] = $arg;
+    			break;
+    	}
+
     }
 
-    if ($testSite) {
+    if ($onlySlow) {
+    	$args[] = '--group';
+    	$args[] = 'slow';
+    } else if (!$includeSlow) {
+    	$args[] = '--exclude-group';
+    	$args[] = 'slow';
+    }
 
-        $siteDir = dirname($octopusDir) . '/site/';
-        $testDir = $siteDir . 'tests/';
+    if (strcasecmp($toTest, 'site') === 0) {
 
+    	if (!is_dir($siteDir)) {
+    		echo "\n\n\tSite dir not found: {$siteDir}\n\n";
+    		exit(1);
+    	}
 
-        if (!is_dir($testDir)) {
+    	$testDir = $siteDir . 'tests';
 
-            echo <<<END
+    	if (!is_dir($testDir)) {
+    		echo "\n\n\tSite tests dir not found: {$testDir}/\n\n";
+    		exit(1);
+    	}
 
-There is no tests/ directory in site/ (looking at $testDir)
+    	$args[] = '--bootstrap';
+    	$args[] = $octopusDir . 'tests/bootstrap_site.php';
 
+    	$testDir = $siteDir . 'tests';
+
+    } else if (strcasecmp($toTest, 'sys') === 0) {
+
+    	$args[] = '--bootstrap';
+    	$args[] = $octopusDir . 'tests/bootstrap.php';
+    	$testDir = $octopusDir . 'tests';
+
+    } else {
+    	echo <<<END
+
+    	Invalid test target: $toTest
 
 END;
-            exit(1);
-        }
-
-        $xml = $siteDir . 'phpunit.xml';
-        if (!is_file($xml)) {
-
-            $xml = false;
-
-            $bootstrap = $testDir . 'bootstrap.php';
-            if (!is_file($bootstrap)) {
-                $bootstrap = $octopusDir . 'tests/bootstrap_site.php';
-            }
-        }
-
-        $cmd = $phpUnit . ' ';
-
-        if ($xml) {
-            $cmd .= "--configuration \"$xml\"";
-        } else {
-            $cmd .= "--bootstrap \"$bootstrap\"";
-        }
-
-        $cmd .= " $extraArgs \"$testDir\"";
-
-        passthru($cmd);
+		exit(1);
     }
 
+    $phpUnitArgs = array_merge($args, $extraPhpUnitArgs);
+    $phpUnitArgs[] = $testDir;
+    $phpUnitArgs = str_replace(' ', '\\ ', $phpUnitArgs);
+    $phpUnit .= ' ' . implode(' ', $phpUnitArgs);
 
+    echo "\n\nRunning PHPUnit: $phpUnit\n\n";
 
-?>
+    passthru($phpUnit);
