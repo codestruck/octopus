@@ -207,6 +207,31 @@ END
 
     }
 
+    function testFindPWAdminView() {
+
+    	$this->createControllerFile('Admin_Products', <<<END
+<?php
+
+class AdminProductsController extends Octopus_Controller {
+
+	public function requestsAction() {
+
+	}
+
+}
+
+END
+    	);
+
+    	$this->createViewFile('admin/products/requests.tpl');
+
+    	$app = $this->getApp();
+    	$resp = $app->getResponse('/admin/products/requests');
+
+    	$this->assertEquals(200, $resp->getStatus());
+
+    }
+
     function assertViewInfoMatches($expected, $actual, $path = null) {
 
     	$req = null;

@@ -379,6 +379,7 @@ class Octopus_Renderer {
         }
 
         $controllerPathComponents = array_map('underscore',   $controllerPathComponents);
+        // $controllerPathComponents is now something like array('controller', 'name')
 
         $controller = $req->getController();
 
@@ -386,7 +387,17 @@ class Octopus_Renderer {
 
 			// The action exists on the controller, so be slightly more liberal
 			// about what paths we will search for view files
-			$controllerPathComponents[] = ''; // allow falling back to the root level to find a view
+
+			$components = $controllerPathComponents;
+			$controllerPathComponents = array();
+
+			// Build a list of potential search paths, including '' as the last
+			// element to allow falling back at the root level
+
+			for($i = count($components); $i >= 0; $i--) {
+				$controllerPathComponents[] =
+					implode('/', array_slice($components, 0, $i));
+			}
 
 			// go from most specific (action + all args) to least (just action)
 	    	$actionPathComponents = array($req->getAction());
