@@ -747,7 +747,9 @@ END;
     /**
      * @return Object A new Octopus_DB_Select instance.
      */
-    private function buildSelect($recreate = false, $fields = null) {
+    private function buildSelect($recreate = false, $fields = null, $order = true, $limit = true) {
+
+    	$recreate = $recreate || ($fields !== null || !$order || !$limit);
 
         if (!$recreate && $this->_select) {
             return $this->_select;
@@ -776,14 +778,19 @@ END;
             $s->where($whereClause, $params);
         }
 
-        $this->applyOrderByClause($s, $this->_orderBy);
+        if ($order) {
+        	$this->applyOrderByClause($s, $this->_orderBy);
+        }
 
-        if ($this->_offset !== null || $this->_maxRecords !== null) {
+        if ($limit && ($this->_offset !== null || $this->_maxRecords !== null)) {
             $s->limit(($this->_offset === null ? 0 : $this->_offset), $this->_maxRecords);
         }
 
-        $this->_select = $s;
-        return $this->_select;
+        if ($fields === null && $order && $limit) {
+        	$this->_select = $s;
+        }
+
+        return $s;
     }
 
     /**
@@ -1070,7 +1077,7 @@ END;
      * @return Number The # of records in this ResultSet.
      */
     public function count() {
-        $s = $this->buildSelect();
+        $s = $this->buildSelect(true, null, false, false);
         return $s->numRows();
     }
 
