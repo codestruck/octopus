@@ -95,7 +95,18 @@ class RendererTest extends Octopus_App_TestCase {
 
         $app = $this->getApp();
 
-        $this->createControllerFile('Simple');
+        $this->createControllerFile('Simple', <<<END
+<?
+	class SimpleController extends Octopus_Controller {
+
+		public function viewAction() {
+
+		}
+
+	}
+?>
+END
+		);
         $this->createViewFile(array('simple/index', 'simple/view'));
 
         $tests = array(
@@ -120,7 +131,20 @@ class RendererTest extends Octopus_App_TestCase {
         $app = $this->getApp();
         $renderer = $app->getRenderer();
 
-        $controllerFile = $this->createControllerFile('admin/FallbackViewTest');
+        $controllerFile = $this->createControllerFile('admin/FallbackViewTest', <<<END
+<?php
+
+class FallbackViewTestController extends Octopus_Controller {
+
+	public function addAction() {
+
+	}
+
+}
+
+?>
+END
+		);
         $viewFile = $this->createViewFile('add');
 
         $tests = array(
@@ -154,9 +178,66 @@ class RendererTest extends Octopus_App_TestCase {
 
     }
 
+    function testFindDeepViewsNoController() {
+
+    	$this->createViewFile('some/deep/view/file.tpl', 'hi there');
+    	$app = $this->getApp();
+
+    	$resp = $app->getResponse('/some/deep/view/file');
+    	$this->assertEquals(200, $resp->getStatus(), '200 status for view that exists');
+
+    	$resp = $app->getResponse('/some/deep/view/that_does_not_exist');
+    	$this->assertEquals(404, $resp->getStatus(), '404 for non-existent view');
+
+    }
+
+    function testViewFallbackFailsWhenActionNotDefined() {
+
+    	$this->createControllerFile('StaticFallbackFailure');
+    	$this->createViewFile('static_fallback_failure/foo.tpl');
+
+    	$app = $this->getApp();
+
+    	$resp = $app->getResponse('/static_fallback_failure/foo');
+    	$this->assertEquals(200, $resp->getStatus());
+
+    	$resp = $app->getResponse('/static_fallback_failure/foo/bar');
+    	$this->assertEquals(404, $resp->getStatus(), 'fallback fails when action not defined');
+
+
+    }
+
+    function testFindPWAdminView() {
+
+    	$this->createControllerFile('Admin_Products', <<<END
+<?php
+
+class AdminProductsController extends Octopus_Controller {
+
+	public function requestsAction() {
+
+	}
+
+}
+
+END
+    	);
+
+    	$this->createViewFile('admin/products/requests.tpl');
+
+    	$app = $this->getApp();
+    	$resp = $app->getResponse('/admin/products/requests');
+
+    	$this->assertEquals(200, $resp->getStatus());
+
+    }
+
     function assertViewInfoMatches($expected, $actual, $path = null) {
 
+    	$req = null;
+
         if ($actual instanceof Octopus_Request) {
+        	$req = $actual;
             $path = $actual->getPath();
             $app = $this->getApp();
             $renderer = $app->getRenderer();
@@ -175,6 +256,11 @@ class RendererTest extends Octopus_App_TestCase {
         }
 
         foreach($expected as $key => $value) {
+
+        	if ($req && strcmp($value, $actual[$key]) !== 0) {
+        		dump_r($renderer->getViewPaths($req, $req->getController()));
+        	}
+
             $this->assertEquals($value, $actual[$key], "Failed on $path");
         }
 

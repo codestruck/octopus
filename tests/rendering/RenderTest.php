@@ -15,19 +15,31 @@ class RenderTests extends Octopus_App_TestCase
 
         $app = $this->startApp();
 
-        $this->createControllerFile('Foo');
+        $this->createControllerFile('BasicViewRendering', <<<END
+<?php
+
+class BasicViewRenderingController extends Octopus_Controller {
+
+	public function action() {
+
+	}
+
+}
+
+END
+);
 
         $views = array(
             "action",
-            "foo/action"
+            "basic_view_rendering/action"
         );
 
         foreach($views as $view) {
 
             $viewFile = $this->createViewFile($view, $view);
-
-            $resp = $app->getResponse('/foo/action', true);
+            $resp = $app->getResponse('/basic-view-rendering/action', true);
             $this->assertTrue(!!$resp, "No response returned. Failed on $view");
+            $this->assertEquals(200, $resp->getStatus(), '200 status code returned');
 
             $this->assertEquals(
                 $view,
@@ -56,14 +68,23 @@ class RenderTests extends Octopus_App_TestCase
 
         $app = $this->startApp();
 
-        $this->createControllerFile('TestBasicSmartyRender');
+        $this->createControllerFile('TestBasicSmartyRender', <<<END
+<?php
+
+class TestBasicSmartyRenderController extends Octopus_Controller {
+
+	public function action() {
+
+	}
+
+}
+END
+		);
         $viewFile = $this->createViewFile('action.tpl', 'Smarty view contents');
 
         $app = $this->startApp();
 
         $resp = $app->getResponse('/test-basic-smarty-render/action', true);
-        $this->assertTrue(!!$resp, 'No response returned.');
-
         $this->assertEquals('Smarty view contents', trim($resp->getContent()));
 
     }

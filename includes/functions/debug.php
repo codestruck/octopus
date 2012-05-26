@@ -946,7 +946,7 @@ class Octopus_Log_Listener_Html {
         $mem = fopen('php://temp', 'r+');
         if ($mem) {
         	$console = new Octopus_Log_Listener_Console($mem);
-        	$console->write($message, $log, $level);
+        	$console->write($id, $message, $log, $level);
         	fseek($mem, 0);
         	$lines = array();
         	while(($line = fgets($mem)) !== false) {
@@ -1535,7 +1535,7 @@ class Octopus_Debug {
     /**
      * Calls ::dump() and then exits.
      */
-    public function dumpAndExit($x) {
+    public static function dumpAndExit($x) {
 
     	if (!self::$dumpEnabled || !self::isDevEnvironment()) {
     		return $x;
@@ -2234,13 +2234,14 @@ END;
             			$threshold = ($index === 0 ? 0 : pow(1024, $index));
 
             			if ($size >= $threshold) {
-            				$niceSize = $size / $threshold;
 
+            				$niceSize = $threshold ? $size / $threshold : $size;
             				$niceSize =
             					(floor($niceSize) === $niceSize ? '' : '~') .
             					number_format($niceSize) .
             					$symbol .
             					($threshold > 0 ? ' (' . number_format($size) . ' bytes)' : '');
+
             					break;
             			}
             		}

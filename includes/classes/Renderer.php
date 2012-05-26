@@ -293,57 +293,41 @@ class Octopus_Renderer {
             return $result;
         }
 
-        $app = $request->getApp();
+        /*
+         * Search order:
+         *
+         * ControllerNameController->action($arg2, $arg2)
+         * /controller/name/action/arg1/arg2
+         *
+         * If controller + action exist:
+         *
+         * 		views/controller/name/action/arg1/arg2
+         * 		views/controller/name/action/arg1
+         * 		views/controller/name/action
+         * 		views/controller/action
+         * 		views/action (allow controllers w/ similar actions to reuse views)
+         *
+         * If controller + action don't exist:
+         *
+         * 		views/controller/name/action/arg1/arg2
+         *   	(no fallback)
+         */
 
-        $octopusDir = $app->getSetting('OCTOPUS_DIR');
-        $siteDir = $app->getSetting('SITE_DIR');
-        $controllerFile = $request->getControllerFile();
+        self::getViewPathComponents($request, $controllerPathComponents, $actionPathComponents);
 
-        $r = null;
+        foreach($controllerPathComponents as $controllerPath) {
 
-        // slight HACK: DefaultController should not be used to locate views.
-        if ($controllerFile === $octopusDir . 'controllers/Default.php') {
-            $controller = '';
-        } else if ($controllerFile && starts_with($controllerFile, $siteDir . 'controllers/', false, $r)) {
-            $controller = preg_replace('/\.php$/i', '', $r);
-        } else if ($controllerFile && starts_with($controllerFile, $octopusDir . 'controllers/', false, $r)) {
-            $controller = preg_replace('/\.php$/i', '', $r);
-        } else {
-            $class = $request->getControllerClass();
-            $controller = preg_replace('/(.*)(Controller)?$/', '$1', $class);
+        	$working = $actionPathComponents;
+        	while($working) {
+        		$names[] = trim($controllerPath . '/' . implode('/', $working), '/');
+        		array_pop($working);
+        	}
+
         }
 
-        if (strpos($controller, '/') === false) {
-            $controller = explode('_', $controller);
-        } else {
-            $controller = explode('/', $controller);
-        }
-
-        $controller = array_map('underscore', $controller);
-        $controller = implode('/', $controller);
-
-        $action = underscore($action);
-
-        $parts = explode('/', $controller);
-        $count = count($parts);
-        if ($action) $count++;
-
-        $names = array();
-
-        while($count) {
-
-            $path = $parts ? implode('/', $parts) : '';
-
-            if ($action) {
-                $path .= ($path ? '/' : '') . $action;
-            }
-
-            $names[] = $path;
-
-            array_pop($parts);
-
-            $count--;
-        }
+        // Now take all those possible paths and combine them into a big list
+        // of uniques, with variations based on underscoring vs. camel case
+        // etc.
 
         $result = array();
 
@@ -363,6 +347,82 @@ class Octopus_Renderer {
         $result = array_keys($result);
 
         return $result;
+    }
+
+    /**
+     * Figures out different combinations of path elements to combine when
+     * searching for views.
+     */
+    private static function getViewPathComponents(Octopus_Request $req, &$controllerPathComponents, &$actionPathComponents) {
+
+		// Because there are different supported variations for controller class
+		// naming (ControllerNameSomethingController,
+		// Controller_Name_Something_Controller, etc.), base the view search
+		// path on the controller's file name because it is safe to break on
+		// underscores
+
+		if ($req->isDefaultController()) {
+			$controllerFile = '';
+		} else {
+
+			$app = $req->getApp();
+			$controllerFile = $req->getControllerFile();
+			$controllerFile = preg_replace('/^(' . preg_quote($app->SITE_DIR, '/') . '|' . preg_quote($app->OCTOPUS_DIR, '/') . ')controllers\//', '', $controllerFile);
+			$controllerFile = preg_replace('/\.php$/i', '', $controllerFile);
+
+		}
+
+        if (strpos($controllerFile, '/') === false) {
+            $controllerPathComponents = explode('_', $controllerFile);
+        } else {
+            $controllerPathComponents = explode('/', $controllerFile);
+        }
+
+        $controllerPathComponents = array_map('underscore',   $controllerPathComponents);
+        // $controllerPathComponents is now something like array('controller', 'name')
+
+        $controller = $req->getController();
+
+		if ($controller->__actionExists($req->getAction())) {
+
+			// The action exists on the controller, so be slightly more liberal
+			// about what paths we will search for view files
+
+			$components = $controllerPathComponents;
+			$controllerPathComponents = array();
+
+			// Build a list of potential search paths, including '' as the last
+			// element to allow falling back at the root level
+
+			for($i = count($components); $i >= 0; $i--) {
+				$controllerPathComponents[] =
+					implode('/', array_slice($components, 0, $i));
+			}
+
+			// go from most specific (action + all args) to least (just action)
+	    	$actionPathComponents = array($req->getAction());
+			foreach($req->getActionArgs() as $arg) {
+				$actionPathComponents[] = $arg;
+			}
+
+			if (count($actionPathComponents) > 10) $actionPathComponents = array_slice($actionPathComponents, 0, 10);
+			$actionPathComponents = array_map('underscore', $actionPathComponents);
+
+
+		} else  {
+
+			$controllerPathComponents = array(implode('/', $controllerPathComponents));
+
+			// require full action + args to locate view file
+			$parts = $req->getActionArgs();
+			array_unshift($parts, $req->getAction());
+
+			$parts = array_map('underscore', $parts);
+
+			$actionPathComponents = array(implode('/', $parts));
+
+		}
+
     }
 
     /**
