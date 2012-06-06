@@ -29,8 +29,13 @@ class Octopus_Http_Request_Curl extends Octopus_Http_Request_Base {
             curl_setopt($handle, CURLOPT_TIMEOUT, $args['timeout']);
         }
 
-        if (strtolower($args['method']) == 'post') {
-            curl_setopt($handle, CURLOPT_POST, true);
+        if (strcasecmp($args['method'], 'get') !== 0) {
+
+         	if (strcasecmp($args['method'], 'post') === 0) {
+            	curl_setopt($handle, CURLOPT_POST, true);
+            } else {
+            	curl_setopt($handle, CURLOPT_CUSTOMREQUEST, strtoupper($args['method']));
+            }
 
             if ($data) {
 
