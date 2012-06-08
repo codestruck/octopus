@@ -217,6 +217,19 @@
         return $ext;
     }
 
+    function mime_to_extension($mime) {
+        switch($mime) {
+            case 'image/jpeg':
+                return '.jpg';
+            case 'image/gif':
+                return '.gif';
+            case 'image/png':
+                return '.png';
+        }
+
+        return false;
+    }
+
     /**
      * Creates a directory, but only if it is underneath $baseDir.
      * @param String $dir Directory to create
