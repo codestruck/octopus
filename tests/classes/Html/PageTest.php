@@ -1347,4 +1347,25 @@ END
 
     }
 
+    function testOnlyJavascriptVarsNoFiles() {
+
+    	$page = new Octopus_Html_Page();
+    	$page->setJavascriptVar('foo', 'bar');
+
+    	$this->assertHtmlEquals(
+    		<<<END
+<head>
+<title></title>
+<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+<script type="text/javascript">
+var foo = "bar";
+</script>
+</head>
+END
+			,
+			$page->renderHead(true)
+    	);
+
+    }
+
 }
