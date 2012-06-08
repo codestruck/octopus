@@ -985,10 +985,6 @@ class Octopus_Html_Page {
         }
 
         $scripts = $this->getJavascriptFiles($section, $useAliases);
-        if (empty($scripts)) {
-            return $return ? '' : $this;
-        }
-
         $html = $includeVars ? $this->renderJavascriptVars(true) : '';
 
         foreach($scripts as $info) {
