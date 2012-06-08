@@ -116,7 +116,12 @@ END;
     	}
 
     	$args[] = '--bootstrap';
-    	$args[] = $octopusDir . 'tests/bootstrap_site.php';
+
+        if (is_file($siteDir . 'tests/bootstrap.php')) {
+        	$args[] = $siteDir . 'tests/bootstrap.php';
+        } else {
+            $args[] = $octopusDir . 'tests/bootstrap_site.php';
+        }
 
     	$testDir = $siteDir . 'tests';
 
