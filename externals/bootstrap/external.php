@@ -1,6 +1,6 @@
 <?php
 
-	define('BOOTSTRAP_VERSION', '2.0.2');
+	define('BOOTSTRAP_VERSION', '2.0.4');
 
 	/**
 	 * Includes Twitter bootstrap CSS and Javascript on the current page.
@@ -21,7 +21,7 @@
 			'version' => BOOTSTRAP_VERSION,
 			'responsive' => true,
 			'javascript' => -500,
-			'jquery' => '//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js',
+			'jquery' => '//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js',
 			'weight' => -1000,
 			'minify' => true,
 		);
