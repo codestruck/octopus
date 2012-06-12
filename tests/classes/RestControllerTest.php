@@ -4,6 +4,7 @@ class RestControllerTest extends Octopus_App_TestCase {
 
     function setUp() {
         $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['CONTENT_TYPE'] = '';
         $this->app = $this->startApp();
 
         $this->createControllerFile(
@@ -408,6 +409,35 @@ END
         $resp = $app->getResponse('/rest_has_error', true);
         $this->assertEquals(500, $resp->getStatus(), $resp->getContent());
 
+    }
+
+    /**
+     * @dataProvider provideJsonContentTypes
+     */
+    function testJsonContent($type) {
+        $_SERVER['CONTENT_TYPE'] = $type;
+
+        $args = array(
+            'name' => 'foo',
+            'color' => 'green',
+        );
+        $resp = $this->app->getPostResponse('/api/1/apples', json_encode($args));
+
+        $this->assertEquals(
+            array(
+                'id' => 2,
+                'from' => 'post',
+            ),
+            json_decode($resp->getContent(), true)
+        );
+
+    }
+
+    function provideJsonContentTypes() {
+        return array(
+            array('application/json'),
+            array('application/json; charset=UTF-8'),
+        );
     }
 
 }

@@ -18,6 +18,8 @@ class Octopus_Request {
     public function __construct(Octopus_App $app, $path, $resolvedPath = null, $options = array()) {
 
         $defaults = array(
+            'get_data_file' => 'php://input',
+            'post_data_file' => 'php://input',
             'put_data_file' => 'php://input',
             'delete_data_file' => 'php://input',
         );
@@ -86,6 +88,10 @@ class Octopus_Request {
     }
 
     public function getInputData() {
+        if (is_json_content_type()) {
+            return $this->getJsonInputData();
+        }
+
         $method = $this->getMethod();
         switch ($method) {
             case 'get':
@@ -102,6 +108,20 @@ class Octopus_Request {
         }
 
         return array();
+    }
+
+    public function getJsonInputData() {
+        $method = $this->getMethod();
+        $filename = $this->options[$method . '_data_file'];
+
+        // php://input cannot be tested with is_file
+        if ($filename !== 'php://input' && !is_file($filename)) {
+            return array();
+        }
+
+        $str = file_get_contents($filename);
+        $json = json_decode($str, true);
+        return $json;
     }
 
     /**
