@@ -406,3 +406,11 @@
         $http = new Octopus_Http_Request();
         return $http->request($url, $data, $args);
     }
+
+    function get_content_type() {
+        return isset($_SERVER['CONTENT_TYPE']) ? $_SERVER['CONTENT_TYPE'] : '';
+    }
+
+    function is_json_content_type() {
+        return preg_match('/^application\/json/i', get_content_type());
+    }

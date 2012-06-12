@@ -639,8 +639,14 @@ class Octopus_App {
     private function fakeInputData($method, $path, $data, $options) {
         $method = strtolower($method);
 
+        if (is_json_content_type()) {
+            $str = $data;
+        } else {
+            $str = http_build_query($data);
+        }
+
         $file = tempnam('/tmp/', 'octopus_' . $method);
-        file_put_contents($file, http_build_query($data));
+        file_put_contents($file, $str);
         $options[$method . '_data_file'] = $file;
         $_SERVER['REQUEST_METHOD'] = $method;
 
@@ -658,14 +664,10 @@ class Octopus_App {
 
     public function getPostResponse($url, $data = array(), $options = array()) {
 
-        // TODO don't do this
-
-        foreach($_POST as $key => $value) {
-            unset($_POST[$key]);
-        }
-
-        foreach($data as $key => $value) {
-            $_POST[$key] = $value;
+        if (is_json_content_type()) {
+            return $this->fakeInputdata('post', $url, $data, $options);
+        } else if (is_array($data)) {
+            $_POST = $data;
         }
 
         $_SERVER['REQUEST_METHOD'] = 'post';
