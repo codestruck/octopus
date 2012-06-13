@@ -26,7 +26,7 @@
 			'minify' => true,
 		);
 
-		$options = array_merge($options, $defaults);
+		$options = array_merge($defaults, $options);
 		$dir = "/octopus/externals/bootstrap/bootstrap-{$options['version']}/";
 
 		$cssExt = $options['minify'] ? '.min.css' : '.css';
