@@ -376,8 +376,17 @@
 
     /**
      * Pluralizes a singular noun. Doesn't try too hard.
+     * @param String $x Noun to pluralize
+     * @param Mixed $number If provided, the number to use when determining
+     * whether to pluralize.
+     * @return String The pluralized form of $x. Or, if $number indicates
+     * it should be singular, the singularized form.
      */
-    function pluralize($x) {
+    function pluralize($x, $number = null) {
+
+    	if ($number == 1) {
+    		return singularize($x);
+    	}
 
         if (preg_match('/([aieou]?)(s?)s$/i', $x, $m)) {
 
