@@ -121,10 +121,10 @@ END;
 
 		self::$writtenCssAndJs = true;
 
-		$css = file_get_contents(dirname(__FILE__) . '/debug.css');
+		$css = file_get_contents(dirname(__FILE__) . '/Html/debug.css');
 		if ($css) {
 			$css = <<<END
-<link href="/octopus/includes/functions/debug.css" rel="stylesheet" type="text/css" />
+<link href="/octopus/includes/classes/Log/Listener/Html/debug.css" rel="stylesheet" type="text/css" />
 END;
 		} else {
 			$css = '';

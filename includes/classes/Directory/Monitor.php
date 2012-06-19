@@ -147,17 +147,17 @@ class Octopus_Directory_Monitor {
 
 			if (is_file($file)) {
 
+				if ($this->filters && !$this->passesFilters($file)) {
+					continue;
+				}
+
 				$mod = @filemtime($file);
 
 				if ($mod) {
 
 					if (!isset($this->lastMods[$file]) || $this->lastMods[$file] < $mod) {
-
-						if (!$this->filters || $this->passesFilters($file)) {
-							$changedFiles[] = $file;
-						}
+						$changedFiles[] = $file;
 						$this->lastMods[$file] = $mod;
-
 					}
 
 				}

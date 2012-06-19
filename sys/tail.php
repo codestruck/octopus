@@ -1,6 +1,8 @@
 <?php
 
-	require_once(dirname(dirname(__FILE__)) . '/includes/functions/debug.php');
+	require_once(dirname(dirname(__FILE__)) . '/includes/core.php');
+	is_command_line() or die();
+	bootstrap();
 
 	$description = <<<END
 
@@ -22,29 +24,38 @@ octopus/tail
 
 END;
 
-	date_default_timezone_set(@date_default_timezone_get());
-
 	array_shift($argv); // Remove script name
 
 	define('OCTOPUS_TAIL_DELAY_IDLE', 1);
 	define('OCTOPUS_TAIL_DELAY_ACTIVE', 1);
 
-	$monitor = new Octopus_Log_Monitor('octopus_display_log');
+	$monitor = new Octopus_Log_Monitor();
 	$added = 0;
 	$fullStackTraces = false;
+	$recentInterval = 5; // first round, only show stuff from the last 5 seconds
 
 	if (count($argv) > 0) {
 
 		while($arg = array_shift($argv)) {
 
-			if (strcmp($arg, '--full-stack') === 0) {
-				$fullStackTraces = true;
-				continue;
-			}
+			switch($arg) {
 
-			if (is_dir($arg)) {
-				$monitor->addDir($arg);
-				$added++;
+				case '--full-stack':
+				case '--full-stack-trace':
+				case '--full-stack-traces':
+					$fullStackTraces = true;
+					break;
+
+				default:
+
+					if (is_dir($arg)) {
+						$monitor->addDir($arg);
+						$added++;
+					} else {
+						$monitor->addFile($arg);
+						$added++;
+					}
+					break;
 			}
 
 		}
@@ -54,78 +65,39 @@ END;
 	if (!$added) {
 
 		// nothing == monitor LOG_DIR
-		$monitor->addDir(dirname(dirname(dirname(__FILE__))) . '/_private');
+		$dir = dirname(dirname(dirname(__FILE__))) . '/_private';
+		$monitor->addDirectory($dir);
+		echo "\nMonitoring $dir\n\n";
 
 	}
 
-	$lastItem = 0;
 	$nextDelay = OCTOPUS_TAIL_DELAY_ACTIVE;
 	$toDisplay = array();
+	$firstTime = true;
 
 	while(true) {
 
-		$toDisplay = array();
-
-		if ($monitor->poll()) {
+		if ($items = $monitor->poll()) {
 			$nextDelay = OCTOPUS_TAIL_DELAY_ACTIVE;
 		} else {
 			$nextDelay = OCTOPUS_TAIL_DELAY_IDLE;
 		}
 
-		usort($toDisplay, 'octopus_compare_log_items');
+		$now = time();
 
-		foreach($toDisplay as $item) {
-			octopus_display_log_item($item);
+		foreach($items as $item) {
+
+			if (!$firstTime || $now - $item['time'] <= $recentInterval) {
+				octopus_display_log_item($item);
+			}
+
 		}
+
+		$firstTime = false;
 
 		sleep($nextDelay);
 	}
 
-	function octopus_display_log($file, $lastItemID) {
-
-		global $toDisplay;
-
-		$contents = @file_get_contents($file);
-		if (!$contents) return $lastItemID;
-
-		$contents = trim($contents);
-		$contents = trim($contents, ',');
-		$contents = @json_decode('[' . $contents . ']', true);
-
-		if (!$contents) {
-			return false;
-		}
-
-		$newLastItemID = $lastItemID;
-		$lastFound = !$lastItemID;
-
-		$show = array();
-
-		foreach($contents as &$item) {
-
-			if (!isset($item['id'])) {
-				$item['id'] = md5($file . serialize($item));
-			}
-
-			if ($item['id'] === $lastItemID) {
-				// this was the last item shown
-				$lastFound = true;
-			} else if ($lastFound) {
-				$show[] = $item;
-				$newLastItemID = $item['id'];
-			}
-		}
-
-		if (!$lastItemID && count($show) > 1) {
-			$show = array(array_pop($show));
-		}
-
-		foreach($show as $itemToShow) {
-			$toDisplay[] = $itemToShow;
-		}
-
-		return $newLastItemID;
-	}
 
 	function octopus_display_log_item($item, $width = 80) {
 
@@ -153,124 +125,4 @@ END;
 
 	}
 
-	function octopus_get_log_file($file) {
 
-		return $file;
-
-	}
-
-	function octopus_compare_log_items($x, $y) {
-
-		$xTime = $x['time'];
-		$yTime = $y['time'];
-
-		if (!is_numeric($xTime)) $xTime = strtotime($xTime);
-		if (!is_numeric($yTime)) $yTime = strtotime($yTime);
-
-		$result = $xTime - $yTime;
-
-		if (!$result) {
-			return $result;
-		}
-
-		$xIndex = isset($x['index']) ? $x['index'] : 0;
-		$yIndex = isset($y['index']) ? $y['index'] : 0;
-
-		$result = $xIndex - $yIndex;
-
-		if (!$result) {
-			return $result;
-		}
-
-		return strcmp($x['id'], $y['id']);
-
-	}
-
-class Octopus_Log_Monitor {
-
-	private $dirs = array();
-	private $callback;
-	private $lastMods = array();
-	private $lastItems = array();
-
-	public function __construct($callback) {
-		$this->callback = $callback;
-	}
-
-	public function addDir($dir) {
-		$this->dirs[] = $dir;
-	}
-
-
-	/**
-	 * @return Boolean True if anything was found, false otherwise.
-	 */
-	public function poll() {
-
-		$hadChanges = false;
-
-		foreach($this->dirs as $dir) {
-
-			if (!is_dir($dir)) {
-				continue;
-			}
-
-			$hadChanges = $this->pollDirectory($dir) || $hadChanges;
-
-		}
-
-		return $hadChanges;
-	}
-
-	private function pollDirectory($dir) {
-
-		$hadChanges = false;
-
-		$dir = rtrim($dir, '/') . '/';
-
-		$h = opendir($dir);
-		if (!$h) {
-			echo "Could not open directory $dir\n\n";
-			continue;
-		}
-
-		while(($item = readdir($h)) !== false) {
-
-			if ($item == '.' || $item == '..') {
-				continue;
-			}
-
-			$file = $dir . $item;
-
-			if (is_dir($file)) {
-				$this->pollDirectory($file);
-				continue;
-			}
-
-			if (!preg_match('/\.log$/', $item) || preg_match('/\.\d+\.log$/', $item)) {
-				continue;
-			}
-
-			$mtime = @filemtime($file);
-			if (!$mtime) continue; // file not found
-
-			if (!isset($this->lastMods[$file])) {
-				echo "Monitoring $file...\n\n";
-			}
-
-			$this->lastMods[$file] = filemtime($file);
-			$lastItem = isset($this->lastItems[$file]) ? $this->lastItems[$file] : false;
-
-			$func = $this->callback;
-			$this->lastItems[$file] = $func($file, $lastItem);
-
-			$hadChanges = true;
-		}
-
-		closedir($h);
-
-		return $hadChanges;
-	}
-
-
-}

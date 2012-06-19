@@ -160,8 +160,7 @@ class Octopus_Log_Listener_Console {
 					$line .= ' - ' . implode('', $call);
 				}
 
-				$l = ' ' . str_pad($line, $width - 1);
-				$traceAsText .= "\n{$line}";
+				$traceAsText .= "\n" . self::padLinesToWidth($line, $width);;
 
 			}
 
@@ -182,6 +181,29 @@ class Octopus_Log_Listener_Console {
 {$boldLine}{$reset}
 
 END;
+
+	}
+
+	private static function padLinesToWidth($lines, $width = 80) {
+
+		$result = array();
+
+		if (is_string($lines)) $lines = explode("\n", $lines);
+
+		foreach($lines as $line) {
+
+			do {
+
+				$slice = substr($line, 0, $width);
+				$line = substr($line, $width);
+
+				$result[] = str_pad($slice, $width);
+
+			} while(strlen($line) > 0);
+
+		}
+
+		return implode("\n", $result);
 
 	}
 
