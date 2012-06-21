@@ -51,7 +51,14 @@ class DirectoryMonitorTest extends Octopus_App_TestCase {
 		$this->assertEquals(array($dir . 'test.txt'), $monitor->getChangedFiles());
 
 		$monitor->reset();
-		$this->assertEquals(array($subdir . 'test.txt', $dir . 'test.txt'), $monitor->getChangedFiles());
+
+		$expected = array($subdir . 'test.txt', $dir . 'test.txt');
+		$actual = $monitor->getChangedFiles();
+
+		sort($expected);
+		sort($actual);
+
+		$this->assertEquals($expected, $actual);
 
 	}
 
@@ -155,7 +162,14 @@ class DirectoryMonitorTest extends Octopus_App_TestCase {
 		$this->assertEquals(array(), $monitor->getChangedFiles());
 
 		$monitor->clearFilters();
-		$this->assertEquals(array($dir . 'foo.txt', $dir . 'test.txt'), $monitor->getChangedFiles());
+
+		$expected = array($dir . 'foo.txt', $dir . 'test.txt');
+		$actual = $monitor->getChangedFiles();
+
+		sort($expected);
+		sort($actual);
+
+		$this->assertEquals($expected, $actual);
 
 	}
 
