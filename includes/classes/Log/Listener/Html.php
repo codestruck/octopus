@@ -121,10 +121,12 @@ END;
 
 		self::$writtenCssAndJs = true;
 
-		$css = file_get_contents(dirname(__FILE__) . '/Html/debug.css');
-		if ($css) {
+		$cssFile = dirname(__FILE__) . '/Html/debug.css';
+
+		if (is_file($cssFile)) {
+			$cssMtime = @filemtime($cssFile);
 			$css = <<<END
-<link href="/octopus/includes/classes/Log/Listener/Html/debug.css" rel="stylesheet" type="text/css" />
+<link href="/octopus/includes/classes/Log/Listener/Html/debug.css?{$cssMtime}" rel="stylesheet" type="text/css" />
 END;
 		} else {
 			$css = '';

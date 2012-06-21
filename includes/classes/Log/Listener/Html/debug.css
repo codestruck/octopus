@@ -275,7 +275,6 @@ td.octopusDebugArrayKey {
 }
 
 
-
 /*******************************************************************************
  *
  * Helpers
@@ -285,3 +284,13 @@ td.octopusDebugArrayKey {
 .octopus-debug-hidden {
     display: none;
 }
+
+/*******************************************************************************
+ *
+ * Traces
+ *
+ ******************************************************************************/
+
+ div.octopus-debug tr.octopusDebugBacktraceSourceSys td {
+    color: #999;
+ }
