@@ -27,6 +27,7 @@ class Octopus_Http_Request_Curl extends Octopus_Http_Request_Base {
 
         if (strtolower($args['method']) == 'post') {
             curl_setopt($handle, CURLOPT_POST, true);
+        }
 
         if (!empty($args['timeout'])) {
             curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, $args['timeout']);
