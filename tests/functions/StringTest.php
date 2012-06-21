@@ -352,6 +352,18 @@ class StringTests extends PHPUnit_Framework_TestCase
         }
     }
 
+    function testPluralizeWithNumber() {
+
+    	$this->assertEquals('comments', pluralize('comment', 2));
+    	$this->assertEquals('comments', pluralize('comment', 0));
+    	$this->assertEquals('comment', pluralize('comment', 1));
+    	$this->assertEquals('comment', pluralize('comment', 1));
+    	$this->assertEquals('comments', pluralize('comment', -1));
+    	$this->assertEquals('comment', pluralize('comment', 1.0));
+
+
+    }
+
     function testSingularize() {
 
         $tests = array(

@@ -57,7 +57,7 @@ class Octopus_Smarty {
         	foreach(array('SITE_DIR', 'OCTOPUS_DIR') as $opt) {
 
         		$opt = $this->app ? $this->app->$opt : get_option($opt);
-        		$found = $opt . 'views/' . $templateFile;
+        		$found = $opt . 'views/' . $file;
 
         		if (is_file($found)) {
         			$file = $found;
