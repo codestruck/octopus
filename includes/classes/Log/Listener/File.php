@@ -186,7 +186,7 @@ class Octopus_Log_Listener_File {
 				$message = (string)$message;
 			}
 
-			$trace = $this->getStackTrace();
+			$trace = Octopus_Debug::getNiceBacktrace();
 		}
 
 		$entry = call_user_func($this->getFormatter(), $id, $message, $log, $level, $time, $trace, $index);
@@ -217,10 +217,6 @@ class Octopus_Log_Listener_File {
 
 		return is_array($contents) ? $contents : null;
 
-	}
-
-	private function getStackTrace() {
-		return Octopus_Debug::getNiceBacktrace();
 	}
 
 	/**

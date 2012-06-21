@@ -1,16 +1,5 @@
 <?php
 /**
- * A standalone logging and debugging framework. This file has no Octopus
- * dependencies--it can be included in any project you like. If used in an
- * Octopus context, however, it is doubley awesome.
- *
- * Mode Flags
- *
- * Debugging supports Octopus's DEV, STAGING, and LIVE flags. It uses Octopus's
- * methods for determining the current mode if available. If used outside an
- * Octopus context, the DEV, STAGING, and LIVE defines control the default
- * debugging behavior.
- *
  * Default Behavior
  *
  * DEV
@@ -276,6 +265,10 @@ class Octopus_Debug {
     		$trace = self::getNiceBacktrace();
     	}
 
+//echo '<pre>';
+//var_dump($trace);
+//die();
+
     	$result = array();
 
 		// Find the first line of the stack trace that is not in this file
@@ -292,7 +285,9 @@ class Octopus_Debug {
 				continue;
 			}
 
-			if (in_array($traceLine['file'], $filesToIgnore)) {
+			$bannedClassesRx = '/^Octopus_(Log|Debug)/';
+
+			if (preg_match($bannedClassesRx, $traceLine['scope_class'])) {
 				continue;
 			}
 
@@ -312,7 +307,7 @@ class Octopus_Debug {
 
         if ($bt === null) {
             $bt = debug_backtrace();
-            array_shift($bt);
+            array_shift($bt); // remove this call
         }
 
         $result = array();
@@ -328,6 +323,16 @@ class Octopus_Debug {
 
         $rootDirLen = strlen($rootDir);
 
+        $filtered = array();
+        foreach($bt as $index => $item) {
+        	if (empty($item['class']) && !empty($item['function']) && preg_match('/^call_user_func(_array)?$/', $item['function'])) {
+        		// who cares about these?
+        		//continue;
+        	}
+        	$filtered[] = $item;
+        }
+        $bt = $filtered;
+
         $base = array(
         	'function' => '',
         	'file' => '',
@@ -335,11 +340,13 @@ class Octopus_Debug {
         	'type' => '',
         	'octopus_type' => '',
         	'class' => '',
+        	'scope_function' => '',
+        	'scope_class' => '',
         );
 
         foreach($bt as $index => $item) {
 
-        	$nextItem = ($index < (count($bt) - 1)) ? $bt[$index+1] : $base;
+        	$nextItem = ($index < (count($bt) - 1)) ? $bt[$index + 1] : $base;
         	$niceItem = $base;
 
         	foreach(array('function', 'file', 'line', 'class', 'type') as $key) {
@@ -351,6 +358,7 @@ class Octopus_Debug {
         	if ($nextItem['function']) {
         		if (isset($nextItem['class'])) {
         			$niceItem['scope_function'] = $nextItem['class'] . '::' . $nextItem['function'];
+        			$niceItem['scope_class'] = $nextItem['class'];
         		} else {
         			$niceItem['scope_function'] = $nextItem['function'];
         		}
@@ -379,7 +387,32 @@ class Octopus_Debug {
             $result[] = $niceItem;
         }
 
-        return $result;
+        // Filter out call_user_func items
+        $filtered = array();
+        foreach($result as $index => $item) {
+
+        	if (!isset($result[$index + 1])) {
+        		$filtered[] = $item;
+        		break;
+        	}
+
+        	$nextItem = $result[$index + 1];
+        	if ($item['scope_class'] === '' && ($item['scope_function'] === 'call_user_func' || $item['scope_function'] === 'call_user_func_array')) {
+        		// this is a bs call_user_func item, so merge with the next one
+        		unset($result[$index + 1]);
+        		$item['scope_function'] = '';
+        		foreach($item as $key => $value) {
+        			if ($value === '') {
+        				$item[$key] = $nextItem[$key];
+        			}
+        		}
+        	}
+
+        	$filtered[] = $item;
+
+        }
+
+        return $filtered;
 
     }
 
