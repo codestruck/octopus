@@ -154,7 +154,7 @@ END;
 Octopus_Log_Listener_Html::$js = "
 <script type=\"text/javascript\">
 
-(function(window, undefined) {
+(function(undefined) {
 
 /*******************************************************************************
  *
@@ -162,11 +162,16 @@ Octopus_Log_Listener_Html::$js = "
  *
  ******************************************************************************/
 
-var jQuery = %%JQUERY%%;
+if (!window.jQuery) {
 
-if (!jQuery) {
-	return;
+	window.jQuery = %%JQUERY%%;
+
+	if (!window.jQuery) {
+		return;
+	}
 }
+
+var jQuery = window.jQuery;
 
 /*******************************************************************************
  *
@@ -197,6 +202,6 @@ jQuery(function() {
 
 })
 
-})(window);
+})();
 </script>
 ";
