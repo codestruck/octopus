@@ -101,7 +101,7 @@ class Octopus_Log_Monitor {
 
 		$items = array_values($filteredItems);
 
-		usort($items, array('Octopus_Log_Monitor', 'compareLogItems'));
+		usort($items, array('Octopus_Log', 'compareLogItems'));
 
 		$count = count($items);
 
@@ -133,7 +133,7 @@ class Octopus_Log_Monitor {
 
 			foreach($fileItems as $item) {
 
-				if (!$this->lastItem || self::compareLogItems($item, $this->lastItem) > 0) {
+				if (!$this->lastItem || Octopus_Log::compareLogItems($item, $this->lastItem) > 0) {
 					$items[] = $item;
 				}
 
@@ -142,29 +142,5 @@ class Octopus_Log_Monitor {
 		}
 	}
 
-	/**
-	 * Comparator function for items in a file log.
-	 */
-	public static function compareLogItems($x, $y) {
-
-		if (!($x || $y)) {
-			return 0;
-		} else if ($x && !$y) {
-			return 1;
-		} else if ($y && !$x) {
-			return -1;
-		}
-
-		$xTime = $x['time'];
-		$yTime = $y['time'];
-
-		$result = $xTime - $yTime;
-		if ($result) return $result;
-
-		$xIndex = isset($x['index']) ? $x['index'] : 0;
-		$yIndex = isset($y['index']) ? $y['index'] : 0;
-
-		return $xIndex - $yIndex;
-	}
 
 }

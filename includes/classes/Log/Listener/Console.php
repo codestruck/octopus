@@ -130,9 +130,9 @@ class Octopus_Log_Listener_Console {
 		$space = 		' ';
 
 		$time = is_numeric($time) ? date('r', floor($time)) : $time;
-		$time = str_pad($time, ($width / 2) - 1);
+		$time = str_pad($time, ($width / 2));
 		$logAndLevel = "{$log} {$level}";
-		$logAndLevel = str_pad($logAndLevel, ($width / 2) - 1, ' ', STR_PAD_LEFT);
+		$logAndLevel = str_pad($logAndLevel, ($width / 2), ' ', STR_PAD_LEFT);
 
 		$traceAsText = '';
 
@@ -149,15 +149,8 @@ class Octopus_Log_Listener_Console {
 
 				$line = "{$l['nice_file']}, line {$l['line']}";
 
-				$call = array(
-					isset($l['class']) ? $l['class'] : '',
-					isset($l['type']) ? $l['type'] : '',
-					isset($l['function']) ? $l['function'] : ''
-				);
-				$call = array_filter($call);
-
-				if ($call) {
-					$line .= ' - ' . implode('', $call);
+				if (!empty($l['scope_function'])) {
+					$line .= ' - ' . $l['scope_function'];
 				}
 
 				$traceAsText .= "\n" . self::padLinesToWidth($line, $width);;
@@ -175,7 +168,7 @@ class Octopus_Log_Listener_Console {
 		return <<<END
 {$defaultFormat}{$levelColor}
 {$boldLine}
- {$time}{$logAndLevel}{$space}
+{$time}{$logAndLevel}
 {$lightLine}
 {$message}{$traceAsText}
 {$boldLine}{$reset}

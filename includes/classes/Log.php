@@ -110,6 +110,32 @@ class Octopus_Log {
 	}
 
 	/**
+	 * Comparator function for items formatted using ::formatJson.
+	 */
+	public static function compareLogItems($x, $y) {
+
+		if (!($x || $y)) {
+			return 0;
+		} else if ($x && !$y) {
+			return 1;
+		} else if ($y && !$x) {
+			return -1;
+		}
+
+		$xTime = $x['time'];
+		$yTime = $y['time'];
+
+		$result = $xTime - $yTime;
+		if ($result) return $result;
+
+		$xIndex = isset($x['index']) ? $x['index'] : 0;
+		$yIndex = isset($y['index']) ? $y['index'] : 0;
+
+		return $xIndex - $yIndex;
+	}
+
+
+	/**
 	 * Shortcut for writing debug messages. You can call it like this:
 	 *
 	 *	::debug('my log', 'here is my message content')

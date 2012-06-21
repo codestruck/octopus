@@ -32,13 +32,9 @@ END;
 
     array_shift($argv); // Remove script name
 
-    define('OCTOPUS_TAIL_DELAY_IDLE', 1);
-    define('OCTOPUS_TAIL_DELAY_ACTIVE', 1);
-
     $monitor = new Octopus_Log_Monitor();
     $added = 0;
     $fullStackTraces = false;
-    $recentInterval = 5; // first round, only show stuff from the last 5 seconds
 
     if (count($argv) > 0) {
 
@@ -82,30 +78,28 @@ END;
 
     }
 
-    $nextDelay = OCTOPUS_TAIL_DELAY_ACTIVE;
-    $toDisplay = array();
     $firstTime = true;
 
     while(true) {
 
         if ($items = $monitor->poll()) {
-            $nextDelay = OCTOPUS_TAIL_DELAY_ACTIVE;
+            $nextDelay = 1;
         } else {
-            $nextDelay = OCTOPUS_TAIL_DELAY_IDLE;
+            $nextDelay = 3;
         }
 
         $now = time();
 
-        foreach($items as $item) {
+        // Don't display any items the first time through
+        if (!$firstTime) {
 
-            if (!$firstTime || $now - $item['time'] <= $recentInterval) {
-                octopus_display_log_item($item);
-            }
+	        foreach($items as $item) {
+	            octopus_display_log_item($item);
+	        }
 
         }
 
-        $firstTime = false;
-
+    	$firstTime = false;
         sleep($nextDelay);
     }
 
@@ -122,7 +116,7 @@ END;
             $item['message'],
             $item['log'],
             $item['level'],
-            strtotime($item['time']),
+            is_numeric($item['time']) ? $item['time'] : strtotime($item['time']),
             $item['trace'],
             true,
             $width

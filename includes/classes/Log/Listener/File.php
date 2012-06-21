@@ -215,7 +215,7 @@ class Octopus_Log_Listener_File {
 		$contents = preg_replace('/(^[\s,]+|[\s,]+$)/', '', $contents);
 		$contents = @json_decode('[' . $contents . ']', true);
 
-		return is_array($contents) ? $contents : null;
+		return is_array($contents) ? $contents : false;
 
 	}
 
