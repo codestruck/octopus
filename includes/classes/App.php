@@ -106,7 +106,7 @@ class Octopus_App {
         /**
          * Extensions that view files can have.
          */
-        'view_extensions' => array('.php', '.tpl')
+        'view_extensions' => array('.php', '.tpl', '.mustache')
 
     );
 
