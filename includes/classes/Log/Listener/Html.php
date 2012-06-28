@@ -124,10 +124,10 @@ END;
 		$cssFile = dirname(__FILE__) . '/Html/debug.css';
 
 		if (is_file($cssFile)) {
-			$cssMtime = @filemtime($cssFile);
-			$css = <<<END
-<link href="/octopus/includes/classes/Log/Listener/Html/debug.css?{$cssMtime}" rel="stylesheet" type="text/css" />
-END;
+
+			$css = file_get_contents($cssFile);
+			$css = '<style type="text/css">' . $css . '</style>';
+
 		} else {
 			$css = '';
 		}
@@ -181,26 +181,33 @@ var jQuery = window.jQuery;
 
 jQuery(function() {
 
-	jQuery(document)
-		.on('click', '.octopus-debug-nav a', function(evt) {
+	var clickHandler = function(evt) {
 
-			evt.preventDefault();
+		evt.preventDefault();
 
-			var link = jQuery(this),
-				id = link.attr('href').replace(/^.*#/, '#'),
-				target = jQuery(id);
+		var link = jQuery(this),
+			id = link.attr('href').replace(/^.*#/, '#'),
+			target = jQuery(id);
 
-			target
-				.siblings().addClass('octopus-debug-hidden').end()
-				.removeClass('octopus-debug-hidden');
+		target
+			.siblings().addClass('octopus-debug-hidden').end()
+			.removeClass('octopus-debug-hidden');
 
-			link.parent()
-				.siblings().removeClass('octopus-debug-active').end()
-				.addClass('octopus-debug-active');
+		link.parent()
+			.siblings().removeClass('octopus-debug-active').end()
+			.addClass('octopus-debug-active');
 
-		})
+	};
 
-})
+	var selector = '.octopus-debug-nav a';
+
+	if (jQuery.fn.on) {
+		jQuery(document).on('click', selector, clickHandler);
+	} else if (jQuery.fn.delegate) {
+		jQuery(document).delegate(selector, 'click', clickHandler);
+	}
+
+});
 
 })();
 </script>
