@@ -123,18 +123,15 @@ END;
             $this->mailHandler->setText($this->text);
         }
 
+        if (!empty($this->replyTo)) {
+            $this->mailHandler->setHeader('Reply-To', $this->replyTo);
+        } else {
+            $this->mailHandler->setHeader('Reply-To', $this->from);
+        }
+
         // MH: In safe mode, calling setReturnPath makes htmlMimeMail crap out
         if (ini_get("safe_mode") < 1) {
-
             $this->mailHandler->setReturnPath($this->from);
-
-            if (!empty($this->replyTo)) {
-                $this->mailHandler->setHeader('Reply-To', $this->replyTo);
-                $this->mailHandler->setReturnPath($this->replyTo);
-            } else {
-                $this->mailHandler->setHeader('Reply-To', $this->from);
-                $this->mailHandler->setReturnPath($this->from);
-            }
         }
 
         $this->mailHandler->setFrom($this->from);
