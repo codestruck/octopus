@@ -89,6 +89,73 @@ END
 
     }
 
+
+    function testMustacheViewRendering() {
+
+        $app = $this->startApp();
+
+        $this->createControllerFile('MustacheViewRendering', <<<END
+<?php
+
+class MustacheViewRenderingController extends Octopus_Controller {
+
+    public function action() {
+        \$foo = '"bar"';
+        return compact('foo');
+    }
+
 }
 
-?>
+END
+);
+
+        $viewFile = $this->createViewFile('mustache_view_rendering/action.mustache', 'foo: {{foo}}{{#loop}}ERROR{{/loop}}');
+        $resp = $app->getResponse('/mustache-view-rendering/action', true);
+        $this->assertTrue(!!$resp, "No response returned");
+        $this->assertEquals(200, $resp->getStatus(), '200 status code returned');
+
+        $this->assertEquals(
+            'foo: &quot;bar&quot;',
+            trim($resp->getContent()),
+            "Wrong content for view"
+        );
+
+        unlink($viewFile);
+    }
+
+    function testMustachePartialRendering() {
+
+        $app = $this->startApp();
+
+        $this->createControllerFile('MustachePartialRendering', <<<END
+<?php
+
+class MustachePartialRenderingController extends Octopus_Controller {
+
+    public function action() {
+        \$foo = 'bar';
+        return compact('foo');
+    }
+
+}
+
+END
+);
+
+        $viewFile = $this->createViewFile('mustache_partial_rendering/action.mustache', 'outer guy {{> inner}}');
+        $partialFile = $this->createViewFile('mustache_partial_rendering/inner.mustache', 'inner guy');
+        $resp = $app->getResponse('/mustache-partial-rendering/action', true);
+        $this->assertTrue(!!$resp, "No response returned");
+        $this->assertEquals(200, $resp->getStatus(), '200 status code returned');
+
+        $this->assertEquals(
+            'outer guy inner guy',
+            trim($resp->getContent()),
+            "Wrong content for view"
+        );
+
+        unlink($viewFile);
+        unlink($partialFile);
+    }
+
+}

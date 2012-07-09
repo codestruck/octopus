@@ -33,5 +33,4 @@ abstract class Octopus_Template_Renderer {
 
 Octopus_Template_Renderer::register('/\.php$/i', 'Octopus_Template_Renderer_PHP');
 Octopus_Template_Renderer::register('/\.tpl$/i', 'Octopus_Template_Renderer_Smarty');
-
-?>
+Octopus_Template_Renderer::register('/\.mustache$/i', 'Octopus_Template_Renderer_Mustache');

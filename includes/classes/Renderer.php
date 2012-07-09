@@ -544,7 +544,7 @@ class Octopus_Renderer {
         $siteDir = $this->app->getOption('SITE_DIR');
         $octopusDir = $this->app->getOption('OCTOPUS_DIR');
 
-        $extensions = array('', '.php', '.tpl');
+        $extensions = array_merge(array(''), Octopus_App::$defaults['view_extensions']);
         $theme = $controller->theme ? $controller->theme : $this->app->getTheme($request);
 
         $template = $controller->template;

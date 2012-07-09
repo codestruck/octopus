@@ -220,7 +220,7 @@ abstract class Octopus_App_TestCase extends PHPUnit_Framework_TestCase {
 
             $file = $viewDir . $p;
 
-            if (!(ends_with($p, '.php', true) || ends_with($p, '.tpl', true))) {
+            if (!(ends_with($p, '.php', true) || ends_with($p, '.tpl', true) || ends_with($p, '.mustache'))) {
                 $file .= '.php';
             }
 
