@@ -371,10 +371,12 @@ class Octopus_Debug {
                 $niceItem['nice_file'] = $niceItem['file'];
             }
 
-            // Also, remove everything before '/octopus/'
+            // Also, remove everything before '/octopus/' or '/PHPUnit/'
             // This helps keep nice_file nice even when octopus dir is outside
             // of root dir (for example, in tests where it is symlinked in).
-            $niceItem['nice_file'] = preg_replace('#.*/octopus/#', 'octopus/', $niceItem['nice_file']);
+            // When PHPUnit is installed via homebrew, its path can be long and
+            // make output wrap onto multiple lines. It looks bad.
+            $niceItem['nice_file'] = preg_replace('#.*/(octopus|PHPUnit/Framework|PHPUnit/TextUI)/#', '$1/', $niceItem['nice_file']);
 
             if (preg_match('~^octopus/~', $niceItem['nice_file'])) {
             	// This is an octopus system file
