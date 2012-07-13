@@ -337,7 +337,7 @@ END
 
         $resp = $this->app->getPostResponse('/api/1/beets', array(), true);
 
-        $this->assertSame('', $resp->getContent());
+        $this->assertSame("[\n    \n]", $resp->getContent());
         $this->assertEquals('application/json', $resp->contentType());
         $this->assertEquals(200, $resp->getStatus());
 

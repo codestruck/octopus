@@ -18,7 +18,7 @@ abstract class Octopus_Controller_Rest extends Octopus_Controller {
 
         $result = parent::__execute($action, $args);
 
-        if ($result) {
+        if ($result !== false) {
             $this->response->append(pretty_json_encode($result));
         }
 
