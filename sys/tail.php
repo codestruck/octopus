@@ -2,7 +2,9 @@
 
     require_once(dirname(dirname(__FILE__)) . '/includes/core.php');
     is_command_line() or die();
-    bootstrap();
+    bootstrap(array(
+    	'use_site_config' => false,
+    ));
 
     $description = <<<END
 
