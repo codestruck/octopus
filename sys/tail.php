@@ -3,7 +3,7 @@
     require_once(dirname(dirname(__FILE__)) . '/includes/core.php');
     is_command_line() or die();
     bootstrap(array(
-    	'use_site_config' => false,
+        'use_site_config' => false,
     ));
 
     $description = <<<END
@@ -37,6 +37,7 @@ END;
     $monitor = new Octopus_Log_Monitor();
     $added = 0;
     $fullStackTraces = false;
+    $watching = array();
 
     if (count($argv) > 0) {
 
@@ -58,11 +59,11 @@ END;
                 default:
 
                     if (is_dir($arg)) {
-                        $monitor->addDir($arg);
-                        $added++;
+                        $monitor->addDirectory($arg);
+                        $watching[] = $arg;
                     } else {
                         $monitor->addFile($arg);
-                        $added++;
+                        $watching[] = $arg;
                     }
                     break;
             }
@@ -71,18 +72,48 @@ END;
 
     }
 
-    if (!$added) {
+    if (empty($watching)) {
 
         // nothing == monitor LOG_DIR
         $dir = dirname(dirname(dirname(__FILE__))) . '/_private';
         $monitor->addDirectory($dir);
-        echo "\nMonitoring $dir\n\n";
+        $watching[] = $dir;
 
     }
 
+    echo "\nMonitoring:";
+    foreach($watching as $w) {
+        echo "\n\t$w";
+    }
+    echo "\n\n";
+
     $firstTime = true;
+    $lastFailure = null;
 
     while(true) {
+
+        $failure = Octopus_Log_Listener_File::getLastWriteFailure();
+
+        if ($failure) {
+
+            if (serialize($failure) !== serialize($lastFailure)) {
+
+                echo <<<END
+
+********************************************************************************
+It looks like Octopus is having trouble writing to log files-- this is usually
+because of a permissions/ownership issue on the _private or _private/log
+directories. You should check those.
+********************************************************************************
+
+END;
+
+            }
+
+            $lastFailure = $failure;
+
+        }
+
 
         if ($items = $monitor->poll()) {
             $nextDelay = 1;
@@ -92,16 +123,17 @@ END;
 
         $now = time();
 
-        // Don't display any items the first time through
+        // Don't display any items the first time through - this prevents a
+        // million items from scrolling past when you start octopus/tail
         if (!$firstTime) {
 
-	        foreach($items as $item) {
-	            octopus_display_log_item($item);
-	        }
+            foreach($items as $item) {
+                octopus_display_log_item($item);
+            }
 
         }
 
-    	$firstTime = false;
+        $firstTime = false;
         sleep($nextDelay);
     }
 
