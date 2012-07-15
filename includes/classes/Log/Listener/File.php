@@ -173,7 +173,7 @@ class Octopus_Log_Listener_File {
 
 		$handle = @fopen($file, 'a');
 
-		if (1 || $handle === false) {
+		if ($handle === false) {
 			// Opening the file for writing failed, so fail silently
 			return $this->failed('open log file for writing', $file);
 		}
