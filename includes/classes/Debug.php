@@ -72,7 +72,8 @@ class Octopus_Debug {
     	if (self::isCommandLineEnvironment()) {
     		$console = new Octopus_Log_Listener_Console();
     		$console->stackTraceLines = -1;
-    		Octopus_Log::addListener($console);
+    		Octopus_Log::addListener('errors', $console);
+    		Octopus_Log::addListener('dump', $console);
     	}
 
 		if (!empty($options['LIVE']) || self::isLiveEnvironment()) {
