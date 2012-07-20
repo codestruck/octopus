@@ -1,7 +1,8 @@
 /build
+/docs
+/tests/.working
 *.komodoproject
 *~
-\#Untitled-*
-/tests/.working
 .DS_Store
+\#Untitled-*
 cache.properties
