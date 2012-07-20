@@ -1128,7 +1128,7 @@ class Octopus_App {
         // Use those vars to hopefully keep the build from bitching about
         // unused variables
         if ($APP || $NAV || $ROUTES) {
-            require_once($file);
+            include($file);
         }
 
     }
