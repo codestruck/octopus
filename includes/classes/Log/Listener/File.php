@@ -183,7 +183,7 @@ class Octopus_Log_Listener_File {
 			$message = Octopus_Debug::dumpToString($message, 'text', true);
 		} else {
 
-			if ($message instanceof Octopus_Debug_Dumped_Vars) {
+			if ($message instanceof Octopus_Debug_DumpedVars) {
 				$message = (string)$message;
 			}
 
