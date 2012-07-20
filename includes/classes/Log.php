@@ -180,9 +180,18 @@ class Octopus_Log {
 	 */
 	public static function errorHandler($errno, $errstr, $errfile, $errline, $errcontext) {
 
-		if (!(error_reporting() & $errno)) {
-			// This error should not be shown.
+		$errorReporting = error_reporting();
+
+		if ($errorReporting === 0) {
+			// This was a suppressed error
 			return true;
+		}
+
+    	if (!($errorReporting & $errno)) {
+
+			// This error should not be shown -- either it is out of the range
+			// of error_reporting or the error suppression operator was used
+			return false;
 		}
 
 		$level = self::getLogLevelForPhpError($errno);
