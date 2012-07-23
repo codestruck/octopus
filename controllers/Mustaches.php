@@ -3,6 +3,49 @@
 class Mustaches_Controller extends Octopus_Controller_Api {
 
     function _default($action = '') {
+        if (get('production')) {
+            $js = $this->getProduction($action);
+        } else {
+            $js = $this->getDev($action);
+        }
+
+        $this->response->addHeader('Content-Type', 'application/javascript');
+        $this->response->append($js);
+        $this->response->stop();
+    }
+
+    function getProduction($action) {
+
+        $compiled = `node octopus/build/mustache_compile.js site/views/$action`;
+        if (!$compiled) {
+            return $this->getDev($action);
+        }
+
+        $js = <<<END
+(function() {
+
+if (!window.Hogan) {
+    throw 'Please include Hogan.js before /mustaches/';
+}
+
+var compiled = {
+$compiled
+};
+
+window.MUSTACHES = {
+    compiled: function(key) {
+        return compiled[key];
+    }
+};
+
+})();
+
+END;
+
+        return $js;
+    }
+
+    function getDev($action) {
 
         $mustacheDir = SITE_DIR . 'views/' . $action;
         $templates = array();
@@ -44,9 +87,7 @@ window.MUSTACHES = {
 
 END;
 
-        $this->response->addHeader('Content-Type', 'application/javascript');
-        $this->response->append($js);
-        $this->response->stop();
+        return $js;
 
     }
 
