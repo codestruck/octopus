@@ -87,14 +87,19 @@ class Octopus_Log {
 	public static function addListener($log, $minLevel = null, $func = null) {
 
 		if ($minLevel === null && $func === null) {
-			// Allow ::addListener('my_logging_function');
+			// Allow ::addListener($func);
 			$func = $log;
 			$minLevel = self::DEBUG;
 			$log = true;
 		} else if (is_numeric($log) && $log > self::NONE) {
+			// Allow ::addListener($minLevel, $func)
 			$func = $minLevel;
 			$minLevel = $log;
 			$log = true;
+		} else if (is_string($log) && !is_numeric($minLevel) && $func === null) {
+			// Allow ::addListener($log, $func)
+			$func = $minLevel;
+			$minLevel = self::DEBUG;
 		}
 
 		if ($minLevel > self::$minLevel) {
@@ -175,9 +180,18 @@ class Octopus_Log {
 	 */
 	public static function errorHandler($errno, $errstr, $errfile, $errline, $errcontext) {
 
-		if (!(error_reporting() & $errno)) {
-			// This error should not be shown.
+		$errorReporting = error_reporting();
+
+		if ($errorReporting === 0) {
+			// This was a suppressed error
 			return true;
+		}
+
+    	if (!($errorReporting & $errno)) {
+
+			// This error should not be shown -- either it is out of the range
+			// of error_reporting or the error suppression operator was used
+			return false;
 		}
 
 		$level = self::getLogLevelForPhpError($errno);

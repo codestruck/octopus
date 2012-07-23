@@ -211,6 +211,11 @@ class Octopus_App {
      */
     public function errorHandler($level, $err, $file, $line, $context) {
 
+    	if (error_reporting() === 0) {
+    		// This was a suppressed error (@whatever)
+    		return true;
+    	}
+
 		if (!(error_reporting() & $level)) {
 			// This error should not be shown.
 			return true;
@@ -231,26 +236,8 @@ class Octopus_App {
 
         }
 
-        $resp = $this->getCurrentResponse();
-
-        if ($resp && $isSevere) {
-    		$resp->setStatus(500);
-        }
-
 		// Pass errors on to Octopus_Log to distribute them to listeners
-        Octopus_Log::errorHandler($level, $err, $file, $line, $context);
-
-        if ($resp) {
-            // Ensure client receives whatever we've been working on.
-			$resp->flush();
-        }
-
-        if ($this->_prevErrorHandler && !function_exists('xdebug_enable')) {
-            $args = func_get_args();
-            call_user_func_array($this->_prevErrorHandler, $args);
-        }
-
-        return true;
+        return Octopus_Log::errorHandler($level, $err, $file, $line, $context);
     }
 
     public function __get($name) {
@@ -1128,7 +1115,7 @@ class Octopus_App {
         // Use those vars to hopefully keep the build from bitching about
         // unused variables
         if ($APP || $NAV || $ROUTES) {
-            require_once($file);
+            include($file);
         }
 
     }

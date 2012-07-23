@@ -25,24 +25,12 @@ class Octopus_Smarty {
 	// TODO: make this private
     public $smarty;
 
-    private $app;
-    private $debug;
-    private $theme;
-    private $secureFunc;
+    private static $trustedInstances = array();
+    private static $untrustedInstances = array();
+    private static $defaultInstances = array();
 
-    private static $trusted = null;
-    private static $untrusted = null;
-    private static $default = null;
-
-    private function __construct($app, $debug, $theme, $secureFunc = null) {
-
-    	$this->app = $app;
-    	$this->debug = $debug ? $debug : false;
-    	$this->theme = $theme ? $theme : '';
-    	$this->secureFunc = $secureFunc ? $secureFunc : false;
-
-    	$this->smarty = $this->createSmartyInstance();
-
+    private function __construct($app, $trusted) {
+    	$this->smarty = self::createSmartyInstance($app, $trusted);
     }
 
     /**
@@ -79,49 +67,6 @@ class Octopus_Smarty {
     }
 
     /**
-     * @return String Path to the directory used for smarty compilation.
-     */
-    public function getCompileDir() {
-
-    	if ($this->app) {
-
-    		$compileDir = $this->app->getOption('SMARTY_COMPILE_DIR');
-    		if ($compileDir) return $compileDir;
-
-    		return $this->app->OCTOPUS_PRIVATE_DIR . OCTOPUS_SMARTY_COMPILE_SUBDIR;
-    	}
-
-        $compileDir = get_option('SMARTY_COMPILE_DIR');
-        if ($compileDir) return $compileDir;
-
-        $compileDir = get_option('OCTOPUS_PRIVATE_DIR');
-        if ($compileDir) return $compileDir . OCTOPUS_SMARTY_COMPILE_SUBDIR;
-
-        return sys_get_temp_dir();
-    }
-
-    public function getTemplateDir() {
-
-    	// Allow passing template_dir option to app ctor
-    	if ($this->app && ($dir = $this->app->getSetting('template_dir'))) {
-    		return array($dir);
-    	}
-
-    	$siteDir = $this->app ? $this->app->SITE_DIR : get_option('SITE_DIR');
-    	$octopusDir = $this->app ? $this->app->OCTOPUS_DIR : get_option('OCTOPUS_DIR');
-
-    	$result = array();
-
-    	$result[] = $siteDir . 'views';
-    	$result[] = $siteDir . 'themes';
-
-    	$result[] = $octopusDir . 'views';
-    	$result[] = $octopusDir . 'themes';
-
-    	return $result;
-    }
-
-    /**
      * @deprecated No longer supported. Use Octopus_Smarty::trusted() and
      * Octopus_Smarty::untrusted() and just trust that they are doing the
      * right thing.
@@ -141,14 +86,7 @@ class Octopus_Smarty {
      * @return Object A Smarty instance for rendering trusted content.
      */
     public static function trusted() {
-    	return self::getInstance(self::$trusted, array('Octopus_Smarty', 'applyTrustedSecurity'));
-    }
-
-    /**
-     * @return Object A smarty instance for rendering untrusted content.
-     */
-    public static function untrusted() {
-    	return self::getInstance(self::$untrusted, false);
+    	return self::getInstance(self::$trustedInstances, null, true);
     }
 
     /**
@@ -161,76 +99,14 @@ class Octopus_Smarty {
 		// Octopus_Smarty::singleton() gets their own Smarty instance to
 		// screw around with, leaving the ::trusted() instance pristine.
 
-        return self::getInstance(self::$default, array('Octopus_Smarty', 'applyTrustedSecurity'));
+    	return self::getInstance(self::$defaultInstances, null, true);
     }
 
     /**
-     * Helper that returns an Octopus_Smarty instance, using a
-     * previously-created one if possible.
+     * @return Object A smarty instance for rendering untrusted content.
      */
-    private static function getInstance(&$instance, $secureFunc) {
-
-    	$app = class_exists('Octopus_App') && Octopus_App::isStarted() ? Octopus_App::singleton() : null;
-		$debug = $app ? $app->DEV : get_option('DEV');
-		$theme = $app ? $app->getTheme() : '';
-
-    	if ($instance) {
-
-    		// We've already created an instance, so see if it matches the
-    		// parameters being requested
-
-    		if ($instance->debug == $debug &&
-    		    $instance->theme == $theme &&
-    		    $instance->secureFunc == $secureFunc &&
-    		    $instance->app === $app) {
-    		    return $instance;
-    		}
-
-    	}
-
-    	// We need to create a fresh smarty instance matching the parameters
-    	// that have been requested
-    	$instance = new Octopus_Smarty($app, $debug, $theme, $secureFunc);
-
-    	return $instance;
-    }
-
-    private function createSmartyInstance() {
-
-    	$instance = new Smarty();
-
-    	// TODO: Ditch this
-    	$instance->allow_php_tag = true;
-
-    	$instance->compile_dir = $this->getCompileDir();
-    	$instance->template_dir = $this->getTemplateDir();
-
-        // Load our smarty plugins before the built-in ones so that
-        // we can override some of them
-        $instance->plugins_dir = array(
-            OCTOPUS_DIR . 'externals/smarty/plugins/',
-            dirname(__FILE__) . '/Smarty-' . OCTOPUS_SMARTY_VERSION . '/libs/plugins/',
-        );
-
-    	if ($this->debug) {
-
-        	$instance->error_reporting = E_ALL & ~E_NOTICE;
-            $instance->_file_perms = 0666;
-            $instance->_dir_perms = 0777;
-            $instance->compile_error = true;
-            $instance->debugging = true;
-
-    	} else {
-
-    		$instance->error_reporting = E_ERROR;
-
-    	}
-
-    	if ($this->secureFunc) {
-			call_user_func($this->secureFunc, $instance);
-		}
-
-		return $instance;
+    public static function untrusted() {
+    	return self::getInstance(self::$untrustedInstances, null, false);
     }
 
     private static function applyTrustedSecurity(Smarty $instance) {
@@ -244,6 +120,145 @@ class Octopus_Smarty {
         $instance->enableSecurity($sec);
     }
 
-}
+    private static function buildDirectoryList($app) {
 
-?>
+    	if ($app) {
+    		$getter = array($app, 'getOption');
+    	} else if (function_exists('get_option')) {
+    		$getter = 'get_option';
+    	} else {
+    		throw new Octopus_Exception('Neither Octopus_App or get_option are available.');
+    	}
+
+    	$dirs = array(
+    		'SITE_DIR' => '',
+    		'OCTOPUS_DIR' => '',
+    		'OCTOPUS_PRIVATE_DIR' => '',
+    		'SMARTY_COMPILE_DIR' => '',
+    		'template_dir' => '',
+    	);
+    	foreach($dirs as $key => $dir) {
+    		$dirs[$key] = call_user_func($getter, $key);
+    	}
+
+    	if (!$dirs['SMARTY_COMPILE_DIR']) {
+
+    		if ($dirs['OCTOPUS_PRIVATE_DIR']) {
+	    		$dirs['SMARTY_COMPILE_DIR'] = $dirs['OCTOPUS_PRIVATE_DIR'] . OCTOPUS_SMARTY_COMPILE_SUBDIR;
+	    	} else {
+	    		$dirs['SMARTY_COMPILE_DIR'] = sys_get_temp_dir();
+	    	}
+    	}
+
+    	return $dirs;
+    }
+
+    /**
+     * @param Octopus_App|null $app
+     * @param Boolean $trusted
+     * @return Smarty
+     */
+    private static function createSmartyInstance($app, $trusted) {
+
+    	$instance = new Smarty();
+
+    	// Build an index of directory locations
+    	$dirs = self::buildDirectoryList($app);
+
+    	// TODO: Ditch this, even for trusted instances.
+    	$instance->allow_php_tag = $trusted;
+
+        // Load our smarty plugins before the built-in ones so that
+        // we can override some of them
+
+    	$thisDir = dirname(__FILE__);
+
+        $instance->plugins_dir = array(
+            $thisDir . '/plugins/',
+            $thisDir . '/Smarty-' . OCTOPUS_SMARTY_VERSION . '/libs/plugins/',
+        );
+
+
+        // NOTE: Previously, it was possible to configure a Smarty instance
+        // in 'debug' mode. In practice, this didn't seem to be very useful,
+        // so that functionality has been removed.
+
+        /*
+    	if ($debug) {
+
+    		$instance->error_reporting = E_ALL & ~E_NOTICE;
+            $instance->_file_perms = 0666;
+            $instance->_dir_perms = 0777;
+            $instance->compile_error = true;
+            $instance->debugging = true;
+
+    	}
+    	*/
+
+		$instance->error_reporting = E_ERROR;
+
+    	$instance->compile_dir = $dirs['SMARTY_COMPILE_DIR'];
+    	$instance->template_dir = self::getTemplateDir($dirs, $trusted);
+
+    	if ($trusted) {
+    		self::applyTrustedSecurity($instance);
+    	}
+
+		return $instance;
+    }
+
+    private static function getInstance(Array &$cache, $app, $trusted) {
+
+    	// This is all to support the notion that you could potentially
+    	// (i.e., in tests) have more than one app instance using a smarty
+    	// renderer, and each smarty renderer could potentially be configured
+    	// differently per-app.
+
+    	if (!$app && class_exists('Octopus_App') && Octopus_App::isStarted()) {
+    		$app = Octopus_App::singleton();
+    	}
+
+    	$key = $app ? spl_object_hash($app) : 0;
+
+    	if (isset($cache[$key])) {
+    		// already have an instance.
+    		return $cache[$key];
+    	}
+
+    	$instance = new Octopus_Smarty($app, $trusted);
+
+    	// TODO Listen for $app stopping and remove cached instance when that
+    	// happens.
+
+    	return ($cache[$key] = $instance);
+
+    }
+
+    private static function getTemplateDir($dirs, $trusted) {
+
+    	// Allow passing template_dir option to the constructor of Octopus_App.
+    	// This functionality is used by SoleCMS.
+    	if ($dirs['template_dir']) {
+    		return array($dirs['template_dir']);
+    	}
+
+    	$result = array(
+    		$dirs['SITE_DIR'] . 'views',
+    		$dirs['SITE_DIR'] . 'themes',
+    		$dirs['OCTOPUS_DIR'] . 'views',
+    		$dirs['OCTOPUS_DIR'] . 'themes'
+    	);
+
+    	if ($trusted) {
+
+    		// For trusted smarty, allow anything in the site dir or octopus dir
+    		$result[] = $dirs['SITE_DIR'];
+    		$result[] = $dirs['OCTOPUS_DIR'];
+
+    	}
+
+    	return $result;
+
+    }
+
+}

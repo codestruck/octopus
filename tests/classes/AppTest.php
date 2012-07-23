@@ -56,7 +56,7 @@ class AppTests extends Octopus_App_TestCase {
         Octopus::loadExternal('smarty');
         $smarty = Octopus_Smarty::trusted();
 
-        $this->assertEquals(array($dir), $smarty->getTemplateDir());
+        $this->assertEquals(array($dir), $smarty->smarty->template_dir);
 
     }
 

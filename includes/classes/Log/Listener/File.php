@@ -15,6 +15,9 @@ class Octopus_Log_Listener_File {
 	private $logFiles = array();
 	private $extension = '.log';
 	private $formatter = array('Octopus_Log', 'formatJson');
+	private $lastFailureWrite = 0;
+
+	private static $writeFailureFile = null;
 
 	/**
 	 * Creates a new listener that creates log files in the given directory.
@@ -29,7 +32,7 @@ class Octopus_Log_Listener_File {
 		if ($logDir === null) {
 			$logDir = get_option('LOG_DIR');
 			if (!$logDir) {
-				$logDir = get_option('OCTOPUS_PRIVATE_DIR' . 'log/');
+				$logDir = get_option('OCTOPUS_PRIVATE_DIR') . 'log/';
 			}
 		}
 
@@ -88,12 +91,10 @@ class Octopus_Log_Listener_File {
 
 		return (
 			$this->logFiles[$log] =
-				end_in('/', $this->logDir) .
-				$file .
+				rtrim($this->logDir, '/') . '/' .
+				ltrim($file, '/') .
 				$ext
 		);
-
-		return $this->logFile;
 	}
 
 	/**
@@ -156,7 +157,7 @@ class Octopus_Log_Listener_File {
 			if ($size > $this->maxFileSize) {
 
 				if (!$this->rotateLog($file, $failureReason)) {
-					return false;
+					return $this->failed('rotate log files', $file, $failureReason);
 				}
 
 			}
@@ -165,8 +166,8 @@ class Octopus_Log_Listener_File {
 
 		$dir = dirname($file);
 		if (!is_dir($dir)) {
-			if (!@mkdir(dirname($file), 0777, true)) {
-				return false;
+			if (!@mkdir($dir, 0777, true)) {
+				return $this->failed('create log directory', $dir);
 			}
 		}
 
@@ -174,7 +175,7 @@ class Octopus_Log_Listener_File {
 
 		if ($handle === false) {
 			// Opening the file for writing failed, so fail silently
-			return false;
+			return $this->failed('open log file for writing', $file);
 		}
 
 		if ($message instanceof Exception) {
@@ -182,7 +183,7 @@ class Octopus_Log_Listener_File {
 			$message = Octopus_Debug::dumpToString($message, 'text', true);
 		} else {
 
-			if ($message instanceof Octopus_Debug_Dumped_Vars) {
+			if ($message instanceof Octopus_Debug_DumpedVars) {
 				$message = (string)$message;
 			}
 
@@ -203,6 +204,30 @@ class Octopus_Log_Listener_File {
 	}
 
 	/**
+	 * @param Number $maxAge If the last write failure was more than this many
+	 * seconds ago, it is ignored and false is returned. If this is zero, the
+	 * last write failure is returned no matter what.
+	 * @return Array|Boolean Array describing the last write failure or false
+	 * if there wasn't any.
+	 */
+	public static function getLastWriteFailure($maxAge = 30) {
+
+		$file = self::getWriteFailureFile();
+
+		if (!is_file($file)) {
+			return false;
+		}
+
+		if ($maxAge && time() - filemtime($file) > $maxAge) {
+			return false;
+		}
+
+		$contents = file_get_contents($file);
+		return json_decode($contents);
+
+	}
+
+	/**
 	 * Reads a log file and returns an array of log entries.
 	 * @param  Mixed $file Filename to open.
 	 * @return Mixed An Array of log items on success or false on failure.
@@ -216,6 +241,59 @@ class Octopus_Log_Listener_File {
 		$contents = @json_decode('[' . $contents . ']', true);
 
 		return is_array($contents) ? $contents : false;
+
+	}
+
+	/**
+	 * When log writes/rotates fail, this updates a quicky file in /tmp
+	 * noting that. octopus/tail can pick this up and tell you if log writes
+	 * are failing.
+	 * @return Boolean False
+	 */
+	private function failed($message, $file) {
+
+		$now = time();
+
+		// only write failure messages every 5 seconds
+		if ($now - $this->lastFailureWrite < 5) {
+			return;
+		}
+
+		$this->lastFailureWrite = $now;
+		$failureFile = self::getWriteFailureFile();
+
+		@file_put_contents(
+			$failureFile,
+			// NOTE: in my tests, json_encode() performance is slightly better
+			// than serialize() performance
+			json_encode(array(
+				'source' => __FILE__,
+				'message' => $message,
+				'log_file' => $file,
+				'time' => time(),
+			))
+		);
+
+	}
+
+	/**
+	 * @return String The full path to the file where log write failure notices
+	 * are written.
+	 */
+	private static function getWriteFailureFile() {
+
+		if (self::$writeFailureFile) {
+			return self::$writeFailureFile;
+		}
+
+		return (self::$writeFailureFile = (
+
+			'/tmp/.' .
+			preg_replace('/[^a-z0-9]/i', '_', __FILE__) .
+			'.logfail'
+
+		));
+
 
 	}
 
