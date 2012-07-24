@@ -78,7 +78,7 @@ class Octopus_DataSource_Sql implements Octopus_DataSource {
 
 		$newSorting = array($field => $asc);
 		foreach($this->sorting as $field => $asc) {
-			if (!isset($newSorting($field))) {
+			if (!isset($newSorting[$field])) {
 				$newSorting[$field] = $asc;
 			}
 		}
