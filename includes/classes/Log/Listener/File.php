@@ -11,7 +11,7 @@ class Octopus_Log_Listener_File {
 
 	private $logDir;
 	private $maxFileSize;
-	private $rotationDepth = 2;
+	private $rotationDepth = 5;
 	private $logFiles = array();
 	private $extension = '.log';
 	private $formatter = array('Octopus_Log', 'formatJson');
@@ -27,7 +27,7 @@ class Octopus_Log_Listener_File {
 	 */
 	public function __construct($logDir = null) {
 
-		$this->maxFileSize = 1024 * 1024; // 1M
+		$this->maxFileSize = 1024 * 1024 * 5; // 5M
 
 		if ($logDir === null) {
 			$logDir = get_option('LOG_DIR');
