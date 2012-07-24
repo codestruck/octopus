@@ -318,7 +318,7 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
         $multiple = $this->isMultipleSelect();
 
         if (!$multiple && count($values) > 1) {
-            $values = array_slice($value, 0, 1);
+            $values = array_slice($newValue, 0, 1);
         }
 
         $changed = false;
