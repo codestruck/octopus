@@ -179,7 +179,7 @@ class Octopus_Log_Listener_File {
 		}
 
 		if ($message instanceof Exception) {
-			$trace = Octopus_Debug::getNiceBacktrace($message->getTrace());
+			$trace = $message->getTrace();
 			$message = Octopus_Debug::dumpToString($message, 'text', true);
 		} else {
 
@@ -187,7 +187,7 @@ class Octopus_Log_Listener_File {
 				$message = (string)$message;
 			}
 
-			$trace = Octopus_Debug::getNiceBacktrace();
+			$trace = debug_backtrace(false);
 		}
 
 		$entry = call_user_func($this->getFormatter(), $id, $message, $log, $level, $time, $trace, $index);

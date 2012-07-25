@@ -8,7 +8,7 @@ class Octopus_Log_Listener_Html_Trace {
 	private $trace;
 
 	public function __construct($trace = null) {
-		$this->trace = ($trace === null ? debug_backtrace() : $trace);
+		$this->trace = ($trace === null ? debug_backtrace(false) : $trace);
 	}
 
 	public function __toString() {

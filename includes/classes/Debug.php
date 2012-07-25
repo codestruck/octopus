@@ -307,7 +307,7 @@ class Octopus_Debug {
     public static function getNiceBacktrace($bt = null) {
 
         if ($bt === null) {
-            $bt = debug_backtrace();
+            $bt = debug_backtrace(false);
             array_shift($bt); // remove this call
         }
 
@@ -525,7 +525,7 @@ class Octopus_Debug {
    	 */
 	public static function printBacktrace($limit, $file = 'php://stderr') {
 
-        $bt = debug_backtrace();
+        $bt = debug_backtrace(false);
 
         $count = 0;
 

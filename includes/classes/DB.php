@@ -97,7 +97,7 @@ class Octopus_DB extends Octopus_Base {
 
     function getFileCall() {
 
-        $bt = debug_backtrace();
+        $bt = debug_backtrace(false);
 
         foreach ($bt as $t) {
 

@@ -252,9 +252,10 @@ class Octopus_Log {
 			'level' => self::getLevelName($level),
 			'message' => $message,
 			'trace' => self::formatStackTrace($stack),
+
 		);
 
-		return json_encode($message);
+		return @json_encode($message);
 	}
 
 	/**
@@ -513,22 +514,23 @@ class Octopus_Log {
 	private static function formatStackTrace($trace) {
 
 		$result = array();
+
 		if (empty($trace)) {
 			return $result;
 		}
 
+		$hasItems = false;
+
 		foreach($trace as $item) {
 
-			if (count($result) > 0) {
-				$result[] = $item;
+			if (!$hasItems && isset($item['file']) && $item['file'] === __FILE__) {
 				continue;
 			}
 
-			if ($item['file'] === __FILE__) {
-				continue;
-			}
+			unset($item['args']);
 
 			$result[] = $item;
+			$hasItems = true;
 
 		}
 
