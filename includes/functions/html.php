@@ -3,7 +3,7 @@
     /**
      * Add a single javascript file to the current Octopus_Html_Page instance.
      */
-    function add_javascript($url, $section = null, $weight = null, $attributes = array()) {
+    function add_javascript($url, $section = 'head', $weight = null, $attributes = array()) {
 
         $page = Octopus_Html_Page::singleton();
 
@@ -37,7 +37,7 @@
      * @param String $file The path to the JS file, relative to the theme's
      * root.
      */
-    function add_theme_javascript($file, $section = null, $weight = null, $attributes = array()) {
+    function add_theme_javascript($file, $section = 'head', $weight = null, $attributes = array()) {
 
         $themeFile = get_theme_file($file);
         if (!$themeFile) $themeFile = $file;
@@ -45,14 +45,14 @@
         return add_javascript($themeFile, $section, $weight, $attributes);
     }
 
-    function render_javascript($section = '', $useAliases = true) {
+    function render_javascript($section = 'head', $minify = true) {
         $page = Octopus_Html_Page::singleton();
-        return $page->renderJavascript($section);
+        return $page->renderJavascript($section, $minify);
     }
 
-    function render_css($useAliases = true) {
+    function render_css($minify = true) {
         $page = Octopus_Html_Page::singleton();
-        return $page->renderCss(false, $useAliases);
+        return $page->renderCss(false, $minify);
     }
 
     function render_meta() {

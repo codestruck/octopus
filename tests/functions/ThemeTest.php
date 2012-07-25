@@ -17,7 +17,9 @@ class ThemeTest extends Octopus_App_TestCase {
 
     function testAddThemeJavascript() {
 
-        $this->startApp();
+        $app  = $this->startApp();
+        $settings = $app->getSettings();
+        $settings->set('site.theme', 'test');
 
         $dirs = array(
             $this->getOctopusDir() => '/octopus/',

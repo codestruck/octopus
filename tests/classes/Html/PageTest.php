@@ -52,7 +52,6 @@ END
                 array(
                     'file' => '/some/script.js',
                     'attributes' => array(),
-                    'section' => '',
                     'weight' => 200
             )),
             $this->unsetIndexes($page->getJavascriptFiles())
@@ -71,49 +70,12 @@ END
                 array(
                     'file' => '/some/script.js',
                     'attributes' => array(),
-                    'section' => '',
                     'weight' => 200
             )),
             $this->unsetIndexes($page->getJavascriptFiles())
         );
 
     }
-
-
-    function testAddScriptDir() {
-
-        $dir = $this->getSiteDir() . to_slug(__METHOD__);
-        mkdir($dir);
-        touch($dir . '/test.js');
-
-        $page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
-        $page->addJavascriptDir($dir);
-
-        $page->addJavascript('/test.js');
-
-        $files = $page->getJavascriptFiles();
-        $file = array_shift($files);
-
-        $this->assertEquals('/subdir/site/' . basename($dir) . '/test.js?' . filemtime($dir . '/test.js'), $file['file'], 'Test file is found in added dir');
-    }
-
-    function testAddCssDir() {
-
-        $dir = $this->getSiteDir() . to_slug(__METHOD__);
-        mkdir($dir);
-        touch($dir . '/test.css');
-
-        $page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
-        $page->addCssDir($dir);
-
-        $page->addCss('/test.css');
-
-        $files = $page->getCssFiles();
-        $file = array_shift($files);
-
-        $this->assertEquals('/subdir/site/' . basename($dir) . '/test.css?' . filemtime($dir . '/test.css'), $file['file'], 'Test file is found in added dir');
-    }
-
 
     function testTitleHtmlEscaped() {
 
@@ -293,24 +255,29 @@ END;
         $page = new Octopus_Html_Page();
         $page->addCss('foo.css', 'screen');
         $this->assertEquals(
-            array(
-                'file' => 'foo.css',
-                'attributes' => array('media' => 'screen'),
-                'weight' => 0
-            ),
-            $page->getCssFile('foo.css')
+        	array(
+	            array(
+	                'file' => 'foo.css',
+	                'attributes' => array('media' => 'screen'),
+	                'weight' => 0
+	            )
+	        ),
+            $this->unsetIndexes($page->getCssFiles())
         );
 
         $page = new Octopus_Html_Page();
         $page->addCss('foo.css', array('media' => 'screen'));
         $this->assertEquals(
-            array(
-                'file' => 'foo.css',
-                'attributes' => array('media' => 'screen'),
-                'weight' => 0
-            ),
-            $page->getCssFile('foo.css')
+        	array(
+	            array(
+	                'file' => 'foo.css',
+	                'attributes' => array('media' => 'screen'),
+	                'weight' => 0
+	            ),
+	        ),
+            $this->unsetIndexes($page->getCssFiles())
         );
+
 
     }
 
@@ -331,41 +298,6 @@ END
 
     }
 
-    function testLiteralCss() {
-
-        $css = <<<END
-.myrule {
-    font-weight: bold;
-}
-END;
-        $inTag = <<<END
-<style type="text/css">
-$css
-</style>
-END;
-
-        $inTagWithComment = <<<END
-<style type="text/css">
-<!--
-$css
--->
-</style>
-END;
-
-
-        $page = new Octopus_Html_Page();
-        $page->addLiteralCss($css);
-        $this->assertHtmlEquals($inTag, $page->renderCss(true));
-
-        $page = new Octopus_Html_Page();
-        $page->addLiteralCss($inTag);
-        $this->assertHtmlEquals($inTag, $page->renderCss(true));
-
-        $page = new Octopus_Html_Page();
-        $page->addLiteralCss($inTagWithComment);
-        $this->assertHtmlEquals($inTag, $page->renderCss(true));
-
-    }
 
     function testExternalJavascript() {
 
@@ -448,40 +380,6 @@ END
 
     }
 
-
-    function testLiteralJavascript() {
-
-        $script = <<<END
-function myfunc() {
-}
-END;
-
-        $inTag = <<<END
-<script type="text/javascript">
-$script
-</script>
-END;
-
-        $inTagWithComment = <<<END
-<script type="text/javascript">
-<!--
-$script
--->
-</script>
-END;
-
-        $page = new Octopus_Html_Page();
-        $page->addLiteralJavascript($inTag);
-        $this->assertHtmlEquals($inTag, $page->renderJavascript(true));
-
-        $page = new Octopus_Html_Page();
-        $page->addLiteralJavascript($script);
-        $this->assertHtmlEquals($inTag, $page->renderJavascript(true));
-
-        $page = new Octopus_Html_Page();
-        $page->addLiteralJavascript($inTagWithComment);
-        $this->assertHtmlEquals($inTag, $page->renderJavascript(true));
-    }
 
     function testJavascriptWeight() {
 
@@ -591,58 +489,6 @@ END
         );
     }
 
-    function testMetaCaching() {
-
-        $page = new Octopus_Html_Page();
-        $page->removeMeta('Content-type');
-
-        $this->assertFalse($page->getExpiryDate(), 'expiry date is false by default');
-        $this->assertFalse($page->isExpired(), 'page is not expired by default');
-
-        $date = add_days(time(), 3);
-
-        $page->setExpiryDate(date('Y-m-d', $date));
-        $this->assertFalse($page->isExpired());
-        $this->assertEquals($date, $page->getExpiryDate(), 'getExpiryDate');
-
-        $date = date('r', $date);
-
-        $this->assertHtmlEquals(
-            <<<END
-<meta http-equiv="Expires" content="$date" />
-END
-            ,
-            $page->renderMeta(true)
-        );
-
-        $beginningOfTime = date('r', 0);
-
-        $page->setExpired(true);
-        $this->assertTrue($page->isExpired(), 'page is expired after calling setExpired(true)');
-        $this->assertHtmlEquals(
-            <<<END
-<meta http-equiv="Expires" content="$beginningOfTime" />
-<meta http-equiv="Cache-control" content="no-cache" />
-<meta http-equiv="Pragma" content="no-cache" />
-END
-            ,
-            $page->renderMeta(true)
-        );
-
-        $date = add_days(time(), -3);
-        $page->setExpiryDate($date);
-        $this->assertTrue($page->isExpired());
-
-        $date = date('r', $date);
-        $this->assertHtmlEquals(
-            <<<END
-<meta http-equiv="Expires" content="$date" />
-END
-            ,
-            $page->renderMeta(true)
-        );
-
-    }
 
     function testCanonicalUrl() {
 
@@ -675,92 +521,6 @@ END
 
     }
 
-    function testMetaConvenienceMethods() {
-
-        $fields = array(
-            'description',
-            'keywords',
-            'author',
-            'copyright',
-            'contact',
-            'robots'
-        );
-
-        foreach($fields as $f) {
-
-            $setter = 'set' . camel_case($f, true);
-            $getter = 'get' . camel_case($f, true);
-            $value = "dontTest $f";
-
-            $page = new Octopus_Html_Page();
-            $page->removeMeta('Content-type');
-
-
-            $page->$setter($value);
-            $this->assertEquals($value, $page->$getter());
-
-            $this->assertHtmlEquals(
-                <<<END
-<meta name="$f" content="$value" />
-END
-                ,
-                $page->renderMeta(true)
-            );
-
-        }
-
-    }
-
-    function testImageToolbar() {
-
-        $page = new Octopus_Html_Page();
-        $page->removeMeta('Content-type');
-        $this->assertEquals('', $page->renderMeta(true));
-
-        $page->setImageToolbarVisible(false);
-        $this->assertHtmlEquals(
-            <<<END
-<meta http-equiv="imagetoolbar" content="no" />
-END
-            ,
-            $page->renderMeta(true)
-        );
-
-        $page->setImageToolbarVisible(true);
-        $this->assertHtmlEquals('', $page->renderMeta(true));
-
-    }
-
-    function testFavicon() {
-
-        $tests = array(
-            'whatever.ico' => array('href' => 'whatever.ico', 'type' => 'image/vnd.microsoft.icon'),
-            '/whatever.png' => array('href' => '/subdir/whatever.png', 'type' => 'image/png'),
-            '/subdir/whatever.gif' => array('href' => '/subdir/whatever.gif', 'type' => 'image/gif'),
-            '/subdir/whatever.jpeg' => array('href' => '/subdir/whatever.jpeg', 'type' => 'image/jpeg')
-        );
-
-        foreach($tests as $input => $expected) {
-
-            $page = new Octopus_Html_Page(array(
-                'URL_BASE' => '/subdir/'
-            ));
-
-            $page->setFavicon($input);
-            $this->assertEquals($expected['href'], $page->getFavicon(), $input);
-
-            $this->assertHtmlEquals(
-                <<<END
-<link href="{$expected['href']}" rel="shortcut icon" type="{$expected['type']}" />
-END
-                ,
-                $page->renderLinks(true),
-                $input
-            );
-
-        }
-
-    }
 
     function testInternetExplorerCss() {
 
@@ -811,7 +571,7 @@ END
                 'URL_BASE' => '/subdir/'
             ));
 
-            $this->assertFalse($page->getLink('next'), 'getLink for missing link returns false');
+            $this->assertEquals(array(), $page->getLinks(), 'no links by default');
 
             $page->addLink('next', $input);
             $this->assertHtmlEquals(
@@ -824,13 +584,15 @@ END
 
             $this->assertEquals(
                 array(
-                    'url' => $expected,
-                    'rel' => 'next',
-                    'type' => null,
-                    'attributes' => array(),
-                    'weight' => 0
-                ),
-                $page->getLink('next')
+	                array(
+	                    'url' => $expected,
+	                    'rel' => 'next',
+	                    'type' => null,
+	                    'attributes' => array(),
+	                    'weight' => 0
+	                ),
+	            ),
+                $page->getLinks()
             );
 
             $page = new Octopus_Html_Page(array('URL_BASE' => '/subdir/'));
@@ -844,14 +606,16 @@ END
             );
 
             $this->assertEquals(
-                array(
-                    'url' => $expected,
-                    'rel' => 'next',
-                    'type' => 'text/plain',
-                    'attributes' => array(),
-                    'weight' => 0
-                ),
-                $page->getLink('next')
+            	array(
+	                array(
+	                    'url' => $expected,
+	                    'rel' => 'next',
+	                    'type' => 'text/plain',
+	                    'attributes' => array(),
+	                    'weight' => 0
+	                ),
+	            ),
+                $page->getLinks()
             );
 
 
@@ -1013,13 +777,12 @@ END
         $page = new Octopus_Html_Page();
         $page->addJavascript('/global.js', 'bottom', 100);
 
-        $this->assertEquals(array(), $page->getJavascriptFiles());
+        $this->assertEquals(array(), $page->getJavascriptFiles('head'));
         $this->assertEquals(
             array(
                 array(
                     'file' => '/global.js',
                     'attributes' => array(),
-                    'section' => 'bottom',
                     'weight' => 100
                 )
             ),
@@ -1049,7 +812,6 @@ END
                 array(
                     'file' => '/global.js',
                     'attributes' => array(),
-                    'section' => 'bottom',
                     'weight' => 100
                 )
             ),
@@ -1068,49 +830,31 @@ END
 
     }
 
-    function testAddLiteralJavascriptToDifferentArea() {
-
-        $page = new Octopus_Html_Page();
-        $page->addLiteralJavascript(
-            "alert('hello world!');",
-            'bottom'
-        );
-
-        $this->assertEquals('', $page->renderJavascript(true));
-
-        $this->assertEquals(
-            <<<END
-<script type="text/javascript">
-alert('hello world!');
-</script>
-END
-            ,
-            trim($page->renderJavascript('bottom', true))
-        );
-
-    }
-
     function testRenderHead() {
 
         $page = new Octopus_Html_Page();
+
+        touch($this->getSiteDir() . '/global.js');
+        $jsMtime = filemtime($this->getSiteDir() . '/global.js');
+
+        touch($this->getSiteDir() . '/styles.css');
+        $cssMtime = filemtime($this->getSiteDir() . '/styles.css');
 
         $page->addJavascript('/global.js');
         $page->addCss('/styles.css');
         $page->setJavascriptVar('foo', 'bar');
         $page->setTitle('My Title');
-        $page->setFavicon('/icon.png');
 
         $this->assertHtmlEquals(
             <<<END
 <head>
     <title>My Title</title>
     <meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
-    <link href="/styles.css" rel="stylesheet" type="text/css" media="all" />
-    <link href="/icon.png" rel="shortcut icon" type="image/png" />
+    <link href="/site/styles.css?$cssMtime" rel="stylesheet" type="text/css" media="all" />
     <script type="text/javascript">
         var foo = "bar";
     </script>
-    <script type="text/javascript" src="/global.js"></script>
+    <script type="text/javascript" src="/site/global.js?$jsMtime"></script>
 </head>
 END
             ,
@@ -1367,5 +1111,38 @@ END
     	);
 
     }
+
+    function testMetaConvenienceMethods() {
+
+        $fields = array(
+            'description',
+            'keywords',
+        );
+
+        foreach($fields as $f) {
+
+            $setter = 'set' . camel_case($f, true);
+            $getter = 'get' . camel_case($f, true);
+            $value = "dontTest $f";
+
+            $page = new Octopus_Html_Page();
+            $page->removeMeta('Content-type');
+
+
+            $page->$setter($value);
+            $this->assertEquals($value, $page->$getter());
+
+            $this->assertHtmlEquals(
+                <<<END
+<meta name="$f" content="$value" />
+END
+                ,
+                $page->renderMeta(true)
+            );
+
+        }
+
+    }
+
 
 }

@@ -85,29 +85,6 @@ class Octopus_Renderer {
 
         $page = Octopus_Html_Page::singleton();
 
-        // In case theme was changed, remove any existing theme directories
-        // being searched for js / css files and re-add
-        foreach($dirs as $dir) {
-
-            $themesDir = $dir . 'themes/';
-
-            foreach($page->getJavascriptDirs() as $jsDir) {
-                if (starts_with($jsDir, $themesDir)) {
-                    $page->removeJavascriptDir($jsDir);
-                }
-            }
-
-            foreach($page->getCssDirs() as $cssDir) {
-                if (starts_with($cssDir, $themesDir)) {
-                    $page->removeCssDir($cssDir);
-                }
-            }
-
-            $themeDir = $themesDir . $theme;
-            $page->addJavascriptDir($themeDir);
-            $page->addCssDir($themeDir);
-        }
-
         foreach($dirs as $dir) {
             $themeDotPHP = $dir . 'themes/' . $theme . '/theme.php';
             if (is_file($themeDotPHP)) {
