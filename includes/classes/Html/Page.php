@@ -708,6 +708,7 @@ class Octopus_Html_Page implements ArrayAccess {
 
     /**
      * Renders the entire <head> of the page.
+     * @deprecated Use $page->head->render()
      */
     public function renderHead($return = false, $includeTag = true, $minify = true) {
 
@@ -719,13 +720,11 @@ class Octopus_Html_Page implements ArrayAccess {
 
             $html .= $this->renderMeta(true);
 
-            $html .= $this->renderCss(true, $minify);
+            $html .= $this->head->renderCss(true, $minify);
 
             $html .= $this->renderLinks(true);
 
-            $html .= $this->renderJavascriptVars(true);
-
-            $html .= $this->renderJavascript(true, $minify);
+            $html .= $this->head->renderJavascript(true, $minify);
 
             $html .= ($includeTag ? '</head>' : '');
 

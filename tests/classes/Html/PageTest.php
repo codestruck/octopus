@@ -1213,5 +1213,41 @@ END
 
     }
 
+    function testSectionJavascriptHtmlViaArrayAccess() {
+
+    	$page = new Octopus_Html_Page();
+    	$page->head->addJavascript('/foo.js');
+    	$this->assertEquals($page->head->renderJavascript(true), $page->head['scripts']);
+
+    }
+
+    function testSectionCssHtmlViaArrayAccess() {
+
+    	$page = new Octopus_Html_Page();
+    	$page->head->addJavascript('/foo.css');
+    	$this->assertEquals($page->head->renderCss(true), $page->head['css']);
+
+    }
+
+    function testHeadSectionJavascriptIncludesVars() {
+
+    	$page = new Octopus_Html_Page();
+    	$page->setJavascriptVar('foo', 'bar');
+    	$page->head->addJavascript('/foo.js');
+
+    	$this->assertHtmlEquals(
+    		<<<END
+<script type="text/javascript">
+var foo = "bar";
+</script>
+<script type="text/javascript" src="/foo.js"></script>
+END
+			,
+			$page->head->scripts
+    	);
+
+    }
+
+
 
 }

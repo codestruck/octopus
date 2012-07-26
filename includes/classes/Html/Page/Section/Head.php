@@ -15,7 +15,6 @@ class Octopus_Html_Page_Section_Head extends Octopus_Html_Page_Section {
 			$this->page->renderTitle(true),
 			$this->page->renderMeta(true),
 			$this->renderCss(true, $minify),
-			$this->page->renderJavascriptVars(true),
 			$this->renderJavascript(true, $minify),
 			'</head>'
 		);
@@ -27,6 +26,25 @@ class Octopus_Html_Page_Section_Head extends Octopus_Html_Page_Section {
 			echo $result;
 			return $this;
 		}
+
+	}
+
+	public function renderJavascript($return = false, $minify = true) {
+
+		// For <head> only, include javascript variables
+		if ($return) {
+			return implode(
+				"\n",
+				array(
+					$this->page->renderJavascriptVars(true),
+					parent::renderJavascript(true, $minify)
+				)
+			);
+		}
+
+		$this->page->renderJavascriptVars(false);
+		parent::renderJavascript(false, $minify);
+		return $this;
 
 	}
 

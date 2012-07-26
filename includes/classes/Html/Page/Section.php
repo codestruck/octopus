@@ -4,16 +4,19 @@
  * A logical section of a page. An Octopus_Html_Page instance might be composed
  * of multiple sections, each of which can contain its own set of javascript
  * and css includes.
+ *
+ * @prop String $scripts The rendered HTML for all <script> tags in this section.
+ * @prop String $css The render HTML for all CSS <link> tags in this section.
  */
-class Octopus_Html_Page_Section {
+class Octopus_Html_Page_Section implements ArrayAccess {
 
 	protected $name;
 	protected $page;
 
-    private $scripts = array();
+    private $_scripts = array();
     private $removedScripts = array();
 
-    private $css = array();
+    private $_css = array();
     private $removedCss = array();
 
     private static $counter = 0;
@@ -25,6 +28,20 @@ class Octopus_Html_Page_Section {
 	public function __construct($name, Octopus_Html_Page $page) {
 		$this->name = $name;
 		$this->page = $page;
+	}
+
+	public function __get($name) {
+
+		switch($name) {
+
+			case 'scripts':
+				return $this->renderJavascript(true);
+
+			case 'css':
+				return $this->renderCss(true);
+
+		}
+
 	}
 
 	public function __toString() {
@@ -75,7 +92,7 @@ class Octopus_Html_Page_Section {
         if ($ie) $info['ie'] = $ie;
         if ($weight !== null) $info['weight'] = $weight;
 
-        $this->css[$index] = $info;
+        $this->_css[$index] = $info;
 
         return $this;
     }
@@ -106,7 +123,7 @@ class Octopus_Html_Page_Section {
         $script = compact('file', 'attributes', 'index');
         if ($weight !== null) $script['weight'] = $weight;
 
-        $this->scripts[] = $script;
+        $this->_scripts[] = $script;
 
         return $this;
 	}
@@ -117,7 +134,7 @@ class Octopus_Html_Page_Section {
      */
     public function getCssFiles($minify = true) {
 
-        $css = $this->css;
+        $css = $this->_css;
 
         usort($css, 'Octopus_Html_Page::compareWeights');
 
@@ -127,7 +144,7 @@ class Octopus_Html_Page_Section {
 
             if ($this->wasFileRemoved($item['file'], $this->removedCss)) {
             	unset($css[$index]);
-            	unset($this->css[$index]);
+            	unset($this->_css[$index]);
             	unset($item);
             	continue;
             }
@@ -150,10 +167,17 @@ class Octopus_Html_Page_Section {
 	 */
     public function getJavascriptFiles($minify = true) {
 
-        $scripts = $this->scripts;
+        $scripts = $this->_scripts;
 
-        foreach($scripts as &$item) {
+        foreach($scripts as $index => &$item) {
+
             $item['file'] = $this->page->findFile($item['file']);
+
+            if ($this->wasFileRemoved($item['file'], $this->removedScripts)) {
+            	unset($scripts[$index]);
+            	unset($this->_scripts[$index]);
+            }
+
         }
         unset($item);
 
@@ -179,6 +203,38 @@ class Octopus_Html_Page_Section {
     public function getName() {
     	return $this->name;
     }
+
+    /**
+     * @internal
+     */
+    public function offsetExists($name) {
+    	return true;
+    }
+
+    /**
+     * @param String $name
+     * @return String
+     */
+    public function offsetGet($name) {
+    	return $this->$name;
+    }
+
+    /**
+     * @internal Do not use.
+     * @throws Octopus_Exception
+     */
+    public function offsetSet($name, $value) {
+    	throw new Octopus_Exception("offsetSet is not supported on " . __CLASS__);
+    }
+
+    /**
+     * @internal Do not use.
+     * @throws Octopus_Exception
+     */
+    public function offsetUnset($name) {
+    	throw new Octopus_Exception("offsetUnset is not supported on " . __CLASS__);
+    }
+
 
     /**
      * Removes a CSS file.
@@ -224,7 +280,7 @@ class Octopus_Html_Page_Section {
      */
     public function renderCss($return = false, $minify = true) {
 
-        if (empty($this->css)) {
+        if (empty($this->_css)) {
             return $return ? '' : $this;
         }
 
