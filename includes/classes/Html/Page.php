@@ -4,6 +4,11 @@
  * For convenience in templates, this class implements ArrayAccess. You can
  * access the <head> of a page as `$PAGE.head` and any other named section
  * as `$PAGE.$section`.
+ *
+ * @prop Octopus_Html_Page_Section $head The head section (for JS/CSS at the
+ * top of the page).
+ * @prop Octopus_Html_Page_Section $foot The foot section (for JS/CSS at the
+ * bottom of the page).
  */
 class Octopus_Html_Page implements ArrayAccess {
 
