@@ -282,14 +282,13 @@ class Octopus_Debug {
 				continue;
 			}
 
-			$bannedClassesRx = '/^Octopus_(Log|Debug)/';
-
-			if (preg_match($bannedClassesRx, $traceLine['scope_class'])) {
+			$bannedFilesRx = '#octopus/includes/(functions|classes)/([dD]ebug|Log)#';
+			if (preg_match($bannedFilesRx, $traceLine['file'])) {
 				continue;
 			}
 
-			$bannedFilesRx = '#octopus/includes/functions/debug\.php$#';
-			if (preg_match($bannedFilesRx, $traceLine['file'])) {
+			// The log call from Octopus_App::errorHandler is not relevant
+			if (preg_match('#octopus/includes/classes/App\.php#', $traceLine['file']) && isset($traceLine['function']) && $traceLine['function'] === 'errorHandler') {
 				continue;
 			}
 
