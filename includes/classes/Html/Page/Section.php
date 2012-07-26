@@ -7,8 +7,8 @@
  */
 class Octopus_Html_Page_Section {
 
-	private $name;
-	private $page;
+	protected $name;
+	protected $page;
 
     private $scripts = array();
     private $removedScripts = array();
@@ -25,6 +25,10 @@ class Octopus_Html_Page_Section {
 	public function __construct($name, Octopus_Html_Page $page) {
 		$this->name = $name;
 		$this->page = $page;
+	}
+
+	public function __toString() {
+		return $this->render(true);
 	}
 
     /**
@@ -191,6 +195,25 @@ class Octopus_Html_Page_Section {
     public function removeJavascript($file) {
     	$this->removedScripts[$file] = true;
     	return $this;
+    }
+
+    public function render($return = false, $minify = true) {
+
+    	$result = implode(
+    		"\n",
+    		array(
+    			$this->renderCss(true, $minify),
+    			$this->renderJavascript(true, $minify)
+    		)
+    	);
+
+    	if ($return) {
+    		return $result;
+    	} else {
+    		echo $result;
+    		return $this;
+    	}
+
     }
 
     /**

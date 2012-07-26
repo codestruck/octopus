@@ -1144,5 +1144,74 @@ END
 
     }
 
+    function testSectionsAvailableAsProperties() {
+
+    	$page = new Octopus_Html_Page();
+    	$page->head->addJavascript('/foo.js');
+    	$page->foot->addJavascript('/bar.js');
+
+    	$this->assertSame($page->getSection('head'), $page->head);
+    	$this->assertSame($page->getSection('foot'), $page->foot);
+
+    	$this->assertHtmlEquals('<script type="text/javascript" src="/foo.js"></script>', $page->head->renderJavascript(true));
+    	$this->assertHtmlEquals('<script type="text/javascript" src="/bar.js"></script>', $page->foot->renderJavascript(true));
+
+    }
+
+	function testSectionsAvailableViaArrayAccess() {
+
+    	$page = new Octopus_Html_Page();
+    	$page['head']->addJavascript('/foo.js');
+    	$page['foot']->addJavascript('/bar.js');
+
+    	$this->assertSame($page->getSection('head'), $page['head']);
+    	$this->assertSame($page->getSection('foot'), $page['foot']);
+
+    	$this->assertHtmlEquals('<script type="text/javascript" src="/foo.js"></script>', $page->head->renderJavascript(true));
+    	$this->assertHtmlEquals('<script type="text/javascript" src="/bar.js"></script>', $page->foot->renderJavascript(true));
+
+    }
+
+    function testHeadSectionRendersWithHeadTag() {
+
+    	$page = new Octopus_Html_Page();
+    	$page->setTitle('Foo title');
+    	$page->addCss('/foo.css');
+    	$page->addJavascript('/foo.js');
+    	$page->setJavascriptVar('foo', 'bar');
+
+    	$this->assertHtmlEquals(
+    		<<<END
+<head>
+<title>Foo title</title>
+<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+<link href="/foo.css" rel="stylesheet" type="text/css" media="all" />
+<script type="text/javascript">
+var foo = "bar";
+</script>
+<script type="text/javascript" src="/foo.js"></script>
+</head>
+END
+			,
+			(string)$page['head']
+    	);
+
+    }
+
+    function testFootSectionRenderWithoutTag() {
+
+    	$page = new Octopus_Html_Page();
+    	$page->foot->addJavascript('/foo.js');
+
+    	$this->assertHtmlEquals(
+    		<<<END
+<script type="text/javascript" src="/foo.js"></script>
+END
+			,
+			(string)$page['foot']
+    	);
+
+    }
+
 
 }

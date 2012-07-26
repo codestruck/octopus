@@ -1,6 +1,11 @@
 <?php
 
-class Octopus_Html_Page {
+/**
+ * For convenience in templates, this class implements ArrayAccess. You can
+ * access the <head> of a page as `$PAGE.head` and any other named section
+ * as `$PAGE.$section`.
+ */
+class Octopus_Html_Page implements ArrayAccess {
 
     private $javascriptAliaser = null	;
     private $cssAliaser = null;
@@ -76,6 +81,12 @@ class Octopus_Html_Page {
         }
 
         throw new Octopus_Exception_MethodMissing($this, $name, $args);
+    }
+
+    public function __get($name) {
+
+    	return $this->getSection($name);
+
     }
 
     /**
@@ -498,10 +509,18 @@ class Octopus_Html_Page {
      * @param String $name Case-sensitive
      * @return Octopus_Html_Page_Section The section named $name.
      */
-    public function getSection($name) {
+    public function getSection($name, $autoCreate = true) {
 
     	if (!isset($this->sections[$name])) {
-    		$this->sections[$name] = new Octopus_Html_Page_Section($name, $this);
+
+    		// Slight HACK: So that the 'head' section renders a full <head>
+    		// element when coerced to a string, we use a special subclass
+    		if ($name == 'head') {
+    			$this->sections[$name] = new Octopus_Html_Page_Section_Head($name, $this);
+    		} else {
+	    		$this->sections[$name] = new Octopus_Html_Page_Section($name, $this);
+	    	}
+
     	}
 
     	return $this->sections[$name];
@@ -608,6 +627,38 @@ class Octopus_Html_Page {
         }
 
         return $items;
+    }
+
+    /**
+     * @internal
+     */
+    public function offsetExists($name) {
+    	return true;
+    }
+
+    /**
+     * @param String $name
+     * @return Octopus_Html_Page_Section
+     * @uses ::getSection()
+     */
+    public function offsetGet($name) {
+    	return $this->$name;
+    }
+
+    /**
+     * @internal Do not use.
+     * @throws Octopus_Exception
+     */
+    public function offsetSet($name, $value) {
+    	throw new Octopus_Exception("offsetSet is not supported on " . __CLASS__);
+    }
+
+    /**
+     * @internal Do not use.
+     * @throws Octopus_Exception
+     */
+    public function offsetUnset($name) {
+    	throw new Octopus_Exception("offsetUnset is not supported on " . __CLASS__);
     }
 
     public function removeAllBreadcrumbs() {
