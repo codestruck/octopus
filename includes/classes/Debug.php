@@ -266,10 +266,6 @@ class Octopus_Debug {
     		$trace = self::getNiceBacktrace();
     	}
 
-//echo '<pre>';
-//var_dump($trace);
-//die();
-
     	$result = array();
 
 		// Find the first line of the stack trace that is not in this file
@@ -286,9 +282,13 @@ class Octopus_Debug {
 				continue;
 			}
 
-			$bannedClassesRx = '/^Octopus_(Log|Debug)/';
+			$bannedFilesRx = '#octopus/includes/(functions|classes)/([dD]ebug|Log)#';
+			if (preg_match($bannedFilesRx, $traceLine['file'])) {
+				continue;
+			}
 
-			if (preg_match($bannedClassesRx, $traceLine['scope_class'])) {
+			// The log call from Octopus_App::errorHandler is not relevant
+			if (preg_match('#octopus/includes/classes/App\.php#', $traceLine['file']) && isset($traceLine['function']) && $traceLine['function'] === 'errorHandler') {
 				continue;
 			}
 
