@@ -90,7 +90,15 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
 
         $result = parent::__execute($action, $args);
 
-        $this->response->set($result);
+        if (is_array($result)) {
+        	$this->response->set($result);
+        } else {
+        	// HACK: Json renderer doesn't handle non-array responses very
+        	// well right now.
+        	$this->response->setRenderer(new Octopus_Renderer());
+        	$this->response->append(json_encode($result));
+        }
+
         $this->response->stop();
 
         return $result;

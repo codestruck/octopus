@@ -93,6 +93,28 @@ END
 
     }
 
+    function testNonArrayResponse() {
+
+        $this->createControllerFile(
+            'api/1/NonArray',
+            <<<END
+<?php
+
+class Api1NonArrayController extends Octopus_Controller_Rest {
+
+    public function getAction() {
+    	return 1337;
+    }
+
+}
+END
+        );
+
+        $resp = $this->app->getGetResponse('/api/1/non-array');
+        $this->assertEquals('1337', $resp->render(true));
+
+    }
+
     function testGetResource() {
 
         $resp = $this->app->getGetResponse('/api/1/apples/2');
