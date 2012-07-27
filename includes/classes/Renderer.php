@@ -9,7 +9,7 @@ class Octopus_Renderer {
 	private static $registry = array(
 
 		// JSON renderer
-		'Octopus_Renderer_JSON' => array(
+		'Octopus_Renderer_Json' => array(
 			'application/json' => false,
 			'text/x-json' => false,
 			'application/javascript' => false,
