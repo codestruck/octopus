@@ -25,6 +25,7 @@ END
 		unset($GLOBALS['testThemeDotPHPIncluded']);
 
 		$resp = $app->getResponse('/foo');
+		$this->assertTrue(isset($GLOBALS['testThemeDotPHPIncluded']));
 		$this->assertEquals('included', $GLOBALS['testThemeDotPHPIncluded']);
 
 		recursive_delete($themeDir);

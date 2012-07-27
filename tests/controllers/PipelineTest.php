@@ -439,6 +439,8 @@ END
 
     function testFullCacheDisabledByDefault() {
 
+    	return $this->markTestSkipped('Disabling full cache temporarily');
+
     	$this->createFullCacheTestFiles('DisabledByDefault');
 
     	$app = $this->startApp(array('full_cache' => true));
@@ -451,6 +453,8 @@ END
     }
 
     function testFullCacheOnlyGetRequestsCached() {
+
+    	return $this->markTestSkipped('Disabling full cache temporarily');
 
     	$this->createFullCacheTestFiles('OnlyGet');
 
@@ -469,6 +473,8 @@ END
 
     function testFullCacheOnlyCachedWhenQuerystringEmpty() {
 
+		return $this->markTestSkipped('Disabling full cache temporarily');
+
     	$this->createFullCacheTestFiles('EmptyQuerystring');
 
     	$app = $this->startApp(array('full_cache' => true));
@@ -486,6 +492,8 @@ END
 
     function testFullCacheClearCacheDir() {
 
+    	return $this->markTestSkipped('Disabling full cache temporarily');
+
     	$this->createFullCacheTestFiles('ClearCacheDir');
 
     	$app = $this->startApp(array('full_cache' => true));
@@ -500,6 +508,8 @@ END
 
     function testFullCacheAppendsTimestampForHtml() {
 
+    	return $this->markTestSkipped('Disabling full cache temporarily');
+
     	$this->createFullCacheTestFiles('AppendTimestamp');
 
 		$app = $this->startApp(array('full_cache' => true));
@@ -513,6 +523,8 @@ END
     }
 
     function testNoFullCacheForNotHtml() {
+
+    	return $this->markTestSkipped('Disabling full cache temporarily');
 
     	$this->createFullCacheTestFiles('NonHtml');
 

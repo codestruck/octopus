@@ -455,6 +455,7 @@ class Octopus_Response implements ArrayAccess {
 
     	$this->checkNotStopped();
 
+		$this->setRenderer(new Octopus_Renderer_HeadersOnly());
     	$this->_status = ($permanent ? 301 : 302);
     	$this->headers = array(
     		'location' => array('name' => 'Location', 'value' => $to)

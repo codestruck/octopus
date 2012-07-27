@@ -37,16 +37,19 @@ class Octopus_Dispatcher {
 
 	    }
 
+	    /*
+
         // For e.g. 301 redirects we don't need to bother rendering
         if (!$response->active) {
+        	// Null renderer outputs
+        	//$response->setRenderer(new Octopus_Renderer_HeadersOnly());
             return;
         }
-
-        $contents = $response->render(true);
 
         if ($controller->cache && $response->isHtml()) {
         	$this->saveFullCacheFile($request, $response, $contents);
         }
+        */
 
     }
 

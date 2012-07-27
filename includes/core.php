@@ -97,8 +97,8 @@
 
         $app = Octopus_App::singleton();
 
-        // In dev mode, use buffered output and add extra debugging info
         $response = $app->getResponse($path);
         $response->render();
+
 
     }

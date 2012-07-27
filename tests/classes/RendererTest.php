@@ -186,6 +186,7 @@ END
     	$this->assertEquals(200, $resp->getStatus(), '200 status for view that exists');
 
     	$resp = $app->getResponse('/some/deep/view/that_does_not_exist');
+
     	$this->assertEquals(404, $resp->getStatus(), '404 for non-existent view');
 
     }

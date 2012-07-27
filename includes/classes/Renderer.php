@@ -79,7 +79,6 @@ class Octopus_Renderer {
 			echo $content;
 
 			return $this;
-
 		}
 
 	}
