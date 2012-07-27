@@ -3,7 +3,7 @@
 /**
  * A "filter" that just changes the number of items on the page.
  */
-class Octopus_Html_Table_Filter_PageSize extends Octopus_Html_Table_Filter {
+class Octopus_Html_Table_Filter_Pagesize extends Octopus_Html_Table_Filter {
 
     protected function createElement() {
 
