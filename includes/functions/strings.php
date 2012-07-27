@@ -488,16 +488,29 @@
     }
 
     /**
-     * Converts an arbitrary string into a valid css class;
+     * Converts an arbitrary string into a valid css class.
      */
     function to_css_class($x) {
 
-        $x = trim($x);
-        $x = preg_replace('/[^a-z0-9-]/i', '_', $x);
-        $x = preg_replace('/-{2,}/', '_', $x);
-        $x = preg_replace('/^([^a-z-])/i', '_$1', $x);
+        $x = dashed($x);
+        $x = preg_replace('/[^a-z0-9-]/i', '-', $x);
+        $x = preg_replace('/-{2,}/', '-', $x);
+        $x = preg_replace('/^([^a-z-])/i', '-$1', $x);
 
         return $x;
+    }
+
+    /**
+     * Converts arbitrary text into a valid DOM id.
+     */
+    function to_html_id($x) {
+
+    	$x = underscore($x);
+    	// move initial numbers to the end
+    	$x = preg_replace('/^(\d+_?)(.*)$/', '$2$1', $x);
+    	$x = camel_case($x);
+
+    	return $x;
     }
 
     /**
@@ -561,8 +574,11 @@
      */
     function underscore($s, $sep = '_') {
 
-        $s = preg_replace('/([a-z])([A-Z]+)/', '$1' . $sep . '$2', $s);
+        $s = preg_replace('/([a-z0-9])([A-Z])/', '$1_$2', $s);
+        $s = preg_replace('/([0-9])([a-z])/', '$1_$2', $s);
+        $s = preg_replace('/([a-zA-Z])([0-9])/', '$1_$2', $s);
         $s = preg_replace('/[\s_-]+/', $sep, $s);
+
         return strtolower($s);
 
     }

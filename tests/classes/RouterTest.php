@@ -81,6 +81,15 @@ class RouterTest extends PHPUnit_Framework_TestCase {
 
     }
 
+	function testFavorMostRecentlyAddedRoute() {
+
+		$r = new Octopus_Router();
+		$r->alias('/offers', '/cagi/offers');
+		$r->alias('/offers/cancel/{$id}', '/cagi/cancel-offer/{$id}', array('id' => '\d+'));
+		$this->assertEquals('/cagi/cancel-offer/6', $r->resolve('/offers/cancel/6'));
+
+	}
+
 }
 
 ?>

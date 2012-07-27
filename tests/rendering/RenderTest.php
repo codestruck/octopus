@@ -43,7 +43,7 @@ END
 
             $this->assertEquals(
                 $view,
-                trim($resp->getContent()),
+                trim($resp->render(true)),
                 "Wrong content for view: $view"
             );
 
@@ -59,7 +59,7 @@ END
         $this->createViewFile('render-existing/foo', 'SUCCESS!');
 
         $resp = $app->getResponse('render-existing/foo', true);
-        $this->assertEquals('SUCCESS!', $resp->getContent());
+        $this->assertEquals('SUCCESS!', $resp->render(true));
 
     }
 
@@ -85,7 +85,7 @@ END
         $app = $this->startApp();
 
         $resp = $app->getResponse('/test-basic-smarty-render/action', true);
-        $this->assertEquals('Smarty view contents', trim($resp->getContent()));
+        $this->assertEquals('Smarty view contents', trim($resp->render(true)));
 
     }
 
@@ -116,7 +116,7 @@ END
 
         $this->assertEquals(
             'foo: &quot;bar&quot;',
-            trim($resp->getContent()),
+            trim($resp->render(true)),
             "Wrong content for view"
         );
 
@@ -150,7 +150,7 @@ END
 
         $this->assertEquals(
             'outer guy inner guy',
-            trim($resp->getContent()),
+            trim($resp->render(true)),
             "Wrong content for view"
         );
 

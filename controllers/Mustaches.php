@@ -1,22 +1,37 @@
 <?php
 
-class Mustaches_Controller extends Octopus_Controller_Api {
+class Mustaches_Controller extends Octopus_Controller {
 
     function _default($action = '') {
+
+    	// Basic action sanitization
+    	$action = preg_replace('/[^a-z0-9\._\/-]/', '', $action);
+
         if (get('production')) {
             $js = $this->getProduction($action);
         } else {
             $js = $this->getDev($action);
         }
 
-        $this->response->addHeader('Content-Type', 'application/javascript');
+        $this->response->setHeader('Content-Type', 'application/javascript');
         $this->response->append($js);
         $this->response->stop();
+
+		// This is a little convoluted, but by default, Octopus_Response will
+		// guess the renderer to use based on the content type. By manually
+		// setting the renderer here, we ensure that the JS above just gets
+		// outputted directly when the response is rendered (without any
+		// templating logic being applied.)
+		$this->response->setRenderer(new Octopus_Renderer());
+
+		$this->response->stop();
+
     }
 
     function getProduction($action) {
 
         $compiled = `node octopus/build/mustache_compile.js site/views/$action`;
+
         if (!$compiled) {
             return $this->getDev($action);
         }
@@ -58,7 +73,7 @@ END;
 
         $templates = join(",\n", $templates);
 
-        $js = <<<END
+        $this->response->append(<<<END
 (function() {
 
 if (!window.Hogan) {
@@ -85,7 +100,8 @@ window.MUSTACHES = {
 
 })();
 
-END;
+END
+);
 
         return $js;
 

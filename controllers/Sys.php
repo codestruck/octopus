@@ -11,7 +11,7 @@ class SysController extends Octopus_Controller {
         }
 
         if (!$this->app->isDevEnvironment()) {
-            $this->response->forbidden();
+            $this->notFound();
             return false;
         }
     }

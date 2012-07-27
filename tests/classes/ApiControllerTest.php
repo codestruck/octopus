@@ -16,11 +16,19 @@ class TestApiController extends Octopus_Controller_Api {
 
 class ApiControllerTest extends Octopus_App_TestCase {
 
+	function createController($path = '/foo') {
+
+		$app = $this->getApp();
+		$request = ($path instanceof Octopus_Request) ? $path : $app->createRequest($path);
+		$resp = new Octopus_Response($request);
+
+		return new TestApiController($app, $request, $resp);
+
+	}
+
     function testSuccessfulCall() {
 
-        $app = $this->startApp();
-        $resp = new Octopus_Response(true);
-        $controller = new TestApiController($app, new Octopus_Request($app,''), $resp);
+        $controller = $this->createController();
 
         $args = array('name' => 'Matt', 'password' => 'test', 'favoriteColor' => 'green');
         $data = $controller->__execute('add-member', $args);
@@ -30,15 +38,12 @@ class ApiControllerTest extends Octopus_App_TestCase {
 
     function testMissingArgsCall() {
 
-        $app = $this->startApp();
-
         foreach(array('name', 'password') as $missingArg) {
 
             $args = array('name' => 'Matt', 'password' => 'test', 'favoriteColor' => 'green');
             unset($args[$missingArg]);
 
-            $resp = new Octopus_Response(true);
-            $controller = new TestApiController($app, new Octopus_Request($app,''), $resp);
+            $controller = $this->createController();
 
             $data = $controller->__execute('add-member', $args);
 
@@ -73,7 +78,7 @@ END
         );
 
         $resp = $app->getResponse('/api/1/test_content_type/test', true);
-        $this->assertEquals('application/json', $resp->contentType());
+        $this->assertEquals('application/json', $resp->contentType);
 
     }
 
@@ -103,25 +108,25 @@ END
         );
 
         $resp = $app->getResponse('/api/1/test-error/test-single-error', true);
-        $this->assertEquals('application/json', $resp->contentType());
-        $this->assertEquals(403, $resp->getStatus(), 'Status code is 403');
+        $this->assertEquals('application/json', $resp->contentType);
+        $this->assertEquals(403, $resp->status, 'Status code is 403');
         $this->assertEquals(
             array(
                 'success' => false,
                 'errors' => array('A single error')
             ),
-            json_decode($resp->getContent(), true)
+            $resp->getValues()
         );
 
         $resp = $app->getResponse('/api/1/test-error/test-multiple-errors', true);
-        $this->assertEquals('application/json', $resp->contentType());
+        $this->assertEquals('application/json', $resp->contentType);
         $this->assertEquals(403, $resp->getStatus());
         $this->assertEquals(
             array(
                 'success' => false,
                 'errors' => array('error 1', 'error 2')
             ),
-            json_decode($resp->getContent(), true)
+            $resp->getValues()
         );
 
     }
@@ -153,10 +158,10 @@ END
 
         $resp = $app->getResponse('/api/1/test-error-in-before/test', true);
         $this->assertEquals(403, $resp->getStatus(), 'status is 403');
-        $this->assertEquals('application/json', $resp->contentType(), 'content type is application/json');
+        $this->assertEquals('application/json', $resp->contentType, 'content type is application/json');
         $this->assertEquals(
             array('success' => false, 'errors' => array('_before fails')),
-            json_decode($resp->getContent(), true)
+            $resp->getValues()
         );
         $this->assertFalse(array_key_exists($method, $GLOBALS), 'test action should not have fired.');
 
@@ -186,7 +191,7 @@ END
         $this->assertEquals(404, $r->getStatus());
         $this->assertEquals(
             array('success' => false, 'errors' => array('not found')),
-            json_decode($r->getContent(), true)
+            $r->getValues()
         );
 
 
@@ -216,7 +221,7 @@ END
         $this->assertEquals(403, $r->getStatus());
         $this->assertEquals(
             array('success' => false, 'data' => array('foo' => 'bar'), 'errors' => array('not found')),
-            json_decode($r->getContent(), true)
+            $r->getValues()
         );
 
 

@@ -306,6 +306,22 @@ class StringTests extends PHPUnit_Framework_TestCase
 
     }
 
+    function testToCssClass() {
+
+    	$tests = array(
+    		'' => '',
+    		'FOO' => 'foo',
+    		'fooBar' => 'foo-bar',
+    		'foo_bar' => 'foo-bar',
+    		'27foo' => '-27-foo',
+	    );
+
+	    foreach($tests as $input => $expected) {
+	    	$this->assertEquals($expected, to_css_class($input), "$input -> $expected");
+	    }
+
+    }
+
     function testCamelCase() {
 
         $tests = array(
@@ -402,7 +418,6 @@ class StringTests extends PHPUnit_Framework_TestCase
 
     }
 
-
     function testUnderscore() {
 
         $tests = array(
@@ -414,7 +429,8 @@ class StringTests extends PHPUnit_Framework_TestCase
             'Foo__bar' => 'foo_bar',
             'foo-BAR' => 'foo_bar',
             'FOOBAR' => 'foobar',
-            'add-slash-test' => 'add_slash_test'
+            'add-slash-test' => 'add_slash_test',
+            'separate26numbers' => 'separate_26_numbers',
 
         );
 

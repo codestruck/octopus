@@ -93,21 +93,57 @@
         $page->addBreadcrumb($url, $text);
     }
 
+    /**
+     * Gets the value of one or more keys on the current response.
+     * @param String $key Key value to get.
+     * @param Mixed $default
+     * @return Mixed If $key is specified, the value of that key is returned
+     * (or $default if it is not et). If called without arguments, this function
+     * returns an array of ALL key/value pairs set on the current response.
+     * @throws Octopus_Exception If no response is in progress.
+     */
+    function get_view_data($key = null, $default = null) {
+
+    	$resp = Octopus_Response::current();
+
+    	if (!$resp) {
+    		throw new Octopus_Exception("There is no Octopus_Response available.");
+    	}
+
+    	if (func_num_args() === 0) {
+    		return $resp->getValues();
+    	} else {
+    		return $resp->get($key, $default);
+    	}
+
+    }
 
     /**
-     * @return string URL to a CDN-hosted jQuery
+     * Sets the value of one or more keys on the current response.
+     * @param String|Array $key A key to set OR an array of key/value pairs.
+     * @param Mixed $value Value to assign. If $key is an array, this should
+     * not be provided.
+     * @throws Octopus_Exception If no response is in progress.
      */
-    function get_jquery_url($version = '1.5', $secure = null) {
+    function set_view_data($key, $value = null) {
 
-        if ($secure === null) {
-            $secure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on';
-        }
+    	$resp = Octopus_Response::current();
 
-        return ($secure ? 'https' : 'http') . '://ajax.googleapis.com/ajax/libs/jquery/' . $version . '/jquery.min.js';
+    	if (!$resp) {
+    		throw new Octopus_Exception("There is no Octopus_Response available.");
+    	}
+
+    	if (is_array($key)) {
+    		$resp->set($key);
+    	} else {
+    		$resp->set($key, $value);
+    	}
+
     }
 
     /**
      * Given some input, returns a valid CSS color reference.
+     * TODO: SERIOUSLY????
      */
     function to_html_color($x, $hexify = true) {
 

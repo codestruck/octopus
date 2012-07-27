@@ -291,17 +291,17 @@ END
                 'fields' => array(
                     'close_tag' => array(
 
-                        'attributes' => 'type="text" id="close_tagInput" class="close_tag text" name="close_tag"',
+                        'attributes' => 'type="text" id="closeTagInput" class="close-tag text" name="close_tag"',
                         'type' => 'text',
-                        'id' => 'close_tagInput',
-                        'class' => 'close_tag text',
+                        'id' => 'closeTagInput',
+                        'class' => 'close-tag text',
                         'name' => 'close_tag',
                         'html' => trim($closeTag->render(true)),
                         'valid' => true,
                         'errors' => array(),
                         'label' => array(
                             'text' => 'Close Tag:',
-                            'html' => '<label for="close_tagInput">Close Tag:</label>'
+                            'html' => '<label for="closeTagInput">Close Tag:</label>'
 
                         ),
                         'full_html' => trim($closeTag->wrapper->render(true)),

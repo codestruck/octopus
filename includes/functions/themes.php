@@ -4,8 +4,8 @@
      * @return string The name of the current theme.
      */
     function get_theme() {
-        $app = Octopus_App::singleton();
-        return $app->getTheme();
+    	$resp = Octopus_Response::current();
+        return $resp ? $resp->getTheme() : '';
     }
 
     /**
@@ -14,8 +14,8 @@
      * in the site/themes directory.
      */
     function set_theme($theme) {
-        $app = Octopus_App::singleton();
-        $app->setTheme($theme);
+    	$resp = Octopus_Response::current();
+        $resp->setTheme($theme);
     }
 
     /**

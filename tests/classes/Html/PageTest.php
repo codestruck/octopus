@@ -278,7 +278,6 @@ END;
             $this->unsetIndexes($page->getCssFiles())
         );
 
-
     }
 
     function testCssWeight() {

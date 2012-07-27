@@ -14,15 +14,7 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
     );
 
     protected function setResponseContentType() {
-
-        $format = strtolower(trim(get('octopus_api_format', '')));
-        if ($format && isset(self::$contentTypes[$format])) {
-            $this->response->contentType(self::$contentTypes[$format]);
-        }
-
-        // TODO: Detect JSONP
-
-        $this->response->contentType(self::$contentTypes['json']);
+        $this->response->setContentType(self::$contentTypes['json']);
     }
 
     public function _default($action, $args) {
@@ -98,7 +90,7 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
 
         $result = parent::__execute($action, $args);
 
-        $this->response->append(json_encode($result));
+        $this->response->set($result);
         $this->response->stop();
 
         return $result;

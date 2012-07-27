@@ -27,17 +27,22 @@ class Octopus_Dispatcher {
             $request->getActionArgs()
         );
 
+        if ($data !== null) {
+
+	        if (!is_array($data)) {
+	            $data = array('data' => $data);
+	        }
+
+	        if ($response->active) $response->set($data);
+
+	    }
+
         // For e.g. 301 redirects we don't need to bother rendering
-        if (!$response->shouldContinueProcessing()) {
+        if (!$response->active) {
             return;
         }
 
-        if (!is_array($data)) {
-            $data = array('data' => $data);
-        }
-
-        $renderer = $this->app->getRenderer();
-        $contents = $renderer->render($controller, $data, $request, $response);
+        $contents = $response->render(true);
 
         if ($controller->cache && $response->isHtml()) {
         	$this->saveFullCacheFile($request, $response, $contents);

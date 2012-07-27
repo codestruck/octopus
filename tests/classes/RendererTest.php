@@ -129,7 +129,6 @@ END
     function testFallbackViewDiscovery() {
 
         $app = $this->getApp();
-        $renderer = $app->getRenderer();
 
         $controllerFile = $this->createControllerFile('admin/FallbackViewTest', <<<END
 <?php
@@ -232,40 +231,25 @@ END
 
     }
 
-    function assertViewInfoMatches($expected, $actual, $path = null) {
+    function assertViewInfoMatches($expected, Octopus_Request $request) {
 
-    	$req = null;
-
-        if ($actual instanceof Octopus_Request) {
-        	$req = $actual;
-            $path = $actual->getPath();
-            $app = $this->getApp();
-            $renderer = $app->getRenderer();
-            $actual = $renderer->findView($actual, null);
-        }
-
-        $this->assertTrue(is_array($actual), "\$actual was not an array. Failed on '$path'.");
+        $app = $this->getApp();
+        $renderer = new Octopus_Renderer_Template();
+        $path = $request->getPath();
+        $actual = $renderer->getViewFileForRequest($request);
 
         if ($expected == false) {
-            $this->assertFalse($actual['found'], "View was found when it shouldn't have been. Failed on '$path'");
+            $this->assertFalse($actual, "View was found when it shouldn't have been. Failed on '$path'");
             return;
         }
 
-        if (is_string($expected)) {
-            $expected = array('file' => $expected, 'found' => true);
-        }
 
-        foreach($expected as $key => $value) {
+    	if ($expected != $actual) {
+    		dump_r($renderer->getViewPaths($req, $req->getController()));
+    	}
 
-        	if ($req && strcmp($value, $actual[$key]) !== 0) {
-        		dump_r($renderer->getViewPaths($req, $req->getController()));
-        	}
-
-            $this->assertEquals($value, $actual[$key], "Failed on $path");
-        }
+        $this->assertEquals($expected, $actual, "Failed on $path");
 
     }
-
-
 
 }

@@ -4,15 +4,13 @@ function mustache_escaper($value) {
     return htmlspecialchars($value, ENT_COMPAT, 'UTF-8');
 }
 
-class Octopus_Template_Renderer_Mustache extends Octopus_Template_Renderer {
+class Octopus_Renderer_Template_Engine_Mustache extends Octopus_Renderer_Template_Engine {
 
     public function render(Array $data) {
 
-        $data['OCTOPUS_VIEW_DATA'] = $data;
-
         Octopus::loadExternal('mustache');
 
-        $pathInfo = pathinfo($this->_file);
+        $pathInfo = pathinfo($this->file);
 
         $root = $pathInfo['dirname'];
         $relPath = $pathInfo['basename'];

@@ -2,14 +2,44 @@
 
 class ThemeTest extends Octopus_App_TestCase {
 
+	function testThemeDotPHPIncluded() {
+
+		$app = $this->startApp();
+
+		$settings = $app->getSettings();
+		$settings->set('site.theme', 'test');
+
+		$themeDir = $app->SITE_DIR . 'themes/test/';
+		mkdir($themeDir, 0777, true);
+
+		file_put_contents(
+			$themeDir . 'theme.php',
+			<<<END
+<?php
+
+	\$GLOBALS['testThemeDotPHPIncluded'] = 'included';
+
+END
+		);
+
+		unset($GLOBALS['testThemeDotPHPIncluded']);
+
+		$resp = $app->getResponse('/foo');
+		$this->assertEquals('included', $GLOBALS['testThemeDotPHPIncluded']);
+
+		recursive_delete($themeDir);
+
+	}
+
     function testGetThemeFile() {
 
         $app = $this->getApp();
         $settings = $app->getSettings();
         $settings->set('site.theme', 'test');
 
-        recursive_touch($this->getSiteDir() . 'themes/test/foo.bar');
+        recursive_touch($app->SITE_DIR . 'themes/test/foo.bar');
 
+        $resp = $app->getResponse('/foo'); // need current response for get_theme_file to work
         $file = get_theme_file('foo.bar');
 
         $this->assertEquals($this->getSiteDir() . 'themes/test/foo.bar', $file);
@@ -20,6 +50,8 @@ class ThemeTest extends Octopus_App_TestCase {
         $app  = $this->startApp();
         $settings = $app->getSettings();
         $settings->set('site.theme', 'test');
+
+    	$resp = $app->getResponse('/foo'); // need current response
 
         $dirs = array(
             $this->getOctopusDir() => '/octopus/',
@@ -48,7 +80,11 @@ class ThemeTest extends Octopus_App_TestCase {
 
     function testAddThemeCss() {
 
-        $this->startApp();
+    	$app = $this->getApp();
+    	$settings = $app->getSettings();
+    	$settings->set('site.theme', 'test');
+
+    	$resp = $app->getResponse('/foo'); // need current response
 
         $dirs = array(
             $this->getOctopusDir() => '/octopus/',

@@ -1,6 +1,6 @@
 <?php
 
-class Octopus_Template_Renderer_Smarty extends Octopus_Template_Renderer {
+class Octopus_Renderer_Template_Engine_Smarty extends Octopus_Renderer_Template_Engine {
 
     public function render(Array $data) {
 
@@ -9,9 +9,7 @@ class Octopus_Template_Renderer_Smarty extends Octopus_Template_Renderer {
         Octopus::loadExternal('smarty');
         $smarty = Octopus_Smarty::trusted();
 
-        return $smarty->render($this->_file, $data);
+        return $smarty->render($this->file, $data);
     }
 
 }
-
-?>

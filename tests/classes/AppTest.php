@@ -21,29 +21,47 @@ class AppTests extends Octopus_App_TestCase {
 
     }
 
-    function testGetTheme() {
 
-        $app = $this->startApp();
-        $this->assertTrue(!!$app, 'app should be something');
-        $settings = $app->getSettings();
+	function testLoadRoutesFile() {
 
-        $settings->reset('site.theme');
+		file_put_contents(
+			$this->getSiteDir() . 'routes.php',
+			<<<END
+<?php
+\$NAV->alias('/routes-nav-alias', '/routes-long-nav-alias');
+\$ROUTES->add('/routes-routes-alias', '/routes-long-routes-alias');
+\$APP->alias('/routes-upper-app-alias', '/routes-aa-upper');
+\$app->alias('/routes-lower-app-alias', '/routes-aa-lower')
+?>
+END
+		);
 
-        $this->assertEquals('default', $app->getTheme());
+		file_put_contents(
+			$this->getSiteDir() . 'nav.php',
+			<<<END
+<?php
+\$NAV->alias('/nav-nav-alias', '/nav-long-nav-alias');
+\$ROUTES->add('/nav-routes-alias', '/nav-long-routes-alias');
+\$APP->alias('/nav-upper-app-alias', '/nav-aa-upper');
+\$app->alias('/nav-lower-app-alias', '/nav-aa-lower')
+?>
+END
+		);
 
-        $settings->set('site.theme', 'foo');
-        $this->assertEquals('foo', $app->getTheme());
+		$app = $this->startApp();
+		$r = $app->getRouter();
 
-        $this->assertEquals('foo', $app->getTheme('/admin'));
+		$this->assertEquals('/routes-long-nav-alias', $r->resolve('/routes-nav-alias'));
+		$this->assertEquals('/routes-long-routes-alias', $r->resolve('/routes-routes-alias'));
+		$this->assertEquals('/routes-upper-app-alias', $r->resolve('/routes-aa-upper'));
+		$this->assertEquals('/routes-lower-app-alias', $r->resolve('/routes-aa-lower'));
 
-        $settings->set('site.theme.admin', 'bar');
-        $this->assertEquals('foo', $app->getTheme('/'));
+		$this->assertEquals('/nav-long-nav-alias', $r->resolve('/nav-nav-alias'));
+		$this->assertEquals('/nav-long-routes-alias', $r->resolve('/nav-routes-alias'));
+		$this->assertEquals('/nav-upper-app-alias', $r->resolve('/nav-aa-upper'));
+		$this->assertEquals('/nav-lower-app-alias', $r->resolve('/nav-aa-lower'));
 
-        $this->assertEquals('bar', $app->getTheme('/admin'));
-        $this->assertEquals('bar', $app->getTheme('/admin/'));
-        $this->assertEquals('bar', $app->getTheme('/admin/whatever'));
-
-    }
+	}
 
     function testRespectSmartyTemplateDirInAppOptions() {
 
@@ -87,6 +105,8 @@ class AppTests extends Octopus_App_TestCase {
         $settings->set('site.theme', 'foo');
 
         $resp = $app->getResponse('/whatever/blah', true);
+        $this->assertEquals('foo', $resp->theme, 'theme is correct on response');
+
         $this->assertHtmlEquals(
             <<<END
 <head>
@@ -96,7 +116,7 @@ class AppTests extends Octopus_App_TestCase {
 </head>
 END
             ,
-            $resp->getContent()
+            $resp->render(true)
         );
 
         $settings->set('site.theme', 'bar');
@@ -114,14 +134,14 @@ END
 </head>
 END
             ,
-            $resp->getContent()
+            $resp->render(true)
         );
 
     }
 
     function testFindCssInThemeDir() {
 
-        $app = $this->getApp();
+        $app = $this->startApp();
         $settings = $app->getSettings();
 
         $fooThemeDir = $this->getSiteDir() . 'themes/foo/';
@@ -155,7 +175,7 @@ END
 </head>
 END
             ,
-            $resp->getContent()
+            $resp->render(true)
         );
 
         $settings->set('site.theme', 'bar');
@@ -171,7 +191,7 @@ END
 </head>
 END
             ,
-            $resp->getContent()
+            $resp->render(true)
         );
 
     }

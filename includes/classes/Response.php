@@ -1,344 +1,706 @@
 <?php
 
 /**
- * Class that encapsulates an HTTP response.
+ * Class that encapsulates an Octopus response. Tracks headers and key/value
+ * data.
+ *
+ * @property String $contentType The HTTP content-type header for this response.
+ * Defaults to text/html.
+ * @property String $charset The encoding of the response (defaults to UTF-8)
+ * @property Octopus_Request $request
+ * @property Number $status The HTTP status code for this response.
+ * @property String $theme
+ * @property String $view
  */
-class Octopus_Response {
+class Octopus_Response implements ArrayAccess {
 
+	private static $httpResponseCodes = array(
+		200 => 'OK',
+		301 => 'Moved Permanently',
+		302 => 'Found',
+		404 => 'Not Found',
+		420 => 'Enhance Your Calm',
+		500 => 'Internal Server Error',
+	);
+
+	private static $defaultHeaders = array(
+		'content-type' => array('name' => 'Content-type', 'value' => 'text/html; charset=UTF-8'),
+	);
+
+    private $values;
+    private $headers;
+    private $content = array();
+
+    // These are all available through getters (and/or setters) as well as magic
+    // properties on this class
     private $_active = true;
-    private $_buffer = false;
-    private $_status = null;
-    private $_headers = array();
-    private $_content = array();
-    private $_flushedHeaders = array();
-
-    public function __construct($buffer = false) {
-        $this->_buffer = $buffer;
-    }
+    private $_layout = 'page';
+    private $_renderer = null;
+    private $_request = null;
+    private $_status = 200;
+    private $_theme = '';
+    private $_view = '';
 
     /**
-     * Adds content to the response.
+     * Creates a new Octopus_Response instance.
+     * @param Octopus_Request $request The request this response is for.
      */
-    public function append(/* $content */) {
+    public function __construct(Octopus_Request $request) {
 
-        if (!$this->_active) {
-            return $this;
-        }
+    	if (!$request instanceof Octopus_Request) {
+    		throw new Octopus_Exception('$request must be an Octopus_Request');
+    	}
 
-        $args = func_get_args();
-        foreach($args as $arg) {
-
-            if ($this->_buffer) {
-                $this->_content[] = $arg;
-            } else {
-                echo $arg;
-            }
-        }
-
-        return $this;
+    	$this->_request = $request;
+    	$this->reset();
     }
 
-    public function addHeader($name, $value) {
+    public function __get($name) {
 
-        if (!$this->_active) {
-            return $this;
-        }
+    	switch($name) {
 
-        if ($this->_buffer) {
-            $this->_headers[$name] = $value;
-        } else {
-            header("$name: $value");
-        }
+    		case 'charset':
+    		case 'contentType':
+    		case 'layout':
+    		case 'renderer':
+    		case 'request':
+    		case 'status':
+    		case 'theme':
+    		case 'values':
+    		case 'view':
+    			$getter = 'get' . ucwords($name);
+    			return $this->$getter();
 
-        return $this;
+    		case 'active':
+    			return $this->_active;
+
+    		case 'status':
+    			return $this->_status;
+    	}
+
+    }
+
+    public function __set($name, $value) {
+
+    	switch($name) {
+
+    		case 'charset':
+    		case 'contentType':
+    		case 'layout':
+    		case 'renderer':
+    		case 'status':
+    		case 'theme':
+    		case 'view':
+    			$setter = 'set' . ucwords($name);
+    			return $this->$setter($value);
+
+    	}
+
+    }
+
+    public function __toString() {
+
+    	$result = array($this->getStatusString());
+    	foreach($this->headers as $h) {
+    		$result[] = "{$h['name']}: {$h['value']}";
+    	}
+
+    	return implode("\n", $result);
+
     }
 
     /**
-     * Turns buffering on and off. Turning buffering off calls ::flush
-     * implicitly.
-     * @param Boolean $buffer Whether to buffer.
-     * @return boolean|Octopus_Response If $buffer is specified, $this is
-     * returned. Otherwise The current buffering state is returned.
+     * @deprecated Use ::setHeader()
+     * @uses ::setHeader()
      */
-    public function buffer($buffer = null) {
-
-        if (func_num_args() === 0) {
-            return $this->isBuffered();
-        }
-
-        if (!$buffer && $this->_buffer) {
-            $this->flush();
-        }
-
-        $this->_buffer = !!$buffer;
-        return $this;
+    public function addHeader($header, $value) {
+    	// Octopus_Debug::deprecated();
+    	return $this->setHeader($header, $value);
     }
 
     /**
-     * @return boolean Whether this response is buffered. Buffered responses
-     * are not written out to the client until ::flush() is called. Unbuffered
-     * responses are written right away.
-     */
-    public function isBuffered() {
-    	return $this->_buffer;
-    }
-
-    /**
-     * Fluent accessor for ::getContentType and ::setContentType
-     * @param  Mixed $type If specified, the new content type.
-     * @return String|Octopus_Response If $type is specified, $this is returned.
-     * Otherwise, the current content type is returned.
-     * @see ::getContentType
-     * @see ::setContentType
-     * @deprecated Use ::getContentType and ::setContentType
-     */
-    public function contentType($type = null) {
-
-        if (func_num_args() === 0) {
-            return $this->getContentType();
-        } else {
-            return $this->setContentType($type);
-        }
-
-    }
-
-    /**
-     * @return String The Content-type header for this response.
-     * @see ::setContentType
-     */
-    public function getContentType() {
-		return $this->getHeader('Content-type', 'text/html');
-    }
-
-    /**
-     * Sets the Content-type header for this response.
-     * @param String $type Content type string, e.g. 'text/html' or
-     * 'text/plain'.
+     * Adds one or more chunk(s) of content to be rendered for this response.
+     * Support for this depends on the renderer being used (e.g.,
+     * Octopus_Renderer_Json does not render any content appended to a
+     * response).
+     * @param  String|Array $content..
      * @return Octopus_Response $this
-     * @see ::getContentType
+     * @throws Octopus_Exception If this response is currently inactive (
+     * ::stop() has been called).
      */
-    public function setContentType($type) {
-		return $this->addHeader('Content-type', $type);
+    public function append($content) {
+
+    	$this->checkNotStopped();
+
+    	$args = func_get_args();
+    	foreach($args as $arg) {
+
+    		if (is_array($arg)) {
+    			call_user_func_array(__METHOD__, $arg);
+    		} else {
+    			$this->content[] = $arg;
+    		}
+
+    	}
+
+    	return $this;
+
     }
 
     /**
-     * Writes any pending headers and content.
+     * Unsets one or more keys on this response.
+     * @param String|Array $key.. Key(s) to unset.
+     * @return Octopus_Response $this
+     * @throws Octopus_Exception If this response is currently inactive (
+     * ::stop() has been called).
      */
-    public function flush() {
+    public function clear($key) {
 
-        if ($this->_status && empty($this->_flushedHeaders['status'])) {
-            header($this->_status);
-            $this->_flushedHeaders['status'] = $this->_status;
-            $this->_status = null;
-        }
+    	$this->checkNotStopped();
 
-        foreach($this->_headers as $key => $value) {
-            if (!isset($this->_flushedHeaders[$key])) {
-                header("$key: $value");
-                $this->_flushedHeaders[$key] = true;
-            }
-        }
+    	$args = func_get_args();
+    	foreach($args as $arg) {
 
-        while(count($this->_content)) {
-            echo array_shift($this->_content);
-        }
+    		if (is_array($arg)) {
+    			call_user_func_array(__METHOD__, $arg);
+    		} else {
+    			unset($this->values[$arg]);
+    		}
 
-        return $this;
+    	}
+
+    	return $this;
+
     }
 
     /**
-     * Sets the status header to 403/Forbidden and clears the output buffer.
-     */
-    public function forbidden($clearBuffer = true) {
-
-        if ($clearBuffer) {
-            $this->reset();
-        }
-
-        return $this->setStatus('HTTP/1.1 403 Forbidden');
+     * Clears a header set using ::setHeader()
+     * @param  String $name Name of header, e.g. 'Content-type'.
+     * Case-insensitive.
+     * @return Octopus_Response $this
+     * @throws Octopus_Exception If this response is currently inactive (
+     * ::stop() has been called).
+	 */
+    public function clearHeader($name) {
+    	$this->checkNotStopped();
+    	$normalized = strtolower($name);
+    	unset($this->headers[$normalized]);
+    	return $this;
     }
 
     /**
-     * @return String All content that has been added to this response since
-     * the last flush.
+     * Clears all values set on this response using ::set().
+     * @return Octopus_Response $this
+     * @throws Octopus_Exception If this response is currently inactive (
+     * ::stop() has been called).
+     */
+    public function clearValues() {
+    	$this->checkNotStopped();
+    	$this->values = array();
+    	return $this;
+    }
+
+    /**
+     * Sets the status header to 403 Forbidden and optionally clears the
+     * data associated with this response.
+     */
+    public function forbidden() {
+        return $this->setStatus(403);
+    }
+
+    /**
+     * Gets the values of one or more keys. Keys can also be read/written
+     * via PHP array syntax.
+     * @param String $key Key to get.
+     * @param Mixed $default Value to return if $key is not set.
+     * @return Mixed The value of $key, or $default.
+     */
+    public function get($key, $default = null) {
+    	return array_key_exists($key, $this->values) ? $this->values[$key] : $default;
+    }
+
+    /**
+     * @return String The charset of this response. Defaults to "UTF-8".
+     */
+    public function getCharset() {
+
+    	$h = $this->getHeader('Content-type');
+
+    	if (preg_match('/;\s*charset\s*=\s*(.+)/i', $h, $m)) {
+    		return $m[1];
+    	}
+
+    	return '';
+
+    }
+
+    /**
+     * @return String Any content appended via ::append().
      */
     public function getContent() {
-
-        $output = '';
-
-        foreach($this->_content as $c) {
-            $output .= $c;
-        }
-
-        return $output;
+    	return implode("\n", $this->content);
     }
 
     /**
-     * @return Number The numeric value of the Status header, e.g. 404 or 200.
+     * @return String The value of the content-type header, excluding Charset.
      */
-    public function getStatus() {
+    public function getContentType() {
 
-        if (preg_match('#^\s*(HTTP\s*[\\/]?\s*\d(\.\d)?\s*)?(\d+)#i', $this->_status, $m)) {
-            return intval($m[3]);
-        }
+    	$result = $this->getHeader('Content-type');
+    	if (!$result) return '';
 
-        return 200;
+    	$pos = strpos($result, ';');
+
+    	if ($pos !== false) {
+    		$result = substr($result, 0, $pos);
+    	}
+
+    	return trim($result);
     }
 
     /**
-     * Sets the status line for this response.
+     * Gets the value of a header.
+     * @param String $header The header value to retrieve. Case-insensitive.
+     * @return String The value of the header or an empty string if it is
+     * not set.
      */
-    public function setStatus($status) {
+    public function getHeader($header) {
 
-        if (!$this->_active) {
-            return $this;
-        }
+    	$normalized = strtolower($header);
 
-        if (is_numeric($status)) {
-            $status = 'HTTP/1.1 ' . $status;
-        }
+    	if (isset($this->headers[$normalized])) {
+    		return $this->headers[$normalized]['value'];
+    	}
 
-        if ($this->_buffer) {
-            $this->_status = $status;
-        } else {
-            header($status);
-        }
+    	return '';
 
-        return $this;
-    }
-
-    public function getHeader($name, $default = null) {
-        if (isset($this->_headers[$name])) {
-            return $this->_headers[$name];
-        }
-        return $default;
     }
 
     /**
-     * @return Array All headers set for this response.
+     * @return Array The headers set for this response.
      */
     public function getHeaders() {
-        return $this->_headers;
+
+    	$result = array();
+    	foreach($this->headers as $h) {
+    		$result[$h['name']] = $h['value'];
+    	}
+
+    	return $result;
     }
 
     /**
-     * @return bool Whether any headers have been set.
+     * Gets the layout to use within the theme when rendering.
+     * @return String
      */
-    public function haveHeaders() {
-        return !empty($this->_headers);
+    public function getLayout() {
+    	return $this->_layout;
     }
 
     /**
-     * @return boolean Whether this response's content type is text/html.
+     * @return Octopus_Renderer The renderer to be used to render this response.
+     * If not specified using ::setRenderer(), it is inferred from the content
+     * type of the response. Octopus_Renderer_Template is the default.
+     * @see Octopus_Renderer
+     * @see Octopus_Renderer_Template
+     * @see Octopus_Renderer_Json
+     * Also available via the ::renderer property.
      */
-    public function isHtml() {
-    	return !!preg_match('/^text\/html\b/i', $this->contentType());
-    }
+    public function getRenderer() {
 
+    	if ($this->_renderer) {
+    		return $this->_renderer;
+    	} else {
+    		return Octopus_Renderer::getForContentType($this->contentType);
+    	}
 
-    public function removeHeader($name) {
-        unset($this->_headers[$name]);
-        return $this;
     }
 
     /**
-     * Helper that marks the response as a 404.
+     * @return Octopus_Request The request this response is for. Also
+     * accessible via the 'request' property.
      */
-    public function notFound() {
-        return $this
-            ->reset()
-            ->setStatus('HTTP/1.1 404 Not Found');
+    public function getRequest() {
+    	return $this->_request;
+    }
+
+    /**
+     * @return Number The HTTP status code for this response.
+     */
+    public function getStatus() {
+    	return $this->_status;
+    }
+
+    /**
+     * @return String The full status string, e.g. "HTTP/1.1 200 OK".
+     */
+    public function getStatusString() {
+
+    	$code = $this->status;
+    	$desc = isset(self::$httpResponseCodes[$code]) ? self::$httpResponseCodes[$code] : '';
+    	return trim("HTTP/1.1 {$code} {$desc}");
+
+    }
+
+    /**
+     * @return String The theme to be used when rendering this response
+     * (assuming the renderer supports themes). If not set via ::setTheme,
+     * this will be determined based on the theme inferred from the request
+     * for this response.
+     */
+    public function getTheme() {
+
+    	if ($this->_theme) {
+    		return $this->_theme;
+    	}
+
+    	$req = $this->getRequest();
+    	$app = $req->getApp();
+
+    	if (!$app->getOption('use_themes')) {
+    	    return '';
+    	}
+
+    	$path = $req->getPath();
+
+    	$key = 'site.theme';
+    	$parts = array_filter(explode('/', $path), 'trim');
+    	if (!empty($parts)) {
+    	    $key .= '.' . implode('.', $parts);
+    	}
+
+    	return $app->getSetting($key);
+
+    }
+
+    /**
+     * @return Array All values set via ::set()
+     */
+    public function getValues() {
+    	return $this->values;
+    }
+
+	/**
+     * @return String The view to be used when rendering this response
+     * (assuming the renderer supports views).
+     */
+    public function getView() {
+    	return $this->_view;
+    }
+
+    /**
+     * @return boolean Whether any content has been appended using ::append().
+     */
+    public function hasContent() {
+    	return count($this->content) > 0;
     }
 
     /**
      * @return bool Whether this response is 403 forbidden.
      */
     public function isForbidden() {
-        return $this->getStatus() === 403;
+        return $this->status === 403;
+    }
+
+    /**
+     * @return boolean Whether the content type for this response is text/html.
+     */
+    public function isHtml() {
+    	return !!preg_match('~text/html~i', $this->getHeader('Content-type'));
     }
 
     /**
      * @return bool Whether this response is 404 Not Found
      */
     public function isNotFound() {
-        return $this->getStatus() === 404;
+        return $this->status === 404;
     }
 
     /**
-     * Clears the response and redirects the user to a new location.
+     * Sets the status on this response to 404 (not found).
+     * @return Octopus_Response $this
+     * @throws Octopus_Exception If this response is currently inactive (
+     * ::stop() has been called).
+     */
+    public function notFound() {
+    	return $this->setStatus(404);
+    }
+
+    public function offsetExists($offset) {
+    	return array_key_exists($offset, $this->values);
+    }
+
+    public function offsetGet($offset) {
+    	return array_key_exists($offset, $this->values) ? $this->values[$offset] : null;
+    }
+
+    public function offsetSet($offset, $value) {
+    	$this->set($offset, $value);
+    }
+
+    public function offsetUnset($offset) {
+    	$this->clear($offset);
+    }
+
+    /**
+     * Clears headers and data on this response and reconfigures it to
+     * redirect to $to.
      * @param $to string URL to redirect to.
      * @param $permanent bool Whether this is a permanent redirect.
+     * @return Octopus_Response $this
+     * @throws Octopus_Exception If this response is currently inactive (
+     * ::stop() has been called).
      */
     public function redirect($to, $permanent = false) {
 
-        return $this
-            ->reset()
-            ->setStatus('HTTP/1.1 ' . ($permanent ? '301 Moved Permanently' : '302 Found'))
-            ->addHeader('Location', $to)
-            ->stop();
+    	$this->checkNotStopped();
+
+    	$this->_status = ($permanent ? 301 : 302);
+    	$this->headers = array(
+    		'location' => array('name' => 'Location', 'value' => $to)
+    	);
+    	$this->_active = false;
+
+    	return $this;
+
     }
 
     /**
-     * Does a str_replace across all buffered content.
-     * @throws Octopus_Exception if response is not buffered.
+     * Uses the renderer configured for this response to render it.
+     * @param  boolean $return Whether to return the rendered content or
+     * echo it directly. Headers will only be outputted if $return is false.
+     * @return String|Octopus_Response If $return is true, the rendered content
+     * (minus headers). Otherwise, $this.
+     * @see Octopus_Renderer
+     * @see ::getRenderer
+     * @see ::setRenderer
+     * @see ::renderer
      */
-    public function replaceContent($search, $replace) {
+    public function render($return = false) {
 
-        if (!$this->_buffer) {
-            throw new Octopus_Exception("Octopus_Response::replaceContent can't be called on unbuffered responses");
-        }
+    	$renderer = $this->getRenderer();
 
-        $count = 0;
-        $content = implode("\n", $this->_content);
-        $content = str_replace($search, $replace, $content, $count);
-        $this->_content = array($content);
+    	if ($return) {
+    		return $renderer->render($this, true);
+    	} else {
+    		$renderer->render($this, false);
+    		return $this;
+    	}
 
+    }
 
+    /**
+     * Clears all values in this response and clears all headers such that this
+     * becomes a text/html, charset=UTF-8 response with status 200.
+     * @uses ::resetHeaders()
+     * @uses ::clearValues()
+     * @throws Octopus_Exception If this response is currently inactive (
+     * ::stop() has been called).
+     */
+    public function reset() {
+    	$this->resetHeaders();
+    	$this->clearValues();
         return $this;
     }
 
     /**
-     * Clears the response.
+     * Clears all headers on this response, then resets the status and content
+     * type headers to 200 and 'text/html; charset=UTF-8'.
+     * @return [type] [description]
+     * @throws Octopus_Exception If this response is currently inactive (
+     * ::stop() has been called).
      */
-    private function reset() {
-        $this->_status = null;
-        $this->_headers = array();
-        $this->_content = array();
-        $this->_flushedHeaders = array();
-        return $this;
+    public function resetHeaders() {
+    	$this->checkNotStopped();
+    	$this->headers = self::$defaultHeaders;
     }
 
     /**
-     * @return bool Whether the app should bother continuing to process this
-     * request.
+     * Sets the value of a key for this response.
+     * @param String|Array $key   A key to set or an array of key/value pairs
+     * @param Mixed $value Value to set $key to.
+     * @return Octopus_Response $this
+     * @throws Octopus_Exception If this response is currently inactive (
+     * ::stop() has been called).
      */
-    public function shouldContinueProcessing() {
-        return $this->_active;
+    public function set($key, $value = null) {
+
+    	$this->checkNotStopped();
+
+    	if (func_num_args() === 1) {
+
+    		// Support set(array())
+    		if (is_array($key)) {
+    			foreach($key as $k => $v) {
+    				$this->values[$k] = $v;
+    			}
+    			return $this;
+    		}
+
+    	}
+
+    	$this->values[$key] = $value;
+
+    	return $this;
     }
 
     /**
-     * Stops processing. For buffered responses, this sets a flag and marks the
-     * response as read-only. For unbuffered responses, calls exit().
+     * Sets the charset portion of the Content-type header.
+     * @param String $type Content type, e.g. 'text/html'.
+     * @return Octopus_Response $this
+     * @throws Octopus_Exception If this response is currently inactive (
+     * ::stop() has been called).
+     */
+    public function setCharset($charset) {
+
+    	$this->checkNotStopped();
+
+    	$h = $this->getHeader('Content-type');
+    	if (!$h) {
+    		$this->headers['content-type'] = array(
+    			'name' => 'Content-type',
+    			'value' => ';charset=' . $charset
+    		);
+    		return $this;
+    	}
+
+    	$pos = strpos($h, ';');
+
+    	if ($pos === false) {
+    		$h .= '; charset=' . $charset;
+    	} else {
+    		$h = substr($h, 0, $pos) . '; charset=' . $charset;
+    	}
+
+    	$this->headers['content-type'] = array(
+    		'name' => 'Content-type',
+    		'value' => $h
+    	);
+
+    	return $this;
+
+    }
+
+    /**
+     * Sets the Content-type header.
+     * @param String $type Content type, e.g. 'text/html'.
+     * @return Octopus_Response $this
+     * @throws Octopus_Exception If this response is currently inactive (
+     * ::stop() has been called).
+     */
+    public function setContentType($type) {
+
+    	if (isset($this->headers['content-type'])) {
+
+	    	// Preserve the charset in the content type
+	    	$h = $this->headers['content-type'];
+	    	$pos = strpos($h['value'], ';');
+
+	    	if ($pos !== false) {
+	    		$type = $type . substr($h['value'], $pos);
+	    	}
+	    }
+
+    	$this->headers['content-type'] = array(
+    		'name' => 'Content-type',
+    		'value' => $type
+    	);
+
+    	return $this;
+    }
+
+    /**
+     * Sets a header on this response.
+     * @param String $header Header to set.
+     * @param String $value  Value to set it to.
+     * @return Octopus_Response $this
+	 * @throws Octopus_Exception If this response is currently inactive (
+	 * ::stop() has been called).
+     */
+    public function setHeader($header, $value) {
+
+    	$this->checkNotStopped();
+
+    	$normalized = strtolower($header);
+    	$this->headers[$normalized] = array(
+    		'name' => $header,
+    		'value' => $value,
+    	);
+
+    	return $this;
+    }
+
+    /**
+     * Sets the layout to use when rendering this response (assuming the template
+     * renderer is being used.)
+     * @param String $layout Layout identifier
+     * @return Octopus_Response $this
+ 	 * @throws Octopus_Exception If this response is currently inactive (
+ 	 * ::stop() has been called).
+     */
+    public function setLayout($layout) {
+    	$this->_layout = $layout;
+    	return $this;
+    }
+
+    /**
+     * Sets the renderer to be used to render this response.
+     * @see ::render()
+     * @param Octopus_Renderer $renderer
+     * @return Octopus_Response $this
+     * Also available via the ::renderer property.
+     */
+    public function setRenderer(Octopus_Renderer $renderer) {
+    	$this->_renderer = $renderer;
+    	return $this;
+    }
+
+    /**
+     * Sets the status code for this response.
+     * @param Number $code The HTTP status code.
+     * @return Octopus_Response $this
+     * @throws Octopus_Exception If this response is currently inactive (
+     * ::stop() has been called).
+     */
+    public function setStatus($code) {
+    	$this->checkNotStopped();
+    	$this->_status = intval($code);
+    	return $this;
+    }
+
+    /**
+     * Sets the theme to be used to render this response (assuming the renderer
+     * supports themes).
+     * @param String $theme Theme to use.
+     */
+    public function setTheme($theme) {
+    	$this->checkNotStopped();
+    	$this->_theme = $theme;
+    	return $this;
+    }
+
+    /**
+     * Sets the view to be used to render this response (assuming the renderer
+     * supports views).
+     * @param String $view View to use.
+     * @return Octopus_Response $this
+     * @throws Octopus_Exception If this response is currently inactive (
+     * ::stop() has been called).
+     */
+    public function setView($view) {
+    	$this->checkNotStopped();
+    	$this->_view = $view;
+    	return $this;
+    }
+
+    /**
+     * Prevents any further header/value changes from being made to this
+     * response. After this is called, ::active will return false.
+     * @return Octopus_Response $this
      */
     public function stop() {
-        if ($this->_buffer) {
-            $this->_active = false;
-        } else {
-            exit();
-        }
-    }
-
-    public function __toString() {
-
-        $result = ($this->_status ? $this->_status : 'HTTP/1.1 200 OK');
-
-        foreach($this->_headers as $name => $content) {
-            $result .= "\n$name: $content";
-        }
-        $result .= "\n\n";
-        $result .= $this->getContent();
-
-        return $result;
+    	$this->_active = false;
+    	return $this;
     }
 
     /**
@@ -355,6 +717,10 @@ class Octopus_Response {
 
     }
 
-}
+    private function checkNotStopped() {
+    	if (!$this->_active) {
+    		throw new Octopus_Exception("Values and headers cannot be set on an Octopus_Response after ::stop() has been called.");
+    	}
+    }
 
-?>
+}

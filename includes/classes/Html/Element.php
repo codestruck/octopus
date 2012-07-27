@@ -169,7 +169,7 @@ class Octopus_Html_Element {
 
         foreach($class as $c) {
             $c = trim($c);
-            if ($c && !preg_match('/\b' . preg_quote($c) . '\b/', $existing)) {
+            if ($c && !preg_match('/(^|\s)' . preg_quote($c) . '(\s|$)/', $existing)) {
                 $existing .= ($existing ? ' ' : '') . $c;
             }
         }
@@ -490,7 +490,7 @@ class Octopus_Html_Element {
         foreach($class as $c) {
             $c = trim($c);
             if ($c) {
-                $existing = preg_replace('/\s*' . preg_quote($c) . '\b/', '', $existing);
+                $existing = preg_replace('/(^|\s)' . preg_quote($c) . '(\s|$)/', '$1', $existing);
             }
         }
 

@@ -2,6 +2,8 @@
 
 /**
  * Base class for implementing an Octopus controller.
+ * @property String $view Alias for $this->response->view
+ * @property String $theme Alais for $this->response->theme
  */
 abstract class Octopus_Controller {
 
@@ -32,20 +34,6 @@ abstract class Octopus_Controller {
 	 */
 	public $cache = false;
 
-	/**
-	 * If set in an action, this is the template/layout into which the view
-	 * will be rendered. If not set, the default version is used.
-	 * @var String
-	 */
-    public $template;
-
-    /**
-     * If set in an action, the theme to use when rendering that action. If
-     * not set, the current theme is used.
-     * @var String
-     */
-    public $theme;
-
     /**
      * The incoming Octopus_Request.
      * @var Octopus_Request.
@@ -58,15 +46,8 @@ abstract class Octopus_Controller {
      */
     public $response;
 
-    /**
-     * If set in an action, this is the view to be rendered for that action.
-     * If not set, the default view will be used.
-     * @var [type]
-     */
-    public $view;
-
-
     private $executedActions = array();
+    private $expandos = array();
 
     public function __construct($app = null, $request = null, $response = null) {
         $this->app = $app;
@@ -119,6 +100,40 @@ abstract class Octopus_Controller {
         }
 
         return $result;
+    }
+
+    public function __get($name) {
+
+    	switch($name) {
+
+    		case 'view':
+    		case 'theme':
+    			return $this->response->$name;
+
+    		// Simulate traditional php var getting/setting
+    		default:
+    			return isset($this->expandos[$name]) ? $this->expandos[$name] : null;
+
+    	}
+
+    }
+
+    public function __set($name, $value) {
+
+    	switch($name) {
+
+    		case 'view':
+    		case 'theme':
+    			$this->response->$name = $value;
+    			break;
+
+			// Simulate traditional php var getting/setting
+    		default:
+    			$this->expandos[$name] = $value;
+    			break;
+
+    	}
+
     }
 
     /**
@@ -567,42 +582,6 @@ abstract class Octopus_Controller {
         } else {
             return array();
         }
-    }
-
-    /**
-     * Called at the end of each action to render the controller data as
-     * JSON.
-     */
-    protected function renderJson($data = array(), $options = null) {
-
-        $dumped_content = get_dumped_content();
-        $data = array_merge($data, $dumped_content);
-        output_dumped_content_header(array_pop($dumped_content), $this->response);
-
-        $this->response
-            ->contentType('application/json')
-            ->append(json_encode($data))
-            ->stop();
-
-    }
-
-    protected function renderJsonp($data = array(), $function = null, $options = null) {
-
-        if ($function === null) {
-            // jQuery specifies the name of the callback function via the
-            // 'callback' argument.
-            $function = $_GET['callback'];
-        }
-
-        $dumped_content = get_dumped_content();
-        $data = array_merge($data, $dumped_content);
-        output_dumped_content_header(array_pop($dumped_content), $this->response);
-
-        $this->response
-            ->contentType('application/javascript')
-            ->append($function . '(' . json_encode($data) . ');')
-            ->stop();
-
     }
 
     private function escape($value) {

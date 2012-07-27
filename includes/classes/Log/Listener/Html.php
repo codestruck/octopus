@@ -94,21 +94,6 @@ class Octopus_Log_Listener_Html {
 END;
         }
 
-
-		if (Octopus_Debug::usingOctopus()) {
-
-			$app = Octopus_App::singleton();
-			$resp = $app->getCurrentResponse();
-
-			if ($resp) {
-				// Write message to the response and flush
-				$resp->append($html);
-				$resp->append(self::getCssAndJs());
-				$resp->flush();
-				return;
-			}
-		}
-
 		echo($html);
 		echo(self::getCssAndJs()) ;
 	}

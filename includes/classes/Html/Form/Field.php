@@ -37,7 +37,7 @@ class Octopus_Html_Form_Field extends Octopus_Html_Element {
 
         $this->type = $type;
         $this->name = $name;
-        $this->id = $name . 'Input';
+        $this->id = to_html_id($name) . 'Input';
 
         if ($label === null) {
             $label = $this->getDefaultLabel($name);

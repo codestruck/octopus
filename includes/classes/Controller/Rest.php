@@ -9,7 +9,7 @@ abstract class Octopus_Controller_Rest extends Octopus_Controller {
     private $isError = false;
 
     public function setResponseContentType() {
-        $this->response->contentType('application/json');
+        $this->response->contentType = 'application/json';
     }
 
     public function __execute($action, $args) {
@@ -18,8 +18,8 @@ abstract class Octopus_Controller_Rest extends Octopus_Controller {
 
         $result = parent::__execute($action, $args);
 
-        if ($result !== false) {
-            $this->response->append(pretty_json_encode($result));
+        if ($result) {
+            $this->response->set($result);
         }
 
         $this->response->stop();

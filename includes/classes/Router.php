@@ -8,6 +8,14 @@ class Octopus_Router {
     private $routes = array();
 
     /**
+     * @see ::alias()
+     * @return Octopus_Router $this
+     */
+    public function add($from, $to, $options = array()) {
+    	return $this->alias($from, $to, $options);
+    }
+
+    /**
      * Registers a route alias.
      * @param String $from String describing the pattern to be matched. Some examples
      * include:

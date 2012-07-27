@@ -278,6 +278,28 @@ END
 
     }
 
+    function testAddRemoveClassWithDashes() {
+
+    	$e = new Octopus_Html_Element('span');
+
+    	$e->addClass('my-span');
+    	$this->assertEquals('my-span', $e->class);
+
+    	$e->addClass('span', 'my');
+    	$this->assertEquals('my-span span my', $e->class);
+
+    	$e->removeClass('span');
+    	$this->assertEquals('my-span my', $e->class);
+
+    	$e->removeClass('my');
+    	$this->assertEquals('my-span', $e->class);
+
+    	$e->removeClass('my-span');
+    	$this->assertEquals('', $e->class);
+
+
+    }
+
     function testInnerText() {
 
         $e = new Octopus_Html_Element('span');

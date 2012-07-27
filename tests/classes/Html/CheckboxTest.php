@@ -107,9 +107,9 @@ END;
 
 <form id="test" method="post" novalidate>
 <input type="hidden" name="__octform" value="9f2f820f4736ddf1f9e5d21994559d53" />
-<div id="colorsBlueField" class="field colors valueblue checkbox">
-<input type="checkbox" id="colorsBlueInput" class="colors valueblue checkbox" name="colors[]" value="blue" />
-<label for="colorsBlueInput">Colors</label>
+<div id="colors-blue-field" class="field colors valueblue checkbox">
+<input type="checkbox" id="colors-blue-input" class="colors valueblue checkbox" name="colors[]" value="blue" />
+<label for="colors-blue-input">Colors</label>
 </div></form>
 END;
 
@@ -134,17 +134,17 @@ END;
 
 <form id="test" method="post" novalidate>
 <input type="hidden" name="__octform" value="9f2f820f4736ddf1f9e5d21994559d53" />
-<div id="colorsBlueField" class="field colors valueblue checkbox">
-    <input type="checkbox" id="colorsBlueInput" class="colors valueblue checkbox" name="colors[]" value="blue" checked />
-    <label for="colorsBlueInput">Colors</label>
+<div id="colors-blue-field" class="field colors valueblue checkbox">
+    <input type="checkbox" id="colors-blue-input" class="colors valueblue checkbox" name="colors[]" value="blue" checked />
+    <label for="colors-blue-input">Colors</label>
 </div>
-<div id="colorsGreenField" class="field colors valuegreen checkbox">
-    <input type="checkbox" id="colorsGreenInput" class="colors valuegreen checkbox" name="colors[]" value="green" />
-    <label for="colorsGreenInput">Colors</label>
+<div id="colors-green-field" class="field colors valuegreen checkbox">
+    <input type="checkbox" id="colors-green-input" class="colors valuegreen checkbox" name="colors[]" value="green" />
+    <label for="colors-green-input">Colors</label>
 </div>
-<div id="colorsPinkField" class="field colors valuepink checkbox">
-    <input type="checkbox" id="colorsPinkInput" class="colors valuepink checkbox" name="colors[]" value="pink" checked />
-    <label for="colorsPinkInput">Colors</label>
+<div id="colors-pink-field" class="field colors valuepink checkbox">
+    <input type="checkbox" id="colors-pink-input" class="colors valuepink checkbox" name="colors[]" value="pink" checked />
+    <label for="colors-pink-input">Colors</label>
 </div>
 </form>
 END;
@@ -190,17 +190,17 @@ END;
 
 <form id="test" method="post" novalidate>
 <input type="hidden" name="__octform" value="9f2f820f4736ddf1f9e5d21994559d53" />
-<div id="colorsBlueField" class="field colors valueblue checkbox required">
-    <input type="checkbox" id="colorsBlueInput" class="colors valueblue checkbox required" name="colors[]" value="blue" checked />
-    <label for="colorsBlueInput">Colors</label>
+<div id="colors-blue-field" class="field colors valueblue checkbox required">
+    <input type="checkbox" id="colors-blue-input" class="colors valueblue checkbox required" name="colors[]" value="blue" checked />
+    <label for="colors-blue-input">Colors</label>
 </div>
-<div id="colorsGreenField" class="field colors valuegreen checkbox required">
-    <input type="checkbox" id="colorsGreenInput" class="colors valuegreen checkbox required" name="colors[]" value="green" />
-    <label for="colorsGreenInput">Colors</label>
+<div id="colors-green-field" class="field colors valuegreen checkbox required">
+    <input type="checkbox" id="colors-green-input" class="colors valuegreen checkbox required" name="colors[]" value="green" />
+    <label for="colors-green-input">Colors</label>
 </div>
-<div id="colorsPinkField" class="field colors valuepink checkbox required">
-    <input type="checkbox" id="colorsPinkInput" class="colors valuepink checkbox required" name="colors[]" value="pink" checked />
-    <label for="colorsPinkInput">Colors</label>
+<div id="colors-pink-field" class="field colors valuepink checkbox required">
+    <input type="checkbox" id="colors-pink-input" class="colors valuepink checkbox required" name="colors[]" value="pink" checked />
+    <label for="colors-pink-input">Colors</label>
 </div>
 </form>
 END;

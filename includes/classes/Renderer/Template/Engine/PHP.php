@@ -1,6 +1,6 @@
 <?php
 
-class Octopus_Template_Renderer_PHP extends Octopus_Template_Renderer {
+class Octopus_Renderer_Template_Engine_PHP extends Octopus_Renderer_Template_Engine {
 
     public function render(Array $data) {
 
@@ -9,11 +9,9 @@ class Octopus_Template_Renderer_PHP extends Octopus_Template_Renderer {
         $OCTOPUS_VIEW_DATA =& $data;
 
         ob_start();
-        include($this->_file);
+        include($this->file);
         return ob_get_clean();
 
     }
 
 }
-
-?>

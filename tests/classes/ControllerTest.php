@@ -26,30 +26,12 @@ class ControllerTestController extends Octopus_Controller {
 
 class ControllerTest extends Octopus_App_TestCase {
 
-    function dontTest404() {
-
-        $app = $this->startApp();
-        $resp = new Octopus_Response(true);
-        $controller = new ControllerTestController($app, new Octopus_Request($app, ''), $resp);
-
-        $controller->__execute('do_404', array());
-        $this->assertEquals('404view', $controller->view);
-
-        $this->assertEquals(
-            <<<END
-HTTP/1.1 404 Not Found
-END
-            ,
-            trim($resp)
-        );
-
-    }
-
     function testRedirectCancelable() {
 
         $app = $this->startApp();
-        $resp = new Octopus_Response(true);
-        $controller = new ControllerTestController($app, new Octopus_Request($app, ''), $resp);
+        $req = $app->createRequest('controller-test/do-redirect');
+        $resp = new Octopus_Response($req);
+        $controller = new ControllerTestController($app, $req, $resp);
 
         uncancel_redirects();
         $controller->do_redirect('foo');
@@ -64,7 +46,7 @@ END
         cancel_redirects();
         Octopus_Log::reset(); // prevent dump_r message because of canceled redirect
 
-        $resp = new Octopus_Response(true);
+        $resp = new Octopus_Response($req);
         $controller = new ControllerTestController($app, new Octopus_Request($app, ''), $resp);
         $controller->do_redirect('foo');
 
@@ -79,7 +61,7 @@ END
         );
 
         $app = $this->startApp();
-        $resp = new Octopus_Response(true);
+        $resp = new Octopus_Response();
         $controller = new ControllerTestController($app, new Octopus_Request($app, ''), $resp);
 
         $controller->do_renderJson($data);
@@ -105,7 +87,7 @@ END
         );
 
         $app = $this->startApp();
-        $resp = new Octopus_Response(true);
+        $resp = new Octopus_Response();
         $controller = new ControllerTestController($app, new Octopus_Request($app, ''), $resp);
 
         $controller->do_renderJsonp($data, 'callbackFunc');
@@ -133,7 +115,7 @@ END
         );
 
         $app = $this->startApp();
-        $resp = new Octopus_Response(true);
+        $resp = new Octopus_Response();
         $controller = new ControllerTestController($app, new Octopus_Request($app, ''), $resp);
 
         $_GET['callback'] = 'callbackFuncFromGet';

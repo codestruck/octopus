@@ -25,8 +25,19 @@ class SysControllerTests extends Octopus_App_TestCase {
             if ($available) {
                 $this->assertEquals(200, $resp->getStatus(), "sys/about should be available under $state");
             } else {
-                $this->assertEquals(403, $resp->getStatus(), "should be forbidden under $state");
-                $this->assertEquals('', $resp->getContent(), "content should be empty under $state");
+                $this->assertEquals(404, $resp->getStatus(), "should be not found under $state");
+
+                $this->assertHtmlEquals(
+                	<<<END
+<h1>Not Found</h1>
+
+<p>
+    The page you were looking for could not be found.
+</p>
+END
+					,
+					$resp->render(true)
+                );
             }
         }
 

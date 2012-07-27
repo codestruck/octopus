@@ -339,8 +339,9 @@ class Octopus_Html_Page implements ArrayAccess {
 
 		}
 
-		$theme = $app->getTheme();
-		if ($theme) {
+		$resp = $app->getCurrentResponse();
+
+		if ($resp && ($theme = $resp->getTheme())) {
 
 			if ($dirs['site']) {
 				$dirs['theme_site'] = $dirs['site'] . 'themes/' . $theme . '/';

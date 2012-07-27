@@ -103,10 +103,10 @@ END
                 'name' => 'Big Apple',
                 'color' => 'green',
             ),
-            json_decode($resp->getContent(), true)
+            json_decode($resp->render(true), true)
         );
 
-        $this->assertEquals('application/json', $resp->contentType());
+        $this->assertEquals('application/json', $resp->contentType);
         $this->assertEquals(200, $resp->getStatus());
 
     }
@@ -124,10 +124,10 @@ END
                 'id' => 2,
                 'from' => 'post',
             ),
-            json_decode($resp->getContent(), true)
+            json_decode($resp->render(true), true)
         );
 
-        $this->assertEquals('application/json', $resp->contentType());
+        $this->assertEquals('application/json', $resp->contentType);
         $this->assertEquals(200, $resp->getStatus());
 
     }
@@ -146,10 +146,10 @@ END
                 'from' => 'put',
                 'truth' => false,
             ),
-            json_decode($resp->getContent(), true)
+            json_decode($resp->render(true), true)
         );
 
-        $this->assertEquals('application/json', $resp->contentType());
+        $this->assertEquals('application/json', $resp->contentType);
         $this->assertEquals(200, $resp->getStatus());
 
     }
@@ -163,10 +163,10 @@ END
                 'id' => 2,
                 'from' => 'delete',
             ),
-            json_decode($resp->getContent(), true)
+            json_decode($resp->render(true), true)
         );
 
-        $this->assertEquals('application/json', $resp->contentType());
+        $this->assertEquals('application/json', $resp->contentType);
         $this->assertEquals(200, $resp->getStatus());
 
     }
@@ -179,10 +179,10 @@ END
             array(
                 'errors' => array('Method not implemented'),
             ),
-            json_decode($resp->getContent(), true)
+            json_decode($resp->render(true), true)
         );
 
-        $this->assertEquals('application/json', $resp->contentType());
+        $this->assertEquals('application/json', $resp->contentType);
         $this->assertEquals(405, $resp->getStatus());
 
     }
@@ -195,10 +195,10 @@ END
             array(
                 'errors' => array('color' => 'color is required.'),
             ),
-            json_decode($resp->getContent(), true)
+            json_decode($resp->render(true), true)
         );
 
-        $this->assertEquals('application/json', $resp->contentType());
+        $this->assertEquals('application/json', $resp->contentType);
         $this->assertEquals(400, $resp->getStatus());
 
     }
@@ -211,10 +211,10 @@ END
             array(
                 'errors' => array('resource' => 'resource id is required.'),
             ),
-            json_decode($resp->getContent(), true)
+            json_decode($resp->render(true), true)
         );
 
-        $this->assertEquals('application/json', $resp->contentType());
+        $this->assertEquals('application/json', $resp->contentType);
         $this->assertEquals(400, $resp->getStatus());
 
     }
@@ -230,10 +230,10 @@ END
                     'color' => 'color is required.',
                 ),
             ),
-            json_decode($resp->getContent(), true)
+            json_decode($resp->render(true), true)
         );
 
-        $this->assertEquals('application/json', $resp->contentType());
+        $this->assertEquals('application/json', $resp->contentType);
         $this->assertEquals(400, $resp->getStatus());
 
     }
@@ -246,10 +246,10 @@ END
             array(
                 'errors' => array('resource' => 'resource id is required.'),
             ),
-            json_decode($resp->getContent(), true)
+            json_decode($resp->render(true), true)
         );
 
-        $this->assertEquals('application/json', $resp->contentType());
+        $this->assertEquals('application/json', $resp->contentType);
         $this->assertEquals(400, $resp->getStatus());
 
     }
@@ -263,10 +263,10 @@ END
             array(
                 'errors' => array('Method not recognised'),
             ),
-            json_decode($resp->getContent(), true)
+            json_decode($resp->render(true), true)
         );
 
-        $this->assertEquals('application/json', $resp->contentType());
+        $this->assertEquals('application/json', $resp->contentType);
         $this->assertEquals(501, $resp->getStatus());
 
     }
@@ -279,10 +279,10 @@ END
             array(
                 'result' => 3,
             ),
-            json_decode($resp->getContent(), true)
+            json_decode($resp->render(true), true)
         );
 
-        $this->assertEquals('application/json', $resp->contentType());
+        $this->assertEquals('application/json', $resp->contentType);
         $this->assertEquals(200, $resp->getStatus());
 
     }
@@ -302,10 +302,10 @@ END
                 'from' => 'put',
                 'truth' => false,
             ),
-            json_decode($resp->getContent(), true)
+            json_decode($resp->render(true), true)
         );
 
-        $this->assertEquals('application/json', $resp->contentType());
+        $this->assertEquals('application/json', $resp->contentType);
         $this->assertEquals(200, $resp->getStatus());
 
     }
@@ -325,10 +325,10 @@ END
                 'from' => 'put',
                 'truth' => true,
             ),
-            json_decode($resp->getContent(), true)
+            json_decode($resp->render(true), true)
         );
 
-        $this->assertEquals('application/json', $resp->contentType());
+        $this->assertEquals('application/json', $resp->contentType);
         $this->assertEquals(200, $resp->getStatus());
 
     }
@@ -337,8 +337,8 @@ END
 
         $resp = $this->app->getPostResponse('/api/1/beets', array(), true);
 
-        $this->assertSame("[\n    \n]", $resp->getContent());
-        $this->assertEquals('application/json', $resp->contentType());
+        $this->assertEquals("[\n    \n]", $resp->render(true));
+        $this->assertEquals('application/json', $resp->contentType);
         $this->assertEquals(200, $resp->getStatus());
 
     }
@@ -351,10 +351,10 @@ END
                 'a' => '2',
                 'b' => '4',
             ),
-            json_decode($resp->getContent(), true)
+            json_decode($resp->render(true), true)
         );
 
-        $this->assertEquals('application/json', $resp->contentType());
+        $this->assertEquals('application/json', $resp->contentType);
         $this->assertEquals(200, $resp->getStatus());
     }
 
@@ -367,10 +367,10 @@ END
                 'id' => 22,
                 'data' => 'foo',
             ),
-            json_decode($resp->getContent(), true)
+            json_decode($resp->render(true), true)
         );
 
-        $this->assertEquals('application/json', $resp->contentType());
+        $this->assertEquals('application/json', $resp->contentType);
         $this->assertEquals(200, $resp->getStatus());
 
     }
@@ -407,7 +407,7 @@ END
         );
 
         $resp = $app->getResponse('/rest_has_error', true);
-        $this->assertEquals(500, $resp->getStatus(), $resp->getContent());
+        $this->assertEquals(500, $resp->getStatus(), $resp->render(true));
 
     }
 
@@ -428,7 +428,7 @@ END
                 'id' => 2,
                 'from' => 'post',
             ),
-            json_decode($resp->getContent(), true)
+            json_decode($resp->render(true), true)
         );
 
     }

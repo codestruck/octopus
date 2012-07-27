@@ -5,7 +5,8 @@
  */
 class Octopus_Request {
 
-    private $app;
+    private $_app;
+
     private $path;
     private $pathParts;
     private $resolvedPath;
@@ -35,6 +36,18 @@ class Octopus_Request {
             $this->resolvedPath = $this->path;
             $this->resolvedPathParts = $this->pathParts;
         }
+    }
+
+    public function __get($name) {
+
+    	switch($name) {
+
+    		case 'app':
+    			$getter = 'get' . ucwords($name);
+    			return $this->$getter();
+
+    	}
+
     }
 
     /**

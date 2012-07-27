@@ -11,16 +11,6 @@ class Octopus_App {
     public static $defaults = array(
 
         /**
-         * The default template inside which to render the current view's
-         * contents. This will be evaluated as relative to the
-         * /site/templates or /octopus/templates directories. Any valid
-         * view extensions (e.g., .tpl, .php) will be appended, so
-         * for the value 'html/page', both 'html/page.tpl' and 'html/page.php'
-         * will be tried.
-         */
-        'default_template' => 'html/page',
-
-        /**
          * Whether or not to create directories used by octopus. If true
          * and the dirs can't be created, an exception will be thrown.
          */
@@ -103,11 +93,6 @@ class Octopus_App {
          */
         'session_name' => 'octopus',
 
-        /**
-         * Extensions that view files can have.
-         */
-        'view_extensions' => array('.php', '.tpl', '.mustache')
-
     );
 
     private static $_instance = null;
@@ -167,7 +152,9 @@ class Octopus_App {
 
         if (is_dir($viewsDir)) {
 
-            foreach($o['view_extensions'] as $ext) {
+        	$extensions = Octopus_Renderer_Template_Engine::getExtensions();
+
+            foreach($extensions as $ext) {
 
                 $files = glob($viewsDir . '*' . $ext);
                 if (!empty($files)) {
@@ -200,8 +187,9 @@ class Octopus_App {
 
         $error = error_get_last();
         if ($error && !empty($error['type']) && ($error['type'] & E_ERROR)) {
+
             $resp = $this->getCurrentResponse();
-            if ($resp) $resp->flush();
+
         }
 
     }
@@ -341,10 +329,12 @@ class Octopus_App {
     }
 
     /**
-     * @return An Octopus_Renderer instance to use to find views and render
-     * the final page.
+     * @return Octopus_Renderer An Octopus_Renderer instance to use to render
+     * an Octopus_Response of the given content type.
+     * @param String $contentType A MIME type, e.g. 'text/html' or
+     * 'application/json'.
      */
-    public function getRenderer() {
+    public function getRendererForContentType($contentType) {
 
     	if ($this->_renderer) {
     		return $this->_renderer;
@@ -457,33 +447,6 @@ class Octopus_App {
     }
 
     /**
-     * @param $request Octopus_Request The request to use when figuring out the
-     * theme.
-     * @return String The current theme to use.
-     */
-    public function getTheme($request = null) {
-
-        if (!$this->_options['use_themes']) {
-            return '';
-        }
-
-        if ($request === null) $request = $this->getCurrentRequest();
-
-        if (is_object($request)) {
-            $request = $request->getPath();
-        }
-
-        $key = 'site.theme';
-        $parts = array_filter(explode('/', $request), 'trim');
-        if (!empty($parts)) {
-            $key .= '.' . implode('.', $parts);
-        }
-
-
-        return $this->getSetting($key);
-    }
-
-    /**
      * Sets the theme for the current request.
      */
     public function setTheme($theme, $request = null) {
@@ -556,11 +519,6 @@ class Octopus_App {
             $path = null;
         }
 
-        if (is_bool($options)) {
-            // Support getResponse($path, $buffer)
-            $options = array('buffer' => $options);
-        }
-
         if ($path === null) {
             // Path not specified, so see if mod_rewrite can tell us.
             $arg = $this->_options['path_querystring_arg'];
@@ -569,12 +527,7 @@ class Octopus_App {
         }
 
         if (!is_array($options)) {
-            $options = array('buffer' => true);
-        }
-
-        if (!array_key_exists("buffer", $options)) {
-            // Default to buffered response
-            $options['buffer'] = true;
+            $options = array();
         }
 
         // Ensure there's no querystring on path. This doesn't come up in
@@ -587,7 +540,7 @@ class Octopus_App {
         }
 
         $this->_currentRequest = $req = $this->createRequest($path, $options);
-        $this->_currentResponse = $resp = $this->createResponse($options['buffer']);
+        $this->_currentResponse = $resp = $this->createResponse($this->_currentRequest);
 
         $dispatch = new Octopus_Dispatcher($this);
         $dispatch->handleRequest($req, $resp);
@@ -683,8 +636,8 @@ class Octopus_App {
     /**
      * @return Octopus_Response
      */
-    public function createResponse($buffer = false) {
-        return new Octopus_Response($buffer);
+    public function createResponse(Octopus_Request $request) {
+        return new Octopus_Response($request);
     }
 
     /**
