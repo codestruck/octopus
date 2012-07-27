@@ -601,6 +601,9 @@ END;
 
     }
 
+    /**
+     * @group slow
+     */
     function testRemoteImageResize() {
 
         $remoteImage = "http://www.google.com/intl/en_com/images/srpr/logo3w.png";
