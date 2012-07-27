@@ -107,6 +107,31 @@ class Octopus_Debug {
 		Octopus_Log::registerErrorHandler();
     }
 
+	/**
+	 * Writes a DEBUG-level message indicating a function has been deprecated.
+	 * Takes the previous frame from the call stack as its reference.
+	 */
+	public static function deprecated() {
+
+		// TODO: As of 5.4, debug_backtrace supports a second argument which
+		// indicates the # of frames to return. We only need the previous frame
+		// here.
+
+		if (defined('DEBUG_BACKTRACE_IGNORE_ARGS')) {
+			$trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+		} else {
+			$trace = debug_backtrace(false);
+		}
+
+		$line = $trace[1];
+		$class = isset($line['class']) ? $line['class'] : '';
+		$func = $line['function'];
+
+		$func = $class . ($class ? '::' : '') . $func;
+
+		return Octopus_Log::write('debug', Octopus_Log::DEBUG, "$func is deprecated.");
+	}
+
     /**
      * Writes all arguments passed to it as special debug messages. Only
      * works when the app is in DEV mode.
