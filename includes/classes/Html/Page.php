@@ -339,6 +339,11 @@ class Octopus_Html_Page implements ArrayAccess {
 
 		}
 
+		// Allow for absolute paths within the root dir
+		if (starts_with($file, $dirs['root']) && is_file($file)) {
+			return $file;
+		}
+
 		$resp = $app->getCurrentResponse();
 
 		if ($resp && ($theme = $resp->getTheme())) {
@@ -357,8 +362,10 @@ class Octopus_Html_Page implements ArrayAccess {
 			if (!$dir) continue;
 
 			$candidate = $dir . ltrim($file, '/');
+
 			if (is_file($candidate)) {
 				$found = true;
+
 				return $candidate;
 			}
 
