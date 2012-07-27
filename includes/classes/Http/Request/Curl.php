@@ -2,6 +2,22 @@
 
 class Octopus_Http_Request_Curl extends Octopus_Http_Request_Base {
 
+	public function __construct() {
+
+		parent::__construct();
+
+		// cURL sets some headers using CURLOPT_ fields so we want to make
+		// sure they are not set twice
+		$this->reservedOpts = array_merge(
+			$this->reservedOpts,
+			array(
+		        'User-Agent',		// CURLOPT_USERAGENT
+		        'Accept-Encoding',	// CURLOPT_ENCODING
+			)
+		);
+
+	}
+
     public function request($url, $data = null, $args = array()) {
 
         $this->requestUrl = $url;
@@ -25,18 +41,11 @@ class Octopus_Http_Request_Curl extends Octopus_Http_Request_Base {
             curl_setopt($handle, CURLOPT_TIMEOUT, $args['timeout']);
         }
 
-        if (strtolower($args['method']) == 'post') {
-            curl_setopt($handle, CURLOPT_POST, true);
-        }
+        $method = strtoupper($args['method']);
 
-        if (!empty($args['timeout'])) {
-            curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, $args['timeout']);
-            curl_setopt($handle, CURLOPT_TIMEOUT, $args['timeout']);
-        }
+        if ($method !== 'GET') {
 
-        if (strcasecmp($args['method'], 'get') !== 0) {
-
-         	if (strcasecmp($args['method'], 'post') === 0) {
+         	if ($method === 'POST') {
             	curl_setopt($handle, CURLOPT_POST, true);
             } else {
             	curl_setopt($handle, CURLOPT_CUSTOMREQUEST, strtoupper($args['method']));
@@ -58,17 +67,14 @@ class Octopus_Http_Request_Curl extends Octopus_Http_Request_Base {
         } else {
             curl_setopt($handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
         }
-        unset($args['http_version']);
 
         if (isset($args['User-Agent'])) {
             curl_setopt($handle, CURLOPT_USERAGENT, $args['User-Agent']);
         }
-        unset($args['User-Agent']);
 
         if (isset($args['Accept-Encoding'])) {
             curl_setopt($handle, CURLOPT_ENCODING, $args['Accept-Encoding']);
         }
-        unset($args['Accept-Encoding']);
 
         if (!empty($args['check_ssl'])) {
         	curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, false);
@@ -93,7 +99,6 @@ class Octopus_Http_Request_Curl extends Octopus_Http_Request_Base {
 
         $body = curl_exec($handle);
         $info = curl_getinfo($handle);
-
         curl_close($handle);
 
         list($headers, $empty_body) = $this->splitResponse($this->raw_headers);

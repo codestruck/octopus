@@ -8,6 +8,21 @@ class Octopus_Http_Request_Base {
     protected $defaults;
     protected $responseStatus;
     protected $responseNumber;
+    protected $requestData;
+    protected $requestUrl;
+
+    /**
+     * These options are removed from the $args variable passed to ::request()
+     * before they are turned into HTTP headers.
+     * @var array
+     */
+    protected $reservedOpts = array(
+        'max_redirects',
+        'method',
+        'http_version',
+        'check_ssl',
+        'timeout',
+    );
 
     public function __construct() {
         $this->defaults = array(
@@ -18,12 +33,6 @@ class Octopus_Http_Request_Base {
             'User-Agent' => 'Mozilla/5.0 (X11; Linux i686; rv:5.0) Gecko/20100101 Firefox/5.0',
             'Accept-Encoding' => 'gzip,deflate',
             'Accept' => '*/*',
-        );
-
-        $this->reservedOpts = array(
-            'max_redirects',
-            'method',
-            'http_version',
         );
 
     }
@@ -40,7 +49,7 @@ class Octopus_Http_Request_Base {
         return $this->responseNumber;
     }
 
-    protected function parseUrl($url, $queryArgs) {
+    protected function parseUrl($url, $queryArgs = '') {
 
         $urlInfo = parse_url($url);
 
@@ -120,6 +129,7 @@ class Octopus_Http_Request_Base {
     }
 
     protected function checkHeaders($content) {
+
         if (isset($this->headers['Location'])) {
 
             $args = $this->args;
@@ -131,7 +141,32 @@ class Octopus_Http_Request_Base {
                 return '';
             }
 
-            $content = $this->request($this->headers['Location'], array(), $args);
+            $requested = $this->parseUrl($this->requestUrl);
+            $redirect = $this->parseUrl($this->headers['Location']);
+
+            // Allow for relative redirects
+            if (empty($redirect[0])) {
+            	$redirect[0] = $requested[0];
+            }
+
+            // Inherit protocol if needed
+            if (empty($redirect[4])) {
+            	$redirect[4] = $requested[4];
+            }
+
+            list($host, $port, $path, $secure, $protocol) = $redirect;
+
+            // don't include port if not needed
+            if ((strcasecmp($protocol, 'http') === 0 && $port != 80) ||
+            	(strcasecmp($protocol, 'https') === 0 && $port != 443)) {
+            	$port = ":$port";
+            } else {
+            	$port = '';
+            }
+
+            $redirect = $protocol . '://' . $host . $port . $path;
+
+            $content = $this->request($redirect, $this->requestData, $args);
 
         }
 
