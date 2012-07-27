@@ -546,4 +546,3 @@ class Octopus_DB_Migration_Runner {
 
 }
 
-?>

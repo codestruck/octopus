@@ -29,4 +29,3 @@ class Octopus_Image_Mode_Crop_Specific extends Octopus_Image_Mode_Base {
 
 }
 
-?>

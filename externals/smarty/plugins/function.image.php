@@ -570,4 +570,3 @@ function _octopus_smarty_get_cache_dir(&$params) {
     return $cacheDir;
 }
 
-?>

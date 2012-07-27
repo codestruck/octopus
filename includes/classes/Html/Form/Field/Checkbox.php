@@ -120,4 +120,3 @@ class Octopus_Html_Form_Field_Checkbox extends Octopus_Html_Form_Field {
 
 }
 
-?>

@@ -21,4 +21,3 @@ class Octopus_Exception_MethodMissing extends Octopus_Exception {
 
 }
 
-?>

@@ -391,4 +391,3 @@ class Octopus_DB_Schema_Writer {
 
 }
 
-?>

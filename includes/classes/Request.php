@@ -557,4 +557,3 @@ class Octopus_Request {
 
 }
 
-?>

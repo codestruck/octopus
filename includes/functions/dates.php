@@ -162,4 +162,3 @@ if (!function_exists('fuzzy_date')) {
     }
 
 
-?>

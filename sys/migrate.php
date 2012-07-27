@@ -55,4 +55,3 @@ END;
 
 	echo "\nMigration complete!\n\n";
 
-?>

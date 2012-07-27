@@ -58,4 +58,3 @@ class Octopus_Minify_Strategy_Src extends Octopus_Minify_Strategy {
 
 }
 
-?>

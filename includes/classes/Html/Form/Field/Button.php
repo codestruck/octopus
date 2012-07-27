@@ -23,4 +23,3 @@ Octopus_Html_Form_Field::register('button', 'Octopus_Html_Form_Field_Button');
 Octopus_Html_Form_Field::register('submit', 'Octopus_Html_Form_Field_Button', array('type' => 'submit'));
 Octopus_Html_Form_Field::register('reset', 'Octopus_Html_Form_Field_Button', array('type' => 'reset'));
 
-?>

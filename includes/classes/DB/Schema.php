@@ -69,4 +69,3 @@ class Octopus_DB_Schema {
 
 }
 
-?>

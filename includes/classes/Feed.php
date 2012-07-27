@@ -69,4 +69,3 @@ abstract class Octopus_Feed {
 
 }
 
-?>

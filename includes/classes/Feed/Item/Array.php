@@ -52,4 +52,3 @@ class Octopus_Feed_Item_Array implements Octopus_Feed_Item {
 
 }
 
-?>

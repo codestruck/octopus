@@ -64,4 +64,3 @@ class Octopus_Minify_Strategy_Combine extends Octopus_Minify_Strategy {
 
 }
 
-?>

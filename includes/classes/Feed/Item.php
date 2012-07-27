@@ -21,4 +21,3 @@ interface Octopus_Feed_Item {
 
 }
 
-?>

@@ -44,4 +44,3 @@ class Octopus_DB_Result {
 
 }
 
-?>

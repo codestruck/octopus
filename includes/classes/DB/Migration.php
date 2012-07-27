@@ -13,4 +13,3 @@ abstract class Octopus_DB_Migration {
 
 }
 
-?>

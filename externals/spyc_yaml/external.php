@@ -9,4 +9,3 @@ function load_yaml_string($yaml) {
     return spyc_load($yaml);
 }
 
-?>

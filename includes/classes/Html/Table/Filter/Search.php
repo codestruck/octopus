@@ -26,4 +26,3 @@ class Octopus_Html_Table_Filter_Search extends Octopus_Html_Table_Filter_Text {
 
 }
 
-?>

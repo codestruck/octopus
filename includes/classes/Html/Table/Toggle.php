@@ -171,4 +171,3 @@ class Octopus_Html_Table_Toggle extends Octopus_Html_Table_Content {
 
 }
 
-?>

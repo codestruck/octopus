@@ -81,4 +81,3 @@ class Octopus_Html_Table_Filter_Select extends Octopus_Html_Table_Filter {
 
 }
 
-?>

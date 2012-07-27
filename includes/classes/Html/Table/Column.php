@@ -438,4 +438,3 @@ class Octopus_Html_Table_Column {
     }
 }
 
-?>

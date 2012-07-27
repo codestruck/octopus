@@ -39,4 +39,3 @@ END;
 
     echo $response->getContent();
 
-?>

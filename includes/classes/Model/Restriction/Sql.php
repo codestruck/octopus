@@ -30,4 +30,3 @@ class Octopus_Model_Restriction_Sql implements Octopus_Model_Restriction {
 
 }
 
-?>

@@ -63,4 +63,3 @@ class Octopus_Image_Mode_Base {
 
 }
 
-?>

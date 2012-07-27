@@ -59,4 +59,3 @@ class Octopus_Html_Header {
 
 }
 
-?>

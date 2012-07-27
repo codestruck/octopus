@@ -38,4 +38,3 @@ class Octopus_Image_Mode_Resize extends Octopus_Image_Mode_Base {
 
 }
 
-?>

@@ -117,4 +117,3 @@ class Octopus_Model_Restriction_Field implements Octopus_Model_Restriction {
 
 }
 
-?>

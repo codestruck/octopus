@@ -7,4 +7,3 @@
 class DefaultController extends Octopus_Controller {
 
 }
-?>

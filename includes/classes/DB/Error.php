@@ -61,4 +61,3 @@ class Octopus_DB_Error {
     }
 }
 
-?>

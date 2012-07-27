@@ -9,4 +9,3 @@ function smarty_function_html_image($params, $template) {
 	return smarty_function_image($params, $template);
 }
 
-?>

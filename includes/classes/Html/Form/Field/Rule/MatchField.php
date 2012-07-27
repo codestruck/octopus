@@ -29,4 +29,3 @@ class Octopus_Html_Form_Field_Rule_MatchField extends Octopus_Html_Form_Field_Ru
 
 }
 
-?>

@@ -25,4 +25,3 @@ class Octopus_DB_Delete extends Octopus_DB_Helper {
 
 }
 
-?>

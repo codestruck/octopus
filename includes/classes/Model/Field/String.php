@@ -45,4 +45,3 @@ class Octopus_Model_Field_String extends Octopus_Model_Field {
 
 }
 
-?>

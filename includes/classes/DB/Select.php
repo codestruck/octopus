@@ -431,4 +431,3 @@ class Octopus_DB_Select extends Octopus_DB_Helper {
 
 }
 
-?>

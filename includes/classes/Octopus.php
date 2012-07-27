@@ -319,4 +319,3 @@ class Octopus {
 
 Octopus::addClassDir(dirname(__FILE__) . '/');
 
-?>

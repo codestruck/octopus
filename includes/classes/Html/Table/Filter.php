@@ -320,4 +320,3 @@ abstract class Octopus_Html_Table_Filter {
     }
 }
 
-?>

@@ -29,4 +29,3 @@ class Octopus_DB_Update extends Octopus_DB_Helper {
 
 }
 
-?>

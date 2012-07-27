@@ -48,4 +48,3 @@ class Octopus_DB_Replace {
 
 }
 
-?>

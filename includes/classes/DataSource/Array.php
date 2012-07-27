@@ -262,4 +262,3 @@ class Octopus_DataSource_Array implements Octopus_DataSource {
 
 }
 
-?>

@@ -24,4 +24,3 @@ class Octopus_Base {
     }
 }
 
-?>

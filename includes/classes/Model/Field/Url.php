@@ -23,4 +23,3 @@ class Octopus_Model_Field_Url extends Octopus_Model_Field_String {
 
 }
 
-?>

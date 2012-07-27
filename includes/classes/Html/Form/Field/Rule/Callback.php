@@ -15,4 +15,3 @@ class Octopus_Html_Form_Field_Rule_Callback extends Octopus_Html_Form_Field_Rule
 
 }
 
-?>

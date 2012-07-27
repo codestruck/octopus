@@ -41,4 +41,3 @@ class Octopus_Model_Field_Slug extends Octopus_Model_Field {
 
 }
 
-?>

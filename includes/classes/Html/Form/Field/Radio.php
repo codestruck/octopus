@@ -225,4 +225,3 @@ class Octopus_Html_Form_Field_Radio extends Octopus_Html_Form_Field {
 
 }
 
-?>

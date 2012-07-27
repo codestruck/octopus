@@ -40,4 +40,3 @@ class Octopus_Image_Mode_Crop_Thumb extends Octopus_Image_Mode_Base {
 
 }
 
-?>

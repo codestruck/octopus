@@ -55,4 +55,3 @@ class Octopus_Model_ResultSet_Sql extends Octopus_Model_ResultSet {
 
 }
 
-?>

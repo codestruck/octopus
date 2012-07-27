@@ -5,5 +5,3 @@
     bootstrap();
     render_page();
 
-?>
-

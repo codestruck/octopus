@@ -92,4 +92,3 @@ class Octopus_DataSource_Sql implements Octopus_DataSource {
 
 }
 
-?>

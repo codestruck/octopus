@@ -68,4 +68,3 @@ interface Octopus_DataSource extends Countable, Iterator {
 
 }
 
-?>

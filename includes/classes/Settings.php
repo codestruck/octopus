@@ -290,4 +290,3 @@ class Octopus_Settings extends Octopus_Base implements Iterator, ArrayAccess {
 
 }
 
-?>

@@ -88,4 +88,3 @@ abstract class Octopus_Minify_Strategy {
     }
 }
 
-?>

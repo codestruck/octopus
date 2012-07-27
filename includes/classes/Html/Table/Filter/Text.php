@@ -32,4 +32,3 @@ class Octopus_Html_Table_Filter_Text extends Octopus_Html_Table_Filter {
     }
 }
 
-?>

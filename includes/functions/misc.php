@@ -485,4 +485,3 @@ END;
         return $str;
     }
 
-?>

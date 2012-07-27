@@ -23,4 +23,3 @@ class Octopus_Image_Mode_Upload extends Octopus_Image_Mode_Base {
 
 }
 
-?>

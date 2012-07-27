@@ -164,4 +164,3 @@ class Octopus_DB_Helper {
     }
 }
 
-?>

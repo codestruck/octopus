@@ -14,4 +14,3 @@ interface Octopus_Model_Restriction {
 
 }
 
-?>

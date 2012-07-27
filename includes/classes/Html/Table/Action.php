@@ -87,4 +87,3 @@ class Octopus_Html_Table_Action extends Octopus_Html_Table_Content {
 
 }
 
-?>

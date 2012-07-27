@@ -25,4 +25,3 @@ class Octopus_Html_Form_Field_Rule_Regex extends Octopus_Html_Form_Field_Rule {
 
 }
 
-?>

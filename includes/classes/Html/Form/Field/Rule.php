@@ -59,4 +59,3 @@ abstract class Octopus_Html_Form_Field_Rule {
 
 }
 
-?>

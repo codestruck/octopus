@@ -60,4 +60,3 @@ class Octopus_Html_Form_Field_Rule_Length extends Octopus_Html_Form_Field_Rule {
 
 }
 
-?>

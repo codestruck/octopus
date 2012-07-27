@@ -154,4 +154,3 @@ class Octopus_DB_Driver_Mysql {
 }
 
 
-?>

@@ -517,4 +517,3 @@ abstract class Octopus_Model_Field {
 
 }
 
-?>

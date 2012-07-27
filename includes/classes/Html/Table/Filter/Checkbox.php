@@ -15,4 +15,3 @@ class Octopus_Html_Table_Filter_Checkbox extends Octopus_Html_Table_Filter {
 
 }
 
-?>

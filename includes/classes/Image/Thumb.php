@@ -50,4 +50,3 @@ class Octopus_Image_Thumb {
 
 }
 
-?>

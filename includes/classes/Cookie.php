@@ -33,4 +33,3 @@ class Octopus_Cookie {
 
 }
 
-?>

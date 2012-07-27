@@ -171,4 +171,3 @@ class Octopus_DB extends Octopus_Base {
 }
 
 
-?>

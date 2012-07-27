@@ -240,4 +240,3 @@ class Octopus_Settings_Key {
 
 }
 
-?>

@@ -13,4 +13,3 @@ class Octopus_Html_Form_Rule_Callback extends Octopus_Html_Form_Rule {
 
 }
 
-?>
