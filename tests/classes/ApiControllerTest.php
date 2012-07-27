@@ -259,7 +259,7 @@ END
         );
 
         $resp = $app->getResponse('/api_has_error/test', true);
-        $this->assertEquals(500, $resp->getStatus(), $resp->getContent());
+        $this->assertEquals(500, $resp->getStatus(), $resp->render(true));
 
     }
 

@@ -69,7 +69,6 @@ class Octopus_Renderer {
 		// NOTE: renderContent() can modify $response (e.g. set the status
 		// to 404 if a view is not found). So we have to do an internal
 		// buffered render, output headers, and then output/return.
-
 		$content = $this->renderContent($response);
 
 		if ($return) {

@@ -36,6 +36,5 @@ END;
 
     $app = Octopus_App::singleton();
     $response = $app->getResponse($path);
-
-    echo $response->getContent();
+    $response->render();
 

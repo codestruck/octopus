@@ -53,6 +53,9 @@ class Octopus_Http_Request_Base {
 
         $urlInfo = parse_url($url);
 
+        if (!isset($urlInfo['scheme'])) $urlInfo['scheme'] = 'http';
+        if (!isset($urlInfo['host'])) $urlInfo['host'] = '';
+
         $host = $urlInfo['host'];
 
         $port = $urlInfo['scheme'] == 'http' ? 80 : 443;
