@@ -89,6 +89,8 @@ class Octopus_Renderer {
 	 */
 	protected function outputHeaders(Octopus_Response $response) {
 
+		header($response->getStatusString());
+
 		foreach($response->getHeaders() as $key => $value) {
 			header("$key: $value");
 		}
