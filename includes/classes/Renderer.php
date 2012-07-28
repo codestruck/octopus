@@ -4,7 +4,7 @@
  * Class that takes an Octopus_Response and outputs it in the appropriate
  * format (HTML, JSON, whatever).
  */
-class Octopus_Renderer {
+abstract class Octopus_Renderer {
 
 	private static $registry = array(
 
@@ -97,10 +97,11 @@ class Octopus_Renderer {
 	}
 
 	/**
-	 * Outputs or returns the content for $response.
+	 * @param Octopus_Response $response
+	 * @return String Content to output for $response.
 	 */
 	protected function renderContent(Octopus_Response $response) {
-		return $response->getContent();
+		return '';
 	}
 
 }

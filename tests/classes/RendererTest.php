@@ -187,6 +187,10 @@ END
 
     	$resp = $app->getResponse('/some/deep/view/that_does_not_exist');
 
+    	// Have to render response for status to be updated to 404 (since it
+    	// doesn't search for the view until it is rendered).
+    	$content = $resp->render(true);
+
     	$this->assertEquals(404, $resp->getStatus(), '404 for non-existent view');
 
     }
@@ -199,9 +203,11 @@ END
     	$app = $this->getApp();
 
     	$resp = $app->getResponse('/static_fallback_failure/foo');
+    	$resp->render(true);
     	$this->assertEquals(200, $resp->getStatus());
 
     	$resp = $app->getResponse('/static_fallback_failure/foo/bar');
+    	$resp->render(true);
     	$this->assertEquals(404, $resp->getStatus(), 'fallback fails when action not defined');
 
 

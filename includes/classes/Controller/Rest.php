@@ -23,9 +23,9 @@ abstract class Octopus_Controller_Rest extends Octopus_Controller {
         } else {
         	// HACK: the JSON renderer outputs an array or object-- it can't
         	// handle numeric responses quite yet. Here we just append whatever
-        	// the F is returned and let Octopus_Renderer output that literal
-        	// value.
-        	$this->response->setRenderer(new Octopus_Renderer());
+        	// the F is returned and let Octopus_Renderer_AppendedContent
+        	// output that literal value.
+        	$this->response->setRenderer(new Octopus_Renderer_AppendedContent());
         	$this->response->append($result === null ? '' : json_encode($result));
         }
 

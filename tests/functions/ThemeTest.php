@@ -24,7 +24,10 @@ END
 
 		unset($GLOBALS['testThemeDotPHPIncluded']);
 
+
 		$resp = $app->getResponse('/foo');
+		$resp->render(true); // theme not included until render
+
 		$this->assertTrue(isset($GLOBALS['testThemeDotPHPIncluded']));
 		$this->assertEquals('included', $GLOBALS['testThemeDotPHPIncluded']);
 

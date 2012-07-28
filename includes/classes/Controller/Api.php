@@ -95,7 +95,7 @@ abstract class Octopus_Controller_Api extends Octopus_Controller {
         } else {
         	// HACK: Json renderer doesn't handle non-array responses very
         	// well right now.
-        	$this->response->setRenderer(new Octopus_Renderer());
+        	$this->response->setRenderer(new Octopus_Renderer_AppendedContent());
         	$this->response->append(json_encode($result));
         }
 

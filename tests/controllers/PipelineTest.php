@@ -432,6 +432,10 @@ END
         $this->createControllerFile('ViewNotFound404');
 
         $resp = $app->getResponse('/view-not-found-404/', true);
+
+        // Need to render $resp so it can realize the view doesn't exists
+        $resp->render(true);
+
         $this->assertEquals(404, $resp->getStatus());
 
 

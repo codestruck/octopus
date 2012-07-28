@@ -455,7 +455,10 @@ class Octopus_Response implements ArrayAccess {
 
     	$this->checkNotStopped();
 
+    	// When $response->render() is called, only the redirect headers will
+    	// be written.
 		$this->setRenderer(new Octopus_Renderer_HeadersOnly());
+
     	$this->_status = ($permanent ? 301 : 302);
     	$this->headers = array(
     		'location' => array('name' => 'Location', 'value' => $to)

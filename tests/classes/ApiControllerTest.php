@@ -56,6 +56,33 @@ class ApiControllerTest extends Octopus_App_TestCase {
 
     }
 
+    function testNonArrayResult() {
+
+        $app = $this->startApp();
+
+        $this->createControllerFile(
+            'api/1/TestNonArray',
+            <<<END
+<?php
+
+class Api1TestNonArrayController extends Octopus_Controller_Api {
+
+    public function test() {
+        return 1;
+    }
+
+}
+
+?>
+END
+        );
+
+        $resp = $app->getResponse('/api/1/test-non-array/test', true);
+		$this->assertEquals('application/json', $resp->contentType);
+        $this->assertEquals('1', $resp->render(true));
+
+    }
+
     function testContentType() {
 
         $app = $this->startApp();

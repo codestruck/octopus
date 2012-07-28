@@ -31,7 +31,6 @@ class Octopus_Renderer_Template extends Octopus_Renderer {
 		return $this->getViewFile($view, $app);
 	}
 
-
 	/**
 	 * @see Octopus_Renderer::renderContent
 	 */
@@ -39,19 +38,19 @@ class Octopus_Renderer_Template extends Octopus_Renderer {
 
 		$request = $response->getRequest();
 
-		// Build the array of data to pass to whichever templating engine
-		// we end up using (smarty, php, mustache)
-		$data = $response->getValues();
-		$this->augmentViewData($data, $request, $response);
-
 		// Include the theme.php file for the current theme
 		$this->includeTheme($request->app, $response);
 
+		// Build the array of data to pass to whichever templating engine
+		// we end up using (smarty, php, mustache)
+		$viewData = $response->getValues();
+		$this->augmentViewData($viewData, $request, $response);
+
 		// Render the view for whatever action was executed...
-		$viewContent = $this->renderView($request, $response, $data);
+		$viewContent = $this->renderView($request, $response, $viewData);
 
 		// ...and then render that into the layout being used
-		$layoutContent = $this->renderLayout($request, $response, $viewContent, $data);
+		$layoutContent = $this->renderLayout($request, $response, $viewContent, $viewData);
 
 		return $layoutContent;
 
@@ -62,12 +61,19 @@ class Octopus_Renderer_Template extends Octopus_Renderer {
 	 */
 	protected function renderLayout(Octopus_Request $request, Octopus_Response $response, $viewContent, Array &$data) {
 
-		$finder = new Octopus_Renderer_Template_Finder($this->getLayoutSearchDirs($request, $response));
+		$dirs = $this->getLayoutSearchDirs($request, $response);
+		$finder = new Octopus_Renderer_Template_Finder($dirs);
 		$file = $finder->find($response->layout);
 
-	    if (!$file) {
-	        return $viewContent;
-	    }
+		if (!$file) {
+
+			if (Octopus_Log::isDebugEnabled()) {
+				$dirs = implode(', ', $dirs);
+				Octopus_Log::debug('render', "No layout found for response. \$response->layout is {$response->layout}, \$dirs is [$dirs]");
+			}
+
+			return $viewContent;
+		}
 
 	    $data['view_content'] = $viewContent;
 
@@ -76,22 +82,20 @@ class Octopus_Renderer_Template extends Octopus_Renderer {
 	    return $engine->render($data);
 	}
 
-	/**
-	 * Renders the view for $response.
-	 */
 	protected function renderView(Octopus_Request $request, Octopus_Response $response, Array &$data) {
 
 		if ($response->hasContent()) {
 
 			// Content has been directly appended to the response, so interpret
 			// that as the "view"
+
+    		Octopus_Log::debug('render', "Substituting appended content for view content.");
+
 			return $response->getContent();
 
 		}
 
 		$app = $request->getApp();
-
-		$finder = $this->createViewFinder($app);
 
 		if ($response->view) {
 			// Actions can set the view explicitly on their response (the easy way)...
@@ -101,6 +105,7 @@ class Octopus_Renderer_Template extends Octopus_Renderer {
 			$view = $this->getViewForRequest($request);
 		}
 
+		$finder = $this->createViewFinder($app);
 		$file = $finder->find($view);
 
 		if (!$file) {
@@ -458,6 +463,5 @@ class Octopus_Renderer_Template extends Octopus_Renderer {
 
         return $result;
     }
-
 
 }
