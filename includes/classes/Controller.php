@@ -365,20 +365,6 @@ abstract class Octopus_Controller {
     }
 
     /**
-     * @return Array The actions that have been executed on this controller
-     * (using __execute), in the order they were called.
-     */
-    public function &__getExecutedActions() {
-
-        $result = array();
-        foreach($this->executedActions as $a) {
-            $result[] = $a['action'];
-        }
-        return $result;
-
-    }
-
-    /**
      * @uses ::actionExists
      */
     public function __actionExists($action) {
@@ -495,25 +481,6 @@ abstract class Octopus_Controller {
      */
     protected function reload() {
         $this->redirect($_SERVER['REQUEST_URI']);
-    }
-
-    /**
-     * Calls a different action without doing a 301/302 redirect.
-     */
-    protected function transfer($action, $args = array()) {
-
-        $this->template = null;
-        $this->view = null;
-        $this->executedActions = array();
-
-        $args = func_get_args();
-        array_shift($args);
-
-        if (count($args) == 1 && is_array($args[0])) {
-            $args = $args[0];
-        }
-
-        return $this->__execute($action, $args);
     }
 
     /**
