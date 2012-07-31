@@ -22,7 +22,7 @@ class Mustaches_Controller extends Octopus_Controller {
 		// setting the renderer here, we ensure that the JS above just gets
 		// outputted directly when the response is rendered (without any
 		// templating logic being applied.)
-		$this->response->setRenderer(new Octopus_Renderer());
+		$this->response->setRenderer(new Octopus_Renderer_AppendedContent());
 
 		$this->response->stop();
 
