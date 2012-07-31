@@ -71,7 +71,7 @@ END;
 
         $templates = join(",\n", $templates);
 
-        $this->response->append(<<<END
+        $js = <<<END
 (function() {
 
 if (!window.Hogan) {
@@ -98,8 +98,7 @@ window.MUSTACHES = {
 
 })();
 
-END
-);
+END;
 
         return $js;
 
