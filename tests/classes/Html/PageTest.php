@@ -2,6 +2,30 @@
 
 class PageTest extends Octopus_App_TestCase {
 
+	function testHeadSectionContent() {
+
+		$page = new Octopus_Html_Page();
+		$page->setTitle('foo');
+		$page->addCss('/foo.css');
+		$page->addJavascript('/foo.js');
+		$page->addLink('feed', '/foo.rss', 'text/rss');
+		$page->setDescription("foo bar baz bat");
+
+		$this->assertHtmlEquals(
+			<<<END
+<title>foo</title>
+<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+<meta name="description" content="foo bar baz bat" />
+<link href="/foo.css" rel="stylesheet" type="text/css" media="all" />
+<script type="text/javascript" src="/foo.js"></script>
+<link href="/foo.rss" rel="feed" type="text/rss" />
+END
+			,
+			$page->head->content
+		);
+
+	}
+
     function testCssHasMtime() {
 
         recursive_touch($this->getSiteDir() . 'css/test.css');

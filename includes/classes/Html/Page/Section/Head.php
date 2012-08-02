@@ -8,17 +8,40 @@
  */
 class Octopus_Html_Page_Section_Head extends Octopus_Html_Page_Section {
 
-	public function render($return = false, $minify = true) {
+	public function __get($name) {
+
+		switch($name) {
+
+			case 'content':
+				return $this->getContent();
+
+		}
+
+		return parent::__get($name);
+
+	}
+
+	/**
+	 * @return String The title, meta tags, css, javascript and other <link>
+	 * tags for the 'head' section.
+	 */
+	public function getContent($minify = true) {
 
 		$result = array(
-			'<head>',
 			$this->page->renderTitle(true),
 			$this->page->renderMeta(true),
 			$this->renderCss(true, $minify),
 			$this->renderJavascript(true, $minify),
-			'</head>'
+			$this->page->renderLinks(true),
 		);
-		$result = implode("\n", $result);
+
+		return implode("\n", $result);
+
+	}
+
+	public function render($return = false, $minify = true) {
+
+		$result = '<head>' . $this->getContent($minify) . '</head>';
 
 		if ($return) {
 			return $result;
@@ -47,5 +70,6 @@ class Octopus_Html_Page_Section_Head extends Octopus_Html_Page_Section {
 		return $this;
 
 	}
+
 
 }
