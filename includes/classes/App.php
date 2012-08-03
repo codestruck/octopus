@@ -863,7 +863,7 @@ class Octopus_App {
                 $o['URL_BASE'] = find_url_base($o['ROOT_DIR']);
 
                 if ($o['URL_BASE'] === false) {
-                    $this->error('Could not determine URL_BASE. Assuming "/".');
+                	Octopus_Log::debug("Could not determine URL_BASE. Assuming '/'");
                     $o['URL_BASE'] = '/';
                 }
             }
