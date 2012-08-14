@@ -1,61 +1,69 @@
 <?php
-/**
- * @copyright (c) 2012 Codestruck, LLC.
- * @license http://opensource.org/licenses/mit-license.php/
- */
+                                                                 $usage = <<<END
 
-	require_once(dirname(dirname(__FILE__)) . '/includes/core.php');
+octopus/migrate
 
-	if (!is_command_line()) {
-		die();
-	}
+    Updates the database to the latest version, with tables for all models in
+    use.
 
-	array_shift($argv); // Remove script name
+Copyright (c) 2012 Codestruck, LLC.
+Provided under the terms of the MIT license. See the LICENSE file for details.
 
-	// Support host name via command line
-	if (!empty($argv)) {
-		$_SERVER['HTTP_HOST'] = array_shift($argv);
-	}
 
-	bootstrap();
+END;
 
-	$siteDir = dirname(dirname(dirname(__FILE__))) . '/site/';
+    require_once(dirname(dirname(__FILE__)) . '/includes/core.php');
 
-	foreach(glob($siteDir . 'models/*.php') as $f) {
+    if (!is_command_line()) {
+        die();
+    }
 
-		$model = basename($f, '.php');
+    array_shift($argv); // Remove script name
 
-		echo "\nMigrating model $model...\n";
+    // Support host name via command line
+    if (!empty($argv)) {
+        $_SERVER['HTTP_HOST'] = array_shift($argv);
+    }
 
-		try {
-			Octopus_DB_Schema_Model::makeTable($model);
-		} catch(Octopus_DB_Exception $ex) {
+    bootstrap();
 
-			$app = Octopus_App::singleton();
+    $siteDir = dirname(dirname(dirname(__FILE__))) . '/site/';
 
-			// TODO: Use a more specific exception
-			if (strpos($ex->getMessage(), "DB configuration") !== false) {
-				echo <<<END
+    foreach(glob($siteDir . 'models/*.php') as $f) {
+
+        $model = basename($f, '.php');
+
+        echo "\nMigrating model $model...\n";
+
+        try {
+            Octopus_DB_Schema_Model::makeTable($model);
+        } catch(Octopus_DB_Exception $ex) {
+
+            $app = Octopus_App::singleton();
+
+            // TODO: Use a more specific exception
+            if (strpos($ex->getMessage(), "DB configuration") !== false) {
+                echo <<<END
 --------------------------------------------------------------------------------
 
-	No DB configuration exists for hostname: {$app->getHostname()}
+    No DB configuration exists for hostname: {$app->getHostname()}
 
-	To specify a different hostname, provide it as an argument to
-	octopus/migrate:
+    To specify a different hostname, provide it as an argument to
+    octopus/migrate:
 
-		> octopus/migrate my.host.name.com
+        > octopus/migrate my.host.name.com
 
 --------------------------------------------------------------------------------
 
 END;
-				exit(1);
-			}
+                exit(1);
+            }
 
-			throw $ex;
+            throw $ex;
 
-		}
+        }
 
-	}
+    }
 
-	echo "\nMigration complete!\n\n";
+    echo "\nMigration complete!\n\n";
 

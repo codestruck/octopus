@@ -1,10 +1,5 @@
 <?php
-/**
- * @copyright (c) 2012 Codestruck, LLC.
- * @license http://opensource.org/licenses/mit-license.php/
- */
-
-$usage = <<<END
+                                                                 $usage = <<<END
 
 octopus/log
 
@@ -25,14 +20,17 @@ octopus/log
             triggered the log event.
 
         --since <time>
-        	Only display items that have happened since <time>. <time> can be
-        	any string that strototime accepts.
+            Only display items that have happened since <time>. <time> can be
+            any string that strototime accepts.
 
         --recent
-        	Only shows items from the last 15 minutes.
+            Only shows items from the last 15 minutes.
 
-    	--help
-    		Displays this message.
+        --help
+            Displays this message.
+
+Copyright (c) 2012 Codestruck, LLC.
+Provided under the terms of the MIT license. See the LICENSE file for details.
 
 
 END;
@@ -40,7 +38,7 @@ END;
     require_once(dirname(dirname(__FILE__)) . '/includes/core.php');
     is_command_line() or die();
     bootstrap(array(
-    	'use_site_config' => false,
+        'use_site_config' => false,
     ));
 
     array_shift($argv); // remove script name
@@ -58,7 +56,7 @@ END;
 
     while($arg = array_shift($argv)) {
 
-    	switch($arg) {
+        switch($arg) {
 
             case '--full-stack':
             case '--full-stack-trace':
@@ -68,75 +66,75 @@ END;
 
             case '--since':
 
-            	if (empty($argv)) {
-            		echo "\n\nERROR: --since requires a time\n\n";
-            		exit(1);
-            	}
+                if (empty($argv)) {
+                    echo "\n\nERROR: --since requires a time\n\n";
+                    exit(1);
+                }
 
-            	$sinceArg = array_shift($argv);
-            	$since = strtotime($sinceArg);
-            	if ($since === false) {
-            		echo "\n\nERROR: Invalid argument to --since\n\n";
-            		exit(1);
-            	}
+                $sinceArg = array_shift($argv);
+                $since = strtotime($sinceArg);
+                if ($since === false) {
+                    echo "\n\nERROR: Invalid argument to --since\n\n";
+                    exit(1);
+                }
 
-            	break;
+                break;
 
             case '--recent':
-            	$since = time() - (60 * 15);
-            	break;
+                $since = time() - (60 * 15);
+                break;
 
-    		case '--help':
-    			echo $usage;
-    			exit();
-    			break;
+            case '--help':
+                echo $usage;
+                exit();
+                break;
 
-    		default:
+            default:
 
-    			$fileOrDirCount++;
+                $fileOrDirCount++;
 
-    			if (!_octopus_read_log_items($arg, $items)) {
-    				echo <<<END
+                if (!_octopus_read_log_items($arg, $items)) {
+                    echo <<<END
 
 Invalid log file / dir: $arg
 
 END;
-					$hasErrors = true;
-    			}
+                    $hasErrors = true;
+                }
 
-    			break;
+                break;
 
-    	}
+        }
 
     }
 
     if ($hasErrors) {
-    	exit(1);
+        exit(1);
     }
 
     if (!$fileOrDirCount) {
 
-    	// By default, search _private for log files
-    	if (!defined('OCTOPUS_PRIVATE_DIR') || !is_dir(OCTOPUS_PRIVATE_DIR)) {
-    		echo "\n\nERROR: No log files/dirs specified and OCTOPUS_PRIVATE_DIR does not exist.\n\n";
-    		exit(1);
-    	}
+        // By default, search _private for log files
+        if (!defined('OCTOPUS_PRIVATE_DIR') || !is_dir(OCTOPUS_PRIVATE_DIR)) {
+            echo "\n\nERROR: No log files/dirs specified and OCTOPUS_PRIVATE_DIR does not exist.\n\n";
+            exit(1);
+        }
 
-    	_octopus_read_log_dir_items(OCTOPUS_PRIVATE_DIR, $items);
+        _octopus_read_log_dir_items(OCTOPUS_PRIVATE_DIR, $items);
 
     }
 
     if ($since) {
 
-	    $filtered = array();
-	    foreach($items as $item) {
-	    	if ($item['time'] >= $since) {
-	    		$filtered[] = $item;
-	    	}
-	    }
-	    $items = $filtered;
+        $filtered = array();
+        foreach($items as $item) {
+            if ($item['time'] >= $since) {
+                $filtered[] = $item;
+            }
+        }
+        $items = $filtered;
 
-	}
+    }
 
     usort($items, array('Octopus_Log', 'compareLogItems'));
     $count = 0;
@@ -144,7 +142,7 @@ END;
 
     foreach($items as $item) {
 
-    	$logFiles[$item['_octopus_log_file']] = true;
+        $logFiles[$item['_octopus_log_file']] = true;
 
         $text = $console->formatForDisplay(
             $item['message'],
@@ -185,60 +183,60 @@ END;
 
     function _octopus_read_log_items($fileOrDir, Array &$items) {
 
-    	return
-    		(is_file($fileOrDir) && _octopus_read_log_file_items($fileOrDir, $items)) ||
-    		(is_dir($fileOrDir) && _octopus_read_log_dir_items($fileOrDir, $items));
+        return
+            (is_file($fileOrDir) && _octopus_read_log_file_items($fileOrDir, $items)) ||
+            (is_dir($fileOrDir) && _octopus_read_log_dir_items($fileOrDir, $items));
 
     }
 
     function _octopus_read_log_file_items($file, Array &$items) {
 
-    	$fileItems = Octopus_Log_Listener_File::readFile($file);
-    	if ($fileItems === false) {
-    		return false;
-    	}
+        $fileItems = Octopus_Log_Listener_File::readFile($file);
+        if ($fileItems === false) {
+            return false;
+        }
 
-    	foreach($fileItems as $item) {
+        foreach($fileItems as $item) {
 
-    		$id = empty($item['id']) ? md5(serialize($item)) : $item['id'];
-    		$item['_octopus_log_file'] = $file;
-    		$items[$id] = $item;
-    	}
+            $id = empty($item['id']) ? md5(serialize($item)) : $item['id'];
+            $item['_octopus_log_file'] = $file;
+            $items[$id] = $item;
+        }
 
-    	return true;
+        return true;
 
     }
 
     function _octopus_read_log_dir_items($dir, Array &$items) {
 
-    	$dir = rtrim($dir, '/') . '/';
-    	$handle = opendir($dir);
+        $dir = rtrim($dir, '/') . '/';
+        $handle = opendir($dir);
 
-    	if (!$handle) {
-    		return false;
-    	}
+        if (!$handle) {
+            return false;
+        }
 
-    	while(($item = readdir($handle)) !== false) {
+        while(($item = readdir($handle)) !== false) {
 
-    		if ($item === '.' || $item === '..') {
-    			continue;
-    		}
+            if ($item === '.' || $item === '..') {
+                continue;
+            }
 
-    		$file = $dir . $item;
+            $file = $dir . $item;
 
-    		if (is_file($file)) {
+            if (is_file($file)) {
 
-	    		if (preg_match('/(\.\d+)?\.log$/', $item)) {
-	    			_octopus_read_log_file_items($dir . $item, $items);
-	    		}
+                if (preg_match('/(\.\d+)?\.log$/', $item)) {
+                    _octopus_read_log_file_items($dir . $item, $items);
+                }
 
-	    	} else if (is_dir($file)) {
-	    		_octopus_read_log_dir_items($file, $items);
-	    	}
+            } else if (is_dir($file)) {
+                _octopus_read_log_dir_items($file, $items);
+            }
 
-    	}
+        }
 
-    	closedir($handle);
-    	return true;
+        closedir($handle);
+        return true;
 
     }

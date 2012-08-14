@@ -1,16 +1,5 @@
 <?php
-/**
- * @copyright (c) 2012 Codestruck, LLC.
- * @license http://opensource.org/licenses/mit-license.php/
- */
-
-    require_once(dirname(dirname(__FILE__)) . '/includes/core.php');
-    is_command_line() or die();
-    bootstrap(array(
-        'use_site_config' => false,
-    ));
-
-    $description = <<<END
+                                                                 $usage = <<<END
 
 octopus/tail
 
@@ -33,8 +22,17 @@ octopus/tail
         --help
             Display this message.
 
+Copyright (c) 2012 Codestruck, LLC.
+Provided under the terms of the MIT license. See the LICENSE file for details.
+
 
 END;
+
+    require_once(dirname(dirname(__FILE__)) . '/includes/core.php');
+    is_command_line() or die();
+    bootstrap(array(
+        'use_site_config' => false,
+    ));
 
     array_shift($argv); // Remove script name
 
@@ -56,7 +54,7 @@ END;
                     break;
 
                 case '--help':
-                    echo $description;
+                    echo       $usage;
                     exit();
                     break;
 
