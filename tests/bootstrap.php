@@ -21,10 +21,14 @@
     if (!OCTOPUS_TESTING_SITE) {
     	// TODO: Allow passing config file path to bootstrap() below
     	$configFile = dirname(__FILE__) . '/../test_config.php';
-    	if (!is_file($configFile)) {
-    		throw new Octopus_Exception("Octopus test config file not found: $configFile");
-    	}
-    	require_once($configFile);
+        if (is_file($configFile)) {
+        	require_once($configFile);
+        } else {
+            define('DB_username', 'octopus');
+            define('DB_password', 'octopus');
+            define('DB_database', 'octopus');
+            define('DB_hostname', 'localhost');
+        }
     }
 
     bootstrap(array(
@@ -66,8 +70,4 @@
 
 	    $db = Octopus_DB::singleton();
 	    $db->query('SET storage_engine=MYISAM', true);
-	    unset($db); // Prevent PHPUnit from bitching about PDO instances not
-	                // being serializable/unserializeable
-
-
 	}
