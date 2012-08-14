@@ -801,7 +801,7 @@ class Octopus_App {
                             break;
 
                         case 'OCTOPUS_UPLOAD_DIR':
-                            $o[$dir] = $o['SITE_DIR'] . 'files/';
+                            $o[$dir] = $o['ROOT_DIR'] . 'upload/';
                             break;
 
                     }
