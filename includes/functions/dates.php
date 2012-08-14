@@ -4,6 +4,10 @@ define("FUZZY_ONE_DAY", 86400);
 
 if (!function_exists('fuzzy_time')) {
 
+	/**
+	 * @copyright (c) 2012 Codestruck, LLC.
+	 * @license http://opensource.org/licenses/mit-license.php/
+	 */
     function fuzzy_time($time = 0)
     {
         if($time == 0)
@@ -63,6 +67,10 @@ if (!function_exists('fuzzy_time')) {
 
 if (!function_exists('fuzzy_date')) {
 
+	/**
+	 * @copyright (c) 2012 Codestruck, LLC.
+	 * @license http://opensource.org/licenses/mit-license.php/
+	 */
     function fuzzy_date($time = 0)
     {
         $text = fuzzy_time($time);
@@ -78,87 +86,97 @@ if (!function_exists('fuzzy_date')) {
     }
 }
 
-    /**
-     * @return Number the UNIX timestamp for 12:00:00 AM on the given date.
-     * @TODO test
-     */
-    function get_day($date) {
+/**
+ * @return Number the UNIX timestamp for 12:00:00 AM on the given date.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+function get_day($date) {
 
-        if (!is_numeric($date)) {
-            $date = strtotime($date);
+    if (!is_numeric($date)) {
+        $date = strtotime($date);
+    }
+
+    if (!$date) return 0;
+
+    $date = date('Y-m-d', $date);
+
+    return strtotime($date);
+}
+
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+function add_days($date, $days) {
+    $date = get_day($date);
+    // NOTE: strtotime handles DST etc internally, so rely on it to do the math
+    return strtotime(date("Y-m-d", $date) . ($days >= 0 ? '+' : '-') . abs($days) . ' day');
+}
+
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+function get_time_span_parts($seconds) {
+    $counts = array(
+        'days' => 86400,
+        'hours' => 3600,
+        'minutes' => 60,
+    );
+    $parts = array();
+
+    $microseconds = $seconds - floor($seconds);
+
+    foreach($counts as $name => $count) {
+        $parts[$name] = floor($seconds / $count);
+        $seconds -= ($parts[$name] * $count);
+    }
+    $parts['seconds'] = $seconds;
+    $parts['microseconds'] = $microseconds * 1000000;
+
+    return $parts;
+}
+
+/**
+ * Given a length of time in seconds (or microseconds)
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+function format_time_span($seconds, $fuzzy = false) {
+
+    $parts = get_time_span_parts($seconds);
+
+    // TODO: fuzzy
+
+    $result = '';
+    foreach($parts as $name => $count) {
+
+        $resultLen = strlen($result);
+
+        if (!$resultLen && $name === 'seconds') {
+            $result = '00';
+            $resultLen = 2;
+        } else if (!($resultLen || $count)) {
+            continue;
         }
 
-        if (!$date) return 0;
+        if ($name === 'microseconds') {
 
-        $date = date('Y-m-d', $date);
-
-        return strtotime($date);
-    }
-
-    function add_days($date, $days) {
-        $date = get_day($date);
-        // NOTE: strtotime handles DST etc internally, so rely on it to do the math
-        return strtotime(date("Y-m-d", $date) . ($days >= 0 ? '+' : '-') . abs($days) . ' day');
-    }
-
-    function get_time_span_parts($seconds) {
-        $counts = array(
-            'days' => 86400,
-            'hours' => 3600,
-            'minutes' => 60,
-        );
-        $parts = array();
-
-        $microseconds = $seconds - floor($seconds);
-
-        foreach($counts as $name => $count) {
-            $parts[$name] = floor($seconds / $count);
-            $seconds -= ($parts[$name] * $count);
-        }
-        $parts['seconds'] = $seconds;
-        $parts['microseconds'] = $microseconds * 1000000;
-
-        return $parts;
-    }
-
-    /**
-     * Given a length of time in seconds (or microseconds)
-     */
-    function format_time_span($seconds, $fuzzy = false) {
-
-        $parts = get_time_span_parts($seconds);
-
-        // TODO: fuzzy
-
-        $result = '';
-        foreach($parts as $name => $count) {
-
-            $resultLen = strlen($result);
-
-            if (!$resultLen && $name === 'seconds') {
-                $result = '00';
-                $resultLen = 2;
-            } else if (!($resultLen || $count)) {
-                continue;
-            }
-
-            if ($name === 'microseconds') {
-
-                if ($count) {
-                    if ($resultLen) $result .= ':';
-                    $m = round($count / 1000000.0, 3) * 1000;
-                    $result .= sprintf('%03d', $m);
-                }
-
-            } else {
+            if ($count) {
                 if ($resultLen) $result .= ':';
-                $result .= sprintf('%02d', $count);
+                $m = round($count / 1000000.0, 3) * 1000;
+                $result .= sprintf('%03d', $m);
             }
 
+        } else {
+            if ($resultLen) $result .= ':';
+            $result .= sprintf('%02d', $count);
         }
-
-        return $result;
 
     }
 
+    return $result;
+
+}
 

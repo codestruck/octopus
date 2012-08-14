@@ -9,6 +9,10 @@ if (!defined('DB_LOG_ERRORS')) {
 
 $DB_ERROR_REPORTING = DB_NONE;
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 function db_error_reporting($level) {
     global $DB_ERROR_REPORTING;
     $old = $DB_ERROR_REPORTING;
@@ -16,6 +20,10 @@ function db_error_reporting($level) {
     return $old;
 }
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 function dump_db_log() {
 
     $db = Octopus_DB::singleton();

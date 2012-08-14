@@ -2,6 +2,8 @@
 
     /**
      * Add a single javascript file to the current Octopus_Html_Page instance.
+	 * @copyright (c) 2012 Codestruck, LLC.
+	 * @license http://opensource.org/licenses/mit-license.php/
      */
     function add_javascript($url, $section = 'head', $weight = null, $attributes = array()) {
 
@@ -12,6 +14,8 @@
 
     /**
      * Add a single CSS file to the current Octopus_Html_Page instance.
+	 * @copyright (c) 2012 Codestruck, LLC.
+	 * @license http://opensource.org/licenses/mit-license.php/
      */
     function add_css($url, $weight = null, $attributes = array()) {
 
@@ -23,6 +27,8 @@
     /**
      * Adds a CSS file from the current theme to the page.
      * @param String $file The path to the file relative to the theme's root.
+	 * @copyright (c) 2012 Codestruck, LLC.
+	 * @license http://opensource.org/licenses/mit-license.php/
      */
     function add_theme_css($file, $weight = null, $attributes = array()) {
 
@@ -36,6 +42,8 @@
      * Adds a javascript file from the current theme to the page.
      * @param String $file The path to the JS file, relative to the theme's
      * root.
+	 * @copyright (c) 2012 Codestruck, LLC.
+	 * @license http://opensource.org/licenses/mit-license.php/
      */
     function add_theme_javascript($file, $section = 'head', $weight = null, $attributes = array()) {
 
@@ -45,49 +53,83 @@
         return add_javascript($themeFile, $section, $weight, $attributes);
     }
 
+	/**
+	 * @copyright (c) 2012 Codestruck, LLC.
+	 * @license http://opensource.org/licenses/mit-license.php/
+	 */
     function render_javascript($section = 'head', $minify = true) {
         $page = Octopus_Html_Page::singleton();
         return $page->renderJavascript($section, $minify);
     }
 
+	/**
+	 * @copyright (c) 2012 Codestruck, LLC.
+	 * @license http://opensource.org/licenses/mit-license.php/
+	 */
     function render_css($minify = true) {
         $page = Octopus_Html_Page::singleton();
         return $page->renderCss(false, $minify);
     }
 
+	/**
+	 * @copyright (c) 2012 Codestruck, LLC.
+	 * @license http://opensource.org/licenses/mit-license.php/
+	 */
     function render_meta() {
         $page = Octopus_Html_Page::singleton();
         return $page->renderMeta(false);
     }
 
+	/**
+	 * @copyright (c) 2012 Codestruck, LLC.
+	 * @license http://opensource.org/licenses/mit-license.php/
+	 */
     function set_javascript_var($name, $value) {
         $page = Octopus_Html_Page::singleton();
         $page->setJavascriptVar($name, $value);
     }
 
-    /**
-     * Renders the entire <head>.
-     */
-    function render_head($includeTag = true, $useAliases = true) {
+	/**
+	 * Renders the entire <head> element.
+	 * @copyright (c) 2012 Codestruck, LLC.
+	 * @license http://opensource.org/licenses/mit-license.php/
+	 */
+    function render_head($includeTag = true, $minify = true) {
         $page = Octopus_Html_Page::singleton();
-        return $page->renderHead(false, $includeTag, $useAliases);
+        return $page->renderHead(false, $includeTag, $minify);
     }
 
+	/**
+	 * @copyright (c) 2012 Codestruck, LLC.
+	 * @license http://opensource.org/licenses/mit-license.php/
+	 */
     function get_title() {
         $page = Octopus_Html_Page::singleton();
         return $page->getFullTitle();
     }
 
+	/**
+	 * @copyright (c) 2012 Codestruck, LLC.
+	 * @license http://opensource.org/licenses/mit-license.php/
+	 */
     function set_title($title) {
         $page = Octopus_Html_Page::singleton();
         return $page->setTitle($title);
     }
 
+	/**
+	 * @copyright (c) 2012 Codestruck, LLC.
+	 * @license http://opensource.org/licenses/mit-license.php/
+	 */
     function set_full_title($fullTitle) {
         $page = Octopus_Html_Page::singleton();
         return $page->setFullTitle($fullTitle);
     }
 
+	/**
+	 * @copyright (c) 2012 Codestruck, LLC.
+	 * @license http://opensource.org/licenses/mit-license.php/
+	 */
     function add_breadcrumb($url, $text) {
         $page = Octopus_Html_Page::singleton();
         $page->addBreadcrumb($url, $text);
@@ -101,7 +143,9 @@
      * (or $default if it is not et). If called without arguments, this function
      * returns an array of ALL key/value pairs set on the current response.
      * @throws Octopus_Exception If no response is in progress.
-     */
+	 * @copyright (c) 2012 Codestruck, LLC.
+	 * @license http://opensource.org/licenses/mit-license.php/
+	 */
     function get_view_data($key = null, $default = null) {
 
     	$resp = Octopus_Response::current();
@@ -124,7 +168,9 @@
      * @param Mixed $value Value to assign. If $key is an array, this should
      * not be provided.
      * @throws Octopus_Exception If no response is in progress.
-     */
+	 * @copyright (c) 2012 Codestruck, LLC.
+	 * @license http://opensource.org/licenses/mit-license.php/
+	 */
     function set_view_data($key, $value = null) {
 
     	$resp = Octopus_Response::current();
@@ -144,7 +190,9 @@
     /**
      * Given some input, returns a valid CSS color reference.
      * TODO: SERIOUSLY????
-     */
+	 * @copyright (c) 2012 Codestruck, LLC.
+	 * @license http://opensource.org/licenses/mit-license.php/
+	 */
     function to_html_color($x, $hexify = true) {
 
         $x = trim(strtolower($x));

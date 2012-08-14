@@ -1,6 +1,12 @@
 <?php
 
 if(!function_exists('get_called_class')) {
+
+	/**
+	 * @internal
+	 * Emulates PHP 5.3's get_called_class() on 5.2. This is used by
+	 * Octopus_Model for some of its magic.
+	 */
     function get_called_class() {
         $bt = debug_backtrace();
         $i = 1;
@@ -39,19 +45,3 @@ if(!function_exists('get_called_class')) {
 
     }
 }
-
-/**
- * bctrunc - Truncates large integer values on 32 systems
- */
-function bctrunc($strval, $precision = 0) {
-    if (!is_string($strval)) {
-        $strval = sprintf('%0.0f', $strval);
-    }
-
-    if (false !== ($pos = strpos($strval, '.')) && (strlen($strval) - $pos - 1) > $precision) {
-        $zeros = str_repeat("0", $precision);
-        return bcadd($strval, "0.{$zeros}0", $precision);
-    } else {
-        return $strval;
-    }
-} 

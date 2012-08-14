@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 function make_password($length) {
     $chars = "234567890abcdefghijkmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
     $i = 0;
@@ -11,26 +15,46 @@ function make_password($length) {
     return $password;
 }
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 function get_security_timeval() {
     $valid_seconds = 86400;
     return ceil(time() / ($valid_seconds / 2 ));
 }
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 function get_security_token($user_id, $action = 'default_action') {
     $timeval = get_security_timeval();
     return security_hash($timeval . $user_id . $action);
 }
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 function get_security_field($user_id, $action = 'default_action', $field = '__security_token') {
     return sprintf('<input type="hidden" name="%s" value="%s" />', $field, get_security_token($user_id, $action));
 }
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 function get_security_url($url, $user_id, $action = 'default_action', $field = '__security_token') {
     $token = get_security_token($user_id, $action);
     $sep = preg_match('/\?/', $url) ? '&amp;' : '?';
     return sprintf('%s%s%s=%s', $url, $sep, $field, $token);
 }
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 function verify_security_token($token, $user_id, $action = 'default_action') {
     $timeval = get_security_timeval();
 
@@ -43,11 +67,19 @@ function verify_security_token($token, $user_id, $action = 'default_action') {
     return false;
 }
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 function security_hash($data) {
     $salt = get_salt();
     return hash_hmac('sha1', $data, $salt);
 }
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 function get_salt() {
     $key = '_internal_salt';
     $settings = new Octopus_Settings();
