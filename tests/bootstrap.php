@@ -12,13 +12,13 @@
 
     date_default_timezone_set('America/Los_Angeles');
     error_reporting(E_ALL | E_STRICT);
-    define('DEV', true);
 
     require_once(dirname(__FILE__) . '/../includes/core.php');
 
     if (!defined('OCTOPUS_TESTING_SITE')) define('OCTOPUS_TESTING_SITE', false);
 
     if (!OCTOPUS_TESTING_SITE) {
+        define('DEV', true);
         // TODO: Allow passing config file path to bootstrap() below
         $configFile = dirname(__FILE__) . '/../test_config.php';
         if (is_file($configFile)) {
