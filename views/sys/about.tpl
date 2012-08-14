@@ -1,3 +1,12 @@
+{***********************************************************
+ * sys/about.tpl
+ * A simple system status page for Octopus apps.
+ * --------------------------------------------------------
+ * Copyright (c) 2012 Codestruck, LLC.
+ * Provided under the terms of the MIT license. See the
+ * LICENSE file for more information.
+ **********************************************************}
+
 <h1>Project Octopus</h1>
 
 <p>

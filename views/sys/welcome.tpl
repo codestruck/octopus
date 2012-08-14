@@ -1,3 +1,13 @@
+{***********************************************************
+ * sys/welcome.tpl
+ * The default landing page for an Octopus site without
+ * a config file.
+ * --------------------------------------------------------
+ * Copyright (c) 2012 Codestruck, LLC.
+ * Provided under the terms of the MIT license. See the
+ * LICENSE file for more information.
+ **********************************************************}
+
 <h1>Welcome to Octopus</h1>
 
 <p>

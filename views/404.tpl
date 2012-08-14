@@ -1,4 +1,18 @@
+{***********************************************************
+ * 404.tpl
+ * Default view rendered for responses with the HTTP status
+ * code 404 (Not Found).
+ * To customize this for your site, create the file
+ * site/views/404.tpl
+ * --------------------------------------------------------
+ * Copyright (c) 2012 Codestruck, LLC.
+ * Provided under the terms of the MIT license. See the
+ * LICENSE file for more information.
+ **********************************************************}
 {if $view_paths}
+
+    {* NOTE: When running in DEV, $view_paths are provided. By default, show a
+             helpful list of where we looked for a view. *}
 
     <h1>View Not Found</h1>
 
@@ -27,9 +41,11 @@
     </p>
 
 {else}
-<h1>Not Found</h1>
 
-<p>
-    The page you were looking for could not be found.
-</p>
+    <h1>Not Found</h1>
+
+    <p>
+        The page you were looking for could not be found.
+    </p>
+
 {/if}

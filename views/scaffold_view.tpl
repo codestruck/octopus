@@ -1,3 +1,15 @@
+{***********************************************************
+ * scaffold_view.tpl
+ * View rendered by Octopus_Controller_Scaffolding for the
+ * 'view' action.
+ * To customize this for your site, create the file
+ * site/views/scaffold_view.tpl
+ * --------------------------------------------------------
+ * Copyright (c) 2012 Codestruck, LLC.
+ * Provided under the terms of the MIT license. See the
+ * LICENSE file for more information.
+ **********************************************************}
+
 <h1>{$item}</h1>
 
 <div class="scaffold-model">
