@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * Controller used to provide Mustache javascript templates to clients.
+ * @TODO Document usage
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Mustaches_Controller extends Octopus_Controller {
 
     function _default($action = '') {

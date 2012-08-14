@@ -1,4 +1,9 @@
 <?php
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+
 $usage = <<<END
 
 octopus/log

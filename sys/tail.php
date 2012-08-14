@@ -1,4 +1,8 @@
 <?php
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 
     require_once(dirname(dirname(__FILE__)) . '/includes/core.php');
     is_command_line() or die();

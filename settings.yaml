@@ -1,4 +1,5 @@
-# Core Settings For Project Octopus
+# Core settings for Octopus
+# Copyright (c) 2012 Codestruck, LLC.
 
 site.name:
   desc: The name of this website.

@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class SysController extends Octopus_Controller {
 
     public function _before($action, $args) {

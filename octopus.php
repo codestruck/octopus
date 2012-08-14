@@ -1,4 +1,9 @@
 <?php
+/**
+ * @TODO Get rid of this or convert it to something named, e.g. octopus/request.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 
      $script = array_shift($argv);
 
