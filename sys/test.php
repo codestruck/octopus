@@ -148,4 +148,5 @@ END;
 
     echo "\n\nRunning PHPUnit: $phpUnit\n\n";
 
-    passthru($phpUnit);
+    passthru($phpUnit, $returnVal);
+    exit($returnVal);
