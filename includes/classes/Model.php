@@ -65,38 +65,38 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
      */
     public function __construct($id = null) {
 
-    	if (!$id) {
-    		// This is just a new, id-less model object.
-    		return;
-    	}
+        if (!$id) {
+            // This is just a new, id-less model object.
+            return;
+        }
 
-    	if (is_array($id)) {
+        if (is_array($id)) {
 
-    		// We've been passed in an array of data to apply to this instance
-    		$this->setData($id);
+            // We've been passed in an array of data to apply to this instance
+            $this->setData($id);
 
-    	} elseif (is_numeric($id)) {
+        } elseif (is_numeric($id)) {
 
-    		// This is a single, most likely numeric, id. This is going to
-    		// happen most of the time.
-    		$keys = $this->getPrimaryKeyFields();
+            // This is a single, most likely numeric, id. This is going to
+            // happen most of the time.
+            $keys = $this->getPrimaryKeyFields();
 
-    		if (count($keys) !== 1) {
-    			$class = get_class($this);
-    			$count = count($keys);
-    			throw new Octopus_Model_Exception("Can't pass a single ID to $class::__construct() because its primary key is made up of $count fields");
-    		}
+            if (count($keys) !== 1) {
+                $class = get_class($this);
+                $count = count($keys);
+                throw new Octopus_Model_Exception("Can't pass a single ID to $class::__construct() because its primary key is made up of $count fields");
+            }
 
-    		foreach($keys as $key) {
+            foreach($keys as $key) {
 
-    			$key->setValue($this, $id);
-    			break;
-    		}
+                $key->setValue($this, $id);
+                break;
+            }
 
-    	} else {
+        } else {
 
-    		throw new Octopus_Model_Exception("Bad argument to model constructor: $id");
-    	}
+            throw new Octopus_Model_Exception("Bad argument to model constructor: $id");
+        }
 
     }
 
@@ -109,15 +109,15 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
 
         if ($var === 'id')  {
 
-        	// Support 'id' as an alias for the primary key.
-        	return $this->getSinglePrimaryKeyValue();
+            // Support 'id' as an alias for the primary key.
+            return $this->getSinglePrimaryKeyValue();
         }
 
         $field = $this->getField($var);
 
         if ($field) {
 
-        	return $this->getFieldValue($field);
+            return $this->getFieldValue($field);
 
         }
 
@@ -132,7 +132,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
 
             if ($field) {
 
-            	$item = $this->getFieldValue($field);
+                $item = $this->getFieldValue($field);
                 return ($item) ? $item->id : null;
             }
 
@@ -157,16 +157,16 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         if ($var === 'id') {
             $field = self::checkSinglePrimaryKey($this->getPrimaryKeyFields(), get_class($this), 'set $id');
         } else {
-        	$field = $this->getField($var);
+            $field = $this->getField($var);
 
-	        if (!$field && ends_with($var, '_id', false, $fieldName)) {
-	            $field = $this->getField($fieldName);
-	        }
-	    }
+            if (!$field && ends_with($var, '_id', false, $fieldName)) {
+                $field = $this->getField($fieldName);
+            }
+        }
 
-	    if (!$field) {
-	    	throw new Octopus_Model_Exception('Cannot set field ' . $var . ' on Model ' . get_class($this));
-	    }
+        if (!$field) {
+            throw new Octopus_Model_Exception('Cannot set field ' . $var . ' on Model ' . get_class($this));
+        }
 
         $field->setValue($this, $value);
     }
@@ -184,11 +184,11 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
      */
     public function __unset($key) {
 
-    	$field = $this->getField($key);
-    	if ($field) {
-    		// TODO: Add clearValue method to Octopus_Model_Field
-    		$field->setValue($this, '');
-    	}
+        $field = $this->getField($key);
+        if ($field) {
+            // TODO: Add clearValue method to Octopus_Model_Field
+            $field->setValue($this, '');
+        }
 
     }
 
@@ -235,14 +235,14 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         $d->table($this->getTableName());
 
         if (!$this->restrictToThisRecord($d)) {
-        	// Missing a primary key value
-        	return false;
+            // Missing a primary key value
+            return false;
         }
 
         $d->execute();
 
         foreach($this->getFields() as $field) {
-        	$field->afterDelete($this);
+            $field->afterDelete($this);
         }
 
         $this->_exists = false;
@@ -255,7 +255,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
      *
      *    @return
      *    True if:
-     *		  * $other is the same as $this (reference equality)
+     *          * $other is the same as $this (reference equality)
      *        * $other is numeric, nonzero, and == to this instance's id,
      *        * $other is an instance of the same class with a nonzero id equal
      *          to this instance's id.
@@ -267,64 +267,64 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         }
 
         if (!$other) {
-        	return false;
+            return false;
         }
 
         if ($other instanceof Octopus_Model) {
 
-        	if (get_class($this) !== get_class($other)) {
-        		return false;
-        	}
+            if (get_class($this) !== get_class($other)) {
+                return false;
+            }
 
-        	$other = $other->getPrimaryKeyValue();
+            $other = $other->getPrimaryKeyValue();
         }
 
-    	$pkFields = $this->getPrimaryKeyFields();
-    	$fieldCount = count($pkFields);
-    	$otherIsArray = is_array($other);
+        $pkFields = $this->getPrimaryKeyFields();
+        $fieldCount = count($pkFields);
+        $otherIsArray = is_array($other);
 
-    	if ($fieldCount === 0) {
-    		return false;
-    	} else if ($fieldCount === 1) {
+        if ($fieldCount === 0) {
+            return false;
+        } else if ($fieldCount === 1) {
 
-    		if ($otherIsArray) {
+            if ($otherIsArray) {
 
-    			if (count($other) !== 1) {
-    				return false;
-    			}
+                if (count($other) !== 1) {
+                    return false;
+                }
 
-    			$other = array_shift($other);
-    		}
+                $other = array_shift($other);
+            }
 
-    		$field = array_shift($pkFields);
+            $field = array_shift($pkFields);
 
-    		if (!$this->fieldHasValue($field)) {
-    			return false;
-    		}
+            if (!$this->fieldHasValue($field)) {
+                return false;
+            }
 
-    		return $this->getFieldValue($field) == $other;
-    	}
+            return $this->getFieldValue($field) == $other;
+        }
 
-    	// There is more than one field in this model's primary key
-    	if (!$otherIsArray || count($other) !== $fieldCount) {
-    		return false;
-    	}
+        // There is more than one field in this model's primary key
+        if (!$otherIsArray || count($other) !== $fieldCount) {
+            return false;
+        }
 
-    	for($i = 0; $i < $fieldCount; $i++) {
+        for($i = 0; $i < $fieldCount; $i++) {
 
-    		$field = array_shift($pkFields);
+            $field = array_shift($pkFields);
 
-    		if (!$this->fieldHasValue($field)) {
-    			return false;
-    		}
+            if (!$this->fieldHasValue($field)) {
+                return false;
+            }
 
-    		$value = $this->getFieldValue($field);
-    		if ($value != array_shift($other)) {
-    			return false;
-    		}
-    	}
+            $value = $this->getFieldValue($field);
+            if ($value != array_shift($other)) {
+                return false;
+            }
+        }
 
-    	return true;
+        return true;
     }
 
     public function escape() {
@@ -336,29 +336,29 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
      */
     public function exists() {
 
-    	if ($this->_exists !== null) {
-    		return $this->_exists;
-    	}
+        if ($this->_exists !== null) {
+            return $this->_exists;
+        }
 
         $s = new Octopus_DB_Select();
         $s->comment('Octopus_Model::exists');
         $s->table($this->getTableName());
 
         if (!$this->restrictToThisRecord($s)) {
-        	return ($this->_exists = false);
+            return ($this->_exists = false);
         }
 
         // TODO: Would an EXISTS query be more efficient?
 
-		return ($this->_exists = !!$s->fetchRow());
+        return ($this->_exists = !!$s->fetchRow());
     }
 
     /**
      * @deprecated Use ::__getRawData()
      */
     public function getData() {
-    	// TODO: is this method used anywhere?
-    	return $this->__getRawData();
+        // TODO: is this method used anywhere?
+        return $this->__getRawData();
     }
 
     /**
@@ -369,17 +369,17 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
      */
     public function getDisplayField() {
 
-    	$class = get_class($this);
+        $class = get_class($this);
 
-    	// NOTE: cache display field once it's been looked up
-    	if (isset(self::$displayFields[$class])) {
-    		return self::$displayFields[$class];
-    	}
+        // NOTE: cache display field once it's been looked up
+        if (isset(self::$displayFields[$class])) {
+            return self::$displayFields[$class];
+        }
 
-    	$candidates = $this->displayField;
-    	if (!is_array($candidates)) $candidates = array($candidates);
+        $candidates = $this->displayField;
+        if (!is_array($candidates)) $candidates = array($candidates);
 
-    	$allFields = $this->getFields();
+        $allFields = $this->getFields();
 
         foreach($candidates as $fieldName) {
 
@@ -393,7 +393,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         $primaryKeyFields = $this->getPrimaryKeyFields();
 
         if (count($primaryKeyFields) === 1) {
-        	return (self::$displayFields[$class] = array_shift($primaryKeyFields));
+            return (self::$displayFields[$class] = array_shift($primaryKeyFields));
         }
 
         throw new Octopus_Model_Exception("Could not determine display field for model $class");
@@ -411,7 +411,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         $value = $this->getFieldValue($field);
 
         if ($value === null) {
-        	$value = '';
+            $value = '';
         }
 
         return $value;
@@ -447,22 +447,22 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         // Create fields used to represent primary key
 
         foreach(self::createPrimaryKeyFields($class, $this->primaryKey) as $pkField) {
-        	$name = $pkField->getFieldName();
-        	self::$fieldHandles[$class][$name] = $pkField;
-        	self::$primaryKeyFields[$class][$name] = $pkField;
+            $name = $pkField->getFieldName();
+            self::$fieldHandles[$class][$name] = $pkField;
+            self::$primaryKeyFields[$class][$name] = $pkField;
         }
 
         // Create other fields
 
         foreach(self::createFields($class, $this->fields) as $field) {
-        	self::$fieldHandles[$class][$field->getFieldName()] = $field;
+            self::$fieldHandles[$class][$field->getFieldName()] = $field;
         }
 
         return self::$fieldHandles[$class];
     }
 
     public function getIndexes() {
-    	// TODO: Make this static
+        // TODO: Make this static
         return isset($this->indexes) ? $this->indexes : array();
     }
 
@@ -473,9 +473,9 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
      */
     public function getInternalValue($field, $default = '', $lazyLoad = true) {
 
-    	if ($lazyLoad && !array_key_exists($field, $this->data)) {
-    		$this->loadData();
-    	}
+        if ($lazyLoad && !array_key_exists($field, $this->data)) {
+            $this->loadData();
+        }
         return array_key_exists($field, $this->data) ? $this->data[$field] : $default;
     }
 
@@ -489,16 +489,16 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
      */
     public function getPrimaryKey() {
 
-    	$keyFields = $this->getPrimaryKeyFields();
+        $keyFields = $this->getPrimaryKeyFields();
 
-    	if (count($keyFields) !== 1) {
-    		$class = get_class($this);
-    		$count = count($keyFields);
-    		throw new Octopus_Model_Exception("Can't call ::getPrimaryKey() on model $class because the primary key is made up of $count fields.");
-    	}
+        if (count($keyFields) !== 1) {
+            $class = get_class($this);
+            $count = count($keyFields);
+            throw new Octopus_Model_Exception("Can't call ::getPrimaryKey() on model $class because the primary key is made up of $count fields.");
+        }
 
-    	$field = array_shift($keyFields);
-    	return $field->getFieldName();
+        $field = array_shift($keyFields);
+        return $field->getFieldName();
     }
 
     /**
@@ -507,16 +507,16 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
      */
     public function getPrimaryKeyFields() {
 
-    	$class = get_class($this);
+        $class = get_class($this);
 
-    	if (isset(self::$primaryKeyFields[$class])) {
-    		return self::$primaryKeyFields[$class];
-    	}
+        if (isset(self::$primaryKeyFields[$class])) {
+            return self::$primaryKeyFields[$class];
+        }
 
-    	// ::getFields() automatically generates the $primaryKeyFields array
-    	$this->getFields();
+        // ::getFields() automatically generates the $primaryKeyFields array
+        $this->getFields();
 
-    	return self::$primaryKeyFields[$class];
+        return self::$primaryKeyFields[$class];
     }
 
     /**
@@ -527,11 +527,11 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
      */
     public function getTableName() {
 
-    	$class = get_class($this);
+        $class = get_class($this);
 
-    	if (isset(self::$tableNames[$class])) {
-    		return self::$tableNames[$class];
-    	}
+        if (isset(self::$tableNames[$class])) {
+            return self::$tableNames[$class];
+        }
 
         if (isset($this->table)) {
             return (self::$tableNames[$class] = $this->table);
@@ -554,8 +554,8 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
      * store its values.
      */
     public function __getRawData() {
-    	// TODO: is this method used anywhere?
-    	return $this->data;
+        // TODO: is this method used anywhere?
+        return $this->data;
     }
 
     /**
@@ -598,7 +598,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         $exists = $this->exists();
 
         if (empty($this->touchedFields) && $exists) {
-        	return $this->getPrimaryKeyValue();
+            return $this->getPrimaryKeyValue();
         }
 
         $fieldsToSave = $exists ? array_keys($this->touchedFields) : $this->getFields();
@@ -606,7 +606,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         $result = $this->internalSave($fieldsToSave, $exists);
 
         if ($result) {
-        	$this->_exists = true;
+            $this->_exists = true;
         }
 
         return $result;
@@ -624,7 +624,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
      * Octopus_Model_Field uses this to actually store data on a model.
      */
     public function setInternalValue($field, $value, $makesDirty = true) {
-    	// TODO: refactor out into a helper object and deprecate this method
+        // TODO: refactor out into a helper object and deprecate this method
         if ($makesDirty) $this->touchedFields[$field] = true;
         $this->data[$field] = $value;
     }
@@ -634,14 +634,14 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
      */
     public function toArray() {
 
-    	$ar = array();
+        $ar = array();
 
         foreach($this->getFields() as $name => $field) {
 
             $value = $this->$name;
 
             if ($value instanceof Octopus_Model) {
-            	$value = $value->toArray();
+                $value = $value->toArray();
             }
 
             $ar[$name] = $value;
@@ -723,12 +723,12 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
      */
     public static function migrate(Octopus_DB_Schema $schema, $php52ClassNameHack, $engine = '') {
 
-    	// TODO: Make field stuff static on model
+        // TODO: Make field stuff static on model
 
-    	$modelClass = $php52ClassNameHack ? $php52ClassNameHack : self::getClassName();
-    	$model = new $modelClass();
+        $modelClass = $php52ClassNameHack ? $php52ClassNameHack : self::getClassName();
+        $model = new $modelClass();
 
-		foreach($model->getFields() as $field) {
+        foreach($model->getFields() as $field) {
             $field->beforeMigrate($schema);
         }
 
@@ -737,7 +737,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         /*
         $table->newKey(to_id($modelClass), true);
         $table->newPrimaryKey(to_id($modelClass));
-		*/
+        */
 
         foreach($model->getFields() as $field) {
             $field->migrate($schema, $table);
@@ -755,7 +755,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
         // Create primary key
         $pkFields = $model->getPrimaryKeyFields();
         if (count($pkFields)) {
-        	$table->newPrimaryKey(array_keys($pkFields));
+            $table->newPrimaryKey(array_keys($pkFields));
         }
 
         $table->create();
@@ -813,24 +813,24 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
     }
 
     public function key() {
-    	return $this->_iteratorField->getFieldName();
+        return $this->_iteratorField->getFieldName();
     }
 
     public function next() {
-    	$this->_iteratorField = array_shift($this->_iteratorFields);
+        $this->_iteratorField = array_shift($this->_iteratorFields);
     }
 
     public function rewind() {
-    	$this->_iteratorFields = $this->getFields();
-    	$this->_iteratorField = array_shift($this->_iteratorFields);
+        $this->_iteratorFields = $this->getFields();
+        $this->_iteratorField = array_shift($this->_iteratorFields);
     }
 
     public function valid() {
-    	return $this->_iteratorField;
+        return $this->_iteratorField;
     }
 
     public function count() {
-    	return count($this->getFields());
+        return count($this->getFields());
     }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -840,7 +840,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
 ////////////////////////////////////////////////////////////////////////////////
 
     public function __dumpHtml() {
-    	return self::dumpToHtml($this);
+        return self::dumpToHtml($this);
     }
 
     public function __dumpText() {
@@ -894,7 +894,7 @@ END;
             // from a trusted context, then move this autoincrement check into
             // Field_Numeric
             if ($setAutoIncrement || !$field->getOption('auto_increment', false)) {
-            	$field->loadValue($this, $data);
+                $field->loadValue($this, $data);
             }
         }
 
@@ -915,13 +915,13 @@ END;
             return false;
         }
 
-		$s = new Octopus_DB_Select();
-		$s->comment('Octopus_Model::loadData');
+        $s = new Octopus_DB_Select();
+        $s->comment('Octopus_Model::loadData');
         $s->table($this->getTableName());
 
         if (!$this->restrictToThisRecord($s)) {
-        	// Not enough data on model to look up existing record
-        	return false;
+            // Not enough data on model to look up existing record
+            return false;
         }
 
         $row = $s->fetchRow();
@@ -931,15 +931,15 @@ END;
             return true;
         } else {
 
-        	// The record disappeared out from under us!
-        	foreach($this->getFields() as $field) {
-        		// for example, Field_Numeric will reset autoincrement values
-        		// to null here.  This is potentially a different thing than
-        		// an explicit delete
-        		$field->recordDisappeared($this);
-        	}
+            // The record disappeared out from under us!
+            foreach($this->getFields() as $field) {
+                // for example, Field_Numeric will reset autoincrement values
+                // to null here.  This is potentially a different thing than
+                // an explicit delete
+                $field->recordDisappeared($this);
+            }
 
-        	return false;
+            return false;
         }
 
 
@@ -966,34 +966,34 @@ END;
      */
     private function anyNonPrimaryKeyFieldsTouched() {
 
-    	if (empty($this->touchedFields)) {
-    		return;
-    	}
+        if (empty($this->touchedFields)) {
+            return;
+        }
 
-    	foreach($this->getFields() as $field) {
+        foreach($this->getFields() as $field) {
 
-    		if ($this->isPrimaryKeyField($field)) {
-    			continue;
-    		}
+            if ($this->isPrimaryKeyField($field)) {
+                continue;
+            }
 
-    		if (!empty($this->touchedFields[$field->getFieldName()])) {
-    			return true;
-    		}
+            if (!empty($this->touchedFields[$field->getFieldName()])) {
+                return true;
+            }
 
-    	}
+        }
 
-    	return false;
+        return false;
 
     }
 
     private function fieldHasValue(Octopus_Model_Field $field) {
 
-    	if ($field->getOption('auto_increment')) {
-    		// TODO: move to a ::hasValue() method on Field?
-    		return isset($this->data[$field->getFieldName()]);
-    	}
+        if ($field->getOption('auto_increment')) {
+            // TODO: move to a ::hasValue() method on Field?
+            return isset($this->data[$field->getFieldName()]);
+        }
 
-    	return true;
+        return true;
     }
 
     private function getFieldNameByIndex($index) {
@@ -1016,14 +1016,14 @@ END;
 
     private function getPrimaryKeyValue() {
 
-    	$fields = $this->getPrimaryKeyFields();
-    	$values = array();
+        $fields = $this->getPrimaryKeyFields();
+        $values = array();
 
-    	foreach($fields as $field) {
-    		$values[$field->getFieldName()] = $field->accessValue($this);
-    	}
+        foreach($fields as $field) {
+            $values[$field->getFieldName()] = $field->accessValue($this);
+        }
 
-    	return (count($values) === 1 ? array_shift($values) : $values);
+        return (count($values) === 1 ? array_shift($values) : $values);
     }
 
     /**
@@ -1032,31 +1032,31 @@ END;
      */
     private function getSinglePrimaryKeyValue() {
 
-    	$field = self::checkSinglePrimaryKey($this->getPrimaryKeyFields(), get_class($this), 'return value of $id');
+        $field = self::checkSinglePrimaryKey($this->getPrimaryKeyFields(), get_class($this), 'return value of $id');
 
-    	if (!$this->fieldHasValue($field)) {
-    		return null;
-    	}
+        if (!$this->fieldHasValue($field)) {
+            return null;
+        }
 
-    	return $this->getFieldValue($field);
+        return $this->getFieldValue($field);
     }
 
     private function haveEnoughDataForInsert() {
 
-    	$pkFields = $this->getPrimaryKeyFields();
+        $pkFields = $this->getPrimaryKeyFields();
 
-    	$enough = true;
+        $enough = true;
 
-    	foreach($pkFields as $field) {
+        foreach($pkFields as $field) {
 
-    		$enough = $enough && (
-    			$field->getOption('auto_increment') ||  // this kind of stinks
-    			!empty($this->data[$field->getFieldName()])
-    		);
+            $enough = $enough && (
+                $field->getOption('auto_increment') ||  // this kind of stinks
+                !empty($this->data[$field->getFieldName()])
+            );
 
-    	}
+        }
 
-    	return $enough;
+        return $enough;
 
     }
 
@@ -1065,24 +1065,24 @@ END;
      */
     private function internalSave(Array $fields, $exists) {
 
-    	if ($exists) {
+        if ($exists) {
 
-    		$i = new Octopus_DB_Update();
+            $i = new Octopus_DB_Update();
 
-    		if (!$this->restrictToThisRecord($i)) {
-    			return false;
-    		}
+            if (!$this->restrictToThisRecord($i)) {
+                return false;
+            }
 
-    	} else {
+        } else {
 
-    		// Record does not exist, but make sure that we have enough
-    		// primary key data to actually insert a row
-    		if (!$this->haveEnoughDataForInsert()) {
-    			return false;
-    		}
+            // Record does not exist, but make sure that we have enough
+            // primary key data to actually insert a row
+            if (!$this->haveEnoughDataForInsert()) {
+                return false;
+            }
 
-    		$i = new Octopus_DB_Insert();
-    	}
+            $i = new Octopus_DB_Insert();
+        }
 
         $i->table($this->getTableName());
 
@@ -1090,17 +1090,17 @@ END;
 
         foreach ($fields as $field) {
 
-        	if (is_string($field)) {
+            if (is_string($field)) {
 
-        		$actualField = $this->getField($field);
+                $actualField = $this->getField($field);
 
-        		if (!$actualField) {
-        			$class = get_class($this);
-        			throw new Octopus_Model_Exception("Can't save field $field on model $class: It is not part of the model.");
-        		}
+                if (!$actualField) {
+                    $class = get_class($this);
+                    throw new Octopus_Model_Exception("Can't save field $field on model $class: It is not part of the model.");
+                }
 
-        		$field = $actualField;
-        	}
+                $field = $actualField;
+            }
 
             $workingFields[] = $field;
 
@@ -1116,14 +1116,14 @@ END;
         $pkFields = $this->getPrimaryKeyFields();
         $singlePkField = null;
 
-    	if (count($pkFields) === 1) {
-    		$singlePkField = array_shift($pkFields);
+        if (count($pkFields) === 1) {
+            $singlePkField = array_shift($pkFields);
 
-    		if (!$exists && $singlePkField->getOption('auto_increment')) {
-    			$singlePkField->setValue($this, $i->getId());
-    		}
+            if (!$exists && $singlePkField->getOption('auto_increment')) {
+                $singlePkField->setValue($this, $i->getId());
+            }
 
-    	}
+        }
 
         $this->resetDirtyState();
 
@@ -1138,8 +1138,8 @@ END;
      * @return Boolean Whether $field is part of this model's primary key.
      */
     private function isPrimaryKeyField(Octopus_Model_Field $field) {
-    	$fields = $this->getPrimaryKeyFields();
-    	return !empty($fields[$field->getFieldName()]);
+        $fields = $this->getPrimaryKeyFields();
+        return !empty($fields[$field->getFieldName()]);
     }
 
     /**
@@ -1151,32 +1151,32 @@ END;
      */
     private function restrictToThisRecord($s) {
 
-    	$fields = $this->getPrimaryKeyFields();
+        $fields = $this->getPrimaryKeyFields();
 
-    	if (count($fields) === 0) {
-    		return false;
-    	}
+        if (count($fields) === 0) {
+            return false;
+        }
 
-    	foreach($fields as $field) {
+        foreach($fields as $field) {
 
-    		$name = $field->getFieldName();
-    		$value = $this->getInternalValue($name, null, false);
+            $name = $field->getFieldName();
+            $value = $this->getInternalValue($name, null, false);
 
-    		if (!$value) {
+            if (!$value) {
 
-    			// It is conceivable that a zero value could be a valid primary
-    			// key value, but that's an edge case, right?
+                // It is conceivable that a zero value could be a valid primary
+                // key value, but that's an edge case, right?
 
-    			return false;
-    		}
+                return false;
+            }
 
-    		// Technically, using $field->restrict() would be more "correct"
-    		// here, but in practice this is just as good and more efficient
-    		// to boot.
-    		$s->where("$name = ?", $value);
-    	}
+            // Technically, using $field->restrict() would be more "correct"
+            // here, but in practice this is just as good and more efficient
+            // to boot.
+            $s->where("$name = ?", $value);
+        }
 
-    	return true;
+        return true;
     }
 
     /**
@@ -1187,16 +1187,16 @@ END;
      */
     private static function checkSinglePrimaryKey(Array $keyFields, $class, $action) {
 
-	    $count = count($keyFields);
+        $count = count($keyFields);
 
-	    if ($count !== 1) {
-    		throw new Octopus_Model_Exception("Can't $action on model $class: Primary key is composed of $count fields.");
-    	}
+        if ($count !== 1) {
+            throw new Octopus_Model_Exception("Can't $action on model $class: Primary key is composed of $count fields.");
+        }
 
-    	// TODO: what is the fastest way to return the first item in an array
-    	// when you don't know its key?
+        // TODO: what is the fastest way to return the first item in an array
+        // when you don't know its key?
 
-    	return array_shift($keyFields);
+        return array_shift($keyFields);
     }
 
     /**
@@ -1207,9 +1207,9 @@ END;
      */
     private static function createFields($class, $fieldDefs) {
 
-    	$result = array();
+        $result = array();
 
-		foreach ($fieldDefs as $name => $options) {
+        foreach ($fieldDefs as $name => $options) {
 
             if (is_numeric($name)) {
                 $name = is_array($options) ? $options['name'] : $options;
@@ -1234,32 +1234,32 @@ END;
      */
     private static function createPrimaryKeyFields($class, $fieldDefs) {
 
-    	if (!$fieldDefs) {
+        if (!$fieldDefs) {
 
-    		// This is the default code path, used when $this->primaryKey is
-    		// null. It automatically generates an id field name based on
-    		// the class name. So, for a class called Product, this ends
-    		// up as 'product_id'
+            // This is the default code path, used when $this->primaryKey is
+            // null. It automatically generates an id field name based on
+            // the class name. So, for a class called Product, this ends
+            // up as 'product_id'
 
-    		$fieldDefs = to_id($class);
+            $fieldDefs = to_id($class);
 
-    	}
+        }
 
-    	if (!is_array($fieldDefs)) {
+        if (!is_array($fieldDefs)) {
 
-    		// In this case, $this->primaryKey has been set to a column name.
-    		// An auto-incrementing numeric field is used with that name
+            // In this case, $this->primaryKey has been set to a column name.
+            // An auto-incrementing numeric field is used with that name
 
-    		$fieldDefs = array(
-    			$fieldDefs => array(
-    				'type' => 'numeric',
-    				'auto_increment' => true
-    			)
-    		);
+            $fieldDefs = array(
+                $fieldDefs => array(
+                    'type' => 'numeric',
+                    'auto_increment' => true
+                )
+            );
 
-    	}
+        }
 
-    	return self::createFields($class, $fieldDefs);
+        return self::createFields($class, $fieldDefs);
     }
 
     private static function dumpToHtml(Octopus_Model $instance) {
@@ -1278,9 +1278,9 @@ END;
 <tbody>
 END;
 
-		$index = 0;
+        $index = 0;
 
-		foreach($instance->getFields() as $field) {
+        foreach($instance->getFields() as $field) {
 
             $class = ($index % 2 ? 'even' : 'odd');
             $index++;

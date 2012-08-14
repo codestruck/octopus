@@ -8,8 +8,8 @@
  */
 class Octopus_Renderer_AppendedContent extends Octopus_Renderer {
 
-	public function renderContent(Octopus_Response $response) {
-		return $response->getContent();
-	}
+    public function renderContent(Octopus_Response $response) {
+        return $response->getContent();
+    }
 
 }

@@ -60,7 +60,7 @@ class ModelNonStandardTest extends PHPUnit_Framework_TestCase
 
     function testFindDifferentDisplayValue()
     {
-    	return $this->markTestSkipped("This is not good behavior, I think.");
+        return $this->markTestSkipped("This is not good behavior, I think.");
 
         $item = new Differentd();
         $item->kazi = 'My Other Name';
@@ -109,7 +109,7 @@ class ModelNonStandardTest extends PHPUnit_Framework_TestCase
 
     function testNoDisplayField() {
 
-    	return $this->markTestSkipped("No display field should return the ID.");
+        return $this->markTestSkipped("No display field should return the ID.");
 
         $lack = new Lack();
         $lack->notitle = 'foo';

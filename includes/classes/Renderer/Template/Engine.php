@@ -18,14 +18,14 @@ abstract class Octopus_Renderer_Template_Engine {
 
     public static function createForFile($filename) {
 
-    	$fileExt = pathinfo($filename, PATHINFO_EXTENSION);
-    	if ($fileExt) $fileExt = '.' . $fileExt;
+        $fileExt = pathinfo($filename, PATHINFO_EXTENSION);
+        if ($fileExt) $fileExt = '.' . $fileExt;
 
         foreach(self::$registry as $ext => $class) {
 
-        	if (strcasecmp($ext, $fileExt) === 0) {
-        		return new $class($filename);
-        	}
+            if (strcasecmp($ext, $fileExt) === 0) {
+                return new $class($filename);
+            }
 
         }
 
@@ -36,7 +36,7 @@ abstract class Octopus_Renderer_Template_Engine {
      * @return Array Registered extensions for rendering engines.
      */
     public static function getExtensions() {
-    	return array_keys(self::$registry);
+        return array_keys(self::$registry);
     }
 
     public static function register($extension, $class) {

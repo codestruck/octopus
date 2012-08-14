@@ -2,11 +2,11 @@
 
 if(!function_exists('get_called_class')) {
 
-	/**
-	 * @internal
-	 * Emulates PHP 5.3's get_called_class() on 5.2. This is used by
-	 * Octopus_Model for some of its magic.
-	 */
+    /**
+     * @internal
+     * Emulates PHP 5.3's get_called_class() on 5.2. This is used by
+     * Octopus_Model for some of its magic.
+     */
     function get_called_class() {
         $bt = debug_backtrace();
         $i = 1;

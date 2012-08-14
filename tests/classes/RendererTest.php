@@ -101,16 +101,16 @@ class RendererTest extends Octopus_App_TestCase {
 
         $this->createControllerFile('Simple', <<<END
 <?
-	class SimpleController extends Octopus_Controller {
+    class SimpleController extends Octopus_Controller {
 
-		public function viewAction() {
+        public function viewAction() {
 
-		}
+        }
 
-	}
+    }
 ?>
 END
-		);
+        );
         $this->createViewFile(array('simple/index', 'simple/view'));
 
         $tests = array(
@@ -139,15 +139,15 @@ END
 
 class FallbackViewTestController extends Octopus_Controller {
 
-	public function addAction() {
+    public function addAction() {
 
-	}
+    }
 
 }
 
 ?>
 END
-		);
+        );
         $viewFile = $this->createViewFile('add');
 
         $tests = array(
@@ -183,62 +183,62 @@ END
 
     function testFindDeepViewsNoController() {
 
-    	$this->createViewFile('some/deep/view/file.tpl', 'hi there');
-    	$app = $this->getApp();
+        $this->createViewFile('some/deep/view/file.tpl', 'hi there');
+        $app = $this->getApp();
 
-    	$resp = $app->getResponse('/some/deep/view/file');
-    	$this->assertEquals(200, $resp->getStatus(), '200 status for view that exists');
+        $resp = $app->getResponse('/some/deep/view/file');
+        $this->assertEquals(200, $resp->getStatus(), '200 status for view that exists');
 
-    	$resp = $app->getResponse('/some/deep/view/that_does_not_exist');
+        $resp = $app->getResponse('/some/deep/view/that_does_not_exist');
 
-    	// Have to render response for status to be updated to 404 (since it
-    	// doesn't search for the view until it is rendered).
-    	$content = $resp->render(true);
+        // Have to render response for status to be updated to 404 (since it
+        // doesn't search for the view until it is rendered).
+        $content = $resp->render(true);
 
-    	$this->assertEquals(404, $resp->getStatus(), '404 for non-existent view');
+        $this->assertEquals(404, $resp->getStatus(), '404 for non-existent view');
 
     }
 
     function testViewFallbackFailsWhenActionNotDefined() {
 
-    	$this->createControllerFile('StaticFallbackFailure');
-    	$this->createViewFile('static_fallback_failure/foo.tpl');
+        $this->createControllerFile('StaticFallbackFailure');
+        $this->createViewFile('static_fallback_failure/foo.tpl');
 
-    	$app = $this->getApp();
+        $app = $this->getApp();
 
-    	$resp = $app->getResponse('/static_fallback_failure/foo');
-    	$resp->render(true);
-    	$this->assertEquals(200, $resp->getStatus());
+        $resp = $app->getResponse('/static_fallback_failure/foo');
+        $resp->render(true);
+        $this->assertEquals(200, $resp->getStatus());
 
-    	$resp = $app->getResponse('/static_fallback_failure/foo/bar');
-    	$resp->render(true);
-    	$this->assertEquals(404, $resp->getStatus(), 'fallback fails when action not defined');
+        $resp = $app->getResponse('/static_fallback_failure/foo/bar');
+        $resp->render(true);
+        $this->assertEquals(404, $resp->getStatus(), 'fallback fails when action not defined');
 
 
     }
 
     function testFindPWAdminView() {
 
-    	$this->createControllerFile('Admin_Products', <<<END
+        $this->createControllerFile('Admin_Products', <<<END
 <?php
 
 class AdminProductsController extends Octopus_Controller {
 
-	public function requestsAction() {
+    public function requestsAction() {
 
-	}
+    }
 
 }
 
 END
-    	);
+        );
 
-    	$this->createViewFile('admin/products/requests.tpl');
+        $this->createViewFile('admin/products/requests.tpl');
 
-    	$app = $this->getApp();
-    	$resp = $app->getResponse('/admin/products/requests');
+        $app = $this->getApp();
+        $resp = $app->getResponse('/admin/products/requests');
 
-    	$this->assertEquals(200, $resp->getStatus());
+        $this->assertEquals(200, $resp->getStatus());
 
     }
 
@@ -255,9 +255,9 @@ END
         }
 
 
-    	if ($expected != $actual) {
-    		dump_r($renderer->getViewPaths($req, $req->getController()));
-    	}
+        if ($expected != $actual) {
+            dump_r($renderer->getViewPaths($req, $req->getController()));
+        }
 
         $this->assertEquals($expected, $actual, "Failed on $path");
 

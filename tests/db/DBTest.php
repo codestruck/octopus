@@ -42,53 +42,53 @@ class Octopus_DB_Test extends PHPUnit_Framework_TestCase
 
     }
 
-	function testRollbackTransaction() {
-		return $this->markTestSkipped("This is not fully fleshed out yet");
-    	$t = new Octopus_DB_Schema_Writer('_transaction_test');
-    	$t->newKey('id', true);
-    	$t->newPrimaryKey('id');
-    	$t->newTextSmall('name');
-    	$t->create();
+    function testRollbackTransaction() {
+        return $this->markTestSkipped("This is not fully fleshed out yet");
+        $t = new Octopus_DB_Schema_Writer('_transaction_test');
+        $t->newKey('id', true);
+        $t->newPrimaryKey('id');
+        $t->newTextSmall('name');
+        $t->create();
 
-    	$db = Octopus_DB::singleton();
-    	$db->beginTransaction();
-    	$this->assertTrue($db->inTransaction(), 'should be in transaction after calling beginTransaction');
+        $db = Octopus_DB::singleton();
+        $db->beginTransaction();
+        $this->assertTrue($db->inTransaction(), 'should be in transaction after calling beginTransaction');
 
-    	$db->query("INSERT INTO _transaction_test (name) VALUES('foo')");
-    	$db->query("INSERT INTO _transaction_test (name) VALUES('bar')");
+        $db->query("INSERT INTO _transaction_test (name) VALUES('foo')");
+        $db->query("INSERT INTO _transaction_test (name) VALUES('bar')");
 
-    	$s = new Octopus_DB_Select();
-    	$s->table('_transaction_test');
-    	$this->assertEquals(2, $s->numRows());
+        $s = new Octopus_DB_Select();
+        $s->table('_transaction_test');
+        $this->assertEquals(2, $s->numRows());
 
-    	$db->rollbackTransaction();
+        $db->rollbackTransaction();
 
-    	$this->assertEquals(0, $s->numRows());
+        $this->assertEquals(0, $s->numRows());
 
     }
 
     function testCommitTransaction() {
-    	return $this->markTestSkipped("This is not fully fleshed out yet");
-    	$t = new Octopus_DB_Schema_Writer('_transaction_test');
-    	$t->newKey('id', true);
-    	$t->newPrimaryKey('id');
-    	$t->newTextSmall('name');
-    	$t->create();
+        return $this->markTestSkipped("This is not fully fleshed out yet");
+        $t = new Octopus_DB_Schema_Writer('_transaction_test');
+        $t->newKey('id', true);
+        $t->newPrimaryKey('id');
+        $t->newTextSmall('name');
+        $t->create();
 
-    	$db = Octopus_DB::singleton();
-    	$db->beginTransaction();
-    	$this->assertTrue($db->inTransaction(), 'should be in transaction after calling beginTransaction');
+        $db = Octopus_DB::singleton();
+        $db->beginTransaction();
+        $this->assertTrue($db->inTransaction(), 'should be in transaction after calling beginTransaction');
 
-    	$db->query("INSERT INTO _transaction_test (name) VALUES('foo')");
-    	$db->query("INSERT INTO _transaction_test (name) VALUES('bar')");
+        $db->query("INSERT INTO _transaction_test (name) VALUES('foo')");
+        $db->query("INSERT INTO _transaction_test (name) VALUES('bar')");
 
-    	$s = new Octopus_DB_Select();
-    	$s->table('_transaction_test');
-    	$this->assertEquals(2, $s->numRows());
+        $s = new Octopus_DB_Select();
+        $s->table('_transaction_test');
+        $this->assertEquals(2, $s->numRows());
 
-    	$db->commitTransaction();
+        $db->commitTransaction();
 
-    	$this->assertEquals(2, $s->numRows());
+        $this->assertEquals(2, $s->numRows());
     }
 
 }

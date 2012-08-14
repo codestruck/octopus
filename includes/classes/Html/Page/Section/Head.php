@@ -10,68 +10,68 @@
  */
 class Octopus_Html_Page_Section_Head extends Octopus_Html_Page_Section {
 
-	public function __get($name) {
+    public function __get($name) {
 
-		switch($name) {
+        switch($name) {
 
-			case 'content':
-				return $this->getContent();
+            case 'content':
+                return $this->getContent();
 
-		}
+        }
 
-		return parent::__get($name);
+        return parent::__get($name);
 
-	}
+    }
 
-	/**
-	 * @return String The title, meta tags, css, javascript and other <link>
-	 * tags for the 'head' section.
-	 */
-	public function getContent($minify = true) {
+    /**
+     * @return String The title, meta tags, css, javascript and other <link>
+     * tags for the 'head' section.
+     */
+    public function getContent($minify = true) {
 
-		$result = array(
-			$this->page->renderTitle(true),
-			$this->page->renderMeta(true),
-			$this->renderCss(true, $minify),
-			$this->renderJavascript(true, $minify),
-			$this->page->renderLinks(true),
-		);
+        $result = array(
+            $this->page->renderTitle(true),
+            $this->page->renderMeta(true),
+            $this->renderCss(true, $minify),
+            $this->renderJavascript(true, $minify),
+            $this->page->renderLinks(true),
+        );
 
-		return implode("\n", $result);
+        return implode("\n", $result);
 
-	}
+    }
 
-	public function render($return = false, $minify = true) {
+    public function render($return = false, $minify = true) {
 
-		$result = '<head>' . $this->getContent($minify) . '</head>';
+        $result = '<head>' . $this->getContent($minify) . '</head>';
 
-		if ($return) {
-			return $result;
-		} else {
-			echo $result;
-			return $this;
-		}
+        if ($return) {
+            return $result;
+        } else {
+            echo $result;
+            return $this;
+        }
 
-	}
+    }
 
-	public function renderJavascript($return = false, $minify = true) {
+    public function renderJavascript($return = false, $minify = true) {
 
-		// For <head> only, include javascript variables
-		if ($return) {
-			return implode(
-				"\n",
-				array(
-					$this->page->renderJavascriptVars(true),
-					parent::renderJavascript(true, $minify)
-				)
-			);
-		}
+        // For <head> only, include javascript variables
+        if ($return) {
+            return implode(
+                "\n",
+                array(
+                    $this->page->renderJavascriptVars(true),
+                    parent::renderJavascript(true, $minify)
+                )
+            );
+        }
 
-		$this->page->renderJavascriptVars(false);
-		parent::renderJavascript(false, $minify);
-		return $this;
+        $this->page->renderJavascriptVars(false);
+        parent::renderJavascript(false, $minify);
+        return $this;
 
-	}
+    }
 
 
 }

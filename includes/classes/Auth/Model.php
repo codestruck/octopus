@@ -40,7 +40,7 @@ abstract class Octopus_Auth_Model extends Octopus_Model {
      * Set to true to make the login cookie SSL-only.
      * @var boolean
      */
-	protected $cookieSsl = false;
+    protected $cookieSsl = false;
 
     protected $password_algo_strength = 8;
     protected $portable_passwords = FALSE;
@@ -491,8 +491,8 @@ END;
 
             $expire = $remember ? time() + ($this->rememberDays * 24 * 60 * 60) : 0;
 
-          	Octopus_Cookie::set($this->cookieName, $hash, $expire, $this->cookiePath, null, $this->cookieSsl);
-	        Octopus_Cookie::set($this->insecureCookieName, self::INSECURE_COOKIE_VALUE, $expire, $this->cookiePath, null, false);
+              Octopus_Cookie::set($this->cookieName, $hash, $expire, $this->cookiePath, null, $this->cookieSsl);
+            Octopus_Cookie::set($this->insecureCookieName, self::INSECURE_COOKIE_VALUE, $expire, $this->cookiePath, null, false);
 
         } else {
 

@@ -5,8 +5,8 @@
  * present on this class get forwarded to an Octopus_Html_Element this class
  * manages. So you can do things like this:
  *
- *	$filter = $table->addFilter('text', 'name');
- *	$filter->addClass('important');
+ *    $filter = $table->addFilter('text', 'name');
+ *    $filter->addClass('important');
  *
  * @copyright (c) 2012 Codestruck, LLC.
  * @license http://opensource.org/licenses/mit-license.php/
@@ -34,7 +34,7 @@ abstract class Octopus_Html_Table_Filter {
 
     public $id;
 
-	private $type;
+    private $type;
     private $value;
     private $label;
     private $element = null;
@@ -44,7 +44,7 @@ abstract class Octopus_Html_Table_Filter {
 
     public function __construct(Octopus_Html_Table $table, $type, $id, $label, $options) {
 
-    	$this->table = $table;
+        $this->table = $table;
         $this->type = $type;
         $this->id = $id;
         $this->label = $label === null ? (humanize($id) . ':') : $label;
@@ -54,8 +54,8 @@ abstract class Octopus_Html_Table_Filter {
     }
 
     public function __call($method, $args) {
-    	$element = $this->getElement();
-    	return call_user_func_array(array($element, $method), $args);
+        $element = $this->getElement();
+        return call_user_func_array(array($element, $method), $args);
     }
 
     /**
@@ -67,11 +67,11 @@ abstract class Octopus_Html_Table_Filter {
      */
     public function apply(Octopus_DataSource $dataSource) {
 
-    	if (is_callable($this->options['function'])) {
-    		return call_user_func($this->options['function'], $this, $dataSource, $this->table);
-    	}
+        if (is_callable($this->options['function'])) {
+            return call_user_func($this->options['function'], $this, $dataSource, $this->table);
+        }
 
-    	return $this->defaultApply($dataSource);
+        return $this->defaultApply($dataSource);
     }
 
     /**
@@ -80,13 +80,13 @@ abstract class Octopus_Html_Table_Filter {
      */
     protected function defaultApply(Octopus_DataSource $dataSource) {
 
-    	$value = trim($this->val());
+        $value = trim($this->val());
 
-    	if ($value === '') {
-    		return $dataSource;
-    	}
+        if ($value === '') {
+            return $dataSource;
+        }
 
-    	return $dataSource->filter($this->id, $value);
+        return $dataSource->filter($this->id, $value);
     }
 
     /**
@@ -102,17 +102,17 @@ abstract class Octopus_Html_Table_Filter {
      */
     public function getElement() {
 
-    	if ($this->element) {
-    		return $this->element;
-    	}
+        if ($this->element) {
+            return $this->element;
+        }
 
-    	$element = $this->createElement();
+        $element = $this->createElement();
 
-    	if ($element instanceof Octopus_Html_Element) {
-    		$this->setElementValue($element, $this->value);
-    	}
+        if ($element instanceof Octopus_Html_Element) {
+            $this->setElementValue($element, $this->value);
+        }
 
-    	return $this->element = $element;
+        return $this->element = $element;
     }
 
     /**
@@ -128,10 +128,10 @@ abstract class Octopus_Html_Table_Filter {
      */
     public function isEmpty() {
 
-    	$val = $this->val();
-    	if ($val === null) return true;
+        $val = $this->val();
+        if ($val === null) return true;
 
-    	return trim($val) === '';
+        return trim($val) === '';
     }
 
     public function label(/* $label */) {
@@ -166,8 +166,8 @@ abstract class Octopus_Html_Table_Filter {
 
         $element = $this->getElement();
         if ($element) {
-	        return new Octopus_Html_Element('label', array('class' => 'filterLabel', 'for' => $element->id), $this->label);
-	       }
+            return new Octopus_Html_Element('label', array('class' => 'filterLabel', 'for' => $element->id), $this->label);
+           }
     }
 
     /**
@@ -175,51 +175,51 @@ abstract class Octopus_Html_Table_Filter {
      */
     public function val(/* $val */) {
 
-    	switch(func_num_args()) {
-    		case 0:
-    			return $this->getValue();
-    		default:
-    			return $this->setValue(func_get_arg(0));
-    	}
+        switch(func_num_args()) {
+            case 0:
+                return $this->getValue();
+            default:
+                return $this->setValue(func_get_arg(0));
+        }
 
     }
 
     public function setValue($value) {
 
-    	if (is_object($value)) print_backtrace();
+        if (is_object($value)) print_backtrace();
 
-    	$this->value = $value;
+        $this->value = $value;
 
-    	if ($this->element && $this->element instanceof Octopus_Html_Element) {
-    		$this->setElementValue($this->element, $value);
-    	}
+        if ($this->element && $this->element instanceof Octopus_Html_Element) {
+            $this->setElementValue($this->element, $value);
+        }
 
-    	return $this;
+        return $this;
     }
 
     public function getValue() {
 
-    	if ($this->element) {
+        if ($this->element) {
 
-    		if ($this->readElementValue($this->element, $elementValue)) {
+            if ($this->readElementValue($this->element, $elementValue)) {
 
-    			if ($this->value != $elementValue) {
+                if ($this->value != $elementValue) {
 
-	    			// Current value is not valid, so return whatever's in the
-	    			// element. This can arise when $element is a <select>
-	    			return $elementValue;
+                    // Current value is not valid, so return whatever's in the
+                    // element. This can arise when $element is a <select>
+                    return $elementValue;
 
-	    		}
-    		}
+                }
+            }
 
-    	}
+        }
 
-    	return $this->value;
+        return $this->value;
     }
 
     public function __toString() {
-    	$element = $this->getElement();
-    	return $element->__toString();
+        $element = $this->getElement();
+        return $element->__toString();
     }
 
     /**
@@ -239,13 +239,13 @@ abstract class Octopus_Html_Table_Filter {
      */
     protected function readElementValue(Octopus_Html_Element $element, &$value) {
 
-    	if ($element instanceof Octopus_Html_Form_Field) {
-    		$value = $element->val();
-    		return true;
-    	}
+        if ($element instanceof Octopus_Html_Form_Field) {
+            $value = $element->val();
+            return true;
+        }
 
-    	$value = $element->text();
-    	return true;
+        $value = $element->text();
+        return true;
     }
 
     /**
@@ -253,15 +253,15 @@ abstract class Octopus_Html_Table_Filter {
      * @param Octopus_Html_Element $element An element created by a previous
      * call to createElement().
      */
- 	protected function setElementValue(Octopus_Html_Element $element, $value) {
+     protected function setElementValue(Octopus_Html_Element $element, $value) {
 
- 		if ($element instanceof Octopus_Html_Form_Field) {
- 			$element->val($value);
- 			return;
- 		}
+         if ($element instanceof Octopus_Html_Form_Field) {
+             $element->val($value);
+             return;
+         }
 
- 		$element->text($value);
- 	}
+         $element->text($value);
+     }
 
     protected function initializeOptions($options) {
 
@@ -295,13 +295,13 @@ abstract class Octopus_Html_Table_Filter {
         }
 
         if (isset(self::$registry[$type])) {
-        	$class = self::$registry[$type];
-	    } else {
+            $class = self::$registry[$type];
+        } else {
 
             $fullClass = 'Octopus_Html_Table_Filter_' . camel_case($type, true);
 
             if (class_exists($fullClass)) {
-            	$class = $fullClass;
+                $class = $fullClass;
             } else if (!class_exists($class)) {
                 throw new Octopus_Exception("Filter type not registered: $type");
             }
@@ -311,7 +311,7 @@ abstract class Octopus_Html_Table_Filter {
         $filter = new $class($table, $type, $id, $label, $options);
 
         if (!$filter instanceof Octopus_Html_Table_Filter) {
-        	throw new Octopus_Exception("Table filter does not extend Octopus_Html_Table_Filter: $class");
+            throw new Octopus_Exception("Table filter does not extend Octopus_Html_Table_Filter: $class");
         }
 
         return $filter;

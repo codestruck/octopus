@@ -6,342 +6,342 @@
  */
 class ResponseTest extends Octopus_App_TestCase {
 
-	function createResponse($path = '/foo') {
+    function createResponse($path = '/foo') {
 
-		$app = $this->getApp();
-		$request = ($path instanceof Octopus_Request) ? $path : $app->createRequest($path);
-		return new Octopus_Response($request);
+        $app = $this->getApp();
+        $request = ($path instanceof Octopus_Request) ? $path : $app->createRequest($path);
+        return new Octopus_Response($request);
 
-	}
+    }
 
-	function testSetViewData() {
+    function testSetViewData() {
 
-		$app = $this->startApp();
-		$resp = $app->getResponse('/foo');
+        $app = $this->startApp();
+        $resp = $app->getResponse('/foo');
 
-		set_view_data(__METHOD__, 'hi');
-		$this->assertEquals('hi', $resp[__METHOD__]);
+        set_view_data(__METHOD__, 'hi');
+        $this->assertEquals('hi', $resp[__METHOD__]);
 
-	}
+    }
 
-	function testGetViewData() {
+    function testGetViewData() {
 
-		$app = $this->startApp();
-		$resp = $app->getResponse('/foo');
+        $app = $this->startApp();
+        $resp = $app->getResponse('/foo');
 
-		$resp->set(__METHOD__, 'blerrrrg');
+        $resp->set(__METHOD__, 'blerrrrg');
 
-		$this->assertEquals('blerrrrg', get_view_data(__METHOD__));
+        $this->assertEquals('blerrrrg', get_view_data(__METHOD__));
 
-		$resp->set('foo', 'bar');
-		$data = get_view_data();
+        $resp->set('foo', 'bar');
+        $data = get_view_data();
 
-		$this->assertEquals(
-			array(
-				__METHOD__ => 'blerrrrg',
-				'foo' => 'bar',
-			),
-			$data,
-			'get_view_data() returns all data attached to response'
-		);
+        $this->assertEquals(
+            array(
+                __METHOD__ => 'blerrrrg',
+                'foo' => 'bar',
+            ),
+            $data,
+            'get_view_data() returns all data attached to response'
+        );
 
-	}
+    }
 
-	function testAppendContent() {
+    function testAppendContent() {
 
-		$resp = $this->createResponse('/foo');
-		$resp->append("foo");
-		$resp->append("bar");
+        $resp = $this->createResponse('/foo');
+        $resp->append("foo");
+        $resp->append("bar");
 
-		$this->assertEquals("foo\nbar", $resp->render(true));
+        $this->assertEquals("foo\nbar", $resp->render(true));
 
-	}
+    }
 
-	/**
-	 * @expectedException Octopus_Exception
-	 */
-	function testAppendContentFailsWhenStopped() {
+    /**
+     * @expectedException Octopus_Exception
+     */
+    function testAppendContentFailsWhenStopped() {
 
-		$resp = $this->createResponse('/foo');
-		$resp->stop();
-		$resp->append('hi');
+        $resp = $this->createResponse('/foo');
+        $resp->stop();
+        $resp->append('hi');
 
-	}
+    }
 
-	function testRenderViewSpecified() {
+    function testRenderViewSpecified() {
 
-		$this->createViewFile('blerg', 'Testing 1 2 3');
-		$resp = $this->createResponse('/foo');
+        $this->createViewFile('blerg', 'Testing 1 2 3');
+        $resp = $this->createResponse('/foo');
 
-		$resp->view = 'blerg';
-		$this->assertEquals('Testing 1 2 3', $resp->render(true));
+        $resp->view = 'blerg';
+        $this->assertEquals('Testing 1 2 3', $resp->render(true));
 
-	}
+    }
 
-	function testRenderLayoutSpecified() {
+    function testRenderLayoutSpecified() {
 
-		$app = $this->startApp();
-		$this->assertSame($app, $this->getApp());
-		$siteDir = $this->getSiteDir();
-		$layoutDir = $siteDir . 'themes/default/layouts/';
-		mkdir($layoutDir, 0777, true);
+        $app = $this->startApp();
+        $this->assertSame($app, $this->getApp());
+        $siteDir = $this->getSiteDir();
+        $layoutDir = $siteDir . 'themes/default/layouts/';
+        mkdir($layoutDir, 0777, true);
 
-		file_put_contents($layoutDir . 'alternate_layout.tpl', 'your alternate layout');
+        file_put_contents($layoutDir . 'alternate_layout.tpl', 'your alternate layout');
 
-		$resp = $this->createResponse('/foo');
-		$resp->theme = 'default';
-		$resp->layout = 'alternate_layout';
-		$this->assertEquals('your alternate layout', $resp->render(true));
+        $resp = $this->createResponse('/foo');
+        $resp->theme = 'default';
+        $resp->layout = 'alternate_layout';
+        $this->assertEquals('your alternate layout', $resp->render(true));
 
-	}
+    }
 
-	function testTheme() {
+    function testTheme() {
 
-	    $app = $this->startApp();
-	    $settings = $app->getSettings();
+        $app = $this->startApp();
+        $settings = $app->getSettings();
 
-	    $settings->reset('site.theme');
+        $settings->reset('site.theme');
 
-	    $resp = $app->getResponse('/foo');
-	    $this->assertEquals('default', $resp->getTheme());
+        $resp = $app->getResponse('/foo');
+        $this->assertEquals('default', $resp->getTheme());
 
-	    $settings->set('site.theme', 'foo');
-	    $this->assertEquals('foo', $resp->getTheme());
+        $settings->set('site.theme', 'foo');
+        $this->assertEquals('foo', $resp->getTheme());
 
-	    $resp = $app->getResponse('/admin');
-	    $this->assertEquals('foo', $resp->getTheme());
+        $resp = $app->getResponse('/admin');
+        $this->assertEquals('foo', $resp->getTheme());
 
-	    $settings->set('site.theme.admin', 'bar');
+        $settings->set('site.theme.admin', 'bar');
 
-	    $this->assertEquals('bar', $resp->getTheme());
-	    $this->assertEquals('bar', $resp->getTheme());
-	    $this->assertEquals('bar', $resp->getTheme());
+        $this->assertEquals('bar', $resp->getTheme());
+        $this->assertEquals('bar', $resp->getTheme());
+        $this->assertEquals('bar', $resp->getTheme());
 
-	    $resp->setTheme('baz');
-	    $this->assertEquals('baz', $resp->theme);
-	    $this->assertEquals('baz', $resp->getTheme());
+        $resp->setTheme('baz');
+        $this->assertEquals('baz', $resp->theme);
+        $this->assertEquals('baz', $resp->getTheme());
 
-	    $resp = $app->getResponse('/foo');
-	    $this->assertEquals('foo', $resp->getTheme());
+        $resp = $app->getResponse('/foo');
+        $this->assertEquals('foo', $resp->getTheme());
 
-	}
+    }
 
 
-	function testTemplateRendererByDefault() {
+    function testTemplateRendererByDefault() {
 
-		$resp = $this->createResponse();
-		$this->assertTrue($resp->renderer instanceof Octopus_Renderer_Template);
+        $resp = $this->createResponse();
+        $this->assertTrue($resp->renderer instanceof Octopus_Renderer_Template);
 
-	}
+    }
 
-	function testJsonRendererForJsonContentType() {
+    function testJsonRendererForJsonContentType() {
 
-		$resp = $this->createResponse();
-		$resp->contentType = 'application/json';
+        $resp = $this->createResponse();
+        $resp->contentType = 'application/json';
 
-		$this->assertTrue($resp->renderer instanceof Octopus_Renderer_Json);
+        $this->assertTrue($resp->renderer instanceof Octopus_Renderer_Json);
 
-	}
+    }
 
-	function testRequestProperty() {
+    function testRequestProperty() {
 
-		$app = $this->getApp();
-		$request = $app->createRequest('/foo');
+        $app = $this->getApp();
+        $request = $app->createRequest('/foo');
 
-		$response = $this->createResponse($request);
-		$this->assertSame($request, $response->request);
-		$this->assertSame($request, $response->getRequest());
+        $response = $this->createResponse($request);
+        $this->assertSame($request, $response->request);
+        $this->assertSame($request, $response->getRequest());
 
-	}
+    }
 
-	function testValuesAsProperty(){
+    function testValuesAsProperty(){
 
-		$r = $this->createResponse();
-		$r->set(array('foo' => 'bar', 'baz' => 'bat'));
-		$this->assertEquals(
-			array('foo' => 'bar', 'baz' => 'bat'),
-			$r->values
-		);
+        $r = $this->createResponse();
+        $r->set(array('foo' => 'bar', 'baz' => 'bat'));
+        $this->assertEquals(
+            array('foo' => 'bar', 'baz' => 'bat'),
+            $r->values
+        );
 
-		$r->clear('baz');
-		$this->assertEquals(array('foo' => 'bar'), $r->values);
+        $r->clear('baz');
+        $this->assertEquals(array('foo' => 'bar'), $r->values);
 
-	}
+    }
 
-	/**
-	 * @dataProvider provideMethodsAndTestData
-	 * @expectedException Octopus_Exception
-	 */
-	function testAlterAfterStopThrowsException($method, $args = array()) {
+    /**
+     * @dataProvider provideMethodsAndTestData
+     * @expectedException Octopus_Exception
+     */
+    function testAlterAfterStopThrowsException($method, $args = array()) {
 
-		if (!is_array($args)) $args = array($args);
+        if (!is_array($args)) $args = array($args);
 
-		$r = $this->createResponse();
-		$r->stop();
-		call_user_func_array(array($r, $method), $args);
+        $r = $this->createResponse();
+        $r->stop();
+        call_user_func_array(array($r, $method), $args);
 
-	}
+    }
 
-	function provideMethodsAndTestData() {
+    function provideMethodsAndTestData() {
 
-		return array(
+        return array(
 
-			array('clear', 'foo'),
-			array('clearHeader', 'X-some-header'),
-			array('clearValues'),
-			array('forbidden'),
-			array('redirect', '/foo/bar'),
-			array('reset'),
-			array('resetHeaders'),
-			array('set', array('foo', 'bar')),
-			array('setHeader', array('X-some-header', 42)),
-			array('setStatus', 404),
-			array('setTheme', 'foo'),
-			array('setView', 'foo'),
+            array('clear', 'foo'),
+            array('clearHeader', 'X-some-header'),
+            array('clearValues'),
+            array('forbidden'),
+            array('redirect', '/foo/bar'),
+            array('reset'),
+            array('resetHeaders'),
+            array('set', array('foo', 'bar')),
+            array('setHeader', array('X-some-header', 42)),
+            array('setStatus', 404),
+            array('setTheme', 'foo'),
+            array('setView', 'foo'),
 
-		);
+        );
 
-	}
+    }
 
 
-	function testSetAndGet() {
+    function testSetAndGet() {
 
-		$r = $this->createResponse();
+        $r = $this->createResponse();
 
-		$r->set('foo', 'bar');
-		$this->assertEquals('bar', $r->get('foo'));
+        $r->set('foo', 'bar');
+        $this->assertEquals('bar', $r->get('foo'));
 
-		$r->set(array(
-			'mammal' => 'cat',
-			'reptile' => 'lizard',
-		));
-		$this->assertEquals('cat', $r->get('mammal'));
-		$this->assertEquals('lizard', $r->get('reptile'));
-		$this->assertEquals('bar', $r->get('foo'));
+        $r->set(array(
+            'mammal' => 'cat',
+            'reptile' => 'lizard',
+        ));
+        $this->assertEquals('cat', $r->get('mammal'));
+        $this->assertEquals('lizard', $r->get('reptile'));
+        $this->assertEquals('bar', $r->get('foo'));
 
-		$this->assertEquals(
-			array(
-				'foo' => 'bar',
-				'mammal' => 'cat',
-				'reptile' => 'lizard',
-			),
-			$r->getValues()
-		);
+        $this->assertEquals(
+            array(
+                'foo' => 'bar',
+                'mammal' => 'cat',
+                'reptile' => 'lizard',
+            ),
+            $r->getValues()
+        );
 
-		$r->clear('foo', 'reptile');
-		$this->assertEquals(array('mammal' => 'cat'), $r->getValues());
+        $r->clear('foo', 'reptile');
+        $this->assertEquals(array('mammal' => 'cat'), $r->getValues());
 
-		$r->clearValues();
-		$this->assertEquals(array(), $r->getValues());
+        $r->clearValues();
+        $this->assertEquals(array(), $r->getValues());
 
-		$r->set(array('foo' => 'bar', 'baz' => 'bat'));
-		$r->clear(array('foo', 'baz'));
-		$this->assertEquals(array(), $r->getValues());
+        $r->set(array('foo' => 'bar', 'baz' => 'bat'));
+        $r->clear(array('foo', 'baz'));
+        $this->assertEquals(array(), $r->getValues());
 
-	}
+    }
 
-	function testSetAndGetAsArray() {
+    function testSetAndGetAsArray() {
 
-		$r = $this->createResponse();
-		$r['foo'] = 'bar';
-		$this->assertTrue(isset($r['foo']), 'isset is true');
-		$this->assertEquals('bar', $r['foo']);
+        $r = $this->createResponse();
+        $r['foo'] = 'bar';
+        $this->assertTrue(isset($r['foo']), 'isset is true');
+        $this->assertEquals('bar', $r['foo']);
 
-		unset($r['foo']);
-		$this->assertFalse(isset($r['foo']));
+        unset($r['foo']);
+        $this->assertFalse(isset($r['foo']));
 
-		$this->assertEquals(array(), $r->getValues());
+        $this->assertEquals(array(), $r->getValues());
 
-	}
+    }
 
-	function testContentType() {
+    function testContentType() {
 
-		$r = $this->createResponse();
-		$r->setHeader('Content-type', 'text/html');
+        $r = $this->createResponse();
+        $r->setHeader('Content-type', 'text/html');
 
-		$this->assertEquals('text/html', $r->getHeader('Content-type'));
-		$this->assertEquals('text/html', $r->getHeader('CONTENT-TYPE'));
-		$this->assertEquals('text/html', $r->contentType);
+        $this->assertEquals('text/html', $r->getHeader('Content-type'));
+        $this->assertEquals('text/html', $r->getHeader('CONTENT-TYPE'));
+        $this->assertEquals('text/html', $r->contentType);
 
-				$this->assertEquals(
-					<<<END
+                $this->assertEquals(
+                    <<<END
 HTTP/1.1 200 OK
 Content-type: text/html
 END
-					,
-					(string)$r
-				);
+                    ,
+                    (string)$r
+                );
 
 
-		$r->contentType = 'text/plain';
-		$this->assertEquals('text/plain', $r->getHeader('Content-type'));
-		$this->assertEquals('text/plain', $r->getHeader('CONTENT-TYPE'));
-		$this->assertEquals('text/plain', $r->contentType);
+        $r->contentType = 'text/plain';
+        $this->assertEquals('text/plain', $r->getHeader('Content-type'));
+        $this->assertEquals('text/plain', $r->getHeader('CONTENT-TYPE'));
+        $this->assertEquals('text/plain', $r->contentType);
 
-				$this->assertEquals(
-					<<<END
+                $this->assertEquals(
+                    <<<END
 HTTP/1.1 200 OK
 Content-type: text/plain
 END
-					,
-					(string)$r
-				);
+                    ,
+                    (string)$r
+                );
 
-	}
+    }
 
-	function testStatus() {
+    function testStatus() {
 
-		$r = $this->createResponse();
-		$this->assertEquals(200, $r->status, 'status defaults to 200');
+        $r = $this->createResponse();
+        $this->assertEquals(200, $r->status, 'status defaults to 200');
 
-		$r->status = 404;
-		$this->assertEquals(404, $r->status);
-		$this->assertEquals('HTTP/1.1 404 Not Found', $r->getStatusString());
+        $r->status = 404;
+        $this->assertEquals(404, $r->status);
+        $this->assertEquals('HTTP/1.1 404 Not Found', $r->getStatusString());
 
-	}
+    }
 
-	function testCharset() {
+    function testCharset() {
 
-		$r = $this->createResponse();
-		$this->assertEquals('UTF-8', $r->charset, 'charset defaults to utf-8');
+        $r = $this->createResponse();
+        $this->assertEquals('UTF-8', $r->charset, 'charset defaults to utf-8');
 
-		$r->charset = 'foo';
-		$this->assertEquals('foo', $r->charset);
+        $r->charset = 'foo';
+        $this->assertEquals('foo', $r->charset);
 
 
-		$this->assertEquals(
-			<<<END
+        $this->assertEquals(
+            <<<END
 HTTP/1.1 200 OK
 Content-type: text/html; charset=foo
 END
-			,
-			(string)$r
-		);
+            ,
+            (string)$r
+        );
 
-	}
+    }
 
-	function testIsHtml() {
+    function testIsHtml() {
 
-		$r = $this->createResponse();
-		$this->assertTrue($r->isHtml(), 'isHtml() is true by default');
+        $r = $this->createResponse();
+        $this->assertTrue($r->isHtml(), 'isHtml() is true by default');
 
-		$r->setContentType('text/plain');
-		$this->assertFalse($r->isHtml(), 'isHtml() is false for text/plain');
+        $r->setContentType('text/plain');
+        $this->assertFalse($r->isHtml(), 'isHtml() is false for text/plain');
 
-		$r->setContentType('text/html');
-		$this->assertTrue($r->isHtml(), 'isHtml() is true for text/html');
+        $r->setContentType('text/html');
+        $this->assertTrue($r->isHtml(), 'isHtml() is true for text/html');
 
-	}
+    }
 
-	function testView() {
+    function testView() {
 
-		$r = $this->createResponse();
-		$this->assertEquals('', $r->view);
+        $r = $this->createResponse();
+        $this->assertEquals('', $r->view);
 
-		$r->view = 'foo/bar';
-		$this->assertEquals('foo/bar', $r->view);
+        $r->view = 'foo/bar';
+        $this->assertEquals('foo/bar', $r->view);
 
-	}
+    }
 
     function testTempRedirect() {
 

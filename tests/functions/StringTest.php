@@ -196,44 +196,44 @@ class StringTests extends PHPUnit_Framework_TestCase {
 
     function testHArray() {
 
-    	$array = array(
-    		'<b>' => '<i>test</i>',
-    		2 => array(
-    			'<i>' => '<b>test</b>',
-    			'foo' => true,
-    			'bar' => false,
-    			'baz' => null
-	    	)
-	    );
+        $array = array(
+            '<b>' => '<i>test</i>',
+            2 => array(
+                '<i>' => '<b>test</b>',
+                'foo' => true,
+                'bar' => false,
+                'baz' => null
+            )
+        );
 
-	    $escaped = h($array);
+        $escaped = h($array);
 
-	    $this->assertTrue(is_array($escaped), 'h(array) returns an array');
+        $this->assertTrue(is_array($escaped), 'h(array) returns an array');
 
-	    $this->assertEquals(
-	    	array(
-	    		'&lt;b&gt;' => '&lt;i&gt;test&lt;/i&gt;',
-	    		2 => array(
-	    			'&lt;i&gt;' => '&lt;b&gt;test&lt;/b&gt;',
-	    			'foo' => true,
-	    			'bar' => false,
-	    			'baz' => null
-		    	)
-		    ),
-		    $escaped
-		);
+        $this->assertEquals(
+            array(
+                '&lt;b&gt;' => '&lt;i&gt;test&lt;/i&gt;',
+                2 => array(
+                    '&lt;i&gt;' => '&lt;b&gt;test&lt;/b&gt;',
+                    'foo' => true,
+                    'bar' => false,
+                    'baz' => null
+                )
+            ),
+            $escaped
+        );
 
-		$this->assertTrue($escaped[2]['foo'] === true, 'true preserved');
-		$this->assertTrue($escaped[2]['bar'] === false, 'false preserved');
-		$this->assertTrue($escaped[2]['baz'] === null, 'null preserved');
+        $this->assertTrue($escaped[2]['foo'] === true, 'true preserved');
+        $this->assertTrue($escaped[2]['bar'] === false, 'false preserved');
+        $this->assertTrue($escaped[2]['baz'] === null, 'null preserved');
     }
 
     function testHObject() {
 
-    	$obj = new HTestObject();
-    	$obj->value = "<b>hi there!</b>";
+        $obj = new HTestObject();
+        $obj->value = "<b>hi there!</b>";
 
-    	$this->assertEquals('&lt;b&gt;hi there!&lt;/b&gt;', h($obj));
+        $this->assertEquals('&lt;b&gt;hi there!&lt;/b&gt;', h($obj));
 
     }
 
@@ -300,17 +300,17 @@ class StringTests extends PHPUnit_Framework_TestCase {
 
     function testToCssClass() {
 
-    	$tests = array(
-    		'' => '',
-    		'FOO' => 'foo',
-    		'fooBar' => 'foo-bar',
-    		'foo_bar' => 'foo-bar',
-    		'27foo' => '-27-foo',
-	    );
+        $tests = array(
+            '' => '',
+            'FOO' => 'foo',
+            'fooBar' => 'foo-bar',
+            'foo_bar' => 'foo-bar',
+            '27foo' => '-27-foo',
+        );
 
-	    foreach($tests as $input => $expected) {
-	    	$this->assertEquals($expected, to_css_class($input), "$input -> $expected");
-	    }
+        foreach($tests as $input => $expected) {
+            $this->assertEquals($expected, to_css_class($input), "$input -> $expected");
+        }
 
     }
 
@@ -362,12 +362,12 @@ class StringTests extends PHPUnit_Framework_TestCase {
 
     function testPluralizeWithNumber() {
 
-    	$this->assertEquals('comments', pluralize('comment', 2));
-    	$this->assertEquals('comments', pluralize('comment', 0));
-    	$this->assertEquals('comment', pluralize('comment', 1));
-    	$this->assertEquals('comment', pluralize('comment', 1));
-    	$this->assertEquals('comments', pluralize('comment', -1));
-    	$this->assertEquals('comment', pluralize('comment', 1.0));
+        $this->assertEquals('comments', pluralize('comment', 2));
+        $this->assertEquals('comments', pluralize('comment', 0));
+        $this->assertEquals('comment', pluralize('comment', 1));
+        $this->assertEquals('comment', pluralize('comment', 1));
+        $this->assertEquals('comments', pluralize('comment', -1));
+        $this->assertEquals('comment', pluralize('comment', 1.0));
 
 
     }
@@ -741,10 +741,10 @@ END
  */
 class HTestObject {
 
-	public $value;
+    public $value;
 
-	public function __toString() {
-		return $this->value;
-	}
+    public function __toString() {
+        return $this->value;
+    }
 
 }

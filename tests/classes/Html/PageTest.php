@@ -6,17 +6,17 @@
  */
 class PageTest extends Octopus_App_TestCase {
 
-	function testHeadSectionContent() {
+    function testHeadSectionContent() {
 
-		$page = new Octopus_Html_Page();
-		$page->setTitle('foo');
-		$page->addCss('/foo.css');
-		$page->addJavascript('/foo.js');
-		$page->addLink('feed', '/foo.rss', 'text/rss');
-		$page->setDescription("foo bar baz bat");
+        $page = new Octopus_Html_Page();
+        $page->setTitle('foo');
+        $page->addCss('/foo.css');
+        $page->addJavascript('/foo.js');
+        $page->addLink('feed', '/foo.rss', 'text/rss');
+        $page->setDescription("foo bar baz bat");
 
-		$this->assertHtmlEquals(
-			<<<END
+        $this->assertHtmlEquals(
+            <<<END
 <title>foo</title>
 <meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
 <meta name="description" content="foo bar baz bat" />
@@ -24,11 +24,11 @@ class PageTest extends Octopus_App_TestCase {
 <script type="text/javascript" src="/foo.js"></script>
 <link href="/foo.rss" rel="feed" type="text/rss" />
 END
-			,
-			$page->head->content
-		);
+            ,
+            $page->head->content
+        );
 
-	}
+    }
 
     function testCssHasMtime() {
 
@@ -283,26 +283,26 @@ END;
         $page = new Octopus_Html_Page();
         $page->addCss('foo.css', 'screen');
         $this->assertEquals(
-        	array(
-	            array(
-	                'file' => 'foo.css',
-	                'attributes' => array('media' => 'screen'),
-	                'weight' => 0
-	            )
-	        ),
+            array(
+                array(
+                    'file' => 'foo.css',
+                    'attributes' => array('media' => 'screen'),
+                    'weight' => 0
+                )
+            ),
             $this->unsetIndexes($page->getCssFiles())
         );
 
         $page = new Octopus_Html_Page();
         $page->addCss('foo.css', array('media' => 'screen'));
         $this->assertEquals(
-        	array(
-	            array(
-	                'file' => 'foo.css',
-	                'attributes' => array('media' => 'screen'),
-	                'weight' => 0
-	            ),
-	        ),
+            array(
+                array(
+                    'file' => 'foo.css',
+                    'attributes' => array('media' => 'screen'),
+                    'weight' => 0
+                ),
+            ),
             $this->unsetIndexes($page->getCssFiles())
         );
 
@@ -611,14 +611,14 @@ END
 
             $this->assertEquals(
                 array(
-	                array(
-	                    'url' => $expected,
-	                    'rel' => 'next',
-	                    'type' => null,
-	                    'attributes' => array(),
-	                    'weight' => 0
-	                ),
-	            ),
+                    array(
+                        'url' => $expected,
+                        'rel' => 'next',
+                        'type' => null,
+                        'attributes' => array(),
+                        'weight' => 0
+                    ),
+                ),
                 $page->getLinks()
             );
 
@@ -633,15 +633,15 @@ END
             );
 
             $this->assertEquals(
-            	array(
-	                array(
-	                    'url' => $expected,
-	                    'rel' => 'next',
-	                    'type' => 'text/plain',
-	                    'attributes' => array(),
-	                    'weight' => 0
-	                ),
-	            ),
+                array(
+                    array(
+                        'url' => $expected,
+                        'rel' => 'next',
+                        'type' => 'text/plain',
+                        'attributes' => array(),
+                        'weight' => 0
+                    ),
+                ),
                 $page->getLinks()
             );
 
@@ -1045,86 +1045,86 @@ END
 
     function testAddJavascriptWackWack() {
 
-    	$page = new Octopus_Html_Page(array('URL_BASE' => '/some/crazy/url/base/'));
-    	$page->addJavascript('//some-server.local/file.js');
+        $page = new Octopus_Html_Page(array('URL_BASE' => '/some/crazy/url/base/'));
+        $page->addJavascript('//some-server.local/file.js');
 
-    	$this->assertHtmlEquals(
-    		<<<END
+        $this->assertHtmlEquals(
+            <<<END
 <script type="text/javascript" src="//some-server.local/file.js"></script>
 END
-			,
-			$page->renderJavascript(true)
-    	);
+            ,
+            $page->renderJavascript(true)
+        );
 
     }
 
 
     function testAddCssWackWack() {
 
-    	$page = new Octopus_Html_Page(array('URL_BASE' => '/some/crazy/url/base/'));
-    	$page->addCss('//some-server.local/file.css');
+        $page = new Octopus_Html_Page(array('URL_BASE' => '/some/crazy/url/base/'));
+        $page->addCss('//some-server.local/file.css');
 
-    	$this->assertHtmlEquals(
-    		<<<END
+        $this->assertHtmlEquals(
+            <<<END
 <link href="//some-server.local/file.css" rel="stylesheet" type="text/css" media="all" />
 END
-			,
-			$page->renderCss(true)
-    	);
+            ,
+            $page->renderCss(true)
+        );
 
     }
 
     function testCombinedJavascriptFilesGetWeightOfHeaviestElement() {
-    	return $this->markTestSkipped('Is this the best way to do this?');
-    	$scriptDir = $this->getRootDir() . 'script/';
-    	mkdir($scriptDir);
+        return $this->markTestSkipped('Is this the best way to do this?');
+        $scriptDir = $this->getRootDir() . 'script/';
+        mkdir($scriptDir);
 
-    	file_put_contents($scriptDir . '/combine1.js', '/* combine 1 */');
-    	file_put_contents($scriptDir . '/combine2.js', '/* combine 2 */');
-    	file_put_contents($scriptDir . '/combine3.js', '/* combine 3 */');
+        file_put_contents($scriptDir . '/combine1.js', '/* combine 1 */');
+        file_put_contents($scriptDir . '/combine2.js', '/* combine 2 */');
+        file_put_contents($scriptDir . '/combine3.js', '/* combine 3 */');
 
-    	$page = new Octopus_Html_Page();
+        $page = new Octopus_Html_Page();
 
-    	$page->addJavascript('/script/combine1.js', 500);
-    	$page->addJavascript('/script/combine2.js', -1000);
-    	$page->addJavascript('http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js', 200);
+        $page->addJavascript('/script/combine1.js', 500);
+        $page->addJavascript('/script/combine2.js', -1000);
+        $page->addJavascript('http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js', 200);
 
-    	$page->setJavascriptMinifier('combine');
+        $page->setJavascriptMinifier('combine');
 
-    	$files = $this->unsetIndexes($page->getJavascriptFiles());
+        $files = $this->unsetIndexes($page->getJavascriptFiles());
 
-    	$this->assertEquals(2, count($files), 'combined into 2 files');
+        $this->assertEquals(2, count($files), 'combined into 2 files');
 
-    	$file1 = array_shift($files);
-    	$file2 = array_shift($files);
+        $file1 = array_shift($files);
+        $file2 = array_shift($files);
 
-    	$this->assertEquals('http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js', $file1['file'], '1st file is cdn jquery');
-    	$this->assertEquals(200, $file1['weight'], 'cdn jquery keeps weight');
+        $this->assertEquals('http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js', $file1['file'], '1st file is cdn jquery');
+        $this->assertEquals(200, $file1['weight'], 'cdn jquery keeps weight');
 
-    	$contents = file_get_contents(rtrim($this->getRootDir(), '/') . preg_replace('/\?.*/', '', $file2['file']));
+        $contents = file_get_contents(rtrim($this->getRootDir(), '/') . preg_replace('/\?.*/', '', $file2['file']));
 
-    	$this->assertEquals(
-    		<<<END
+        $this->assertEquals(
+            <<<END
 /* combine 2 */
 
 /* combine 1 */
 END
-			,
-			$contents,
-			'weights are preserved in combined file'
-    	);
+            ,
+            $contents,
+            'weights are preserved in combined file'
+        );
 
-    	$this->assertEquals(500, $file2['weight'], 'first file gets heaviest combined weight');
+        $this->assertEquals(500, $file2['weight'], 'first file gets heaviest combined weight');
 
     }
 
     function testOnlyJavascriptVarsNoFiles() {
 
-    	$page = new Octopus_Html_Page();
-    	$page->setJavascriptVar('foo', 'bar');
+        $page = new Octopus_Html_Page();
+        $page->setJavascriptVar('foo', 'bar');
 
-    	$this->assertHtmlEquals(
-    		<<<END
+        $this->assertHtmlEquals(
+            <<<END
 <head>
 <title></title>
 <meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
@@ -1133,9 +1133,9 @@ var foo = "bar";
 </script>
 </head>
 END
-			,
-			$page->renderHead(true)
-    	);
+            ,
+            $page->renderHead(true)
+        );
 
     }
 
@@ -1173,42 +1173,42 @@ END
 
     function testSectionsAvailableAsProperties() {
 
-    	$page = new Octopus_Html_Page();
-    	$page->head->addJavascript('/foo.js');
-    	$page->foot->addJavascript('/bar.js');
+        $page = new Octopus_Html_Page();
+        $page->head->addJavascript('/foo.js');
+        $page->foot->addJavascript('/bar.js');
 
-    	$this->assertSame($page->getSection('head'), $page->head);
-    	$this->assertSame($page->getSection('foot'), $page->foot);
+        $this->assertSame($page->getSection('head'), $page->head);
+        $this->assertSame($page->getSection('foot'), $page->foot);
 
-    	$this->assertHtmlEquals('<script type="text/javascript" src="/foo.js"></script>', $page->head->renderJavascript(true));
-    	$this->assertHtmlEquals('<script type="text/javascript" src="/bar.js"></script>', $page->foot->renderJavascript(true));
+        $this->assertHtmlEquals('<script type="text/javascript" src="/foo.js"></script>', $page->head->renderJavascript(true));
+        $this->assertHtmlEquals('<script type="text/javascript" src="/bar.js"></script>', $page->foot->renderJavascript(true));
 
     }
 
-	function testSectionsAvailableViaArrayAccess() {
+    function testSectionsAvailableViaArrayAccess() {
 
-    	$page = new Octopus_Html_Page();
-    	$page['head']->addJavascript('/foo.js');
-    	$page['foot']->addJavascript('/bar.js');
+        $page = new Octopus_Html_Page();
+        $page['head']->addJavascript('/foo.js');
+        $page['foot']->addJavascript('/bar.js');
 
-    	$this->assertSame($page->getSection('head'), $page['head']);
-    	$this->assertSame($page->getSection('foot'), $page['foot']);
+        $this->assertSame($page->getSection('head'), $page['head']);
+        $this->assertSame($page->getSection('foot'), $page['foot']);
 
-    	$this->assertHtmlEquals('<script type="text/javascript" src="/foo.js"></script>', $page->head->renderJavascript(true));
-    	$this->assertHtmlEquals('<script type="text/javascript" src="/bar.js"></script>', $page->foot->renderJavascript(true));
+        $this->assertHtmlEquals('<script type="text/javascript" src="/foo.js"></script>', $page->head->renderJavascript(true));
+        $this->assertHtmlEquals('<script type="text/javascript" src="/bar.js"></script>', $page->foot->renderJavascript(true));
 
     }
 
     function testHeadSectionRendersWithHeadTag() {
 
-    	$page = new Octopus_Html_Page();
-    	$page->setTitle('Foo title');
-    	$page->addCss('/foo.css');
-    	$page->addJavascript('/foo.js');
-    	$page->setJavascriptVar('foo', 'bar');
+        $page = new Octopus_Html_Page();
+        $page->setTitle('Foo title');
+        $page->addCss('/foo.css');
+        $page->addJavascript('/foo.js');
+        $page->setJavascriptVar('foo', 'bar');
 
-    	$this->assertHtmlEquals(
-    		<<<END
+        $this->assertHtmlEquals(
+            <<<END
 <head>
 <title>Foo title</title>
 <meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
@@ -1219,59 +1219,59 @@ var foo = "bar";
 <script type="text/javascript" src="/foo.js"></script>
 </head>
 END
-			,
-			(string)$page['head']
-    	);
+            ,
+            (string)$page['head']
+        );
 
     }
 
     function testFootSectionRenderWithoutTag() {
 
-    	$page = new Octopus_Html_Page();
-    	$page->foot->addJavascript('/foo.js');
+        $page = new Octopus_Html_Page();
+        $page->foot->addJavascript('/foo.js');
 
-    	$this->assertHtmlEquals(
-    		<<<END
+        $this->assertHtmlEquals(
+            <<<END
 <script type="text/javascript" src="/foo.js"></script>
 END
-			,
-			(string)$page['foot']
-    	);
+            ,
+            (string)$page['foot']
+        );
 
     }
 
     function testSectionJavascriptHtmlViaArrayAccess() {
 
-    	$page = new Octopus_Html_Page();
-    	$page->head->addJavascript('/foo.js');
-    	$this->assertEquals($page->head->renderJavascript(true), $page->head['scripts']);
+        $page = new Octopus_Html_Page();
+        $page->head->addJavascript('/foo.js');
+        $this->assertEquals($page->head->renderJavascript(true), $page->head['scripts']);
 
     }
 
     function testSectionCssHtmlViaArrayAccess() {
 
-    	$page = new Octopus_Html_Page();
-    	$page->head->addJavascript('/foo.css');
-    	$this->assertEquals($page->head->renderCss(true), $page->head['css']);
+        $page = new Octopus_Html_Page();
+        $page->head->addJavascript('/foo.css');
+        $this->assertEquals($page->head->renderCss(true), $page->head['css']);
 
     }
 
     function testHeadSectionJavascriptIncludesVars() {
 
-    	$page = new Octopus_Html_Page();
-    	$page->setJavascriptVar('foo', 'bar');
-    	$page->head->addJavascript('/foo.js');
+        $page = new Octopus_Html_Page();
+        $page->setJavascriptVar('foo', 'bar');
+        $page->head->addJavascript('/foo.js');
 
-    	$this->assertHtmlEquals(
-    		<<<END
+        $this->assertHtmlEquals(
+            <<<END
 <script type="text/javascript">
 var foo = "bar";
 </script>
 <script type="text/javascript" src="/foo.js"></script>
 END
-			,
-			$page->head->scripts
-    	);
+            ,
+            $page->head->scripts
+        );
 
     }
 

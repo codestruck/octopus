@@ -11,7 +11,7 @@ class AutoloadingTest extends Octopus_App_TestCase {
      */
     function testAutoLoadClass($prefix, $classDir) {
 
-    	$dir = 'AutoloadingTest/X/';
+        $dir = 'AutoloadingTest/X/';
         $class = str_replace('/', '_', $dir) . md5(uniqid());
         $file = $classDir . str_replace('_', '/', $class) . '.php';
         $class = $prefix . $class;

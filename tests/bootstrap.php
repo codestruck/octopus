@@ -19,10 +19,10 @@
     if (!defined('OCTOPUS_TESTING_SITE')) define('OCTOPUS_TESTING_SITE', false);
 
     if (!OCTOPUS_TESTING_SITE) {
-    	// TODO: Allow passing config file path to bootstrap() below
-    	$configFile = dirname(__FILE__) . '/../test_config.php';
+        // TODO: Allow passing config file path to bootstrap() below
+        $configFile = dirname(__FILE__) . '/../test_config.php';
         if (is_file($configFile)) {
-        	require_once($configFile);
+            require_once($configFile);
         } else {
             define('DB_username', 'octopus');
             define('DB_password', 'octopus');
@@ -32,9 +32,9 @@
     }
 
     bootstrap(array(
-        'use_site_config' => 	OCTOPUS_TESTING_SITE,
-        'use_defines' => 		OCTOPUS_TESTING_SITE,
-        'create_dirs' => 		OCTOPUS_TESTING_SITE,
+        'use_site_config' =>     OCTOPUS_TESTING_SITE,
+        'use_defines' =>         OCTOPUS_TESTING_SITE,
+        'create_dirs' =>         OCTOPUS_TESTING_SITE,
     ));
 
     require_once('Octopus_DB_TestCase.php');
@@ -42,10 +42,10 @@
     require_once('Octopus_Html_TestCase.php');
 
 
-	/**
-	 * @internal
-	 * @TODO Put testing helpers somewhere
-	 */
+    /**
+     * @internal
+     * @TODO Put testing helpers somewhere
+     */
     function table_count($table) {
         $s = new Octopus_DB_Select();
         $s->table($table);
@@ -54,20 +54,20 @@
         return $query->numRows();
     }
 
-	if (!OCTOPUS_TESTING_SITE) {
-	   	__octopus_init_system_tests();
-	}
+    if (!OCTOPUS_TESTING_SITE) {
+           __octopus_init_system_tests();
+    }
 
-	/**
-	 * @internal
-	 */
-	function __octopus_init_system_tests() {
+    /**
+     * @internal
+     */
+    function __octopus_init_system_tests() {
 
-		require_once('fixtures/model/models.php');
-   		require_once('schema.php');
-	    run_drops();
-	    run_creates();
+        require_once('fixtures/model/models.php');
+           require_once('schema.php');
+        run_drops();
+        run_creates();
 
-	    $db = Octopus_DB::singleton();
-	    $db->query('SET storage_engine=MYISAM', true);
-	}
+        $db = Octopus_DB::singleton();
+        $db->query('SET storage_engine=MYISAM', true);
+    }

@@ -26,11 +26,11 @@ class AppTests extends Octopus_App_TestCase {
     }
 
 
-	function testLoadRoutesFile() {
+    function testLoadRoutesFile() {
 
-		file_put_contents(
-			$this->getSiteDir() . 'routes.php',
-			<<<END
+        file_put_contents(
+            $this->getSiteDir() . 'routes.php',
+            <<<END
 <?php
 \$NAV->alias('/routes-nav-alias', '/routes-long-nav-alias');
 \$ROUTES->add('/routes-routes-alias', '/routes-long-routes-alias');
@@ -38,11 +38,11 @@ class AppTests extends Octopus_App_TestCase {
 \$app->alias('/routes-lower-app-alias', '/routes-aa-lower')
 ?>
 END
-		);
+        );
 
-		file_put_contents(
-			$this->getSiteDir() . 'nav.php',
-			<<<END
+        file_put_contents(
+            $this->getSiteDir() . 'nav.php',
+            <<<END
 <?php
 \$NAV->alias('/nav-nav-alias', '/nav-long-nav-alias');
 \$ROUTES->add('/nav-routes-alias', '/nav-long-routes-alias');
@@ -50,22 +50,22 @@ END
 \$app->alias('/nav-lower-app-alias', '/nav-aa-lower')
 ?>
 END
-		);
+        );
 
-		$app = $this->startApp();
-		$r = $app->getRouter();
+        $app = $this->startApp();
+        $r = $app->getRouter();
 
-		$this->assertEquals('/routes-long-nav-alias', $r->resolve('/routes-nav-alias'));
-		$this->assertEquals('/routes-long-routes-alias', $r->resolve('/routes-routes-alias'));
-		$this->assertEquals('/routes-upper-app-alias', $r->resolve('/routes-aa-upper'));
-		$this->assertEquals('/routes-lower-app-alias', $r->resolve('/routes-aa-lower'));
+        $this->assertEquals('/routes-long-nav-alias', $r->resolve('/routes-nav-alias'));
+        $this->assertEquals('/routes-long-routes-alias', $r->resolve('/routes-routes-alias'));
+        $this->assertEquals('/routes-upper-app-alias', $r->resolve('/routes-aa-upper'));
+        $this->assertEquals('/routes-lower-app-alias', $r->resolve('/routes-aa-lower'));
 
-		$this->assertEquals('/nav-long-nav-alias', $r->resolve('/nav-nav-alias'));
-		$this->assertEquals('/nav-long-routes-alias', $r->resolve('/nav-routes-alias'));
-		$this->assertEquals('/nav-upper-app-alias', $r->resolve('/nav-aa-upper'));
-		$this->assertEquals('/nav-lower-app-alias', $r->resolve('/nav-aa-lower'));
+        $this->assertEquals('/nav-long-nav-alias', $r->resolve('/nav-nav-alias'));
+        $this->assertEquals('/nav-long-routes-alias', $r->resolve('/nav-routes-alias'));
+        $this->assertEquals('/nav-upper-app-alias', $r->resolve('/nav-aa-upper'));
+        $this->assertEquals('/nav-lower-app-alias', $r->resolve('/nav-aa-lower'));
 
-	}
+    }
 
     function testRespectSmartyTemplateDirInAppOptions() {
 

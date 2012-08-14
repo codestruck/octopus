@@ -2,9 +2,9 @@
 
     /**
      * Converts an input string to a camelCased string.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
-	 */
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
+     */
     function camel_case($s, $initialCapital = false) {
 
         $s = trim($s);
@@ -31,8 +31,8 @@
     /**
      * Alias for camel_case($s, true) for use in e.g.
      * array_map.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function camel_case_with_initial_capital($s) {
         return camel_case($s, true);
@@ -40,8 +40,8 @@
 
     /**
      * @internal
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function _camel_case_helper($matches) {
 
@@ -53,8 +53,8 @@
 
     /**
      * Capitalizes the first word in sentences.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function capitalize_sentences($str) {
 
@@ -64,9 +64,9 @@
     }
 
     /**
-	 * @internal
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @internal
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function _capitalize_sentences_helper($matches) {
         return $matches[1] . strtoupper($matches[2]);
@@ -74,16 +74,16 @@
 
     /**
      * Converts a StringOfSomeKind to a string-of-some-kind
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function dashed($s) {
         return underscore($s, '-');
     }
 
     /**
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function end_in($end, $str) {
 
@@ -104,8 +104,8 @@
      * @param $remainder String Gets set to the portion of $x after $y, if
      * $x ends with $y;
      * @return bool Whether $x ends with $y;
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function ends_with($x, $y, $ignoreCase = false, &$remainder = null) {
 
@@ -140,8 +140,8 @@
 
     /**
      * Converts a glob expression to a regular expression.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function glob_to_regex($glob) {
 
@@ -161,10 +161,10 @@
      * its keys and values escaped (recursively).
      * @return Mixed If a single array was passed in, returns an array with
      * all keys and values (recursive) escaped (unless the value is true, false,
-	 * or null-- those are preserved) Otherwise, returns all
+     * or null-- those are preserved) Otherwise, returns all
      * arguments passed in escaped and concatenated into a single string.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function h(/* as many as you want! */) {
 
@@ -179,11 +179,11 @@
                 $arg = func_get_arg(0);
 
                 if (is_array($arg)) {
-                	$result = array();
-                	_h_array($arg, $result);
-                	return $result;
+                    $result = array();
+                    _h_array($arg, $result);
+                    return $result;
                 } else {
-                	return htmlspecialchars($arg, ENT_QUOTES, 'UTF-8');
+                    return htmlspecialchars($arg, ENT_QUOTES, 'UTF-8');
                 }
 
         }
@@ -200,38 +200,38 @@
     /**
      * @internal
      * Internal function used to recursively escape h().
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function _h_array(Array $arg, &$dest = null) {
 
-    	if ($dest === null) $dest = array();
+        if ($dest === null) $dest = array();
 
-    	foreach($arg as $key => $value) {
+        foreach($arg as $key => $value) {
 
-    		if (!is_numeric($key)) {
-    			$key = h($key);
-    		}
+            if (!is_numeric($key)) {
+                $key = h($key);
+            }
 
-    		if (is_array($value)) {
-    			$dest[$key] = null;
-    			_h_array($value, $dest[$key]);
-    		} else if ($value === true || $value === false || $value === null) {
-    			// Preserve true, false, and null values
-    			$dest[$key] = $value;
-    		} else {
-    			$dest[$key] = h($value);
-    		}
+            if (is_array($value)) {
+                $dest[$key] = null;
+                _h_array($value, $dest[$key]);
+            } else if ($value === true || $value === false || $value === null) {
+                // Preserve true, false, and null values
+                $dest[$key] = $value;
+            } else {
+                $dest[$key] = h($value);
+            }
 
-    	}
+        }
 
 
     }
 
     /**
      * Converts a 'COMPUTERY_STRING' into a 'Computery String'.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function humanize($str, $titleCaps = true) {
 
@@ -249,8 +249,8 @@
 
     /**
      * @return boolean
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function is_email($input) {
         return !!parse_email($input);
@@ -259,8 +259,8 @@
     /**
      * Given some input, tries to turn it into a well-formed http:// url.
      * @todo TEST
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function normalize_url($url) {
 
@@ -277,8 +277,8 @@
     /**
      * Attempts to parse an email address out of some input.
      * @return Mixed false if unsuccessful.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function parse_email($input) {
 
@@ -308,8 +308,8 @@
      * @param $s String You know, the one to check whether it's a regex
      * @return Mixed if $s is a valid regex, returns an array with keys 'pattern' and 'flag'.
      * Otherwise returns false.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function parse_regex($s, $boundaryChars = '\/#-') {
 
@@ -325,8 +325,8 @@
 
     /**
      * Turns URLs in $s into hyperlinks.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function linkify($s) {
 
@@ -354,8 +354,8 @@
 
     /**
      * Converts urls to links AND adds rel and target
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function linkify_external($s) {
         $s = linkify($s);
@@ -375,8 +375,8 @@
     }
 
     /**
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function add_link_references($s, $domain, $data) {
 
@@ -400,8 +400,8 @@
     /**
      * Given an arbitrary SQL string, normalizes it (compacts whitespace,
      * removes newlines) so it can be compared, e.g. for testing.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function normalize_sql($sql, $params = null, $detectErrors = false) {
 
@@ -436,14 +436,14 @@
      * whether to pluralize.
      * @return String The pluralized form of $x. Or, if $number indicates
      * it should be singular, the singularized form.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function pluralize($x, $number = null) {
 
-    	if ($number == 1) {
-    		return singularize($x);
-    	}
+        if ($number == 1) {
+            return singularize($x);
+        }
 
         if (preg_match('/([aieou]?)(s?)s$/i', $x, $m)) {
 
@@ -468,8 +468,8 @@
     /**
      * @return count then correctly pluralized word
      * @param $format Whether to pass the number through number_format.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function plural_count($array_or_number, $word, $format = true) {
 
@@ -490,8 +490,8 @@
 
     /**
      * Converts a plural back into a singular noun.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function singularize($x) {
 
@@ -506,8 +506,8 @@
     }
 
     /**
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function start_in($start, $str) {
 
@@ -525,8 +525,8 @@
      * @param $remainder String Gets set to the portion of $x after $y, if
      * $x starts with $y;
      * @return bool Whether $x starts with $y;
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function starts_with($x, $y, $ignoreCase = false, &$remainder = null) {
 
@@ -556,8 +556,8 @@
 
     /**
      * Converts an arbitrary string into a valid css class.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function to_css_class($x) {
 
@@ -571,17 +571,17 @@
 
     /**
      * Converts arbitrary text into a valid DOM id.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function to_html_id($x) {
 
-    	$x = underscore($x);
-    	// move initial numbers to the end
-    	$x = preg_replace('/^(\d+_?)(.*)$/', '$2$1', $x);
-    	$x = camel_case($x);
+        $x = underscore($x);
+        // move initial numbers to the end
+        $x = preg_replace('/^(\d+_?)(.*)$/', '$2$1', $x);
+        $x = camel_case($x);
 
-    	return $x;
+        return $x;
     }
 
     /**
@@ -589,8 +589,8 @@
      * <example>
      * to_id('foo') = 'foo_id',
      * to_id('categories') = 'category_id'
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function to_id($s) {
         $s = singularize(trim($s));
@@ -601,8 +601,8 @@
 
     /**
      * Takes a PHP regex pattern and converts it for use in mysql queries.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function to_mysql_regex($pattern) {
         $pattern = str_replace('\\(', '[(]', $pattern);
@@ -616,8 +616,8 @@
      * @param $counter Number A numeric index to append to the end (for when
      * you are trying to find a unique slug. If $counter is greater than 1,
      * it will be appended to the resulting slug.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function to_slug($x, $counter = null) {
 
@@ -637,8 +637,8 @@
 
     /**
      * Given a singular or plural string, returns a pluralized table name.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function to_table_name($s) {
 
@@ -650,8 +650,8 @@
 
     /**
      * Converts a camelCased string to an underscore_separated_string
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function underscore($s, $sep = '_') {
 
@@ -665,8 +665,8 @@
     }
 
     /**
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function truncate_words($str, $count, $marker = '') {
 
@@ -697,52 +697,52 @@
      * @param $wrap String If no wildcard characters are found in $s, it will
      * be wrapped in the character specified here. Set to false to disable
      * auto-wrapping.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function wildcardify($s, $wrap = '%') {
 
 
-    	$result = '';
-    	$escape = false;
-    	$len = strlen($s);
-    	$foundWildcard = false;
+        $result = '';
+        $escape = false;
+        $len = strlen($s);
+        $foundWildcard = false;
 
-    	for($i = 0; $i < $len; $i++) {
+        for($i = 0; $i < $len; $i++) {
 
-    		$c = substr($s, $i, 1);
+            $c = substr($s, $i, 1);
 
-    		if ($escape) {
-    			$result .= $c;
-    			$escape = false;
-    			continue;
-    		} else if ($c === '\\') {
-    			$escape = true;
-    			continue;
-    		}
+            if ($escape) {
+                $result .= $c;
+                $escape = false;
+                continue;
+            } else if ($c === '\\') {
+                $escape = true;
+                continue;
+            }
 
-    		if ($c === '%') $c = '\\%';
-    		if ($c === '_') $c = '\\_';
+            if ($c === '%') $c = '\\%';
+            if ($c === '_') $c = '\\_';
 
-    		$foundWildcard = $foundWildcard || ($c === '*' || $c === '?');
+            $foundWildcard = $foundWildcard || ($c === '*' || $c === '?');
 
-    		if ($c === '*') $c = '%';
-    		if ($c === '?') $c = '_';
+            if ($c === '*') $c = '%';
+            if ($c === '?') $c = '_';
 
-    		$result .= $c;
-    	}
+            $result .= $c;
+        }
 
-    	if ($wrap && !$foundWildcard) {
-    		$result = "{$wrap}{$result}{$wrap}";
-    	}
+        if ($wrap && !$foundWildcard) {
+            $result = "{$wrap}{$result}{$wrap}";
+        }
 
-    	return $result;
+        return $result;
     }
 
 
     /**
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function pretty_json_encode($data) {
         $str = json_encode($data);
@@ -789,8 +789,8 @@
     }
 
     /**
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function remove_extension($str) {
 

@@ -6,12 +6,12 @@
 
     $usage = <<<END
 
-	Runs tests either for the site you are building or the Octopus system
-	itself.
+    Runs tests either for the site you are building or the Octopus system
+    itself.
 
     Usage:
 
-    	octopus/test [site|sys] [--help] [--include-slow|--only-slow]
+        octopus/test [site|sys] [--help] [--include-slow|--only-slow]
                      [PHPUnit args]
 
     Options:

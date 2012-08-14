@@ -624,60 +624,60 @@ class AuthModelTest extends PHPUnit_Framework_TestCase
 
     function testSslLoginSetsInsecureCookieAsWell() {
 
-    	$this->assertFalse(Octopus_Cookie::get('probably_signed_in'));
+        $this->assertFalse(Octopus_Cookie::get('probably_signed_in'));
 
-    	$user = new SslCookieUser();
-    	$user->email = 'foo@whatever.com';
-    	$user->password = sha1('test');
-    	$user->active = true;
-    	$user->save();
+        $user = new SslCookieUser();
+        $user->email = 'foo@whatever.com';
+        $user->password = sha1('test');
+        $user->active = true;
+        $user->save();
 
-    	$user = new SslCookieUser();
-    	$user->login('foo@whatever.com', 'test');
+        $user = new SslCookieUser();
+        $user->login('foo@whatever.com', 'test');
 
-    	$this->assertEquals(Octopus_Auth_Model::INSECURE_COOKIE_VALUE, Octopus_Cookie::get('probably_signed_in'));
+        $this->assertEquals(Octopus_Auth_Model::INSECURE_COOKIE_VALUE, Octopus_Cookie::get('probably_signed_in'));
 
-    	$user->logout();
-    	$this->assertFalse(Octopus_Cookie::get('probably_signed_in'));
+        $user->logout();
+        $this->assertFalse(Octopus_Cookie::get('probably_signed_in'));
 
     }
 
     function testNonSslLoginSetsInsecureCookieAsWell() {
 
-		$this->assertFalse(Octopus_Cookie::get('probably_signed_in'));
+        $this->assertFalse(Octopus_Cookie::get('probably_signed_in'));
 
-    	$user = new AuthModelTestUser();
-    	$user->email = 'nonssl@test.com';
-    	$user->password = sha1('test');
-    	$user->active = true;
-    	$user->save();
+        $user = new AuthModelTestUser();
+        $user->email = 'nonssl@test.com';
+        $user->password = sha1('test');
+        $user->active = true;
+        $user->save();
 
-    	$user = new AuthModelTestUser();
-    	$user->login('nonssl@test.com', 'test');
+        $user = new AuthModelTestUser();
+        $user->login('nonssl@test.com', 'test');
 
-		$this->assertEquals(Octopus_Auth_Model::INSECURE_COOKIE_VALUE, Octopus_Cookie::get('probably_signed_in'));
+        $this->assertEquals(Octopus_Auth_Model::INSECURE_COOKIE_VALUE, Octopus_Cookie::get('probably_signed_in'));
 
-		$user->logout();
-		$this->assertFalse(Octopus_Cookie::get('probably_signed_in'));
+        $user->logout();
+        $this->assertFalse(Octopus_Cookie::get('probably_signed_in'));
     }
 
 
     function testInsecureCookieConfigurable() {
 
-    	$user = new AuthModelTestUser();
-    	$user->email = 'nonssl@test.com';
-    	$user->password = sha1('test');
-    	$user->active = true;
-    	$user->save();
+        $user = new AuthModelTestUser();
+        $user->email = 'nonssl@test.com';
+        $user->password = sha1('test');
+        $user->active = true;
+        $user->save();
 
-    	$user = new AuthModelTestUser();
-    	$user->insecureCookieName = 'blerg';
-    	$user->login('nonssl@test.com', 'test');
+        $user = new AuthModelTestUser();
+        $user->insecureCookieName = 'blerg';
+        $user->login('nonssl@test.com', 'test');
 
-		$this->assertEquals(Octopus_Auth_Model::INSECURE_COOKIE_VALUE, Octopus_Cookie::get('blerg'));
+        $this->assertEquals(Octopus_Auth_Model::INSECURE_COOKIE_VALUE, Octopus_Cookie::get('blerg'));
 
-		$user->logout();
-		$this->assertFalse(Octopus_Cookie::get('blerg'));
+        $user->logout();
+        $this->assertFalse(Octopus_Cookie::get('blerg'));
     }
 
 }
@@ -750,9 +750,9 @@ class NoCookieDefinedUser extends Octopus_Auth_Model {
  */
 class SslCookieUser extends Octopus_Auth_Model {
 
-	public $cookieName = 'ssl-cookie-user';
+    public $cookieName = 'ssl-cookie-user';
 
-	protected $cookieSsl = true;
+    protected $cookieSsl = true;
 
     protected $fields = array('email', 'password', 'active');
 

@@ -47,15 +47,15 @@ class Octopus_DB_Select extends Octopus_DB_Helper {
         if (!$count) $count = 0;
 
         if (!$useLimit) {
-        	return $count;
+            return $count;
         }
 
         if ($this->limitStart > 0) {
-        	$count = $count - $this->limitStart;
+            $count = $count - $this->limitStart;
         }
 
         if ($this->limitLen !== null) {
-        	$count = min($this->limitLen, $count);
+            $count = min($this->limitLen, $count);
         }
 
         return max(0, $count);

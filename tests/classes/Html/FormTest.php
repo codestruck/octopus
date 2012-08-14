@@ -8,16 +8,16 @@
  */
 class FormTest extends Octopus_Html_TestCase {
 
-	function testAddElementAsButton() {
+    function testAddElementAsButton() {
 
-		$form = new Octopus_Html_Form('addElAsButton');
-		$el = new Octopus_Html_Element('span', array('class' => 'button'), 'Test');
-		$form->addButton($el);
+        $form = new Octopus_Html_Form('addElAsButton');
+        $el = new Octopus_Html_Element('span', array('class' => 'button'), 'Test');
+        $form->addButton($el);
 
-		$sig = $form->getSignature();
+        $sig = $form->getSignature();
 
-		$this->assertHtmlEquals(
-			<<<END
+        $this->assertHtmlEquals(
+            <<<END
 <form id="addElAsButton" method="post" novalidate>
 <input type="hidden" name="__octform" value="$sig" />
 <div class="buttons">
@@ -25,11 +25,11 @@ class FormTest extends Octopus_Html_TestCase {
 </div>
 </form>
 END
-			,
-			$form->render(true)
-		);
+            ,
+            $form->render(true)
+        );
 
-	}
+    }
 
     function testAddButtons() {
 

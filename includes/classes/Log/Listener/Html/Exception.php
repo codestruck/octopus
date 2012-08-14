@@ -7,56 +7,56 @@
  */
 class Octopus_Log_Listener_Html_Exception {
 
-	private $exception;
+    private $exception;
 
-	public function __construct(Exception $ex) {
-		$this->exception = $ex;
-	}
+    public function __construct(Exception $ex) {
+        $this->exception = $ex;
+    }
 
-	public function render() {
+    public function render() {
 
-		$ex = $this->exception;
-		$first = true;
+        $ex = $this->exception;
+        $first = true;
 
-		$result = array();
+        $result = array();
 
-		do {
+        do {
 
-			if (!$first) {
-				$result[] = '<hr class="octopus-debug-exception-sep" />';
+            if (!$first) {
+                $result[] = '<hr class="octopus-debug-exception-sep" />';
 
-				$result[] = '<h3 class="octopus-inner-exception">';
-				$result[] = get_class($ex);
+                $result[] = '<h3 class="octopus-inner-exception">';
+                $result[] = get_class($ex);
 
-				$trace = Octopus_Debug::getNiceBacktrace($ex->getTrace());
+                $trace = Octopus_Debug::getNiceBacktrace($ex->getTrace());
 
-				$lines = Octopus_Debug::getMostRelevantTraceLines(1, $trace);
-				$line = array_shift($lines);
+                $lines = Octopus_Debug::getMostRelevantTraceLines(1, $trace);
+                $line = array_shift($lines);
 
-				if ($line) {
-					$result[] = "at {$line['nice_file']}, line {$line['line']}";
-				}
+                if ($line) {
+                    $result[] = "at {$line['nice_file']}, line {$line['line']}";
+                }
 
-				$result[] = '</h3>';
-			}
-			$first = false;
+                $result[] = '</h3>';
+            }
+            $first = false;
 
-			$result[] = htmlspecialchars($ex->getMessage(), ENT_QUOTES, 'UTF-8');
+            $result[] = htmlspecialchars($ex->getMessage(), ENT_QUOTES, 'UTF-8');
 
-			// NOTE: 5.2 doesn't support getPrevious
-			if (method_exists($ex, 'getPrevious')) {
-				$ex = $ex->getPrevious();
-			} else {
-				$ex = null;
-			}
+            // NOTE: 5.2 doesn't support getPrevious
+            if (method_exists($ex, 'getPrevious')) {
+                $ex = $ex->getPrevious();
+            } else {
+                $ex = null;
+            }
 
-		} while($ex);
+        } while($ex);
 
-		return implode(' ', $result);
-	}
+        return implode(' ', $result);
+    }
 
-	public function __toString() {
-		return $this->render();
-	}
+    public function __toString() {
+        return $this->render();
+    }
 
 }

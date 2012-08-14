@@ -107,7 +107,7 @@ END
 class Api1NonArrayController extends Octopus_Controller_Rest {
 
     public function getAction() {
-    	return 1337;
+        return 1337;
     }
 
 }

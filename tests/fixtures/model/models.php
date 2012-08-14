@@ -165,7 +165,7 @@ class FindCategory extends Octopus_Model {
  * @license http://opensource.org/licenses/mit-license.php/
  */
 class FindFood extends Octopus_Model {
-	protected $fields = array('name');
+    protected $fields = array('name');
 }
 
 /**

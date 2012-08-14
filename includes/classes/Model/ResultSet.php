@@ -304,17 +304,17 @@ END;
      */
     public function limit($offset, $maxRecords = null) {
 
-    	if ($offset === '' || $offset === false) {
-    		$offset = null;
-    	} else {
-    		$offset = max(0, intval($offset));
-    	}
+        if ($offset === '' || $offset === false) {
+            $offset = null;
+        } else {
+            $offset = max(0, intval($offset));
+        }
 
-    	if ($maxRecords === '' || $maxRecords === false) {
-    		$maxRecords = null;
-    	}
+        if ($maxRecords === '' || $maxRecords === false) {
+            $maxRecords = null;
+        }
 
-    	$maxRecords = ($maxRecords === null ? null : max(0, intval($maxRecords)));
+        $maxRecords = ($maxRecords === null ? null : max(0, intval($maxRecords)));
 
         if ($offset === $this->_offset && $maxRecords === $this->_maxRecords) {
             return $this;
@@ -751,7 +751,7 @@ END;
      */
     private function buildSelect($recreate = false, $fields = null, $order = true, $limit = true) {
 
-    	$recreate = $recreate || ($fields !== null || !$order || !$limit);
+        $recreate = $recreate || ($fields !== null || !$order || !$limit);
 
         if (!$recreate && $this->_select) {
             return $this->_select;
@@ -781,7 +781,7 @@ END;
         }
 
         if ($order) {
-        	$this->applyOrderByClause($s, $this->_orderBy);
+            $this->applyOrderByClause($s, $this->_orderBy);
         }
 
         if ($limit && ($this->_offset !== null || $this->_maxRecords !== null)) {
@@ -789,7 +789,7 @@ END;
         }
 
         if ($fields === null && $order && $limit) {
-        	$this->_select = $s;
+            $this->_select = $s;
         }
 
         return $s;
@@ -1126,28 +1126,28 @@ END;
 
     public function unfilter() {
 
-    	return new Octopus_Model_ResultSet(
-    		$this->_modelClass,
-    		null,
-    		$this->_orderBy
-	    );
+        return new Octopus_Model_ResultSet(
+            $this->_modelClass,
+            null,
+            $this->_orderBy
+        );
 
     }
 
     public function sort($col, $asc = true, $replace = true) {
 
         if ($replace) {
-        	return $this->orderBy(array($col => $asc));
+            return $this->orderBy(array($col => $asc));
         } else {
-			$newOrderBy = array($col => $asc);
-			if ($this->_orderBy) {
-				foreach($this->_orderBy as $c => $a) {
-					if (!isset($newOrderBy[$c])) {
-						$newOrderBy[$c] = $a;
-					}
-				}
-			}
-			return $this->orderBy($newOrderBy);
+            $newOrderBy = array($col => $asc);
+            if ($this->_orderBy) {
+                foreach($this->_orderBy as $c => $a) {
+                    if (!isset($newOrderBy[$c])) {
+                        $newOrderBy[$c] = $a;
+                    }
+                }
+            }
+            return $this->orderBy($newOrderBy);
         }
     }
 
@@ -1156,35 +1156,35 @@ END;
     }
 
     public function isSortable($field) {
-    	return !!$this->getModelField($field);
+        return !!$this->getModelField($field);
     }
 
     public function isSortedBy($field, &$asc = null, &$index = 0) {
 
-    	if (!isset($this->_orderBy[$field])) {
-    		return false;
-    	}
+        if (!isset($this->_orderBy[$field])) {
+            return false;
+        }
 
-    	$index = 0;
-    	foreach($this->_orderBy as $k => $v) {
-    		if ($k == $field) {
+        $index = 0;
+        foreach($this->_orderBy as $k => $v) {
+            if ($k == $field) {
 
-    			if (is_string($v) && strcasecmp($v, 'desc') === 0) {
-    				$v = false;
-    			}
+                if (is_string($v) && strcasecmp($v, 'desc') === 0) {
+                    $v = false;
+                }
 
-    			$asc = !!$v;
+                $asc = !!$v;
 
-    			return true;
-    		}
-    		$index++;
-    	}
+                return true;
+            }
+            $index++;
+        }
 
-    	return false;
+        return false;
     }
 
     public function unsort() {
-    	return $this->orderBy();
+        return $this->orderBy();
     }
 
 

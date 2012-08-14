@@ -14,7 +14,7 @@
  */
 class Octopus_Html_Page implements ArrayAccess {
 
-    private $javascriptAliaser = null	;
+    private $javascriptAliaser = null    ;
     private $cssAliaser = null;
     private $minifiers = array();
 
@@ -92,7 +92,7 @@ class Octopus_Html_Page implements ArrayAccess {
 
     public function __get($name) {
 
-    	return $this->getSection($name);
+        return $this->getSection($name);
 
     }
 
@@ -130,10 +130,10 @@ class Octopus_Html_Page implements ArrayAccess {
      * @param Array $attributes
      */
     public function addCss($file, $weight = null, $attributes = array()) {
-    	$head = $this->getSection('head');
-    	$args = func_get_args();
-    	call_user_func_array(array($head, 'addCss'), $args);
-    	return $this;
+        $head = $this->getSection('head');
+        $args = func_get_args();
+        call_user_func_array(array($head, 'addCss'), $args);
+        return $this;
     }
 
     public function addCssAlias($urls, $alias) {
@@ -309,72 +309,72 @@ class Octopus_Html_Page implements ArrayAccess {
      */
     public function findFile($file, &$found = false) {
 
-    	$found = false;
+        $found = false;
 
-		$app = Octopus_App::singleton();
-		$o =& $this->options;
+        $app = Octopus_App::singleton();
+        $o =& $this->options;
 
-		// Note that, mostly for testing, ROOT_DIR etc. can be overridden
-		// in the $options array passed to page's constructor.
+        // Note that, mostly for testing, ROOT_DIR etc. can be overridden
+        // in the $options array passed to page's constructor.
 
-		$dirs = array(
-			'root' => 'ROOT_DIR',
-			'theme_site' => null,
-			'site' => 'SITE_DIR',
-			'theme_octopus' => null,
-			'octopus' => 'OCTOPUS_DIR',
-		);
+        $dirs = array(
+            'root' => 'ROOT_DIR',
+            'theme_site' => null,
+            'site' => 'SITE_DIR',
+            'theme_octopus' => null,
+            'octopus' => 'OCTOPUS_DIR',
+        );
 
-		foreach($dirs as $key => $constant) {
+        foreach($dirs as $key => $constant) {
 
-			if (!$constant) {
-				continue;
-			}
+            if (!$constant) {
+                continue;
+            }
 
-			if (!empty($o[$key])) {
-				$dirs[$key] = $o[$constant];
-			} else if ($app) {
-				$dirs[$key] = $app->$constant;
-			} else {
-				$dirs[$key] = null;
-			}
+            if (!empty($o[$key])) {
+                $dirs[$key] = $o[$constant];
+            } else if ($app) {
+                $dirs[$key] = $app->$constant;
+            } else {
+                $dirs[$key] = null;
+            }
 
-		}
+        }
 
-		// Allow for absolute paths within the root dir
-		if (starts_with($file, $dirs['root']) && is_file($file)) {
-			return $file;
-		}
+        // Allow for absolute paths within the root dir
+        if (starts_with($file, $dirs['root']) && is_file($file)) {
+            return $file;
+        }
 
-		$resp = $app->getCurrentResponse();
+        $resp = $app->getCurrentResponse();
 
-		if ($resp && ($theme = $resp->getTheme())) {
+        if ($resp && ($theme = $resp->getTheme())) {
 
-			if ($dirs['site']) {
-				$dirs['theme_site'] = $dirs['site'] . 'themes/' . $theme . '/';
-			}
+            if ($dirs['site']) {
+                $dirs['theme_site'] = $dirs['site'] . 'themes/' . $theme . '/';
+            }
 
-			if ($dirs['octopus']) {
-				$dirs['theme_octopus'] = $dirs['octopus'] . 'themes/' . $theme . '/';
-			}
-		}
+            if ($dirs['octopus']) {
+                $dirs['theme_octopus'] = $dirs['octopus'] . 'themes/' . $theme . '/';
+            }
+        }
 
-		foreach($dirs as $dir) {
+        foreach($dirs as $dir) {
 
-			if (!$dir) continue;
+            if (!$dir) continue;
 
-			$candidate = $dir . ltrim($file, '/');
+            $candidate = $dir . ltrim($file, '/');
 
-			if (is_file($candidate)) {
-				$found = true;
+            if (is_file($candidate)) {
+                $found = true;
 
-				return $candidate;
-			}
+                return $candidate;
+            }
 
-		}
+        }
 
-		return $file;
-	}
+        return $file;
+    }
 
     public function getBreadcrumbs() {
         return $this->breadcrumbs;
@@ -426,17 +426,17 @@ class Octopus_Html_Page implements ArrayAccess {
      */
     public function getCssFiles($section = 'head', $minify = true) {
 
-    	if (func_num_args() === 1 && is_bool($section)) {
-    		$minify = $section;
-    		$section = 'head';
-    	}
+        if (func_num_args() === 1 && is_bool($section)) {
+            $minify = $section;
+            $section = 'head';
+        }
 
-		if (!isset($this->sections[$section])) {
-			return array();
-		}
+        if (!isset($this->sections[$section])) {
+            return array();
+        }
 
-		$section = $this->sections[$section];
-		return $section->getCssFiles($minify);
+        $section = $this->sections[$section];
+        return $section->getCssFiles($minify);
 
     }
 
@@ -457,17 +457,17 @@ class Octopus_Html_Page implements ArrayAccess {
      */
     public function getJavascriptFiles($section = 'head', $minify = true) {
 
-    	if (is_bool($section)) {
-    		$minify = $section;
-    		$section = 'head';
-    	}
+        if (is_bool($section)) {
+            $minify = $section;
+            $section = 'head';
+        }
 
-		if (!isset($this->sections[$section])) {
-			return array();
-		}
+        if (!isset($this->sections[$section])) {
+            return array();
+        }
 
-		$section = $this->sections[$section];
-		return $section->getJavascriptFiles($minify);
+        $section = $this->sections[$section];
+        return $section->getJavascriptFiles($minify);
 
     }
 
@@ -526,19 +526,19 @@ class Octopus_Html_Page implements ArrayAccess {
      */
     public function getSection($name, $autoCreate = true) {
 
-    	if (!isset($this->sections[$name])) {
+        if (!isset($this->sections[$name])) {
 
-    		// Slight HACK: So that the 'head' section renders a full <head>
-    		// element when coerced to a string, we use a special subclass
-    		if ($name == 'head') {
-    			$this->sections[$name] = new Octopus_Html_Page_Section_Head($name, $this);
-    		} else {
-	    		$this->sections[$name] = new Octopus_Html_Page_Section($name, $this);
-	    	}
+            // Slight HACK: So that the 'head' section renders a full <head>
+            // element when coerced to a string, we use a special subclass
+            if ($name == 'head') {
+                $this->sections[$name] = new Octopus_Html_Page_Section_Head($name, $this);
+            } else {
+                $this->sections[$name] = new Octopus_Html_Page_Section($name, $this);
+            }
 
-    	}
+        }
 
-    	return $this->sections[$name];
+        return $this->sections[$name];
     }
 
     /**
@@ -546,7 +546,7 @@ class Octopus_Html_Page implements ArrayAccess {
      * the different logical sections of this page.
      */
     public function getSections() {
-    	return $this->sections;
+        return $this->sections;
     }
 
     public function getTitle() {
@@ -577,14 +577,14 @@ class Octopus_Html_Page implements ArrayAccess {
         // Ensure that $items is indexed by filename
         $itemsByFile = array();
         foreach($items as $item) {
-        	$itemsByFile[$item['file']] = $item;
+            $itemsByFile[$item['file']] = $item;
         }
         $items = $itemsByFile;
 
 
         foreach($minifiers as $m) {
 
-        	// Pass minifier an array of distinct files
+            // Pass minifier an array of distinct files
             $minified = $m->minify(array_keys($items));
 
             if (!$minified) {
@@ -595,43 +595,43 @@ class Octopus_Html_Page implements ArrayAccess {
             // Re-integrate minified stuff into $items
             foreach($minified as $minifiedFile => $oldFiles) {
 
-            	// NOTE: If multiple items with different weights were combined,
-            	// use the lowest weight/index combination
+                // NOTE: If multiple items with different weights were combined,
+                // use the lowest weight/index combination
                 $newItem = null;
 
                 foreach($oldFiles as $old) {
 
-                	if (!isset($items[$old])) {
-                		continue;
-                	}
+                    if (!isset($items[$old])) {
+                        continue;
+                    }
 
-                	$item = $items[$old];
-                	if (!isset($item['weight'])) $item['weight'] = 0;
+                    $item = $items[$old];
+                    if (!isset($item['weight'])) $item['weight'] = 0;
 
-                	if ($newItem === null) {
-                		$newItem = $item;
-                	}
-                	unset($items[$old]);
+                    if ($newItem === null) {
+                        $newItem = $item;
+                    }
+                    unset($items[$old]);
 
-                	if (!isset($newItem['weight'])) {
-                		$newItem['weight'] = 0;
-                	}
+                    if (!isset($newItem['weight'])) {
+                        $newItem['weight'] = 0;
+                    }
 
-                	if ($item['weight'] < $newItem['weight']) {
-                		$newItem['weight'] = $item['weight'];
-                	}
+                    if ($item['weight'] < $newItem['weight']) {
+                        $newItem['weight'] = $item['weight'];
+                    }
 
-                	if ($item['index'] < $newItem['index']) {
-                		$newItem['index'] = $item['index'];
-                	}
+                    if ($item['index'] < $newItem['index']) {
+                        $newItem['index'] = $item['index'];
+                    }
 
                 }
 
                 if ($newItem) {
 
-                	$newItem['unminified_files'] = $oldFiles;
-                	$newItem['file'] = $minifiedFile;
-                	$items[$newItem['file']] = $newItem;
+                    $newItem['unminified_files'] = $oldFiles;
+                    $newItem['file'] = $minifiedFile;
+                    $items[$newItem['file']] = $newItem;
 
                 }
 
@@ -648,7 +648,7 @@ class Octopus_Html_Page implements ArrayAccess {
      * @internal
      */
     public function offsetExists($name) {
-    	return true;
+        return true;
     }
 
     /**
@@ -657,7 +657,7 @@ class Octopus_Html_Page implements ArrayAccess {
      * @uses ::getSection()
      */
     public function offsetGet($name) {
-    	return $this->$name;
+        return $this->$name;
     }
 
     /**
@@ -665,7 +665,7 @@ class Octopus_Html_Page implements ArrayAccess {
      * @throws Octopus_Exception
      */
     public function offsetSet($name, $value) {
-    	throw new Octopus_Exception("offsetSet is not supported on " . __CLASS__);
+        throw new Octopus_Exception("offsetSet is not supported on " . __CLASS__);
     }
 
     /**
@@ -673,7 +673,7 @@ class Octopus_Html_Page implements ArrayAccess {
      * @throws Octopus_Exception
      */
     public function offsetUnset($name) {
-    	throw new Octopus_Exception("offsetUnset is not supported on " . __CLASS__);
+        throw new Octopus_Exception("offsetUnset is not supported on " . __CLASS__);
     }
 
     public function removeAllBreadcrumbs() {
@@ -708,18 +708,18 @@ class Octopus_Html_Page implements ArrayAccess {
      * Renders the css from the 'head' section.
      * @return String|Octopus_Html_Page
      */
-	public function renderCss($return = false, $minify = true) {
+    public function renderCss($return = false, $minify = true) {
 
-		$head = $this->getSection('head');
+        $head = $this->getSection('head');
 
-		if ($return) {
-			return $head->renderCss(true, $minify);
-		} else {
-			$head->renderCss(false, $minify);
-			return $this;
-		}
+        if ($return) {
+            return $head->renderCss(true, $minify);
+        } else {
+            $head->renderCss(false, $minify);
+            return $this;
+        }
 
-	}
+    }
 
     /**
      * Renders the entire <head> of the page.
@@ -774,24 +774,24 @@ class Octopus_Html_Page implements ArrayAccess {
      */
     public function renderJavascript($section = 'head', $return = false, $minify = true) {
 
-    	if (is_bool($section)) {
-    		$minify = func_num_args() === 2 ? $return : $minify;
-    		$return = $section;
-    		$section = 'head';
-    	}
+        if (is_bool($section)) {
+            $minify = func_num_args() === 2 ? $return : $minify;
+            $return = $section;
+            $section = 'head';
+        }
 
-    	if (!isset($this->sections[$section])) {
-    		return $return ? '' : $this;
-    	}
+        if (!isset($this->sections[$section])) {
+            return $return ? '' : $this;
+        }
 
-    	$section = $this->sections[$section];
+        $section = $this->sections[$section];
 
-    	if ($return) {
-    		return $section->renderJavascript(true, $minify);
-    	} else {
-    		$section->renderJavascript(false, $minify);
-    		return $this;
-    	}
+        if ($return) {
+            return $section->renderJavascript(true, $minify);
+        } else {
+            $section->renderJavascript(false, $minify);
+            return $this;
+        }
 
     }
 
@@ -908,7 +908,7 @@ END;
      */
     public function reset() {
 
-    	$this->sections = array();
+        $this->sections = array();
         $this->vars = array();
         $this->meta = array();
         $this->links = array();
@@ -1064,41 +1064,41 @@ END;
      */
     public function urlify($file) {
 
-    	if (preg_match('#^(https?:)?//#i', $file)) {
-    		// Already an external url
-    		return $file;
-    	}
+        if (preg_match('#^(https?:)?//#i', $file)) {
+            // Already an external url
+            return $file;
+        }
 
-    	$app = Octopus_App::singleton();
-    	if (!$app) return $file;
+        $app = Octopus_App::singleton();
+        if (!$app) return $file;
 
-    	$root = empty($this->options['ROOT_DIR']) ? $app->ROOT_DIR : $this->options['ROOT_DIR'];
-    	$urlBase = empty($this->options['URL_BASE']) ? $app->URL_BASE : $this->options['URL_BASE'];
+        $root = empty($this->options['ROOT_DIR']) ? $app->ROOT_DIR : $this->options['ROOT_DIR'];
+        $urlBase = empty($this->options['URL_BASE']) ? $app->URL_BASE : $this->options['URL_BASE'];
 
-    	$mtime = '';
-    	if (is_file($file)) {
-    	    $mtime = @filemtime($file);
-    	    $mtime = $mtime ? "?$mtime" : '';
-    	}
+        $mtime = '';
+        if (is_file($file)) {
+            $mtime = @filemtime($file);
+            $mtime = $mtime ? "?$mtime" : '';
+        }
 
-    	if (starts_with($file, $root)) {
-    	    $file = substr($file, strlen($root));
-    	    $file = start_in('/', $file);
-    	}
+        if (starts_with($file, $root)) {
+            $file = substr($file, strlen($root));
+            $file = start_in('/', $file);
+        }
 
-    	// HACK: When installed locally, SoleCMS defines ROOT_DIR as
-    	// /whatever/core/ and SITE_DIR as /whatever/sites/site, not
-    	// /whatever/core/sites/site, so stripping ROOT_DIR off SITE_DIR
-    	// fails.
-    	if (defined('SG_VERSION')) {
-    	    $root = preg_replace('#/core/$#', '/', $root, -1, $count);
-    	    if ($count > 0 && starts_with($file, $root, false, $remainder)) {
-    	        return $urlBase . $remainder . $mtime;
-    	    }
-    	}
+        // HACK: When installed locally, SoleCMS defines ROOT_DIR as
+        // /whatever/core/ and SITE_DIR as /whatever/sites/site, not
+        // /whatever/core/sites/site, so stripping ROOT_DIR off SITE_DIR
+        // fails.
+        if (defined('SG_VERSION')) {
+            $root = preg_replace('#/core/$#', '/', $root, -1, $count);
+            if ($count > 0 && starts_with($file, $root, false, $remainder)) {
+                return $urlBase . $remainder . $mtime;
+            }
+        }
 
-    	// Fall back to just URL_BASE/file
-    	return u($file, null, array('URL_BASE' => $urlBase)) . $mtime;
+        // Fall back to just URL_BASE/file
+        return u($file, null, array('URL_BASE' => $urlBase)) . $mtime;
 
     }
 

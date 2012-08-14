@@ -8,13 +8,13 @@
  */
 class Octopus_Log_Listener_Html_Trace {
 
-	private $trace;
+    private $trace;
 
-	public function __construct($trace = null) {
-		$this->trace = ($trace === null ? debug_backtrace(false) : $trace);
-	}
+    public function __construct($trace = null) {
+        $this->trace = ($trace === null ? debug_backtrace(false) : $trace);
+    }
 
-	public function __toString() {
+    public function __toString() {
 
         $html = <<<END
 <table class="octopusDebugBacktrace" border="0" cellpadding="0" cellspacing="0">
@@ -48,7 +48,7 @@ END;
             $line = '<td class="octopusDebugBacktraceLine">';
 
             if (!empty($b['line'])) {
-            	$line .= 'Line ' . $b['line'];
+                $line .= 'Line ' . $b['line'];
             }
 
             $line .= '</td>';
@@ -57,7 +57,7 @@ END;
             if (preg_match('~^octopus/~', $b['nice_file'])) {
                 $class .= ' octopusDebugBacktraceSourceSys';
             } else if (preg_match('~^_private/smarty/~', $b['nice_file'])) {
-            	$class .= ' octopusDebugBacktraceSourceSmarty';
+                $class .= ' octopusDebugBacktraceSourceSmarty';
             }
             if ($i === 0) $class .= ' octopusDebugFirst';
 
@@ -77,6 +77,6 @@ END;
 
         return $html;
 
-	}
+    }
 
 }

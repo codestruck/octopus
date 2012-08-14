@@ -9,32 +9,32 @@
  */
 abstract class Octopus_Controller {
 
-	/**
-	 * The current app instance.
-	 * @var Octopus_App
-	 */
-	public $app;
+    /**
+     * The current app instance.
+     * @var Octopus_App
+     */
+    public $app;
 
-	/**
-	 * If set to true during an action, the full contents of the response will
-	 * be written to static HTML cache file, which will be served up for
-	 * subsequent requests for the same URI provided:
-	 *
-	 * <ul>
-	 * 	<li>The request comes via HTTP GET (not POST, PUT, or DELETE)</li>
-	 * 	<li>There is no querystring</li>
-	 * 	<li>The user is not logged in (if Octopus_Auth_Model is in use)
-	 * </ul>
-	 *
-	 * See octopus/.htaccess for how these cached requests are served up.
-	 * See also the WP Super Cache plugin for the general idea.
-	 *
-	 * If Octopus_App::isFullCacheEnabled() returns false, setting this
-	 * variable will have no effect--no cache file will be written.
-	 *
-	 * @var boolean
-	 */
-	public $cache = false;
+    /**
+     * If set to true during an action, the full contents of the response will
+     * be written to static HTML cache file, which will be served up for
+     * subsequent requests for the same URI provided:
+     *
+     * <ul>
+     *     <li>The request comes via HTTP GET (not POST, PUT, or DELETE)</li>
+     *     <li>There is no querystring</li>
+     *     <li>The user is not logged in (if Octopus_Auth_Model is in use)
+     * </ul>
+     *
+     * See octopus/.htaccess for how these cached requests are served up.
+     * See also the WP Super Cache plugin for the general idea.
+     *
+     * If Octopus_App::isFullCacheEnabled() returns false, setting this
+     * variable will have no effect--no cache file will be written.
+     *
+     * @var boolean
+     */
+    public $cache = false;
 
     /**
      * The incoming Octopus_Request.
@@ -63,9 +63,9 @@ abstract class Octopus_Controller {
      */
     public function __execute($action, $args) {
 
-    	if (!$this->shouldExecute($action, $args)) {
-    		return;
-    	}
+        if (!$this->shouldExecute($action, $args)) {
+            return;
+        }
 
         $action = trim($action);
 
@@ -106,61 +106,61 @@ abstract class Octopus_Controller {
 
     public function __get($name) {
 
-    	switch($name) {
+        switch($name) {
 
-    		case 'view':
-    		case 'theme':
-    			return $this->response->$name;
+            case 'view':
+            case 'theme':
+                return $this->response->$name;
 
-    		// Simulate traditional php var getting/setting
-    		default:
-    			return isset($this->expandos[$name]) ? $this->expandos[$name] : null;
+            // Simulate traditional php var getting/setting
+            default:
+                return isset($this->expandos[$name]) ? $this->expandos[$name] : null;
 
-    	}
+        }
 
     }
 
     public function __set($name, $value) {
 
-    	switch($name) {
+        switch($name) {
 
-    		case 'view':
-    		case 'theme':
-    			$this->response->$name = $value;
-    			break;
+            case 'view':
+            case 'theme':
+                $this->response->$name = $value;
+                break;
 
-			// Simulate traditional php var getting/setting
-    		default:
-    			$this->expandos[$name] = $value;
-    			break;
+            // Simulate traditional php var getting/setting
+            default:
+                $this->expandos[$name] = $value;
+                break;
 
-    	}
+        }
 
     }
 
     /**
      * @return Boolean Whether to continue executing.
      */
-	protected function shouldExecute($action, $args) {
+    protected function shouldExecute($action, $args) {
 
-		// Ensure that e.g. /products -> /products/ when 'index' action is implied
+        // Ensure that e.g. /products -> /products/ when 'index' action is implied
 
-		if ($action === 'index' && !$this->request->getRequestedAction()) {
+        if ($action === 'index' && !$this->request->getRequestedAction()) {
 
-			if (substr($this->request->getPath(), -1) !== '/') {
+            if (substr($this->request->getPath(), -1) !== '/') {
 
-	    		$slashUrl = $this->app->makeUrl('/' . trim($this->request->getPath(), '/') . '/', $_GET);
-	            $this->response->redirect($slashUrl);
+                $slashUrl = $this->app->makeUrl('/' . trim($this->request->getPath(), '/') . '/', $_GET);
+                $this->response->redirect($slashUrl);
 
-            	return false;
+                return false;
 
             }
 
-		}
+        }
 
-	    return true;
+        return true;
 
-	}
+    }
 
     /**
      * Executes all the _before methods present for $action.
@@ -370,8 +370,8 @@ abstract class Octopus_Controller {
      * @uses ::actionExists
      */
     public function __actionExists($action) {
-    	// TODO: Don't have this double-underscored version
-    	return $this->actionExists($action);
+        // TODO: Don't have this double-underscored version
+        return $this->actionExists($action);
     }
 
     /**
@@ -463,7 +463,7 @@ abstract class Octopus_Controller {
         if (Octopus_Debug::shouldRedirect($path)) {
             $this->response->redirect($path);
         } else {
-        	$this->response->setStatus(418); // I'm a teapot
+            $this->response->setStatus(418); // I'm a teapot
         }
     }
 

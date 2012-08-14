@@ -221,8 +221,8 @@ class Octopus_DB_Schema_Writer {
             if ($desired != $current) {
                 $indexName = $this->getIndexName($field);
                 if ($indexName) {
-                	$sql .= sprintf('DROP INDEX `%s`', $indexName);
-                	$sql .= ', ADD ' . $this->indexes[ $field ];
+                    $sql .= sprintf('DROP INDEX `%s`', $indexName);
+                    $sql .= ', ADD ' . $this->indexes[ $field ];
                 }
             }
         }

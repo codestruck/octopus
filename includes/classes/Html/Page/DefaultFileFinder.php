@@ -7,47 +7,47 @@
  */
 class Octopus_Html_Page_DefaultFileFinder {
 
-	private $app;
+    private $app;
 
-	public function __construct($app = null) {
-		$this->app = $app;
-	}
+    public function __construct($app = null) {
+        $this->app = $app;
+    }
 
-	public function findFile($file, Octopus_Html_Page $page) {
+    public function findFile($file, Octopus_Html_Page $page) {
 
-		$app = $this->app ? $this->app : Octopus_App::singleton();
-		if (!$app) return false;
+        $app = $this->app ? $this->app : Octopus_App::singleton();
+        if (!$app) return false;
 
-		$dirs = array(
-			'root' => $app->ROOT_DIR,
-			'theme' => null,
-			'site' => $app->SITE_DIR,
-			'octopus' => $app->OCTOPUS_DIR,
-		);
+        $dirs = array(
+            'root' => $app->ROOT_DIR,
+            'theme' => null,
+            'site' => $app->SITE_DIR,
+            'octopus' => $app->OCTOPUS_DIR,
+        );
 
-		$resp = $app->getCurrentResponse();
-		if ($resp) {
+        $resp = $app->getCurrentResponse();
+        if ($resp) {
 
-			$theme = $resp->theme;
-			if ($theme) {
-				$dirs['theme'] = $dirs['site'] . 'themes/' . $theme . '/';
-			}
+            $theme = $resp->theme;
+            if ($theme) {
+                $dirs['theme'] = $dirs['site'] . 'themes/' . $theme . '/';
+            }
 
-		}
+        }
 
-		foreach($dirs as $dir) {
+        foreach($dirs as $dir) {
 
-			if (!$dir) continue;
+            if (!$dir) continue;
 
-			$candidate = $dir . ltrim($file, '/');
-			if (is_file($candidate)) {
-				return $candidate;
-			}
+            $candidate = $dir . ltrim($file, '/');
+            if (is_file($candidate)) {
+                return $candidate;
+            }
 
-		}
+        }
 
-		return false;
+        return false;
 
-	}
+    }
 
 }

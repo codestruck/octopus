@@ -20,7 +20,7 @@ class Octopus_Model_Field_Numeric extends Octopus_Model_Field {
         $value = $this->normalizeValue($value, 0);
 
         if ($value) {
-        	return $value;
+            return $value;
         }
 
         return $this->getOption('auto_increment') ? null : $value;
@@ -28,9 +28,9 @@ class Octopus_Model_Field_Numeric extends Octopus_Model_Field {
 
     public function afterDelete(Octopus_Model $model) {
 
-    	if ($this->getOption('auto_increment')) {
-    		$model->setInternalValue($this->getFieldName(), null);
-    	}
+        if ($this->getOption('auto_increment')) {
+            $model->setInternalValue($this->getFieldName(), null);
+        }
 
     }
 
@@ -45,16 +45,16 @@ class Octopus_Model_Field_Numeric extends Octopus_Model_Field {
 
     public function migrate(Octopus_DB_Schema $schema, Octopus_DB_Schema_Writer $table, $name = null, $autoIncrement = null) {
 
-    	if (!$name) $name = $this->getFieldName();
-    	if ($autoIncrement === null) $autoIncrement = $this->getOption('auto_increment');
+        if (!$name) $name = $this->getFieldName();
+        if ($autoIncrement === null) $autoIncrement = $this->getOption('auto_increment');
 
         if ($decimalPlaces = $this->getOption('decimal_places')) {
             $precision = $this->getOption('precision', 60);
             $table->newDecimal($name, $precision, $decimalPlaces);
         } else if ($this->getOption('auto_increment')) {
 
-        	// Auto increment == field is being used as ID
-        	$table->newKey($name, $autoIncrement);
+            // Auto increment == field is being used as ID
+            $table->newKey($name, $autoIncrement);
 
         } else {
             $table->newBigInt($name);
@@ -64,17 +64,17 @@ class Octopus_Model_Field_Numeric extends Octopus_Model_Field {
 
     public function recordDisappeared(Octopus_Model $model) {
 
-    	if ($this->getOption('auto_increment')) {
-    		// reset auto increment values
-    		$model->setInternalValue($this->getFieldName(), null);
-    	}
+        if ($this->getOption('auto_increment')) {
+            // reset auto increment values
+            $model->setInternalValue($this->getFieldName(), null);
+        }
     }
 
     public function save($model, $sqlQuery) {
 
-    	if ($this->getOption('auto_increment')) {
-    		return;
-    	}
+        if ($this->getOption('auto_increment')) {
+            return;
+        }
 
         $value = $this->accessValue($model, true);
         $sqlQuery->set($this->getFieldName(), $value);
@@ -82,11 +82,11 @@ class Octopus_Model_Field_Numeric extends Octopus_Model_Field {
 
     public function addToForm(Octopus_Html_Form $form) {
 
-    	if ($this->getOption('auto_increment')) {
-    		return;
-    	}
+        if ($this->getOption('auto_increment')) {
+            return;
+        }
 
-    	return parent::addToForm($form);
+        return parent::addToForm($form);
 
     }
 
