@@ -1,7 +1,9 @@
 <?php
 
 /**
- * Central class for an app instance.
+ * @todo Ditch this (merge with Octopus and Octopus_Debug)
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_App {
 

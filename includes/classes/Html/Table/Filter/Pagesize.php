@@ -2,6 +2,8 @@
 
 /**
  * A "filter" that just changes the number of items on the page.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Html_Table_Filter_Pagesize extends Octopus_Html_Table_Filter {
 

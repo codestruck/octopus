@@ -2,7 +2,9 @@
 
 /**
  * Simple checkbox filter
- * @TODO test
+ * @todo test
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Html_Table_Filter_Checkbox extends Octopus_Html_Table_Filter {
 

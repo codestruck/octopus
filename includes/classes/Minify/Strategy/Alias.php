@@ -5,7 +5,8 @@
  * can be aliased using another file. E.g., in production you might want
  * each instance of both "public.js" and "admin.js" on a page to be
  * replaced with "public_and_admin.js" on a CDN somewhere.
- *
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Minify_Strategy_Alias extends Octopus_Minify_Strategy {
 

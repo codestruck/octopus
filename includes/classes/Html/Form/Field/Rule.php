@@ -2,6 +2,8 @@
 
 /**
  * A validation rule for a single field.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 abstract class Octopus_Html_Form_Field_Rule {
 

@@ -6,6 +6,10 @@ define('OCTOPUS_MIGRATIONS_TABLE', '_migrations');
 // added to this internally so that they are run first.
 define('OCTOPUS_MIGRATIONS_RUN_FIRST_OFFSET', -1000000);
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Octopus_DB_Migration_Runner {
 
     private $dirs;

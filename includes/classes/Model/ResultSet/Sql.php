@@ -2,6 +2,8 @@
 
 /**
  * ResultSet that takes a raw SQL query.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Model_ResultSet_Sql extends Octopus_Model_ResultSet {
 

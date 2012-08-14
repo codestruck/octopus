@@ -2,6 +2,9 @@
 
 /**
  * Helper used to render variables dumped via dump_r or Octopus_Debug::dump
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Debug_DumpedVars implements Dumpable, ArrayAccess {
 

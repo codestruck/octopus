@@ -1,10 +1,12 @@
 <?php
 
 /**
- *  A log listener that writes messages formatted for the console (the default
- *  output is on stderr).
- *  Does not do any log rotation or anything, just writes to an ouput stream.
- *  If you want 'true' file logging, use Octopus_Log_Listener_File.
+ * A log listener that writes messages formatted for the console (the default
+ * output is on stderr).
+ * Does not do any log rotation or anything, just writes to an ouput stream.
+ * If you want 'true' file logging, use Octopus_Log_Listener_File.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Log_Listener_Console {
 

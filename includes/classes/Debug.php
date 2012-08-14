@@ -24,6 +24,8 @@
  *  - No redirects are ever cancelled
  *  - No messages are displayed in-browser.
  *
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Debug {
 

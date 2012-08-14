@@ -2,6 +2,10 @@
 
 ini_set('auto_detect_line_endings', true);
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Octopus_Parse_Csv {
 
     function __construct($filename, $skipRows = 2) {

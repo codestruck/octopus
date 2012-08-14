@@ -5,6 +5,8 @@
  * do the actual physical logging.
  * @see ::addListener
  * @see ::write
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Log {
 

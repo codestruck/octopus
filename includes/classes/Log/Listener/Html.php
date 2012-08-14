@@ -3,6 +3,8 @@
 /**
  * A log listener that renders anything passed to it as HTML (written to
  * stdout).
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Log_Listener_Html {
 

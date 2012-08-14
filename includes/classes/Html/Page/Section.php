@@ -7,6 +7,8 @@
  *
  * @prop String $scripts The rendered HTML for all <script> tags in this section.
  * @prop String $css The render HTML for all CSS <link> tags in this section.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Html_Page_Section implements ArrayAccess {
 

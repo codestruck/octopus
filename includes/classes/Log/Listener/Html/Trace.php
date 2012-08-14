@@ -1,7 +1,10 @@
 <?php
 
 /**
- *  Helper that renders a stack trace as HTML.
+ * Helper that renders a stack trace as HTML.
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Log_Listener_Html_Trace {
 

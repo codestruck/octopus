@@ -3,6 +3,10 @@
 define_unless('LOG_EMAILS', false);
 define_unless('SEND_EMAILS', true);
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Octopus_Mail {
 
     public function __construct() {

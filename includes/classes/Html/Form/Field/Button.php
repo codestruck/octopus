@@ -2,6 +2,8 @@
 
 /**
  * Field subclass used for buttons.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Html_Form_Field_Button extends Octopus_Html_Form_Field {
 

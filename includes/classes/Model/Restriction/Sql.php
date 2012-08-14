@@ -3,6 +3,8 @@
 /**
  * An implementation of Octopus_Model_Restriction that just adds literal SQL
  * to a WHERE clause.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Model_Restriction_Sql implements Octopus_Model_Restriction {
 

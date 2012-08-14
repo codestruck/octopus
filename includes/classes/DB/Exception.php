@@ -1,5 +1,8 @@
 <?php
-
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Octopus_DB_Exception extends Octopus_Exception {
 
     /**

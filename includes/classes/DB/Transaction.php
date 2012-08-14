@@ -5,6 +5,8 @@
  * running at a time.
  * @see Octopus_DB::beginTransaction
  * @see Octopus_DB::runTransaction
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_DB_Transaction {
 

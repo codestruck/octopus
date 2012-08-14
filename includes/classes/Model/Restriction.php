@@ -2,6 +2,8 @@
 
 /**
  * A single restriction used by a result set when filtering.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 interface Octopus_Model_Restriction {
 

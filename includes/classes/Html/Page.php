@@ -9,6 +9,8 @@
  * top of the page).
  * @prop Octopus_Html_Page_Section $foot The foot section (for JS/CSS at the
  * bottom of the page).
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Html_Page implements ArrayAccess {
 

@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Octopus_Image_Thumb {
 
     function getThumbPath($file, $width = null, $height = null, $action = 'r') {

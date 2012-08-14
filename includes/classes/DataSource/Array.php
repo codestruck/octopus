@@ -3,6 +3,8 @@
 /**
  * Implementation of Octopus_DataSource that wraps an array and provides
  * paged access to it.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_DataSource_Array implements Octopus_DataSource {
 

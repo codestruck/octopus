@@ -2,6 +2,8 @@
 
 /**
  * Class responsible for manging path aliases and friendly URLs.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Router {
 

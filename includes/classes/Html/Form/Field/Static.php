@@ -1,5 +1,8 @@
 <?php
-
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Octopus_Html_Form_Field_Static extends Octopus_Html_Form_Field {
 
     public function __construct($type, $name, $label, $attributes = null) {

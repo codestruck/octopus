@@ -6,6 +6,8 @@
  * example, anything written to the 'app' log gets written to a file called
  * 'app.log' in the directory passed to the constructor.
  * Log files are rotated out automatically.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Log_Listener_File {
 

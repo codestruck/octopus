@@ -1,5 +1,8 @@
 <?php
-
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 interface Octopus_Feed_Item {
 
     function getTitle();

@@ -17,6 +17,10 @@ function get_facebook_login_url($path, $scope = 'email') {
     );
 }
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Octopus_Auth_Model_Facebook extends Octopus_Auth_Model {
 
     private $fb_code;

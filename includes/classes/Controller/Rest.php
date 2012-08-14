@@ -2,6 +2,8 @@
 
 /**
  * Base for implementing REST controllers.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 abstract class Octopus_Controller_Rest extends Octopus_Controller {
 

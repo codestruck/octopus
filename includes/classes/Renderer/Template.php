@@ -3,6 +3,8 @@
 /**
  * A renderer that renders an Octopus_Response using the view/layout/theme
  * system.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Renderer_Template extends Octopus_Renderer {
 

@@ -4,6 +4,8 @@
  * Minification strategy that uses '_src' at the end of a filename to indicate
  * the unminified version of a file, and returns either the 'src' version or
  * the non-'src' version depending on which mod time is more recent.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Minify_Strategy_Src extends Octopus_Minify_Strategy {
 

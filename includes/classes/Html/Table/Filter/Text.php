@@ -3,6 +3,8 @@
 /**
  * A filter that is just a text box. Actual filter is done via a callback supplied
  * as an option.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Html_Table_Filter_Text extends Octopus_Html_Table_Filter {
 

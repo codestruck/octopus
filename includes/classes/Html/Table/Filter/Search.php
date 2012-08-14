@@ -2,6 +2,8 @@
 
 /**
  * TextBox filter that uses Octopus_Model free text searching.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Html_Table_Filter_Search extends Octopus_Html_Table_Filter_Text {
 

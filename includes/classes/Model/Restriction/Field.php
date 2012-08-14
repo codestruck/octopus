@@ -3,6 +3,8 @@
 /**
  * A restriction implementation that does simple =, <, >, LIKE, etc comparisons
  * on fields.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Model_Restriction_Field implements Octopus_Model_Restriction {
 

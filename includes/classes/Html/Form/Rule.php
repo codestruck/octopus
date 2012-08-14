@@ -2,6 +2,8 @@
 
 /**
  * A validation rule run against an entire form.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 abstract class Octopus_Html_Form_Rule {
 

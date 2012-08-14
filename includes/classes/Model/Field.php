@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 abstract class Octopus_Model_Field {
 
     protected $field;

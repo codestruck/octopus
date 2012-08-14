@@ -1,5 +1,8 @@
 <?php
-
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
 
     private $_valueFields = array('value', 'id', '/.*_id$/i');

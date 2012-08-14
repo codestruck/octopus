@@ -4,6 +4,8 @@ Octopus::loadExternal('phpass');
 
 /**
  * Base for implementing a User model that supports cookie-based login.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 abstract class Octopus_Auth_Model extends Octopus_Model {
 

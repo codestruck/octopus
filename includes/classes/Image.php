@@ -21,8 +21,9 @@
  * PNG Quality as factor of 10 on lesser php / gd versions
  * CMYK color conversion handling
  *
-**/
-
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Octopus_Image {
 
 

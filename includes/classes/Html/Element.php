@@ -2,6 +2,8 @@
 
 /**
  * Helper for generating HTML.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Html_Element {
 

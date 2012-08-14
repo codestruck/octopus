@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * @deprecated
+ * @todo Remove this
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Octopus_Base {
 
     /**

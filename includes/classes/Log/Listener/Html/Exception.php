@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Octopus_Log_Listener_Html_Exception {
 
 	private $exception;

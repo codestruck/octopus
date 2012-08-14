@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 function to_unique_slug(Octopus_Model $model, Octopus_Model_Field $field, $forceField = null) {
 
     if ($forceField) {
@@ -33,6 +37,10 @@ function to_unique_slug(Octopus_Model $model, Octopus_Model_Field $field, $force
 
 }
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Octopus_Model_Field_Slug extends Octopus_Model_Field {
 
     public function __construct($field, $modelClass, $options) {

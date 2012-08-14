@@ -2,6 +2,8 @@
 
 /**
  * Minification strategy that combines multiple files into one.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Minify_Strategy_Combine extends Octopus_Minify_Strategy {
 

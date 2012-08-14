@@ -1,7 +1,15 @@
 <?php
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Octopus_Model_Exception extends Octopus_Exception {}
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpable {
 
     /**

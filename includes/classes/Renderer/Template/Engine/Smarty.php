@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Octopus_Renderer_Template_Engine_Smarty extends Octopus_Renderer_Template_Engine {
 
     public function render(Array $data) {

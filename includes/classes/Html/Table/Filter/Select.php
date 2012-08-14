@@ -2,6 +2,8 @@
 
 /**
  * Filter that displays a list of options.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Html_Table_Filter_Select extends Octopus_Html_Table_Filter {
 

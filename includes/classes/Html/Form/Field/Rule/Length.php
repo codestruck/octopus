@@ -3,6 +3,8 @@
 /**
  * Validation rule used to ensure that the length of the input in a field is
  * within a range.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Html_Form_Field_Rule_Length extends Octopus_Html_Form_Field_Rule {
 

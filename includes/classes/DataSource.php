@@ -3,6 +3,8 @@
 /**
  * Basic interface for a data source to pass to, e.g. an Html_Table. Provides
  * a generic means of paging, filtering, and sorting sets of data.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 interface Octopus_DataSource extends Countable, Iterator {
 

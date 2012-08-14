@@ -2,6 +2,8 @@
 
 /**
  * A chunk of content rendered inside a table.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Html_Table_Content extends Octopus_Html_Element {
 

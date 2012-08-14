@@ -2,6 +2,8 @@
 
 /**
  * Class that handles searching for Octopus_Model instances.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpable, Octopus_DataSource {
 

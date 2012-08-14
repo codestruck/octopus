@@ -1,10 +1,10 @@
 <?php
 
-Octopus::loadClass('Octopus_DataSource');
-
 /**
  * DataSource implementation that works with raw sql.
- * @TODO TEST!
+ * @todo TEST!
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_DataSource_Sql implements Octopus_DataSource {
 

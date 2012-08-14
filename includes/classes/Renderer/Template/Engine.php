@@ -2,6 +2,8 @@
 
 /**
  * Base for a class that renders a template file.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 abstract class Octopus_Renderer_Template_Engine {
 

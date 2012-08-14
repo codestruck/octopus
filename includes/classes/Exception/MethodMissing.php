@@ -1,5 +1,8 @@
 <?php
-
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Octopus_Exception_MethodMissing extends Octopus_Exception {
 
     public function __construct($obj, $method, $args = array(), $description = '') {

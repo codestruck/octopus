@@ -3,6 +3,8 @@
 /**
  * A renderer that just outputs the data attached to a response as straight
  * JSON.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Renderer_Json extends Octopus_Renderer {
 

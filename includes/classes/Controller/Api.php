@@ -4,6 +4,8 @@
  * Base for implementing API controllers. Action results are returned as JSON.
  * @see ::success()
  * @see ::error()
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 abstract class Octopus_Controller_Api extends Octopus_Controller {
 

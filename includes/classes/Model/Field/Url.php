@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Octopus_Model_Field_Url extends Octopus_Model_Field_String {
 
     public function __construct($field, $modelClass, $options) {

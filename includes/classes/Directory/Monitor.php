@@ -2,6 +2,8 @@
 
 /**
  * Class that monitors one or more directories for changes to files.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Directory_Monitor {
 

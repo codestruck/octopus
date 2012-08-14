@@ -2,7 +2,9 @@
 
 /**
  * Class responsible for finding template files to render for requests.
- * @TODO Abstract this out as a general file finder (with tests)
+ * @todo Abstract this out as a general file finder (with tests)
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Renderer_Template_Finder {
 

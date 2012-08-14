@@ -1,9 +1,17 @@
 <?php
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 function mustache_escaper($value) {
     return htmlspecialchars($value, ENT_COMPAT, 'UTF-8');
 }
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Octopus_Renderer_Template_Engine_Mustache extends Octopus_Renderer_Template_Engine {
 
     public function render(Array $data) {

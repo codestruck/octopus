@@ -4,6 +4,8 @@
  * Shim wrapped around Octopus_Html_Page. Method calls are forwarded on to the
  * wrapped Html_Page instance.
  * @deprecated Use Html_Page instead.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Html_Header {
 

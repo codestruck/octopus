@@ -6,6 +6,8 @@ if (!spl_autoload_register(array('Octopus', 'autoLoadClass'))) {
 
 /**
  * Class locator and loader.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus {
 

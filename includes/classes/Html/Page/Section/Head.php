@@ -5,6 +5,8 @@
  * A section to be used for the <head> element. When rendered, it outputs the
  * entire <head> element (including opening and closing tag). This is so you
  * can do $PAGE.head in a template and get a <head> element.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Html_Page_Section_Head extends Octopus_Html_Page_Section {
 

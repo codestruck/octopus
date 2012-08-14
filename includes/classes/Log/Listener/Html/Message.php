@@ -2,6 +2,9 @@
 
 /**
  * Helper used to represent a single message being rendered as HTML.
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Log_Listener_Html_Message {
 

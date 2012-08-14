@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Octopus_Image_Mode_Crop_Thumb extends Octopus_Image_Mode_Base {
 
     function __construct($src, $layout) {

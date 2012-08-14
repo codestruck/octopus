@@ -1,10 +1,10 @@
 <?php
 
 /**
- * TODO
- * decode chunking responses
+ * @todo decode chunking responses
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
-
 class Octopus_Http_Request {
 
     private $transport;

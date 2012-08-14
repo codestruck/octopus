@@ -1,5 +1,8 @@
 <?php
-
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Octopus_Html_Form_Field_Rule_MatchField extends Octopus_Html_Form_Field_Rule {
 
   public function __construct($fieldName, $message) {

@@ -2,6 +2,8 @@
 
 /**
  * Class that manages app settings.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Settings extends Octopus_Base implements Iterator, ArrayAccess {
 

@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Octopus_Html_Table_Toggle extends Octopus_Html_Table_Content {
 
     public static $defaults = array(

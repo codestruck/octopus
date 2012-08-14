@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Octopus_Html_Table_Action extends Octopus_Html_Table_Content {
 
     public function __construct($id, $label = null, $url = null, $options = null) {

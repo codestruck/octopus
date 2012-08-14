@@ -4,6 +4,8 @@
  * Base class for implementing an Octopus controller.
  * @property String $view Alias for $this->response->view
  * @property String $theme Alais for $this->response->theme
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 abstract class Octopus_Controller {
 

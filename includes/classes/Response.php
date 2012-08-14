@@ -11,6 +11,8 @@
  * @property Number $status The HTTP status code for this response.
  * @property String $theme
  * @property String $view
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Response implements ArrayAccess {
 

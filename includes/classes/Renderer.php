@@ -3,6 +3,8 @@
 /**
  * Class that takes an Octopus_Response and outputs it in the appropriate
  * format (HTML, JSON, whatever).
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 abstract class Octopus_Renderer {
 

@@ -1,7 +1,8 @@
 <?php
-
 /**
  * Field representing a "has one" relationship in the database.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
 
