@@ -1,6 +1,8 @@
 /build
 /docs
+/test_config.php
 /tests/.working
+
 *.komodoproject
 *~
 .DS_Store

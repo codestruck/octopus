@@ -7,7 +7,8 @@
 
      Usage:
 
-       octopus/test [site|sys] [--help] [--include-slow] [PHPUnit args]
+       octopus/test [site|sys] [--help] [--include-slow|--only-slow]
+                    [PHPUnit args]
 
     Options:
 
@@ -116,12 +117,7 @@ END;
     	}
 
     	$args[] = '--bootstrap';
-
-        if (is_file($siteDir . 'tests/bootstrap.php')) {
-        	$args[] = $siteDir . 'tests/bootstrap.php';
-        } else {
-            $args[] = $octopusDir . 'tests/bootstrap_site.php';
-        }
+        $args[] = $octopusDir . 'tests/bootstrap_site.php';
 
     	$testDir = $siteDir . 'tests';
 

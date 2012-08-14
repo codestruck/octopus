@@ -44,7 +44,7 @@ abstract class Octopus_DB_TestCase extends PHPUnit_Extensions_Database_TestCase 
      */
     public function getDataSet()
     {
-        return $this->createFlatXMLDataSet(TEST_FIXTURE_DIR . $this->_xmlFile);
+        return $this->createFlatXMLDataSet(dirname(__FILE__) . '/fixtures/' . $this->_xmlFile);
     }
 
 }

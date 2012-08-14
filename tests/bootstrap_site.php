@@ -1,24 +1,15 @@
 <?php
 
-    error_reporting(E_ALL | E_STRICT);
+	/**
+	 * This file is included by the Octopus test runner when executing the
+	 * site's tests (in site/tests).
+	 */
 
-    require_once(dirname(__FILE__) . '/../includes/core.php');
-    bootstrap();
-    error_reporting(E_ALL | E_STRICT);
+	define('OCTOPUS_TESTING_SITE', true);
 
-    $hostname = trim(`hostname`);
-    define('TEST_FIXTURE_DIR', dirname(__FILE__) . '/fixtures/');
+	require_once(dirname(__FILE__) . '/bootstrap.php');
 
-    require_once('Octopus_DB_TestCase.php');
-    require_once('Octopus_App_TestCase.php');
-    require_once('Octopus_Html_TestCase.php');
-
-    // put testing helpers somewhere
-    function table_count($table) {
-        $s = new Octopus_DB_Select();
-        $s->table($table);
-        $query = $s->query();
-
-        return $query->numRows();
-    }
+	if (is_file(SITE_DIR . 'tests/bootstrap.php')) {
+		Octopus::requireOnce(SITE_DIR . 'tests/bootstrap.php');
+	}
 
