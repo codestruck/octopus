@@ -1,3 +1,12 @@
+{***********************************************************
+ * themes/default/templates/html/page.tpl
+ * The default Octopus theme's page layout.
+ * --------------------------------------------------------
+ * Copyright (c) 2012 Codestruck, LLC.
+ * Provided under the terms of the MIT license. See the
+ * LICENSE file for more information.
+ **********************************************************}
+
 <!doctype html>
 <html>
 {$HEAD}
