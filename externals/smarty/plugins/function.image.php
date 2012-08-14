@@ -1,17 +1,10 @@
 <?php
 
 /**
- * Smarty plugin
- *
- * @package Smarty
- * @subpackage PluginsFunction
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
-
-/**
- * Enhanced html_image using octopus core stuff.
- */
-function smarty_function_image($params, $template)
-{
+function smarty_function_image($params, $template) {
 
     $imageAttrs = array();
     $linkAttrs = array();
@@ -238,8 +231,11 @@ function smarty_function_image($params, $template)
 }
 
 /**
+ * @internal
  * Given an arbitrary image source, returns the physical path to the image file,
  * or false if it can't be found.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 function _octopus_smarty_find_image($src, $dirs, $urlBase, $template, $action, $cacheDir, &$isRemote, &$tries = null) {
 
@@ -359,6 +355,11 @@ function _octopus_smarty_find_image($src, $dirs, $urlBase, $template, $action, $
     return false;
 }
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 function _octopus_smarty_get_file_url($file, $dirs, $urlBase, $includeModTime = true) {
 
     /* Cases Handled:
@@ -415,6 +416,11 @@ function _octopus_smarty_get_file_url($file, $dirs, $urlBase, $includeModTime = 
     throw new SmartyException("File not accessible via HTTP: '$originalFile'");
 }
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 function &_octopus_smarty_get_directories($baseDir, &$urlBase) {
 
     if (!$urlBase) {
@@ -440,6 +446,9 @@ function &_octopus_smarty_get_directories($baseDir, &$urlBase) {
 
 /**
  * On-the-fly resizes/crops an image and returns the physical path of the resized image file.
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 function _octopus_smarty_modify_image($file, $action, $width, $height, $constrain, $cacheDir, &$imageAttrs) {
 
@@ -548,6 +557,11 @@ function _octopus_smarty_modify_image($file, $action, $width, $height, $constrai
     return $cacheFile;
 }
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 function _octopus_smarty_get_cache_dir(&$params) {
 
     if (isset($params['cache_dir'])) {

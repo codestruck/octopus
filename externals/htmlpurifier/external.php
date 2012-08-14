@@ -5,6 +5,8 @@ Octopus::requireOnce(dirname(__FILE__) . '/htmlpurifier-4.4.0/HTMLPurifier.stand
 /**
  * @param $options Array of options to use to configure the purifier
  * @return A preconfigured HTMLPurifier instance.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 function get_html_purifier($options = array()) {
 

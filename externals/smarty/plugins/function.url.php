@@ -9,6 +9,8 @@
  *  - remove_arg (string) argument to remove from query
  *  - ending (bool) force ending in ? or & to allow easy appending
  *  - Anything Else (string) additional args to insert / replace in query
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 function smarty_function_url($params, $template) {
 

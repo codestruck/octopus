@@ -13,7 +13,8 @@
 	 * 	javascript - Whether to include supporting JS. If numeric, this is
 	 * 	the weight to use (defaults to -500)
 	 * 	jQuery - URL of jQuery to use, or false to not use it.
-	 *
+	 * @copyright (c) 2012 Codestruck, LLC.
+	 * @license http://opensource.org/licenses/mit-license.php/
 	 */
 	function use_bootstrap($options = array()) {
 

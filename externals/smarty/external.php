@@ -19,6 +19,8 @@ require_once(dirname(__FILE__) . '/Smarty-' . OCTOPUS_SMARTY_VERSION . '/libs/Sm
  * Wrapper around a Smarty instance. Use Octopus_Smarty::trusted() to get an
  * instance for rendering trusted content and Octopus_Smarty::untrusted() to
  * get an instance for rendering untrusted content.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_Smarty {
 
