@@ -2,6 +2,9 @@
 
 /**
  * @group http
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class HttpFunctionsTest extends PHPUnit_Framework_TestCase {
 

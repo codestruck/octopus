@@ -2,6 +2,9 @@
 
 /**
  * @group Form
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class FormTest extends Octopus_Html_TestCase {
 

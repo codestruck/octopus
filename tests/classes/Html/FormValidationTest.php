@@ -5,6 +5,9 @@ define('NO_INPUT', '--NO INPUT--');
 /**
  * @group Html
  * @group Form
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class FormValidationTest extends PHPUnit_Framework_TestCase {
 

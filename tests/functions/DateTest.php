@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class DateTest extends PHPUnit_Framework_TestCase {
 
     /**

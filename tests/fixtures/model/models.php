@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Product extends Octopus_Model {
     protected $fields = array(
         'name' => array(
@@ -11,6 +16,11 @@ class Product extends Octopus_Model {
     );
 }
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Group extends Octopus_Model {
     protected $fields = array(
         'name' => array(
@@ -23,6 +33,11 @@ class Group extends Octopus_Model {
 }
 
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Nail extends Octopus_Model {
     protected $fields = array(
         'name' => array(
@@ -42,6 +57,11 @@ class Nail extends Octopus_Model {
     );
 }
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Hammer extends Octopus_Model {
     protected $fields = array(
         'name' => array(
@@ -66,6 +86,11 @@ class Hammer extends Octopus_Model {
     );
 }
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Sledgehammer extends Octopus_Model {
     protected $fields = array(
         'name' => array(
@@ -78,12 +103,22 @@ class Sledgehammer extends Octopus_Model {
     );
 }
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Lack extends Octopus_Model {
     protected $fields = array(
         'notitle' => array(),
     );
 }
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Notext extends Octopus_Model {
     protected $fields = array(
         'number' => array(
@@ -92,6 +127,11 @@ class Notext extends Octopus_Model {
     );
 }
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class FindAuthor extends Octopus_Model {
 
     protected $fields = array(
@@ -106,6 +146,11 @@ class FindAuthor extends Octopus_Model {
 
 }
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class FindCategory extends Octopus_Model {
 
     protected $fields = array(
@@ -114,10 +159,20 @@ class FindCategory extends Octopus_Model {
 
 }
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class FindFood extends Octopus_Model {
 	protected $fields = array('name');
 }
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class FindPost extends Octopus_Model {
 
     protected $fields = array(
@@ -162,6 +217,11 @@ class FindPost extends Octopus_Model {
 
 }
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Comment extends Octopus_Model {
     protected $fields = array(
         'content' => array(
@@ -187,6 +247,11 @@ class Comment extends Octopus_Model {
     }
 }
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class CommentUser extends Octopus_Model {
     protected $fields = array(
         'name',
@@ -197,6 +262,11 @@ class CommentUser extends Octopus_Model {
     );
 }
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Car extends Octopus_Model {
     protected $fields = array(
         'name',
@@ -207,6 +277,11 @@ class Car extends Octopus_Model {
     );
 }
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Boat extends Octopus_Model {
     protected $fields = array(
         'name',
@@ -217,6 +292,11 @@ class Boat extends Octopus_Model {
     );
 }
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Schemab extends Octopus_Model {
     protected $fields = array(
         'title',
@@ -235,6 +315,11 @@ class Schemab extends Octopus_Model {
     );
 }
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Schemac extends Octopus_Model {
     protected $indexes = array('display_order', 'title', array('one', 'two'));
     protected $fields = array(
@@ -247,6 +332,11 @@ class Schemac extends Octopus_Model {
     );
 }
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Schemad extends Octopus_Model {
     protected $fields = array(
         'title' => array(
@@ -260,6 +350,11 @@ class Schemad extends Octopus_Model {
     );
 }
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class HtmlTablePerson extends Octopus_Model {
 
     protected $fields = array(

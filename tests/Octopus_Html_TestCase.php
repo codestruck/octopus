@@ -2,6 +2,8 @@
 
 /**
  * Custom testcase for testing stuff that generates HTML.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 abstract class Octopus_Html_TestCase extends PHPUnit_Framework_TestCase {
 

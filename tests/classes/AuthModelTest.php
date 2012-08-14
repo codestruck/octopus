@@ -1,61 +1,10 @@
 <?php
 
-Octopus::loadClass('Octopus_Auth_Model');
-Octopus::loadClass('Octopus_DB_Schema');
-
-class AuthModelTestUser extends Octopus_Auth_Model {
-
-    public $cookieName = 'auth-model-test-user';
-
-    protected $fields = array(
-        'email',
-        'password',
-        'password_salt',
-        'active'
-    );
-
-}
-
-class NoPasswordSaltUser extends Octopus_Auth_Model {
-
-    public $cookieName = 'no-password-salt';
-
-    protected $fields = array(
-        'email',
-        'password',
-        'active'
-    );
-
-}
-
-class UserNameUser extends Octopus_Auth_Model {
-
-    public $cookieName = 'user-name-user';
-
-    protected $fields = array(
-        'username',
-        'password',
-        'active'
-    );
-
-}
-
-class NoCookieDefinedUser extends Octopus_Auth_Model {
-    protected $fields = array('username', 'password', 'active');
-}
-
-class SslCookieUser extends Octopus_Auth_Model {
-
-	public $cookieName = 'ssl-cookie-user';
-
-	protected $cookieSsl = true;
-
-    protected $fields = array('email', 'password', 'active');
-
-}
-
 /**
  * @group auth
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class AuthModelTest extends PHPUnit_Framework_TestCase
 {
@@ -733,4 +682,78 @@ class AuthModelTest extends PHPUnit_Framework_TestCase
 
 }
 
-?>
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class AuthModelTestUser extends Octopus_Auth_Model {
+
+    public $cookieName = 'auth-model-test-user';
+
+    protected $fields = array(
+        'email',
+        'password',
+        'password_salt',
+        'active'
+    );
+
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class NoPasswordSaltUser extends Octopus_Auth_Model {
+
+    public $cookieName = 'no-password-salt';
+
+    protected $fields = array(
+        'email',
+        'password',
+        'active'
+    );
+
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class UserNameUser extends Octopus_Auth_Model {
+
+    public $cookieName = 'user-name-user';
+
+    protected $fields = array(
+        'username',
+        'password',
+        'active'
+    );
+
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class NoCookieDefinedUser extends Octopus_Auth_Model {
+    protected $fields = array('username', 'password', 'active');
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class SslCookieUser extends Octopus_Auth_Model {
+
+	public $cookieName = 'ssl-cookie-user';
+
+	protected $cookieSsl = true;
+
+    protected $fields = array('email', 'password', 'active');
+
+}

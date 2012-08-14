@@ -1,29 +1,10 @@
 <?php
 
-class ControllerTestController extends Octopus_Controller {
-
-    public function do_redirect($url) {
-        $this->redirect($url);
-    }
-
-    public function do_renderJson($data) {
-        $this->renderJson($data);
-    }
-
-    public function do_renderJsonp($data, $callback = null) {
-        if ($callback) {
-            $this->renderJsonp($data, $callback);
-        } else {
-            $this->renderJsonp($data);
-        }
-    }
-
-    public function do_404() {
-        $this->notFound('404view');
-    }
-
-}
-
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class ControllerTest extends Octopus_App_TestCase {
 
     function testRedirectCancelable() {
@@ -174,4 +155,31 @@ END
 
 }
 
-?>
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class ControllerTestController extends Octopus_Controller {
+
+    public function do_redirect($url) {
+        $this->redirect($url);
+    }
+
+    public function do_renderJson($data) {
+        $this->renderJson($data);
+    }
+
+    public function do_renderJsonp($data, $callback = null) {
+        if ($callback) {
+            $this->renderJsonp($data, $callback);
+        } else {
+            $this->renderJsonp($data);
+        }
+    }
+
+    public function do_404() {
+        $this->notFound('404view');
+    }
+
+}

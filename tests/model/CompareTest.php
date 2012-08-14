@@ -1,17 +1,10 @@
 <?php
 
-class EqTestModel extends Octopus_Model {
-    protected $fields = array('name');
-}
-
-class EqTestModelSubclass extends EqTestModel {
-    protected $fields = array('name');
-}
-
-class EqTestOtherModel extends Octopus_Model {
-    protected $fields = array('name');
-}
-
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class CompareTest extends Octopus_App_TestCase {
 
     function setUp() {
@@ -93,4 +86,29 @@ class CompareTest extends Octopus_App_TestCase {
 
 }
 
-?>
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class EqTestModel extends Octopus_Model {
+    protected $fields = array('name');
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class EqTestModelSubclass extends EqTestModel {
+    protected $fields = array('name');
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class EqTestOtherModel extends Octopus_Model {
+    protected $fields = array('name');
+}

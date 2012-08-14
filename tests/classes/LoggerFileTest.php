@@ -1,7 +1,10 @@
 <?php
 
-Octopus::loadClass('Octopus_Logger_File');
-
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class Logger_File_Test extends PHPUnit_Framework_TestCase
 {
 
@@ -30,9 +33,6 @@ class Logger_File_Test extends PHPUnit_Framework_TestCase
         @unlink($file);
     }
 
-    /**
-     *
-     */
     function testOpenFileErrorThrowsNoException()
     {
         $file = '/root/noperm';

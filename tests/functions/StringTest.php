@@ -1,21 +1,13 @@
 <?php
 
-class HTestObject {
-
-	public $value;
-
-	public function __toString() {
-		return $this->value;
-	}
-
-}
-
 /**
  * @group core
  * @group string
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
-class StringTests extends PHPUnit_Framework_TestCase
-{
+class StringTests extends PHPUnit_Framework_TestCase {
 
     /**
      * @dataProvider getFormatMoneyTests
@@ -739,5 +731,20 @@ END
         $this->assertEquals('"pic"', remove_extension('"pic".png'));
         $this->assertEquals('pic_name', remove_extension('pic_name.png'));
     }
+
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class HTestObject {
+
+	public $value;
+
+	public function __toString() {
+		return $this->value;
+	}
 
 }

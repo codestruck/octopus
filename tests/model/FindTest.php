@@ -5,6 +5,9 @@ require_once(dirname(dirname(__FILE__)) . '/Octopus_DB_TestCase.php');
 /**
  * @group find
  * @group Model
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class FindTest extends Octopus_DB_TestCase {
 

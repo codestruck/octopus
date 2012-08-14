@@ -1,7 +1,8 @@
 <?php
-
 /**
- * TestCase that creates its own sitedir to work within.
+ * A PHPUnit TestCase that gives each test its own SITE_DIR to work in.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 abstract class Octopus_App_TestCase extends PHPUnit_Framework_TestCase {
 

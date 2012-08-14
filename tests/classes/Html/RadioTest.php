@@ -1,9 +1,13 @@
 <?php
 
 /**
+ * @internal
  * @group Html
  * @group Form
  * @group Radio
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+
  */
 class RadioTest extends Octopus_Html_TestCase {
 

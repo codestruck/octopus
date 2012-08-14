@@ -4,6 +4,9 @@ Octopus::loadExternal('smarty');
 
 /**
  * @group smarty
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class SmartyImageTest extends Octopus_App_TestCase {
 
@@ -648,5 +651,3 @@ END;
     }
 
 }
-
-?>

@@ -2,54 +2,11 @@
 
 db_error_reporting(DB_PRINT_ERRORS);
 
-function trigger_onCreate(Octopus_Model $model, Octopus_Model_Field $field) {
-    return 'created';
-}
-function trigger_onSave(Octopus_Model $model, Octopus_Model_Field $field) {
-    return 'everytime';
-}
-function trigger_onUpdate(Octopus_Model $model, Octopus_Model_Field $field) {
-    return 'updateonly';
-}
-function trigger_onEmpty(Octopus_Model $model, Octopus_Model_Field $field) {
-    return 'onlywhenempty';
-}
-
-class Trigger extends Octopus_Model {
-    protected $fields = array(
-        'title' => array(),
-        'a' => array(
-            'onCreate' => 'trigger_onCreate',
-        ),
-        'b' => array(
-            'onSave' => 'trigger_onSave',
-        ),
-        'c' => array(
-            'onUpdate' => 'trigger_onUpdate',
-        ),
-        'd' => array(
-            'onEmpty' => 'trigger_onEmpty',
-        ),
-        'e' => array(
-            'onSave' => 'trigger_member',
-        ),
-        'v' => array(
-            'type' => 'virtual',
-            'onAccess' => 'onAccess',
-        ),
-    );
-
-    public function trigger_member($model, $field) {
-        return 'fromMemberClass';
-    }
-
-    public function onAccess($model, $field) {
-        return 'onAccess';
-    }
-}
-
 /**
  * @group Model
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class ModelTriggerTest extends Octopus_DB_TestCase
 {
@@ -155,4 +112,78 @@ class ModelTriggerTest extends Octopus_DB_TestCase
     }
 
 
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+function trigger_onCreate(Octopus_Model $model, Octopus_Model_Field $field) {
+    return 'created';
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+function trigger_onSave(Octopus_Model $model, Octopus_Model_Field $field) {
+    return 'everytime';
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+function trigger_onUpdate(Octopus_Model $model, Octopus_Model_Field $field) {
+    return 'updateonly';
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+function trigger_onEmpty(Octopus_Model $model, Octopus_Model_Field $field) {
+    return 'onlywhenempty';
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class Trigger extends Octopus_Model {
+    protected $fields = array(
+        'title' => array(),
+        'a' => array(
+            'onCreate' => 'trigger_onCreate',
+        ),
+        'b' => array(
+            'onSave' => 'trigger_onSave',
+        ),
+        'c' => array(
+            'onUpdate' => 'trigger_onUpdate',
+        ),
+        'd' => array(
+            'onEmpty' => 'trigger_onEmpty',
+        ),
+        'e' => array(
+            'onSave' => 'trigger_member',
+        ),
+        'v' => array(
+            'type' => 'virtual',
+            'onAccess' => 'onAccess',
+        ),
+    );
+
+    public function trigger_member($model, $field) {
+        return 'fromMemberClass';
+    }
+
+    public function onAccess($model, $field) {
+        return 'onAccess';
+    }
 }

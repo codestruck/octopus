@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class AutoloadingTest extends Octopus_App_TestCase {
 
     /**
@@ -18,7 +22,7 @@ class AutoloadingTest extends Octopus_App_TestCase {
             <<<END
 <?php
 
-    class $class {
+class $class {
 
         public function doSomething() { return true; }
 
@@ -51,6 +55,7 @@ END
             $file,
             <<<END
 <?php
+
 class $class extends Octopus_Controller {
 
     public function testAction() {

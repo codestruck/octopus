@@ -2,6 +2,9 @@
 
 /**
  * Tests of the execution/rendering pipeline.
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class PipelineTests extends Octopus_App_TestCase {
 
@@ -213,7 +216,7 @@ END
             <<<END
 <?php
 
-            class PrivateAndProtectedActionsController extends Octopus_Controller {
+class PrivateAndProtectedActionsController extends Octopus_Controller {
 
                 private function privateAction() {
                     global \$_PP_TEST_CASE;
@@ -267,7 +270,8 @@ END
             'BeforeAndAfterNotActions',
             <<<END
 <?php
-            class BeforeAndAfterNotActionsController extends Octopus_Controller {
+
+class BeforeAndAfterNotActionsController extends Octopus_Controller {
 
                 var \$i = 0;
 
@@ -387,7 +391,7 @@ END
             <<<END
 <?php
 
-            class DontPassQsInActionController extends Octopus_Controller {
+class DontPassQsInActionController extends Octopus_Controller {
 
                 public function _before(\$action, \$args) {
                     global \$OCTOPUS_TEST_CASE;

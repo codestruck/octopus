@@ -5,6 +5,9 @@ Octopus::loadExternal('smarty');
 /**
  * @group smarty
  * @group smarty_url
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class UrlTest extends Octopus_App_TestCase {
 

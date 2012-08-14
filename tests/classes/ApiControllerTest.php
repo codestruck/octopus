@@ -1,19 +1,10 @@
 <?php
 
-class TestApiController extends Octopus_Controller_Api {
-
-    var $protect = array('protectedAddMember');
-
-    public function addMember($name, $password, $favoriteColor = 'blue') {
-        return compact('name', 'password', 'favoriteColor');
-    }
-
-    public function protectedAddMember($name, $password, $favoriteColor = 'blue') {
-        return compact('name', 'password', 'favoriteColor');
-    }
-
-}
-
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class ApiControllerTest extends Octopus_App_TestCase {
 
 	function createController($path = '/foo') {
@@ -290,5 +281,24 @@ END
 
     }
 
+
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class TestApiController extends Octopus_Controller_Api {
+
+    var $protect = array('protectedAddMember');
+
+    public function addMember($name, $password, $favoriteColor = 'blue') {
+        return compact('name', 'password', 'favoriteColor');
+    }
+
+    public function protectedAddMember($name, $password, $favoriteColor = 'blue') {
+        return compact('name', 'password', 'favoriteColor');
+    }
 
 }

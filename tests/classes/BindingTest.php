@@ -1,10 +1,10 @@
 <?php
 
-class IoCTestClassA { }
-class IoCTestClassB { }
-
 /**
  * Tests for the IoC functionality of the Octopus class.
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class BindingTest extends Octopus_App_TestCase {
 
@@ -58,4 +58,16 @@ class BindingTest extends Octopus_App_TestCase {
 
 }
 
-?>
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class IoCTestClassA { }
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class IoCTestClassB { }

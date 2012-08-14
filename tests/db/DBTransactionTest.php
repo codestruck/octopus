@@ -1,7 +1,10 @@
 <?php
 
-class TransactionRollbackTestException extends Exception { }
-
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class DBTransactionTest extends PHPUnit_Framework_TestCase {
 
 	function setUp() {
@@ -316,3 +319,10 @@ class DBTransactionTest extends PHPUnit_Framework_TestCase {
 	}
 
 }
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class TransactionRollbackTestException extends Exception { }

@@ -9,6 +9,8 @@ require_once('PHPUnit/Extensions/Database/TestCase.php');
 /**
  * Abstract base for writing a testcase that uses DB data and the Octopus_DB_*
  * infrastructure.
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 abstract class Octopus_DB_TestCase extends PHPUnit_Extensions_Database_TestCase {
     private static $pdo = null;

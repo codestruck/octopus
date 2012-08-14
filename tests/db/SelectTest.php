@@ -2,6 +2,9 @@
 
 /**
  * @group DB
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_DB_Select_Test extends PHPUnit_Framework_TestCase
 {

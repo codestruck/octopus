@@ -2,6 +2,9 @@
 
 /**
  * @group Model
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class ModelRelationFilterTest extends Octopus_DB_TestCase
 {

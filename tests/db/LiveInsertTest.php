@@ -3,6 +3,9 @@
 /**
  * @group live_insert
  * @group DB
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_DB_LiveInsert_Test extends PHPUnit_Framework_TestCase
 {

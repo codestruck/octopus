@@ -1,42 +1,10 @@
 <?php
 
-class HasOneCategory extends Octopus_Model {
-    protected $fields = array('name');
-}
-
-class Incorrect_Casing extends Octopus_Model {
-    protected $fields = array('name');
-}
-
-class HasOnePerson extends Octopus_Model {
-    protected $fields = array(
-        'name',
-        'category' => array(
-            'type' => 'hasOne',
-            'model' => 'HasOneCategory'
-        ),
-        'no_cascade_save_category' => array(
-            'type' => 'hasOne',
-            'model' => 'HasOneCategory',
-            'cascade' => false
-        ),
-        'cascade_delete_category' => array(
-            'type' => 'hasOne',
-            'model' => 'HasOneCategory',
-            'cascade' => 'delete'
-        ),
-        'skip_save_category' => array(
-            'type' => 'hasOne',
-            'model' => 'HasOneCategory',
-            'skipSave' => true
-        ),
-        'camel_case_model' => array(
-            'type' => 'hasOne',
-            'model' => 'Incorrect_Casing',
-        ),
-    );
-}
-
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class HasOneTest extends Octopus_App_TestCase {
 
     function setUp() {
@@ -219,4 +187,54 @@ class HasOneTest extends Octopus_App_TestCase {
 
 }
 
-?>
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class HasOneCategory extends Octopus_Model {
+    protected $fields = array('name');
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class Incorrect_Casing extends Octopus_Model {
+    protected $fields = array('name');
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class HasOnePerson extends Octopus_Model {
+    protected $fields = array(
+        'name',
+        'category' => array(
+            'type' => 'hasOne',
+            'model' => 'HasOneCategory'
+        ),
+        'no_cascade_save_category' => array(
+            'type' => 'hasOne',
+            'model' => 'HasOneCategory',
+            'cascade' => false
+        ),
+        'cascade_delete_category' => array(
+            'type' => 'hasOne',
+            'model' => 'HasOneCategory',
+            'cascade' => 'delete'
+        ),
+        'skip_save_category' => array(
+            'type' => 'hasOne',
+            'model' => 'HasOneCategory',
+            'skipSave' => true
+        ),
+        'camel_case_model' => array(
+            'type' => 'hasOne',
+            'model' => 'Incorrect_Casing',
+        ),
+    );
+}

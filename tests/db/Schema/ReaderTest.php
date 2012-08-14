@@ -3,6 +3,9 @@
 /**
  * @group schema
  * @group DB
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_DB_Schema_Reader_Test extends PHPUnit_Framework_TestCase
 {

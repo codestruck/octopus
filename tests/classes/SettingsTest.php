@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class SettingsTest extends Octopus_DB_TestCase {
 
     public $testDir = '.settings-test';
@@ -358,5 +362,3 @@ END
     }
 
 }
-
-?>

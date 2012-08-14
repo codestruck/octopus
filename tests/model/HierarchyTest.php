@@ -2,44 +2,11 @@
 
 db_error_reporting(DB_PRINT_ERRORS);
 
-class User extends Octopus_Model {
-    protected $fields = array(
-        'name' => array(
-            // 'required' => true
-        ),
-        'group' => array(
-            'type' => 'hasMany',
-        ),
-    );
-}
-
-class Container extends Octopus_Model {
-    protected $fields = array(
-        'name' => array(
-            // 'required' => true,
-        ),
-        'user' => array(
-            'type' => 'hasOne',
-        ),
-        'thing' => array(
-            'type' => 'hasMany',
-        ),
-    );
-}
-
-class Thing extends Octopus_Model {
-    protected $fields = array(
-        'name' => array(
-            // 'required' => true,
-        ),
-        'container' => array(
-            'type' => 'hasOne',
-        ),
-    );
-}
-
 /**
  * @group Model
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class HierarchyTest extends Octopus_DB_TestCase
 {
@@ -58,3 +25,53 @@ class HierarchyTest extends Octopus_DB_TestCase
 
 }
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class User extends Octopus_Model {
+    protected $fields = array(
+        'name' => array(
+            // 'required' => true
+        ),
+        'group' => array(
+            'type' => 'hasMany',
+        ),
+    );
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class Container extends Octopus_Model {
+    protected $fields = array(
+        'name' => array(
+            // 'required' => true,
+        ),
+        'user' => array(
+            'type' => 'hasOne',
+        ),
+        'thing' => array(
+            'type' => 'hasMany',
+        ),
+    );
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class Thing extends Octopus_Model {
+    protected $fields = array(
+        'name' => array(
+            // 'required' => true,
+        ),
+        'container' => array(
+            'type' => 'hasOne',
+        ),
+    );
+}

@@ -1,39 +1,10 @@
 <?php
 
-class NaturalIdProduct extends Octopus_Model {
-
-	protected $primaryKey = array(
-		'my_natural_id' => 'numeric'
-	);
-
-	protected $fields = array(
-		'name',
-		'category' => array('type' => 'hasOne', 'model' => 'NaturalIdCategory'),
-		'favorite_users' => array('type' => 'hasMany', 'model' => 'NaturalIdUser', 'key' => 'favorite_product'),
-		'created',
-		'updated'
-	);
-
-}
-
-class NaturalIdCategory extends Octopus_Model {
-
-	protected $fields = array(
-		'name',
-	);
-
-}
-
-class NaturalIdUser extends Octopus_Model {
-
-	protected $fields = array(
-		'favorite_product' => array('type' => 'hasOne', 'model' => 'NaturalIdProduct'),
-		'cart_product' => array('type' => 'manyToMany', 'model' => 'NaturalIdProduct'),
-		'name'
-	);
-
-}
-
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class NaturalIdTest extends Octopus_App_TestCase {
 
 	function setUp() {
@@ -364,4 +335,51 @@ class NaturalIdTest extends Octopus_App_TestCase {
 
 }
 
-?>
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class NaturalIdProduct extends Octopus_Model {
+
+	protected $primaryKey = array(
+		'my_natural_id' => 'numeric'
+	);
+
+	protected $fields = array(
+		'name',
+		'category' => array('type' => 'hasOne', 'model' => 'NaturalIdCategory'),
+		'favorite_users' => array('type' => 'hasMany', 'model' => 'NaturalIdUser', 'key' => 'favorite_product'),
+		'created',
+		'updated'
+	);
+
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class NaturalIdCategory extends Octopus_Model {
+
+	protected $fields = array(
+		'name',
+	);
+
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class NaturalIdUser extends Octopus_Model {
+
+	protected $fields = array(
+		'favorite_product' => array('type' => 'hasOne', 'model' => 'NaturalIdProduct'),
+		'cart_product' => array('type' => 'manyToMany', 'model' => 'NaturalIdProduct'),
+		'name'
+	);
+
+}

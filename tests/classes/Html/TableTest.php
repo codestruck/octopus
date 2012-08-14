@@ -1,21 +1,10 @@
 <?php
 
-function globalTestFunctionForTable($value) {
-    return $value * $value;
-}
-
-class MethodOnObjectTestObject {
-
-    public function __construct($num) {
-        $this->num = $num;
-    }
-
-    public function squareOfNum() {
-        return $this->num * $this->num;
-    }
-
-}
-
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class TableTest extends Octopus_App_TestCase {
 
     var $rawData = array(
@@ -1379,4 +1368,28 @@ END;
 
 }
 
-?>
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+function globalTestFunctionForTable($value) {
+    return $value * $value;
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class MethodOnObjectTestObject {
+
+    public function __construct($num) {
+        $this->num = $num;
+    }
+
+    public function squareOfNum() {
+        return $this->num * $this->num;
+    }
+
+}

@@ -1,14 +1,10 @@
 <?php
 
-class MoneyFieldTypeModel {
-
-    protected $fields = array(
-        'price1' => 'money',
-        'price2' => 'currency',
-    );
-
-}
-
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class MagicFieldTypesTest extends Octopus_App_TestCase {
 
     function testMoneyTypes() {
@@ -27,4 +23,16 @@ class MagicFieldTypesTest extends Octopus_App_TestCase {
 
 }
 
-?>
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class MoneyFieldTypeModel {
+
+    protected $fields = array(
+        'price1' => 'money',
+        'price2' => 'currency',
+    );
+
+}

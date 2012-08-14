@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 function run_creates() {
     $db = Octopus_DB::singleton();
 
@@ -177,6 +181,11 @@ function run_creates() {
 
 }
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 function run_drops() {
     $db = Octopus_DB::singleton();
     $db->query("DROP TABLE IF EXISTS find_category_find_post_join");

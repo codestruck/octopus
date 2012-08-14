@@ -1,50 +1,10 @@
 <?php
 
-class Different extends Octopus_Model {
-    protected $table = 'nonstandard';
-    protected $fields = array(
-        'title' => array(),
-        'created',
-        'updated',
-    );
-}
-
-class Differentb extends Octopus_Model {
-    protected $primaryKey = 'id';
-    protected $fields = array(
-        'title' => array(),
-        'created',
-        'updated',
-    );
-}
-
-class Differentc extends Octopus_Model {
-    protected $primaryKey = 'foobar';
-    protected $table = 'randomtable';
-    protected $fields = array(
-        'title' => array(),
-        'created',
-        'updated',
-    );
-}
-
-class Differentd extends Octopus_Model {
-    protected $displayField = 'kazi';
-    protected $fields = array(
-        'kazi' => array(),
-        'created',
-        'updated',
-    );
-}
-
-class Category extends Octopus_Model {
-    protected $fields = array(
-        'name' => array(),
-    );
-}
-
 /**
  * @group Model
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class ModelNonStandardTest extends PHPUnit_Framework_TestCase
 {
@@ -180,4 +140,73 @@ class ModelNonStandardTest extends PHPUnit_Framework_TestCase
 
     }
 
+}
+
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class Different extends Octopus_Model {
+    protected $table = 'nonstandard';
+    protected $fields = array(
+        'title' => array(),
+        'created',
+        'updated',
+    );
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class Differentb extends Octopus_Model {
+    protected $primaryKey = 'id';
+    protected $fields = array(
+        'title' => array(),
+        'created',
+        'updated',
+    );
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class Differentc extends Octopus_Model {
+    protected $primaryKey = 'foobar';
+    protected $table = 'randomtable';
+    protected $fields = array(
+        'title' => array(),
+        'created',
+        'updated',
+    );
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class Differentd extends Octopus_Model {
+    protected $displayField = 'kazi';
+    protected $fields = array(
+        'kazi' => array(),
+        'created',
+        'updated',
+    );
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class Category extends Octopus_Model {
+    protected $fields = array(
+        'name' => array(),
+    );
 }

@@ -2,37 +2,11 @@
 
 db_error_reporting(DB_PRINT_ERRORS);
 
-class Minpost extends Octopus_Model {
-    protected $fields = array(
-        'title' => array(
-            'required' => true,
-        ),
-        'slug' => array(
-            'type' => 'slug', // implies hidden input
-            'onEmpty' => 'to_unique_slug',
-        ),
-        'body' => array(
-            'type' => 'html',
-            'sanitize' => 'mce_cleanup',
-        ),
-        'active' => array(
-            'type' => 'boolean',
-        ),
-        'display_order' => array(
-            'type' => 'numeric',
-        ),
-        'created',
-        'updated',
-        'cost' => array(
-            'type' => 'numeric',
-            'decimal_places' => 2,
-            'precision' => 6,
-        ),
-    );
-}
-
 /**
  * @group Model
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class ModelMinCrudLoadTest extends Octopus_DB_TestCase
 {
@@ -672,4 +646,39 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
 
     }
 
+}
+
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class Minpost extends Octopus_Model {
+    protected $fields = array(
+        'title' => array(
+            'required' => true,
+        ),
+        'slug' => array(
+            'type' => 'slug', // implies hidden input
+            'onEmpty' => 'to_unique_slug',
+        ),
+        'body' => array(
+            'type' => 'html',
+            'sanitize' => 'mce_cleanup',
+        ),
+        'active' => array(
+            'type' => 'boolean',
+        ),
+        'display_order' => array(
+            'type' => 'numeric',
+        ),
+        'created',
+        'updated',
+        'cost' => array(
+            'type' => 'numeric',
+            'decimal_places' => 2,
+            'precision' => 6,
+        ),
+    );
 }

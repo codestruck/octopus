@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class SelectTest extends Octopus_Html_TestCase {
 
     function testOptionsMultipleArgs() {
@@ -317,4 +321,3 @@ END
 
 }
 
-?>

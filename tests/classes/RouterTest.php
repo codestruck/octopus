@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class RouterTest extends PHPUnit_Framework_TestCase {
 
     function testOverride() {
@@ -91,5 +95,3 @@ class RouterTest extends PHPUnit_Framework_TestCase {
 	}
 
 }
-
-?>

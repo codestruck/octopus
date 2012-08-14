@@ -1,14 +1,9 @@
 <?php
-
-class NumericTestModel extends Octopus_Model {
-
-    protected $fields = array(
-        'intfield' => 'numeric',
-        'decimalfield' => array('type' => 'numeric', 'decimal_places' => 4)
-    );
-
-}
-
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class NumericTest extends Octopus_App_TestCase {
 
     function setUp() {
@@ -141,5 +136,19 @@ class NumericTest extends Octopus_App_TestCase {
         $this->assertEquals(107512669322227, $n->intfield);
 
     }
+
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class NumericTestModel extends Octopus_Model {
+
+    protected $fields = array(
+        'intfield' => 'numeric',
+        'decimalfield' => array('type' => 'numeric', 'decimal_places' => 4)
+    );
 
 }

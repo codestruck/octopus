@@ -2,51 +2,11 @@
 
 db_error_reporting(DB_PRINT_ERRORS);
 
-function custom_function($model, $field) {
-    return 'from custom function';
-}
-
-class Html extends Octopus_Model {
-    protected $fields = array(
-        'body1' => array(
-            'type' => 'html',
-        ),
-        'body2' => array(
-            'type' => 'html',
-            'escape' => false,
-        ),
-        'body3' => array(
-            'type' => 'html',
-            'escape' => 'custom_method',
-        ),
-        'body4' => array(
-            'type' => 'html',
-            'escape' => 'custom_function',
-        ),
-        'tag1' => array(
-            'type' => 'html',
-            'allow_tags' => 'p',
-        ),
-        'tag2' => array(
-            'type' => 'html',
-            'allow_tags' => 'a',
-        ),
-        'tag3' => array(
-            'type' => 'html',
-            'allow_tags' => 'strong,a[href]',
-        ),
-
-
-    );
-
-    public function custom_method($model, $field) {
-        return 'from custom method';
-    }
-
-}
-
 /**
  * @group Model
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class ModelHtmlTest extends Octopus_App_TestCase {
 
@@ -116,6 +76,59 @@ class ModelHtmlTest extends Octopus_App_TestCase {
         $html = new Html(1);
         $html->escape();
         $this->assertEquals('some <strong>strings</strong> have <a href="http://cnn.com/">links</a>.', $html->tag3);
+    }
+
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+function custom_function($model, $field) {
+    return 'from custom function';
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class Html extends Octopus_Model {
+    protected $fields = array(
+        'body1' => array(
+            'type' => 'html',
+        ),
+        'body2' => array(
+            'type' => 'html',
+            'escape' => false,
+        ),
+        'body3' => array(
+            'type' => 'html',
+            'escape' => 'custom_method',
+        ),
+        'body4' => array(
+            'type' => 'html',
+            'escape' => 'custom_function',
+        ),
+        'tag1' => array(
+            'type' => 'html',
+            'allow_tags' => 'p',
+        ),
+        'tag2' => array(
+            'type' => 'html',
+            'allow_tags' => 'a',
+        ),
+        'tag3' => array(
+            'type' => 'html',
+            'allow_tags' => 'strong,a[href]',
+        ),
+
+
+    );
+
+    public function custom_method($model, $field) {
+        return 'from custom method';
     }
 
 }

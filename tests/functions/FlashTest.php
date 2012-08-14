@@ -1,7 +1,9 @@
 <?php
-
 /**
  * @group core
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class FlashTests extends PHPUnit_Framework_TestCase
 {

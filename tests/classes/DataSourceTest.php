@@ -1,14 +1,10 @@
 <?php
 
-class DataSourceTestModel extends Octopus_Model {
-
-	protected $fields = array(
-		'name',
-		'age' => 'numeric'
-	);
-
-}
-
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class DataSourceTest extends PHPUnit_Framework_TestCase {
 
 	function testArraySort() {
@@ -124,4 +120,16 @@ class DataSourceTest extends PHPUnit_Framework_TestCase {
 
 }
 
-?>
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class DataSourceTestModel extends Octopus_Model {
+
+	protected $fields = array(
+		'name',
+		'age' => 'numeric'
+	);
+
+}

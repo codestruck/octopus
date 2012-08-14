@@ -2,55 +2,10 @@
 
 db_error_reporting(DB_PRINT_ERRORS);
 
-class ManyGroup extends Octopus_Model {
-    protected $fields = array(
-        'name',
-        'products' => array(
-            'type' => 'many_to_many',
-            'model' => 'PluralFieldNameTestProduct',
-            'field' => 'groups',
-            'relation' => 'product'
-        ),
-        'important_products' => array(
-            'type' => 'many_to_many',
-            'model' => 'PluralFieldNameTestProduct',
-            'field' => 'important_groups',
-            'relation' => 'important',
-        ),
-    );
-}
-
-class PluralFieldNameTestProduct extends Octopus_Model {
-
-    protected $fields = array(
-        'name',
-        'groups' => array(
-            'type' => 'many_to_many',
-            'model' => 'ManyGroup',
-            'field' => 'products',
-            'relation' => 'product',
-        ),
-        'important_groups' => array(
-            'type' => 'many_to_many',
-            'model' => 'ManyGroup',
-            'field' => 'important_products',
-            'relation' => 'important',
-        )
-    );
-
-}
-
-class OneSided extends Octopus_Model {
-    protected $fields = array(
-        'name',
-        'groups' => array(
-            'type' => 'many_to_many',
-            'relation' => 'onesided',
-        )
-    );
-}
-
 /**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  * @group Model
  */
 class ModelManyToManyTest extends Octopus_DB_TestCase
@@ -434,3 +389,65 @@ class ModelManyToManyTest extends Octopus_DB_TestCase
 
 }
 
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class ManyGroup extends Octopus_Model {
+    protected $fields = array(
+        'name',
+        'products' => array(
+            'type' => 'many_to_many',
+            'model' => 'PluralFieldNameTestProduct',
+            'field' => 'groups',
+            'relation' => 'product'
+        ),
+        'important_products' => array(
+            'type' => 'many_to_many',
+            'model' => 'PluralFieldNameTestProduct',
+            'field' => 'important_groups',
+            'relation' => 'important',
+        ),
+    );
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class PluralFieldNameTestProduct extends Octopus_Model {
+
+    protected $fields = array(
+        'name',
+        'groups' => array(
+            'type' => 'many_to_many',
+            'model' => 'ManyGroup',
+            'field' => 'products',
+            'relation' => 'product',
+        ),
+        'important_groups' => array(
+            'type' => 'many_to_many',
+            'model' => 'ManyGroup',
+            'field' => 'important_products',
+            'relation' => 'important',
+        )
+    );
+
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class OneSided extends Octopus_Model {
+    protected $fields = array(
+        'name',
+        'groups' => array(
+            'type' => 'many_to_many',
+            'relation' => 'onesided',
+        )
+    );
+}

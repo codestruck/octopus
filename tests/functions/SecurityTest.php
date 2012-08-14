@@ -3,6 +3,9 @@
 /**
  * @group core
  * @group security
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class SecurityTests extends PHPUnit_Framework_TestCase
 {

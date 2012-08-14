@@ -4,6 +4,9 @@
  * @group DB
  * @group schema
  * @group schema_index
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class Octopus_DB_Schema_IndexTest extends PHPUnit_Framework_TestCase {
 

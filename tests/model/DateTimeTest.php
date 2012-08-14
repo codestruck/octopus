@@ -1,13 +1,10 @@
 <?php
 
-class DateTimeTestModel extends Octopus_Model {
-    protected $fields = array(
-        'name',
-        'lunchtime' => 'datetime',
-        'birthdate' => 'date'
-    );
-}
-
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class DateTimeTest extends Octopus_App_TestCase {
 
     function testDateTimeEmptyStringByDefault() {
@@ -146,4 +143,15 @@ class DateTimeTest extends Octopus_App_TestCase {
 
 }
 
-?>
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class DateTimeTestModel extends Octopus_Model {
+    protected $fields = array(
+        'name',
+        'lunchtime' => 'datetime',
+        'birthdate' => 'date'
+    );
+}

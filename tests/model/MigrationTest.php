@@ -1,62 +1,9 @@
 <?php
 
-class MigrateTestPerson extends Octopus_Model {
-
-    protected $fields = array(
-        'name',
-        'name_short' => array('type' => 'text', 'length' => 50),
-        'name_short_size' => array('type' => 'text', 'size' => 50),
-        'name_long' => array('type' => 'text', 'size' => 260),
-        'name_really_long' => array('type' => 'text', 'length' => PHP_INT_MAX),
-        'age' => array('type' => 'number'),
-        'birth_date' => array( 'type' => 'datetime'),
-        'just_date' => array('type' => 'date'),
-        'dogs' => array(
-            'type' => 'hasMany',
-            'model' => 'MigrateTestDog'
-        ),
-        'favorite_dog' => array(
-            'type' => 'has_one',
-            'model' => 'MigrateTestDog',
-        ),
-        'bio' => array('type' => 'html'),
-        'categories' => array(
-            'type' => 'many_to_many',
-            'model' => 'MigrateTestCategory'
-        ),
-        'net_worth' => array(
-            'type' => 'numeric',
-            'decimal_places' => 2,
-            'precision' => 4
-        ),
-        'website' => array(
-            'type' => 'url'
-        ),
-        'slug',
-        'order',
-        'dummy' => array('type' => 'virtual'),
-        'created',
-        'updated',
-        'active'
-    );
-
-}
-
-class MigrateTestDog extends Octopus_Model {
-    protected $fields = array(
-        'name',
-        'person' => array('type' => 'hasOne', 'model' => 'MigrateTestPerson')
-    );
-}
-
-class MigrateTestCategory extends Octopus_Model {
-    protected $fields = array(
-        'name'
-    );
-}
-
 /**
- * Tests model's migration abilities
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class MigrationTest extends Octopus_App_TestCase {
 
@@ -567,4 +514,72 @@ END
 
 }
 
-?>
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class MigrateTestPerson extends Octopus_Model {
+
+    protected $fields = array(
+        'name',
+        'name_short' => array('type' => 'text', 'length' => 50),
+        'name_short_size' => array('type' => 'text', 'size' => 50),
+        'name_long' => array('type' => 'text', 'size' => 260),
+        'name_really_long' => array('type' => 'text', 'length' => PHP_INT_MAX),
+        'age' => array('type' => 'number'),
+        'birth_date' => array( 'type' => 'datetime'),
+        'just_date' => array('type' => 'date'),
+        'dogs' => array(
+            'type' => 'hasMany',
+            'model' => 'MigrateTestDog'
+        ),
+        'favorite_dog' => array(
+            'type' => 'has_one',
+            'model' => 'MigrateTestDog',
+        ),
+        'bio' => array('type' => 'html'),
+        'categories' => array(
+            'type' => 'many_to_many',
+            'model' => 'MigrateTestCategory'
+        ),
+        'net_worth' => array(
+            'type' => 'numeric',
+            'decimal_places' => 2,
+            'precision' => 4
+        ),
+        'website' => array(
+            'type' => 'url'
+        ),
+        'slug',
+        'order',
+        'dummy' => array('type' => 'virtual'),
+        'created',
+        'updated',
+        'active'
+    );
+
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class MigrateTestDog extends Octopus_Model {
+    protected $fields = array(
+        'name',
+        'person' => array('type' => 'hasOne', 'model' => 'MigrateTestPerson')
+    );
+}
+
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
+class MigrateTestCategory extends Octopus_Model {
+    protected $fields = array(
+        'name'
+    );
+}

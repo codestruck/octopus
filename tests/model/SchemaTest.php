@@ -3,6 +3,9 @@
 /**
  * @group Model
  * @group schema
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
  */
 class ModelSchemaTest extends PHPUnit_Framework_TestCase
 {

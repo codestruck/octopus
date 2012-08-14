@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * @internal
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 class RestrictionTest extends PHPUnit_Framework_TestCase {
 
     function testLooksLikeFieldExpression() {
@@ -21,5 +25,3 @@ class RestrictionTest extends PHPUnit_Framework_TestCase {
     }
 
 }
-
-?>
