@@ -164,7 +164,7 @@ class Octopus_Response implements ArrayAccess {
         foreach($args as $arg) {
 
             if (is_array($arg)) {
-                call_user_func_array(__METHOD__, $arg);
+                call_user_func_array(array($this, 'clear'), $arg);
             } else {
                 unset($this->values[$arg]);
             }

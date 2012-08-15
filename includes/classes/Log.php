@@ -1,5 +1,9 @@
 <?php
 
+if (!defined('E_USER_DEPRECATED')) {
+    define('E_USER_DEPRECATED', E_USER_NOTICE);
+}
+
 /**
  * Manages logging for an app. Dispatches log messages out to listeners, which
  * do the actual physical logging.
