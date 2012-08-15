@@ -117,30 +117,30 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
 
     public function migrate(Octopus_DB_Schema $schema, Octopus_DB_Schema_Writer $table, $name = null, $autoIncrement = null) {
 
-    	if (!$name) $name = $this->getColumn();
+        if (!$name) $name = $this->getColumn();
 
-    	if ($this->getOption('filter')) {
+        if ($this->getOption('filter')) {
 
-    		// for filtered stuff, id must be numeric, auto increment
-    		$pkField = new Octopus_Model_Field_Numeric('item_id', $this->modelClass, array('auto_increment' => true));
+            // for filtered stuff, id must be numeric, auto increment
+            $pkField = new Octopus_Model_Field_Numeric('item_id', $this->modelClass, array('auto_increment' => true));
 
-    	} else {
+        } else {
 
-	    	$itemClass = $this->getItemClass();
-    		$item = new $itemClass();
+            $itemClass = $this->getItemClass();
+            $item = new $itemClass();
 
-	    	$pkFields = $item->getPrimaryKeyFields();
+            $pkFields = $item->getPrimaryKeyFields();
 
-	    	if (count($pkFields) !== 1) {
-	    		throw new Octopus_Model_Exception("HasOne relationships currently not supported for models with compound primary keys.");
-	    	}
+            if (count($pkFields) !== 1) {
+                throw new Octopus_Model_Exception("HasOne relationships currently not supported for models with compound primary keys.");
+            }
 
-	    	$pkField = array_shift($pkFields);
-	    }
+            $pkField = array_shift($pkFields);
+        }
 
-    	// Migrate the item's primary key field with our custom name.
-    	$pkField->migrate($schema, $table, $name, false);
-    	$table->newIndex($name);
+        // Migrate the item's primary key field with our custom name.
+        $pkField->migrate($schema, $table, $name, false);
+        $table->newIndex($name);
     }
 
     public function restrict($expression, $operator, $value, &$s, &$params, $model) {
@@ -153,27 +153,27 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
             // Do simple ID comparison
             if (!$value) {
 
-            	// false, null, 0, and '' should all match either zeroes or null values
-            	// in the column
-            	$id = to_id($this->field);
+                // false, null, 0, and '' should all match either zeroes or null values
+                // in the column
+                $id = to_id($this->field);
 
-            	if ($operator === null || $operator === '=' || $operator === '!=' || $operator === 'NOT') {
+                if ($operator === null || $operator === '=' || $operator === '!=' || $operator === 'NOT') {
 
-            		if ($operator === '!=' || $operator === 'NOT') {
-            			$conjunction = 'AND';
-            		} else {
-            			$conjunction = 'OR';
-            		}
+                    if ($operator === '!=' || $operator === 'NOT') {
+                        $conjunction = 'AND';
+                    } else {
+                        $conjunction = 'OR';
+                    }
 
-            		$clauses = array(
-            			$this->defaultRestrict($id, $operator, $this->getDefaultSearchOperator(), 0, $s, $params, $model),
-            			$this->defaultRestrict($id, $operator, $this->getDefaultSearchOperator(), null, $s, $params, $model),
-            			$this->defaultRestrict($id, $operator, $this->getDefaultSearchOperator(), '', $s, $params, $model),
-            		);
+                    $clauses = array(
+                        $this->defaultRestrict($id, $operator, $this->getDefaultSearchOperator(), 0, $s, $params, $model),
+                        $this->defaultRestrict($id, $operator, $this->getDefaultSearchOperator(), null, $s, $params, $model),
+                        $this->defaultRestrict($id, $operator, $this->getDefaultSearchOperator(), '', $s, $params, $model),
+                    );
 
-            		return '(' . implode(") $conjunction (", $clauses) . ')';
+                    return '(' . implode(") $conjunction (", $clauses) . ')';
 
-            	}
+                }
 
             }
 

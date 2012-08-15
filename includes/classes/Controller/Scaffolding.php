@@ -13,7 +13,7 @@ abstract class Octopus_Controller_Scaffolding extends Octopus_Controller {
     protected $scaffold = null;
 
     public function _default($action, $args) {
-   		return array('controller_links' => $this->getControllerLinks());
+           return array('controller_links' => $this->getControllerLinks());
     }
 
     /**
@@ -26,7 +26,7 @@ abstract class Octopus_Controller_Scaffolding extends Octopus_Controller {
         $model = $this->getModel();
 
         if (!$model) {
-        	return $this->notFound();
+            return $this->notFound();
         }
 
         $item = new $model();
@@ -105,7 +105,7 @@ abstract class Octopus_Controller_Scaffolding extends Octopus_Controller {
         $model = $this->getModel();
 
         if (!$model) {
-        	return $this->notFound();
+            return $this->notFound();
         }
 
         $item = call_user_func(array($model, 'get'), $id);
@@ -160,19 +160,19 @@ abstract class Octopus_Controller_Scaffolding extends Octopus_Controller {
 
         if ($model) {
 
-        	// NOTE: Unlike all the other actions, 'index' can still be valid
-        	// if no scaffolding model is set for this class.
+            // NOTE: Unlike all the other actions, 'index' can still be valid
+            // if no scaffolding model is set for this class.
 
-	        set_title(pluralize(humanize($model)));
+            set_title(pluralize(humanize($model)));
 
-    	    $table = $this->createScaffoldTable($model);
-	        $add_url = $this->getActionUrl('add');
+            $table = $this->createScaffoldTable($model);
+            $add_url = $this->getActionUrl('add');
 
-	    } else {
+        } else {
 
-	    	set_title(guess_site_name());
+            set_title(guess_site_name());
 
-	    }
+        }
 
         $controller_links = $this->getControllerLinks();
 
@@ -189,7 +189,7 @@ abstract class Octopus_Controller_Scaffolding extends Octopus_Controller {
         $model = $this->getModel();
 
         if (!$model) {
-        	return $this->notFound();
+            return $this->notFound();
         }
 
         $item = call_user_func(array($model, 'get'), $id);
@@ -246,7 +246,7 @@ abstract class Octopus_Controller_Scaffolding extends Octopus_Controller {
      */
     protected function getModel() {
 
-    	return $this->scaffold;
+        return $this->scaffold;
 
     }
 

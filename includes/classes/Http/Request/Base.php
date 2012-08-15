@@ -153,22 +153,22 @@ class Octopus_Http_Request_Base {
 
             // Allow for relative redirects
             if (empty($redirect[0])) {
-            	$redirect[0] = $requested[0];
+                $redirect[0] = $requested[0];
             }
 
             // Inherit protocol if needed
             if (empty($redirect[4])) {
-            	$redirect[4] = $requested[4];
+                $redirect[4] = $requested[4];
             }
 
             list($host, $port, $path, $secure, $protocol) = $redirect;
 
             // don't include port if not needed
             if ((strcasecmp($protocol, 'http') === 0 && $port != 80) ||
-            	(strcasecmp($protocol, 'https') === 0 && $port != 443)) {
-            	$port = ":$port";
+                (strcasecmp($protocol, 'https') === 0 && $port != 443)) {
+                $port = ":$port";
             } else {
-            	$port = '';
+                $port = '';
             }
 
             $redirect = $protocol . '://' . $host . $port . $path;

@@ -9,26 +9,26 @@
  */
 class FormFieldTest extends Octopus_Html_TestCase {
 
-	function testGetArrayFieldByName() {
+    function testGetArrayFieldByName() {
 
-		$form = new Octopus_Html_Form('getArrayField');
-		$sel = $form->add('select', 'name');
-		$sel->addOptions(array('foo' => 'bar', 'baz' => 'bat'));
-		$sel->multiple = true;
+        $form = new Octopus_Html_Form('getArrayField');
+        $sel = $form->add('select', 'name');
+        $sel->addOptions(array('foo' => 'bar', 'baz' => 'bat'));
+        $sel->multiple = true;
 
-		$this->assertEquals('name[]', $sel->name);
-		$this->assertSame($sel, $form->getField('name'));
+        $this->assertEquals('name[]', $sel->name);
+        $this->assertSame($sel, $form->getField('name'));
 
-		$form->submit(array('name' => array('foo', 'baz')));
-		$this->assertEquals(
-			array(
-				'name' => array('foo', 'baz')
-			),
-			$form->getValues()
-		);
+        $form->submit(array('name' => array('foo', 'baz')));
+        $this->assertEquals(
+            array(
+                'name' => array('foo', 'baz')
+            ),
+            $form->getValues()
+        );
 
 
-	}
+    }
 
     function testAddFieldToForm() {
 
@@ -160,17 +160,17 @@ class FormFieldTest extends Octopus_Html_TestCase {
 
     function testFieldNameToID() {
 
-    	return $this->markTestSkipped("Need to resolve PW branch differences");
+        return $this->markTestSkipped("Need to resolve PW branch differences");
 
-    	$form = new Octopus_Html_Form('nameToID');
-    	$field = $form->add('text', 'my_name');
+        $form = new Octopus_Html_Form('nameToID');
+        $field = $form->add('text', 'my_name');
 
-    	$this->assertEquals('my_nameInput', $field->id);
-    	$this->assertTrue(!!preg_match('/\bmy_name\b/', $field->class), 'my_name present in field class');
+        $this->assertEquals('my_nameInput', $field->id);
+        $this->assertTrue(!!preg_match('/\bmy_name\b/', $field->class), 'my_name present in field class');
 
-    	$wrapper = $field->wrapper;
-    	$this->assertEquals('my_nameField', $wrapper->id);
-    	$this->assertTrue(!!preg_match('/\bmy_name\b/', $wrapper->class), 'my_name present in wrapper class');
+        $wrapper = $field->wrapper;
+        $this->assertEquals('my_nameField', $wrapper->id);
+        $this->assertTrue(!!preg_match('/\bmy_name\b/', $wrapper->class), 'my_name present in wrapper class');
     }
 
 }

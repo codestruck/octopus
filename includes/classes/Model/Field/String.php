@@ -13,7 +13,7 @@ class Octopus_Model_Field_String extends Octopus_Model_Field {
 
     public function migrate(Octopus_DB_Schema $schema, Octopus_DB_Schema_Writer $table, $name = null, $autoIncrement = null) {
 
-    	if (!$name) $name = $this->getFieldName();
+        if (!$name) $name = $this->getFieldName();
 
         $length = $this->getLength();
 

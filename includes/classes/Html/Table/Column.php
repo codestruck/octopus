@@ -159,11 +159,11 @@ class Octopus_Html_Table_Column {
      */
     public function applySorting(Octopus_DataSource $dataSource) {
 
-    	if ($this->isSorted($dataSource)) {
-    		return $dataSource->sort($this->id, $this->isSortedAsc($dataSource), false);
-    	}
+        if ($this->isSorted($dataSource)) {
+            return $dataSource->sort($this->id, $this->isSortedAsc($dataSource), false);
+        }
 
-    	return $dataSource;
+        return $dataSource;
     }
 
     public function getAttribute($attr, $default = null) {
@@ -232,7 +232,7 @@ class Octopus_Html_Table_Column {
      * Sorts this column.
      * @param Mixed $direction. The direction to sort. Possible values are:
      *
-     *	ascending - true or 'asc',
+     *    ascending - true or 'asc',
      *  descending - false or 'desc',
      *
      * If no argument is supplied, the column is sorted ascending if it is not
@@ -242,16 +242,16 @@ class Octopus_Html_Table_Column {
 
         if ($direction === null) {
 
-        	if ($this->_sort === null) {
-        		$direction = true;
-        	} else {
-        		$direction = !$this->_sort;
-        	}
+            if ($this->_sort === null) {
+                $direction = true;
+            } else {
+                $direction = !$this->_sort;
+            }
 
         }
 
         if (is_string($direction)) {
-        	$direction = Octopus_Html_Table::parseSortDirection($direction);
+            $direction = Octopus_Html_Table::parseSortDirection($direction);
         }
 
         $this->_sort = !!$direction;
@@ -290,7 +290,7 @@ class Octopus_Html_Table_Column {
         }
 
         if ($this->options['sortable'] === null) {
-        	return $dataSource->isSortable($this->id);
+            return $dataSource->isSortable($this->id);
         }
 
         return !!$this->options['sortable'];

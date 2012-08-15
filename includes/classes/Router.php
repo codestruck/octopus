@@ -14,7 +14,7 @@ class Octopus_Router {
      * @return Octopus_Router $this
      */
     public function add($from, $to, $options = array()) {
-    	return $this->alias($from, $to, $options);
+        return $this->alias($from, $to, $options);
     }
 
     /**

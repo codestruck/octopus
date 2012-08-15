@@ -8,16 +8,16 @@
  */
 class Octopus_Renderer_Json extends Octopus_Renderer {
 
-	/**
-	 * @see Octopus_Renderer::renderContent()
-	 */
-	protected function renderContent(Octopus_Response $response) {
+    /**
+     * @see Octopus_Renderer::renderContent()
+     */
+    protected function renderContent(Octopus_Response $response) {
 
-		$values = $response->getValues();
+        $values = $response->getValues();
 
-		// TODO: http://us.php.net/manual/en/class.jsonserializable.php
-		return pretty_json_encode($values);
+        // TODO: http://us.php.net/manual/en/class.jsonserializable.php
+        return pretty_json_encode($values);
 
-	}
+    }
 
 }

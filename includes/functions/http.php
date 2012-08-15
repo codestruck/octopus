@@ -131,7 +131,7 @@ function octopus_http_build_query($data, $seperator = '&', $method = 'GET') {
  * @license http://opensource.org/licenses/mit-license.php/
  */
 function cancel_redirects($cancel = true) {
-	Octopus_Debug::enableRedirects(!$cancel);
+    Octopus_Debug::enableRedirects(!$cancel);
 }
 
 /**
@@ -260,7 +260,7 @@ function redirect($newLocation, $permanent = true) {
     $newLocation = u($newLocation);
 
     if (!Octopus_Debug::shouldRedirect($newLocation)) {
-    	return false;
+        return false;
     }
 
     header($permanent ? 'HTTP/1.1 301 Moved Permanently' : 'HTTP/1.1 302 Found');

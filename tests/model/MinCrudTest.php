@@ -637,12 +637,12 @@ class ModelMinCrudLoadTest extends Octopus_DB_TestCase
 
     function testLazyLoadMissingRecordResetsID() {
 
-    	$post = new Minpost(99999);
-    	$this->assertEquals(99999, $post->id);
+        $post = new Minpost(99999);
+        $this->assertEquals(99999, $post->id);
 
-    	$this->assertEquals('', $post->title, 'title is empty');
-    	$this->assertEquals(null, $post->id, 'id reset');
-    	$this->assertFalse($post->exists(), 'post does not exist');
+        $this->assertEquals('', $post->title, 'title is empty');
+        $this->assertEquals(null, $post->id, 'id reset');
+        $this->assertFalse($post->exists(), 'post does not exist');
 
     }
 

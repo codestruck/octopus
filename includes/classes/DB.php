@@ -28,11 +28,11 @@ class Octopus_DB extends Octopus_Base {
      */
     public function beginTransaction() {
 
-    	if (Octopus_DB_Transaction::getCurrent()) {
-    		throw new Octopus_DB_Exception("A transaction has already been started. You need to commit it or roll it back to start a new one.");
-    	}
+        if (Octopus_DB_Transaction::getCurrent()) {
+            throw new Octopus_DB_Exception("A transaction has already been started. You need to commit it or roll it back to start a new one.");
+        }
 
-    	return new Octopus_DB_Transaction($this, $this->driver);
+        return new Octopus_DB_Transaction($this, $this->driver);
     }
 
     /**
@@ -40,7 +40,7 @@ class Octopus_DB extends Octopus_Base {
      * it. Otherwise, returns null.
      */
     public function getTransaction() {
-    	return Octopus_DB_Transaction::getCurrent();
+        return Octopus_DB_Transaction::getCurrent();
     }
 
     /**
@@ -52,35 +52,35 @@ class Octopus_DB extends Octopus_Base {
      * transaction. Will be passed 2 arguments: An Octopus_DB_Transaction
      * instance and this Octopus_DB instance. So the signature is:
      *
-     * 	function(Octopus_DB_Transaction $tx, Octopus_DB $db)
+     *     function(Octopus_DB_Transaction $tx, Octopus_DB $db)
      * @param $retval Gets set to the value returned from $callback
      * @return boolean True if the transaction is committed, false otherwise.
      */
     public function runTransaction($callback, &$retval = null) {
 
-    	$tx = null;
-    	$retval = null;
+        $tx = null;
+        $retval = null;
 
-    	try {
+        try {
 
-    		$tx = $this->beginTransaction();
-    		$retval = call_user_func($callback, $tx, $this);
+            $tx = $this->beginTransaction();
+            $retval = call_user_func($callback, $tx, $this);
 
-    		if ($tx->canCommit()) {
-    			$tx->commit();
-    		}
+            if ($tx->canCommit()) {
+                $tx->commit();
+            }
 
-    		return $tx->isCommitted();
+            return $tx->isCommitted();
 
-    	} catch(Exception $ex) {
+        } catch(Exception $ex) {
 
-    		if ($tx && $tx->canRollBack()) {
-    			$tx->rollback();
-    		}
+            if ($tx && $tx->canRollBack()) {
+                $tx->rollback();
+            }
 
-    		throw $ex;
+            throw $ex;
 
-    	}
+        }
 
     }
 

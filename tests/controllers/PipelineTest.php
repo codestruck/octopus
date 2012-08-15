@@ -447,153 +447,153 @@ END
 
     function testFullCacheDisabledByDefault() {
 
-    	return $this->markTestSkipped('Disabling full cache temporarily');
+        return $this->markTestSkipped('Disabling full cache temporarily');
 
-    	$this->createFullCacheTestFiles('DisabledByDefault');
+        $this->createFullCacheTestFiles('DisabledByDefault');
 
-    	$app = $this->startApp(array('full_cache' => true));
-    	$app->clearFullCache();
+        $app = $this->startApp(array('full_cache' => true));
+        $app->clearFullCache();
 
-    	$resp = $app->getResponse('test-full-cache-disabled-by-default/default-cache');
+        $resp = $app->getResponse('test-full-cache-disabled-by-default/default-cache');
 
-    	$this->assertCacheFilesExist(false, 'test-full-cache-disabled-by-default/default-cache');
+        $this->assertCacheFilesExist(false, 'test-full-cache-disabled-by-default/default-cache');
 
     }
 
     function testFullCacheOnlyGetRequestsCached() {
 
-    	return $this->markTestSkipped('Disabling full cache temporarily');
+        return $this->markTestSkipped('Disabling full cache temporarily');
 
-    	$this->createFullCacheTestFiles('OnlyGet');
+        $this->createFullCacheTestFiles('OnlyGet');
 
-    	$app = $this->startApp(array('full_cache' => true));
+        $app = $this->startApp(array('full_cache' => true));
 
-    	foreach(array('POST', 'PUT', 'DELETE', 'GET') as $method) {
+        foreach(array('POST', 'PUT', 'DELETE', 'GET') as $method) {
 
-    		$appMethod = 'get' . camel_case($method, true) . 'Response';
-    		$resp = $app->$appMethod('/test-full-cache-only-get/cache');
+            $appMethod = 'get' . camel_case($method, true) . 'Response';
+            $resp = $app->$appMethod('/test-full-cache-only-get/cache');
 
-    		$this->assertCacheFilesExist($method == 'GET', '/test-full-cache-only-get/cache', $method == 'GET' ? 'Cache file exists for GET' : "Cache file does not exist for $method");
+            $this->assertCacheFilesExist($method == 'GET', '/test-full-cache-only-get/cache', $method == 'GET' ? 'Cache file exists for GET' : "Cache file does not exist for $method");
 
-    	}
+        }
 
     }
 
     function testFullCacheOnlyCachedWhenQuerystringEmpty() {
 
-		return $this->markTestSkipped('Disabling full cache temporarily');
+        return $this->markTestSkipped('Disabling full cache temporarily');
 
-    	$this->createFullCacheTestFiles('EmptyQuerystring');
+        $this->createFullCacheTestFiles('EmptyQuerystring');
 
-    	$app = $this->startApp(array('full_cache' => true));
+        $app = $this->startApp(array('full_cache' => true));
 
-    	foreach(array('GET', 'POST', 'PUT', 'DELETE') as $method) {
+        foreach(array('GET', 'POST', 'PUT', 'DELETE') as $method) {
 
-    		$appMethod = 'get' . camel_case($method, true) . 'Response';
-    		$resp = $app->$appMethod('/test-full-cache-empty-querystring/cache?foo=bar');
+            $appMethod = 'get' . camel_case($method, true) . 'Response';
+            $resp = $app->$appMethod('/test-full-cache-empty-querystring/cache?foo=bar');
 
-    		$this->assertCacheFilesExist(false, '/test-full-cache-empty-querystring/cache', "No cache file created for $method with querystring");
+            $this->assertCacheFilesExist(false, '/test-full-cache-empty-querystring/cache', "No cache file created for $method with querystring");
 
-    	}
+        }
 
     }
 
     function testFullCacheClearCacheDir() {
 
-    	return $this->markTestSkipped('Disabling full cache temporarily');
+        return $this->markTestSkipped('Disabling full cache temporarily');
 
-    	$this->createFullCacheTestFiles('ClearCacheDir');
+        $this->createFullCacheTestFiles('ClearCacheDir');
 
-    	$app = $this->startApp(array('full_cache' => true));
+        $app = $this->startApp(array('full_cache' => true));
 
-		$resp = $app->getGetResponse('/test-full-cache-clear-cache-dir/cache');
+        $resp = $app->getGetResponse('/test-full-cache-clear-cache-dir/cache');
 
-		$this->assertCacheFilesExist(true, '/test-full-cache-clear-cache-dir/cache');
-    	$app->clearFullCache();
-    	$this->assertCacheFilesExist(false, '/test-full-cache-clear-cache-dir/cache', 'no cache files after clearFullCache');
+        $this->assertCacheFilesExist(true, '/test-full-cache-clear-cache-dir/cache');
+        $app->clearFullCache();
+        $this->assertCacheFilesExist(false, '/test-full-cache-clear-cache-dir/cache', 'no cache files after clearFullCache');
 
     }
 
     function testFullCacheAppendsTimestampForHtml() {
 
-    	return $this->markTestSkipped('Disabling full cache temporarily');
+        return $this->markTestSkipped('Disabling full cache temporarily');
 
-    	$this->createFullCacheTestFiles('AppendTimestamp');
+        $this->createFullCacheTestFiles('AppendTimestamp');
 
-		$app = $this->startApp(array('full_cache' => true));
+        $app = $this->startApp(array('full_cache' => true));
 
-    	$resp = $app->getGetResponse('/test-full-cache-append-timestamp/cache');
+        $resp = $app->getGetResponse('/test-full-cache-append-timestamp/cache');
 
-    	$cacheContents = file_get_contents($app->OCTOPUS_CACHE_DIR . 'full/test-full-cache-append-timestamp/cache/index.html');
-    	$this->assertTrue(!!preg_match('/<!-- ots(\d+) -->/', $cacheContents, $m), 'timestamp comment found in html');
-    	$this->assertTrue(time() - $m[1] < 3, 'Timestamp is recent');
+        $cacheContents = file_get_contents($app->OCTOPUS_CACHE_DIR . 'full/test-full-cache-append-timestamp/cache/index.html');
+        $this->assertTrue(!!preg_match('/<!-- ots(\d+) -->/', $cacheContents, $m), 'timestamp comment found in html');
+        $this->assertTrue(time() - $m[1] < 3, 'Timestamp is recent');
 
     }
 
     function testNoFullCacheForNotHtml() {
 
-    	return $this->markTestSkipped('Disabling full cache temporarily');
+        return $this->markTestSkipped('Disabling full cache temporarily');
 
-    	$this->createFullCacheTestFiles('NonHtml');
+        $this->createFullCacheTestFiles('NonHtml');
 
-		$app = $this->startApp(array('full_cache' => true));
+        $app = $this->startApp(array('full_cache' => true));
 
-    	$resp = $app->getGetResponse('/test-full-cache-non-html/cache-plain-text');
+        $resp = $app->getGetResponse('/test-full-cache-non-html/cache-plain-text');
 
-    	$this->assertCacheFilesExist(false, '/test-full-cache-non-html/cache-plain-text');
+        $this->assertCacheFilesExist(false, '/test-full-cache-non-html/cache-plain-text');
 
     }
 
-   	function assertCacheFilesExist($exists, $path, $message = null) {
+       function assertCacheFilesExist($exists, $path, $message = null) {
 
-   		$app = $this->getApp();
+           $app = $this->getApp();
 
-		$cacheFile = $app->OCTOPUS_CACHE_DIR . 'full/' . trim($path, '/') . '/index.html';
-		$gzCacheFile = $cacheFile . '.gz';
+        $cacheFile = $app->OCTOPUS_CACHE_DIR . 'full/' . trim($path, '/') . '/index.html';
+        $gzCacheFile = $cacheFile . '.gz';
 
-		if (!$message) {
-			$message = $exists ? 'Cache file exists' : 'Cache file does not exist';
-		}
+        if (!$message) {
+            $message = $exists ? 'Cache file exists' : 'Cache file does not exist';
+        }
 
-		$this->assertEquals(!!$exists, is_file($cacheFile), $message . ' (' . $cacheFile . ')');
-		$this->assertEquals(!!$exists, is_file($gzCacheFile), $message . ' (' . $gzCacheFile . ')');
+        $this->assertEquals(!!$exists, is_file($cacheFile), $message . ' (' . $cacheFile . ')');
+        $this->assertEquals(!!$exists, is_file($gzCacheFile), $message . ' (' . $gzCacheFile . ')');
 
     }
 
     function createFullCacheTestFiles($discriminator) {
 
-    	$pageTpl = $this->getSiteDir() . 'themes/default/templates/html/page.php';
-    	file_put_contents($pageTpl, '<div class="page-tpl"> <?php echo $view_content ?> </div>');
+        $pageTpl = $this->getSiteDir() . 'themes/default/templates/html/page.php';
+        file_put_contents($pageTpl, '<div class="page-tpl"> <?php echo $view_content ?> </div>');
 
 
-    	$this->createControllerFile("TestFullCache{$discriminator}", <<<END
+        $this->createControllerFile("TestFullCache{$discriminator}", <<<END
 <?php
 
 class TestFullCache{$discriminator}Controller extends Octopus_Controller {
 
-	public function defaultCacheAction() {
+    public function defaultCacheAction() {
 
-	}
+    }
 
-	public function cacheAction() {
-		\$this->cache = true;
-	}
+    public function cacheAction() {
+        \$this->cache = true;
+    }
 
-	public function cachePlainTextAction() {
-		\$this->cache = true;
-		\$this->response->setContentType('text/plain');
-	}
+    public function cachePlainTextAction() {
+        \$this->cache = true;
+        \$this->response->setContentType('text/plain');
+    }
 
 }
 
 END
-  		);
+          );
 
-    	$discriminator = underscore($discriminator);
+        $discriminator = underscore($discriminator);
 
-    	$this->createViewFile("test_full_cache_{$discriminator}/default_cache.tpl", 'FOO');
-    	$this->createViewFile("test_full_cache_{$discriminator}/cache.tpl", 'FOO');
-    	$this->createViewFile("test_full_cache_{$discriminator}/no_cache.tpl", 'FOO');
+        $this->createViewFile("test_full_cache_{$discriminator}/default_cache.tpl", 'FOO');
+        $this->createViewFile("test_full_cache_{$discriminator}/cache.tpl", 'FOO');
+        $this->createViewFile("test_full_cache_{$discriminator}/no_cache.tpl", 'FOO');
 
 
     }

@@ -12,8 +12,8 @@
  */
 class Octopus_Html_Page_Section implements ArrayAccess {
 
-	protected $name;
-	protected $page;
+    protected $name;
+    protected $page;
 
     private $_scripts = array();
     private $removedScripts = array();
@@ -23,32 +23,32 @@ class Octopus_Html_Page_Section implements ArrayAccess {
 
     private static $counter = 0;
 
-	/**
-	 * @param String $name
-	 * @param Array $options
-	 */
-	public function __construct($name, Octopus_Html_Page $page) {
-		$this->name = $name;
-		$this->page = $page;
-	}
+    /**
+     * @param String $name
+     * @param Array $options
+     */
+    public function __construct($name, Octopus_Html_Page $page) {
+        $this->name = $name;
+        $this->page = $page;
+    }
 
-	public function __get($name) {
+    public function __get($name) {
 
-		switch($name) {
+        switch($name) {
 
-			case 'scripts':
-				return $this->renderJavascript(true);
+            case 'scripts':
+                return $this->renderJavascript(true);
 
-			case 'css':
-				return $this->renderCss(true);
+            case 'css':
+                return $this->renderCss(true);
 
-		}
+        }
 
-	}
+    }
 
-	public function __toString() {
-		return $this->render(true);
-	}
+    public function __toString() {
+        return $this->render(true);
+    }
 
     /**
      * @see Octopus_Html_Page::addCss()
@@ -56,18 +56,18 @@ class Octopus_Html_Page_Section implements ArrayAccess {
     public function addCss($file, $weight = null, $attributes = array()) {
 
         if (is_string($attributes)) {
-        	// addCss($file, $weight, 'media')
+            // addCss($file, $weight, 'media')
             $attributes = array('media' => $attributes);
         }
 
         if (is_array($weight)) {
-        	// addCss($file, $attributes)
+            // addCss($file, $attributes)
             $attributes = $weight;
             $weight = null;
         }
 
         if ($weight !== null && !is_numeric($weight)) {
-        	// addCss($file, 'media')
+            // addCss($file, 'media')
             $attributes['media'] = $weight;
             $weight = null;
         }
@@ -99,24 +99,24 @@ class Octopus_Html_Page_Section implements ArrayAccess {
         return $this;
     }
 
-	/**
-	 * @see Octopus_Html_Page::addJavascript
-	 * @param string $file
-	 * @param Number $weight
-	 * @param Array $attributes
-	 */
-	public function addJavascript($file, $weight = null, $attributes = array()) {
+    /**
+     * @see Octopus_Html_Page::addJavascript
+     * @param string $file
+     * @param Number $weight
+     * @param Array $attributes
+     */
+    public function addJavascript($file, $weight = null, $attributes = array()) {
 
-		// Support addJavascript($file, $attributes)
-		if (is_array($weight) && $attributes === null) {
-			$attributes = $weight;
-			$weight = null;
-		}
+        // Support addJavascript($file, $attributes)
+        if (is_array($weight) && $attributes === null) {
+            $attributes = $weight;
+            $weight = null;
+        }
 
-		if (isset($attributes['weight'])) {
-			$weight = $attributes['weight'];
-			unset($attributes['weight']);
-		}
+        if (isset($attributes['weight'])) {
+            $weight = $attributes['weight'];
+            unset($attributes['weight']);
+        }
 
         // index is used to help sort items with the same weight - items added
         // first get sorted before those added later
@@ -128,7 +128,7 @@ class Octopus_Html_Page_Section implements ArrayAccess {
         $this->_scripts[] = $script;
 
         return $this;
-	}
+    }
 
     /**
      * @param  boolean $minify
@@ -145,10 +145,10 @@ class Octopus_Html_Page_Section implements ArrayAccess {
             $item['file'] = $this->page->findFile($item['file']);
 
             if ($this->wasFileRemoved($item['file'], $this->removedCss)) {
-            	unset($css[$index]);
-            	unset($this->_css[$index]);
-            	unset($item);
-            	continue;
+                unset($css[$index]);
+                unset($this->_css[$index]);
+                unset($item);
+                continue;
             }
 
         }
@@ -163,10 +163,10 @@ class Octopus_Html_Page_Section implements ArrayAccess {
         return $css;
     }
 
-	/**
-	 * @param boolean $minify
-	 * @return Array
-	 */
+    /**
+     * @param boolean $minify
+     * @return Array
+     */
     public function getJavascriptFiles($minify = true) {
 
         $scripts = $this->_scripts;
@@ -176,8 +176,8 @@ class Octopus_Html_Page_Section implements ArrayAccess {
             $item['file'] = $this->page->findFile($item['file']);
 
             if ($this->wasFileRemoved($item['file'], $this->removedScripts)) {
-            	unset($scripts[$index]);
-            	unset($this->_scripts[$index]);
+                unset($scripts[$index]);
+                unset($this->_scripts[$index]);
             }
 
         }
@@ -203,14 +203,14 @@ class Octopus_Html_Page_Section implements ArrayAccess {
      * @return String
      */
     public function getName() {
-    	return $this->name;
+        return $this->name;
     }
 
     /**
      * @internal
      */
     public function offsetExists($name) {
-    	return true;
+        return true;
     }
 
     /**
@@ -218,7 +218,7 @@ class Octopus_Html_Page_Section implements ArrayAccess {
      * @return String
      */
     public function offsetGet($name) {
-    	return $this->$name;
+        return $this->$name;
     }
 
     /**
@@ -226,7 +226,7 @@ class Octopus_Html_Page_Section implements ArrayAccess {
      * @throws Octopus_Exception
      */
     public function offsetSet($name, $value) {
-    	throw new Octopus_Exception("offsetSet is not supported on " . __CLASS__);
+        throw new Octopus_Exception("offsetSet is not supported on " . __CLASS__);
     }
 
     /**
@@ -234,7 +234,7 @@ class Octopus_Html_Page_Section implements ArrayAccess {
      * @throws Octopus_Exception
      */
     public function offsetUnset($name) {
-    	throw new Octopus_Exception("offsetUnset is not supported on " . __CLASS__);
+        throw new Octopus_Exception("offsetUnset is not supported on " . __CLASS__);
     }
 
 
@@ -242,7 +242,7 @@ class Octopus_Html_Page_Section implements ArrayAccess {
      * Removes a CSS file.
      */
     public function removeCss($file) {
-    	$this->removedCss[$file] = true;
+        $this->removedCss[$file] = true;
         return $this;
     }
 
@@ -251,26 +251,26 @@ class Octopus_Html_Page_Section implements ArrayAccess {
      * @return Octopus_Html_Page_Section
      */
     public function removeJavascript($file) {
-    	$this->removedScripts[$file] = true;
-    	return $this;
+        $this->removedScripts[$file] = true;
+        return $this;
     }
 
     public function render($return = false, $minify = true) {
 
-    	$result = implode(
-    		"\n",
-    		array(
-    			$this->renderCss(true, $minify),
-    			$this->renderJavascript(true, $minify)
-    		)
-    	);
+        $result = implode(
+            "\n",
+            array(
+                $this->renderCss(true, $minify),
+                $this->renderJavascript(true, $minify)
+            )
+        );
 
-    	if ($return) {
-    		return $result;
-    	} else {
-    		echo $result;
-    		return $this;
-    	}
+        if ($return) {
+            return $result;
+        } else {
+            echo $result;
+            return $this;
+        }
 
     }
 
@@ -382,37 +382,37 @@ END;
 
     private static function mergeDuplicates($items) {
 
-    	$byFile = array();
-    	foreach($items as $item) {
+        $byFile = array();
+        foreach($items as $item) {
 
-    		$f = $item['file'];
+            $f = $item['file'];
 
-    		if (isset($byFile[$f])) {
-    			$byFile[$f] = array_merge($byFile[$f], $item);
-    		} else {
-    			$byFile[$f] = $item;
-    		}
+            if (isset($byFile[$f])) {
+                $byFile[$f] = array_merge($byFile[$f], $item);
+            } else {
+                $byFile[$f] = $item;
+            }
 
-    	}
+        }
 
-    	return array_values($byFile);
+        return array_values($byFile);
 
     }
 
     private function wasFileRemoved($file, &$removedFiles) {
 
-    	foreach($removedFiles as $removedFile => $unused) {
+        foreach($removedFiles as $removedFile => $unused) {
 
-    		$normalizedRemovedFile = $this->page->findFile($removedFile);
+            $normalizedRemovedFile = $this->page->findFile($removedFile);
 
-    		if ($file == $normalizedRemovedFile) {
-    			unset($removedFiles[$removedFile]);
-    			return true;
-    		}
+            if ($file == $normalizedRemovedFile) {
+                unset($removedFiles[$removedFile]);
+                return true;
+            }
 
-    	}
+        }
 
-    	return false;
+        return false;
 
     }
 

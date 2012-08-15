@@ -4,10 +4,10 @@ define("FUZZY_ONE_DAY", 86400);
 
 if (!function_exists('fuzzy_time')) {
 
-	/**
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
-	 */
+    /**
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
+     */
     function fuzzy_time($time = 0)
     {
         if($time == 0)
@@ -67,10 +67,10 @@ if (!function_exists('fuzzy_time')) {
 
 if (!function_exists('fuzzy_date')) {
 
-	/**
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
-	 */
+    /**
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
+     */
     function fuzzy_date($time = 0)
     {
         $text = fuzzy_time($time);

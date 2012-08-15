@@ -23,9 +23,9 @@ class RenderTests extends Octopus_App_TestCase
 
 class BasicViewRenderingController extends Octopus_Controller {
 
-	public function action() {
+    public function action() {
 
-	}
+    }
 
 }
 
@@ -76,13 +76,13 @@ END
 
 class TestBasicSmartyRenderController extends Octopus_Controller {
 
-	public function action() {
+    public function action() {
 
-	}
+    }
 
 }
 END
-		);
+        );
         $viewFile = $this->createViewFile('action.tpl', 'Smarty view contents');
 
         $app = $this->startApp();

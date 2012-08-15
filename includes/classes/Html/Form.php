@@ -355,7 +355,7 @@ class Octopus_Html_Form extends Octopus_Html_Element {
 
         if ($el instanceof Octopus_Html_Form_Field) {
 
-			$elementName = preg_replace('/\[\]$/', '', $el->name);
+            $elementName = preg_replace('/\[\]$/', '', $el->name);
 
             if ($name === null) {
                 $array[$elementName] = $el;
@@ -705,9 +705,9 @@ class Octopus_Html_Form extends Octopus_Html_Element {
      */
     protected function createButton($type, $name = null, $value = null, $text = null, $attributes = null) {
 
-    	if ($type instanceof Octopus_Html_Element) {
-    		return $type;
-    	}
+        if ($type instanceof Octopus_Html_Element) {
+            return $type;
+        }
 
         $attributes = $attributes ? $attributes : array();
 

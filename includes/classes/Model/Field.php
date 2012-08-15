@@ -183,12 +183,12 @@ abstract class Octopus_Model_Field {
      */
     public function migrate(Octopus_DB_Schema $schema, Octopus_DB_Schema_Writer $table, $name = null, $autoIncrement = null) {
 
-    	if (!$this->migrateMethod) {
-    		return;
-    	}
+        if (!$this->migrateMethod) {
+            return;
+        }
 
-    	if (!$name) $name = $this->getFieldName();
-    	$table->{$this->migrateMethod}($name);
+        if (!$name) $name = $this->getFieldName();
+        $table->{$this->migrateMethod}($name);
 
     }
 
@@ -315,30 +315,30 @@ abstract class Octopus_Model_Field {
 
         if (is_array($fieldName)) {
 
-        	if (empty($fieldName)) {
-        		return '';
-        	}
+            if (empty($fieldName)) {
+                return '';
+            }
 
-        	if (!is_array($value)) {
-        		throw new Octopus_Model_Exception("For arrays of field names, values must be an array as well.");
-        	}
+            if (!is_array($value)) {
+                throw new Octopus_Model_Exception("For arrays of field names, values must be an array as well.");
+            }
 
-        	// Many-to-many uses this for restriction
-        	$result = array();
-        	foreach($fieldName as $field) {
-        		$fieldValue = array_shift($value);
-        		$result[] = self::defaultRestrict(
-        			array($table, $field),
-        			$operator,
-        			$defaultOperator,
-        			$fieldValue,
-        			$s,
-        			$params,
-        			$model
-        		);
-        	}
+            // Many-to-many uses this for restriction
+            $result = array();
+            foreach($fieldName as $field) {
+                $fieldValue = array_shift($value);
+                $result[] = self::defaultRestrict(
+                    array($table, $field),
+                    $operator,
+                    $defaultOperator,
+                    $fieldValue,
+                    $s,
+                    $params,
+                    $model
+                );
+            }
 
-        	return '(' . implode(') AND (', $result) . ')';
+            return '(' . implode(') AND (', $result) . ')';
         }
 
 
@@ -385,14 +385,14 @@ abstract class Octopus_Model_Field {
 
         } else {
 
-	        if (($operator === '=' || $operator === '!=') && $value === null) {
-	        	// Do is null check
-	        	$n = ($operator === '!=' ? 'NOT ' : '');
-				$expr = "`$table`.`$fieldName` IS {$n}NULL";
-	        } else {
-	        	$params[] = $value;
-	        	$expr = "`$table`.`$fieldName` $operator ?";
-	        }
+            if (($operator === '=' || $operator === '!=') && $value === null) {
+                // Do is null check
+                $n = ($operator === '!=' ? 'NOT ' : '');
+                $expr = "`$table`.`$fieldName` IS {$n}NULL";
+            } else {
+                $params[] = $value;
+                $expr = "`$table`.`$fieldName` $operator ?";
+            }
 
         }
 

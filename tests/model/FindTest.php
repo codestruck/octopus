@@ -27,46 +27,46 @@ class FindTest extends Octopus_DB_TestCase {
 
     function testIsSortable() {
 
-    	$posts = FindPost::all();
+        $posts = FindPost::all();
 
-    	$this->assertTrue($posts->isSortable('title'), 'title is sortable');
-    	$this->assertFalse($posts->isSortable('fake_field', 'not sortable by non-existant field'));
+        $this->assertTrue($posts->isSortable('title'), 'title is sortable');
+        $this->assertFalse($posts->isSortable('fake_field', 'not sortable by non-existant field'));
 
     }
 
     function testUnfilter() {
 
-    	$posts = FindPost::find('title', 'foo')->where('active', 1)->orderBy('title');
-    	$this->assertSqlEquals(
-	    	'SELECT * FROM find_posts ORDER BY `find_posts`.`title` ASC',
-	    	$posts->unfilter()
-	    );
+        $posts = FindPost::find('title', 'foo')->where('active', 1)->orderBy('title');
+        $this->assertSqlEquals(
+            'SELECT * FROM find_posts ORDER BY `find_posts`.`title` ASC',
+            $posts->unfilter()
+        );
 
     }
 
     function testIsSortedBy() {
 
-    	$posts = FindPost::all()->orderBy('title desc', 'author');
+        $posts = FindPost::all()->orderBy('title desc', 'author');
 
-    	$this->assertTrue($posts->isSortedBy('title', $asc, $index), 'should be sorted by title');
-    	$this->assertFalse($asc);
-    	$this->assertEquals(0, $index);
+        $this->assertTrue($posts->isSortedBy('title', $asc, $index), 'should be sorted by title');
+        $this->assertFalse($asc);
+        $this->assertEquals(0, $index);
 
-    	$this->assertTrue($posts->isSortedBy('author', $asc, $index));
-    	$this->assertTrue($asc);
-    	$this->assertEquals(1, $index);
+        $this->assertTrue($posts->isSortedBy('author', $asc, $index));
+        $this->assertTrue($asc);
+        $this->assertEquals(1, $index);
 
     }
 
     function testUnsort() {
 
-    	$posts = FindPost::all()->orderBy('title');
-    	$posts = $posts->unsort();
+        $posts = FindPost::all()->orderBy('title');
+        $posts = $posts->unsort();
 
-    	$this->assertSqlEquals(
-	    	'SELECT * FROM find_posts',
-	    	$posts
-	    );
+        $this->assertSqlEquals(
+            'SELECT * FROM find_posts',
+            $posts
+        );
 
     }
 
@@ -403,7 +403,7 @@ END;
 
     }
 
-	function testInheritLimit() {
+    function testInheritLimit() {
 
         $posts = FindPost::all()->limit(10, 30)->where('title', 'foo');
         $this->assertSqlEquals("SELECT * FROM find_posts WHERE `find_posts`.`title` = 'foo' LIMIT 10, 30", $posts);
@@ -828,35 +828,35 @@ END;
 
     function testWhereHasOneNotNull() {
 
-    	// have some 0 and null values
-    	$db = Octopus_DB::singleton();
-    	$db->query('UPDATE find_posts SET author_id = 0 WHERE author_id = 2');
+        // have some 0 and null values
+        $db = Octopus_DB::singleton();
+        $db->query('UPDATE find_posts SET author_id = 0 WHERE author_id = 2');
 
-    	$posts = FindPost::find(array(
-    		'author !=' => null
-    	));
+        $posts = FindPost::find(array(
+            'author !=' => null
+        ));
 
-    	$this->assertEquals(3, count($posts));
-    	foreach($posts as $p) {
-    		$this->assertTrue(!!$p->author);
-    	}
+        $this->assertEquals(3, count($posts));
+        foreach($posts as $p) {
+            $this->assertTrue(!!$p->author);
+        }
 
     }
 
     function testWhereHasOneNull() {
 
-    	// have some 0 and null values
-    	$db = Octopus_DB::singleton();
-    	$db->query('UPDATE find_posts SET author_id = 0 WHERE author_id = 2');
+        // have some 0 and null values
+        $db = Octopus_DB::singleton();
+        $db->query('UPDATE find_posts SET author_id = 0 WHERE author_id = 2');
 
-    	$posts = FindPost::find(array(
-    		'author =' => null
-    	));
+        $posts = FindPost::find(array(
+            'author =' => null
+        ));
 
-    	$this->assertEquals(3, count($posts));
-    	foreach($posts as $p) {
-    		$this->assertFalse(!!$p->author);
-    	}
+        $this->assertEquals(3, count($posts));
+        foreach($posts as $p) {
+            $this->assertFalse(!!$p->author);
+        }
 
     }
 
@@ -944,26 +944,26 @@ END;
 
     function testHasOneNullProperty() {
 
-    	// TODO: dataprovider
-    	$params = array(
+        // TODO: dataprovider
+        $params = array(
 
-    		array(	'', 	2 ),
-    		array(	'=',	2 ),
-    		array(	'!=',	3 ),
-    		array(	'NOT',	3 ),
+            array(    '',     2 ),
+            array(    '=',    2 ),
+            array(    '!=',    3 ),
+            array(    'NOT',    3 ),
 
-    	);
+        );
 
-    	foreach($params as $p) {
+        foreach($params as $p) {
 
-    		list($operator, $expectedCount) = $p;
-	    	if ($operator) $operator = " $operator";
+            list($operator, $expectedCount) = $p;
+            if ($operator) $operator = " $operator";
 
-	    	$authors = FindPost::find(array(
-	    		"author.favorite_food{$operator}" => null
-	    	));
-	    	$this->assertEquals($expectedCount, count($authors), "$operator expected $expectedCount");
-	    }
+            $authors = FindPost::find(array(
+                "author.favorite_food{$operator}" => null
+            ));
+            $this->assertEquals($expectedCount, count($authors), "$operator expected $expectedCount");
+        }
 
     }
 

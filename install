@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [ ! -f .htaccess ] 
+if [ ! -f .htaccess ]
 then
     ln -s octopus/.htaccess
 fi
@@ -26,11 +26,5 @@ if [ ! -d site ]
 then
 	mkdir site
 fi
-
-if [ ! -d site/files ]
-then
-	mkdir site/files
-fi
-chmod 777 site/files
 
 echo Octopus is now installed.

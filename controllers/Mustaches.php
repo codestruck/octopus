@@ -10,8 +10,8 @@ class Mustaches_Controller extends Octopus_Controller {
 
     function _default($action = '') {
 
-    	// Basic action sanitization
-    	$action = preg_replace('/[^a-z0-9\._\/-]/', '', $action);
+        // Basic action sanitization
+        $action = preg_replace('/[^a-z0-9\._\/-]/', '', $action);
 
         if (get('production')) {
             $js = $this->getProduction($action);
@@ -23,12 +23,12 @@ class Mustaches_Controller extends Octopus_Controller {
         $this->response->append($js);
         $this->response->stop();
 
-		// This is a little convoluted, but by default, Octopus_Response will
-		// guess the renderer to use based on the content type. By manually
-		// setting the renderer here, we ensure that the JS above just gets
-		// outputted directly when the response is rendered (without any
-		// templating logic being applied.)
-		$this->response->setRenderer(new Octopus_Renderer_AppendedContent());
+        // This is a little convoluted, but by default, Octopus_Response will
+        // guess the renderer to use based on the content type. By manually
+        // setting the renderer here, we ensure that the JS above just gets
+        // outputted directly when the response is rendered (without any
+        // templating logic being applied.)
+        $this->response->setRenderer(new Octopus_Renderer_AppendedContent());
 
     }
 

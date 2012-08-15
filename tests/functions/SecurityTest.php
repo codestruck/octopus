@@ -56,11 +56,11 @@ class SecurityTests extends PHPUnit_Framework_TestCase
 
     function testMakePassword() {
 
-    	$pass = make_password(10);
-    	$this->assertEquals(10, strlen($pass), 'Password is proper length');
+        $pass = make_password(10);
+        $this->assertEquals(10, strlen($pass), 'Password is proper length');
 
-    	$pass = make_password(5);
-    	$this->assertEquals(5, strlen($pass));
+        $pass = make_password(5);
+        $this->assertEquals(5, strlen($pass));
 
     }
 

@@ -8,73 +8,73 @@
  */
 class ElementTests extends Octopus_Html_TestCase {
 
-	function testTextEscapesProperly() {
+    function testTextEscapesProperly() {
 
-		$e = new Octopus_Html_Element('span');
-		$e->text(<<<END
+        $e = new Octopus_Html_Element('span');
+        $e->text(<<<END
 'quotes should be intact, <> but "angle brackets" should be escaped'
 END
-		);
+        );
 
-		$this->assertHtmlEquals(
-			<<<END
+        $this->assertHtmlEquals(
+            <<<END
 <span>'quotes should be intact, &lt;&gt; but "angle brackets" should be escaped'</span>
 END
-			,
-			$e->render(true)
-		);
+            ,
+            $e->render(true)
+        );
 
-	}
+    }
 
-	function testDontEscapeAttributesDeep() {
+    function testDontEscapeAttributesDeep() {
 
-		$el = new Octopus_Html_Element('span');
-		$el->title = '&gt;';
+        $el = new Octopus_Html_Element('span');
+        $el->title = '&gt;';
 
-		$child = new Octopus_Html_Element('span');
-		$child->title = '&lt;';
+        $child = new Octopus_Html_Element('span');
+        $child->title = '&lt;';
 
-		$el->append($child);
+        $el->append($child);
 
-		$this->assertHtmlEquals(
-			<<<END
+        $this->assertHtmlEquals(
+            <<<END
 <span title="&gt;"><span title="&lt;" /></span>
 END
-			,
-			$el->render(true, Octopus_Html_Element::DONT_ESCAPE_ATTRIBUTES)
-		);
+            ,
+            $el->render(true, Octopus_Html_Element::DONT_ESCAPE_ATTRIBUTES)
+        );
 
-	}
+    }
 
-	function testByDefaultEscapeAttributes() {
+    function testByDefaultEscapeAttributes() {
 
-		$el = new Octopus_Html_Element('span');
-		$el->title = "<'this is a test'>";
+        $el = new Octopus_Html_Element('span');
+        $el->title = "<'this is a test'>";
 
-		$this->assertHtmlEquals(
-			<<<END
+        $this->assertHtmlEquals(
+            <<<END
 <span title="&lt;&#039;this is a test&#039;&gt;" />
 END
-			,
-			$el->render(true)
-		);
+            ,
+            $el->render(true)
+        );
 
-	}
+    }
 
-	function testOptionallyDontEscapeAttributes() {
+    function testOptionallyDontEscapeAttributes() {
 
-		$el = new Octopus_Html_Element('span');
-		$el->title = "&lt;This is a test&gt;";
+        $el = new Octopus_Html_Element('span');
+        $el->title = "&lt;This is a test&gt;";
 
-		$this->assertHtmlEquals(
-			<<<END
+        $this->assertHtmlEquals(
+            <<<END
 <span title="&lt;This is a test&gt;" />
 END
-			,
-			$el->render(true, Octopus_Html_Element::DONT_ESCAPE_ATTRIBUTES)
-		);
+            ,
+            $el->render(true, Octopus_Html_Element::DONT_ESCAPE_ATTRIBUTES)
+        );
 
-	}
+    }
 
     function testAppendTo() {
 
@@ -283,22 +283,22 @@ END
 
     function testAddRemoveClassWithDashes() {
 
-    	$e = new Octopus_Html_Element('span');
+        $e = new Octopus_Html_Element('span');
 
-    	$e->addClass('my-span');
-    	$this->assertEquals('my-span', $e->class);
+        $e->addClass('my-span');
+        $this->assertEquals('my-span', $e->class);
 
-    	$e->addClass('span', 'my');
-    	$this->assertEquals('my-span span my', $e->class);
+        $e->addClass('span', 'my');
+        $this->assertEquals('my-span span my', $e->class);
 
-    	$e->removeClass('span');
-    	$this->assertEquals('my-span my', $e->class);
+        $e->removeClass('span');
+        $this->assertEquals('my-span my', $e->class);
 
-    	$e->removeClass('my');
-    	$this->assertEquals('my-span', $e->class);
+        $e->removeClass('my');
+        $this->assertEquals('my-span', $e->class);
 
-    	$e->removeClass('my-span');
-    	$this->assertEquals('', $e->class);
+        $e->removeClass('my-span');
+        $this->assertEquals('', $e->class);
 
 
     }

@@ -63,7 +63,7 @@ class Octopus_Model_Field_HasMany extends Octopus_Model_Field {
         }
 
         if (is_numeric($obj)) {
-        	// $obj is an id
+            // $obj is an id
             $class = $this->getOption('model');
             if (!$class) $class = camel_case(singularize($this->getFieldName()), true);
             $obj = new $class($obj);
@@ -71,7 +71,7 @@ class Octopus_Model_Field_HasMany extends Octopus_Model_Field {
 
         $pkFields = $model->getPrimaryKeyFields();
         if (count($pkFields) !== 1) {
-        	throw new Octopus_Model_Exception("HasMany is not supported on models with compound primary keys.");
+            throw new Octopus_Model_Exception("HasMany is not supported on models with compound primary keys.");
         }
 
         $key = $this->getOption('key');
@@ -89,13 +89,13 @@ class Octopus_Model_Field_HasMany extends Octopus_Model_Field {
 
             // TODO: let filter specify the field on the other end
 
-		} else {
-			$obj->$key = $value;
-		}
+        } else {
+            $obj->$key = $value;
+        }
 
-			$obj->save();
+            $obj->save();
 
-	}
+    }
 
     public function getFieldName() {
         return pluralize($this->field);

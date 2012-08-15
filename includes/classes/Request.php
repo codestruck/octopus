@@ -41,13 +41,13 @@ class Octopus_Request {
 
     public function __get($name) {
 
-    	switch($name) {
+        switch($name) {
 
-    		case 'app':
-    			$getter = 'get' . ucwords($name);
-    			return $this->$getter();
+            case 'app':
+                $getter = 'get' . ucwords($name);
+                return $this->$getter();
 
-    	}
+        }
 
     }
 

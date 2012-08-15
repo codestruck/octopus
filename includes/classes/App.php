@@ -154,7 +154,7 @@ class Octopus_App {
 
         if (is_dir($viewsDir)) {
 
-        	$extensions = Octopus_Renderer_Template_Engine::getExtensions();
+            $extensions = Octopus_Renderer_Template_Engine::getExtensions();
 
             foreach($extensions as $ext) {
 
@@ -201,20 +201,20 @@ class Octopus_App {
      */
     public function errorHandler($level, $err, $file, $line, $context) {
 
-    	if (error_reporting() === 0) {
-    		// This was a suppressed error (@whatever)
-    		return true;
-    	}
+        if (error_reporting() === 0) {
+            // This was a suppressed error (@whatever)
+            return true;
+        }
 
-		if (!(error_reporting() & $level)) {
-			// This error should not be shown.
-			return true;
-		}
+        if (!(error_reporting() & $level)) {
+            // This error should not be shown.
+            return true;
+        }
 
-    	$isNonSevere = ($level === E_NOTICE) ||
-    				   ($level === E_DEPRECATED) ||
-    				   ($level === E_STRICT) ||
-    				   ($level === E_USER_NOTICE);
+        $isNonSevere = ($level === E_NOTICE) ||
+                       ($level === E_DEPRECATED) ||
+                       ($level === E_STRICT) ||
+                       ($level === E_USER_NOTICE);
 
         $isSevere = !$isNonSevere;
 
@@ -226,7 +226,7 @@ class Octopus_App {
 
         }
 
-		// Pass errors on to Octopus_Log to distribute them to listeners
+        // Pass errors on to Octopus_Log to distribute them to listeners
         return Octopus_Log::errorHandler($level, $err, $file, $line, $context);
     }
 
@@ -338,9 +338,9 @@ class Octopus_App {
      */
     public function getRendererForContentType($contentType) {
 
-    	if ($this->_renderer) {
-    		return $this->_renderer;
-    	}
+        if ($this->_renderer) {
+            return $this->_renderer;
+        }
 
         return ($this->_renderer = Octopus::create('Octopus_Renderer', array($this)));
     }
@@ -352,13 +352,13 @@ class Octopus_App {
      */
     public function clearFullCache() {
 
-    	$cacheDir = $this->OCTOPUS_CACHE_DIR . 'full/';
+        $cacheDir = $this->OCTOPUS_CACHE_DIR . 'full/';
 
-    	if (!is_dir($cacheDir)) {
-    		return true;
-    	}
+        if (!is_dir($cacheDir)) {
+            return true;
+        }
 
-    	return recursive_delete($cacheDir);
+        return recursive_delete($cacheDir);
     }
 
     /**
@@ -377,8 +377,8 @@ class Octopus_App {
      * any pages in it were generated while in DEV.
      */
     public function isFullCacheEnabled() {
-    	$enabled = $this->getOption('full_cache', null);
-    	return $enabled || ($enabled === null && !$this->DEV);
+        $enabled = $this->getOption('full_cache', null);
+        return $enabled || ($enabled === null && !$this->DEV);
     }
 
     /**
@@ -740,7 +740,7 @@ class Octopus_App {
     }
 
     private function _configureLoggingAndDebugging() {
-    	Octopus_Debug::configure($this->_options, false);
+        Octopus_Debug::configure($this->_options, false);
     }
 
 
@@ -801,7 +801,7 @@ class Octopus_App {
                             break;
 
                         case 'OCTOPUS_UPLOAD_DIR':
-                            $o[$dir] = $o['SITE_DIR'] . 'files/';
+                            $o[$dir] = $o['ROOT_DIR'] . 'upload/';
                             break;
 
                     }
@@ -865,7 +865,7 @@ class Octopus_App {
                 $o['URL_BASE'] = find_url_base($o['ROOT_DIR']);
 
                 if ($o['URL_BASE'] === false) {
-                	Octopus_Log::debug("Could not determine URL_BASE. Assuming '/'");
+                    Octopus_Log::debug("Could not determine URL_BASE. Assuming '/'");
                     $o['URL_BASE'] = '/';
                 }
             }
@@ -1052,11 +1052,11 @@ class Octopus_App {
      */
     private function cleanFullCache() {
 
-    	$file = $this->OCTOPUS_CACHE_DIR . 'full/.generated_in_dev';
-    	if (is_file($file) && !$this->DEV) {
-    		Octopus_Log::info("Full cache files generated in DEV found while running in STAGING or LIVE-- clearing full cache.");
-    		$this->clearFullCache();
-    	}
+        $file = $this->OCTOPUS_CACHE_DIR . 'full/.generated_in_dev';
+        if (is_file($file) && !$this->DEV) {
+            Octopus_Log::info("Full cache files generated in DEV found while running in STAGING or LIVE-- clearing full cache.");
+            $this->clearFullCache();
+        }
 
     }
 

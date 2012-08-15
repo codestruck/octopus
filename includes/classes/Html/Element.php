@@ -7,17 +7,17 @@
  */
 class Octopus_Html_Element {
 
-	/**
-	 * Pass to ::render() to prevent auto-escaping attributes in generated
-	 * HTML.
-	 */
-	const DONT_ESCAPE_ATTRIBUTES = 0;
+    /**
+     * Pass to ::render() to prevent auto-escaping attributes in generated
+     * HTML.
+     */
+    const DONT_ESCAPE_ATTRIBUTES = 0;
 
-	/**
-	 * Pass to ::render() to enable escaping of content in attributes. This
-	 * is the default.
-	 */
-	const ESCAPE_ATTRIBUTES = 1;
+    /**
+     * Pass to ::render() to enable escaping of content in attributes. This
+     * is the default.
+     */
+    const ESCAPE_ATTRIBUTES = 1;
 
     protected $_parentElement;
     protected $_tag;
@@ -600,9 +600,9 @@ class Octopus_Html_Element {
             if ($count > 0) $content .= "\n";
 
             if ($c instanceof Octopus_Html_Element) {
-            	$content .= $c->render(true, $escape);
+                $content .= $c->render(true, $escape);
             } else {
-            	$content .= $c;
+                $content .= $c;
             }
         }
 
@@ -625,10 +625,10 @@ class Octopus_Html_Element {
 
                 foreach(func_get_args() as $arg) {
 
-                	// NOTE: Using htmlspecialchars() here rather than h() because
-                	// we need to keep quotes in tact when, e.g. setting the
-                	// text content of a <script> element
-                	$this->_content[] = htmlspecialchars($arg, ENT_NOQUOTES, 'UTF-8');
+                    // NOTE: Using htmlspecialchars() here rather than h() because
+                    // we need to keep quotes in tact when, e.g. setting the
+                    // text content of a <script> element
+                    $this->_content[] = htmlspecialchars($arg, ENT_NOQUOTES, 'UTF-8');
 
                 }
 

@@ -6,175 +6,175 @@
  */
 class DirectoryMonitorTest extends Octopus_App_TestCase {
 
-	function testMonitorDirectoryCatchNewFile() {
+    function testMonitorDirectoryCatchNewFile() {
 
-		$dir = sys_get_temp_dir() . '/' . preg_replace('/[^a-z0-9-]/i', '-', __METHOD__) . '-' . time() . '/';
-		mkdir($dir);
+        $dir = sys_get_temp_dir() . '/' . preg_replace('/[^a-z0-9-]/i', '-', __METHOD__) . '-' . time() . '/';
+        mkdir($dir);
 
-		$monitor = new Octopus_Directory_Monitor($dir);
+        $monitor = new Octopus_Directory_Monitor($dir);
 
-		$this->assertEquals(
-			array(),
-			$monitor->getChangedFiles()
-		);
+        $this->assertEquals(
+            array(),
+            $monitor->getChangedFiles()
+        );
 
-		touch($dir . 'test.txt');
-		$this->assertEquals(array($dir . 'test.txt'), $monitor->getChangedFiles());
-		$this->assertEquals(array(), $monitor->getChangedFiles());
+        touch($dir . 'test.txt');
+        $this->assertEquals(array($dir . 'test.txt'), $monitor->getChangedFiles());
+        $this->assertEquals(array(), $monitor->getChangedFiles());
 
-		$monitor->reset();
-		$this->assertEquals(array($dir . 'test.txt'), $monitor->getChangedFiles());
-		$this->assertEquals(array(), $monitor->getChangedFiles());
+        $monitor->reset();
+        $this->assertEquals(array($dir . 'test.txt'), $monitor->getChangedFiles());
+        $this->assertEquals(array(), $monitor->getChangedFiles());
 
-	}
+    }
 
-	function testMonitorDirectoryCatchNewFileDeep() {
+    function testMonitorDirectoryCatchNewFileDeep() {
 
-		$dir = sys_get_temp_dir() . '/' . preg_replace('/[^a-z0-9-]/i', '-', __METHOD__) . '-' . time() . '/';
-		mkdir($dir);
+        $dir = sys_get_temp_dir() . '/' . preg_replace('/[^a-z0-9-]/i', '-', __METHOD__) . '-' . time() . '/';
+        mkdir($dir);
 
-		$subdir = $dir . 'subdir/';
-		mkdir($subdir);
+        $subdir = $dir . 'subdir/';
+        mkdir($subdir);
 
-		$monitor = new Octopus_Directory_Monitor($dir);
+        $monitor = new Octopus_Directory_Monitor($dir);
 
-		$this->assertEquals(
-			array(),
-			$monitor->getChangedFiles()
-		);
+        $this->assertEquals(
+            array(),
+            $monitor->getChangedFiles()
+        );
 
-		touch($subdir . 'test.txt');
-		$this->assertEquals(array($subdir . 'test.txt'), $monitor->getChangedFiles());
-		$this->assertEquals(array(), $monitor->getChangedFiles());
+        touch($subdir . 'test.txt');
+        $this->assertEquals(array($subdir . 'test.txt'), $monitor->getChangedFiles());
+        $this->assertEquals(array(), $monitor->getChangedFiles());
 
-		$monitor->reset();
-		$this->assertEquals(array($subdir . 'test.txt'), $monitor->getChangedFiles());
-		$this->assertEquals(array(), $monitor->getChangedFiles());
+        $monitor->reset();
+        $this->assertEquals(array($subdir . 'test.txt'), $monitor->getChangedFiles());
+        $this->assertEquals(array(), $monitor->getChangedFiles());
 
-		touch($dir . 'test.txt');
-		$this->assertEquals(array($dir . 'test.txt'), $monitor->getChangedFiles());
+        touch($dir . 'test.txt');
+        $this->assertEquals(array($dir . 'test.txt'), $monitor->getChangedFiles());
 
-		$monitor->reset();
+        $monitor->reset();
 
-		$expected = array($subdir . 'test.txt', $dir . 'test.txt');
-		$actual = $monitor->getChangedFiles();
+        $expected = array($subdir . 'test.txt', $dir . 'test.txt');
+        $actual = $monitor->getChangedFiles();
 
-		sort($expected);
-		sort($actual);
+        sort($expected);
+        sort($actual);
 
-		$this->assertEquals($expected, $actual);
+        $this->assertEquals($expected, $actual);
 
-	}
+    }
 
-	/**
-	 * @group slow
-	 */
-	function testMonitorDirectoryCatchChangedFile() {
+    /**
+     * @group slow
+     */
+    function testMonitorDirectoryCatchChangedFile() {
 
-		$dir = sys_get_temp_dir() . '/' . preg_replace('/[^a-z0-9-]/i', '-', __METHOD__) . '-' . time() . '/';
-		mkdir($dir);
+        $dir = sys_get_temp_dir() . '/' . preg_replace('/[^a-z0-9-]/i', '-', __METHOD__) . '-' . time() . '/';
+        mkdir($dir);
 
-		$monitor = new Octopus_Directory_Monitor($dir);
+        $monitor = new Octopus_Directory_Monitor($dir);
 
-		$this->assertEquals(array(), $monitor->getChangedFiles());
+        $this->assertEquals(array(), $monitor->getChangedFiles());
 
-		touch($dir . 'test.txt');
-		$this->assertEquals(array($dir . 'test.txt'), $monitor->getChangedFiles());
-		$this->assertEquals(array(), $monitor->getChangedFiles());
+        touch($dir . 'test.txt');
+        $this->assertEquals(array($dir . 'test.txt'), $monitor->getChangedFiles());
+        $this->assertEquals(array(), $monitor->getChangedFiles());
 
-		sleep(2);
-
-
-		touch($dir . 'test.txt');
-		$this->assertEquals(array($dir . 'test.txt'), $monitor->getChangedFiles());
+        sleep(2);
 
 
-
-	}
-
-	/**
-	 * @group slow
-	 */
-	function testMonitorDirectoryCatchChangedFileDeep() {
-
-		$dir = sys_get_temp_dir() . '/' . preg_replace('/[^a-z0-9-]/i', '-', __METHOD__) . '-' . time() . '/';
-		mkdir($dir);
-
-		$subdir = $dir . 'subdir/';
-		mkdir($subdir);
-
-		$monitor = new Octopus_Directory_Monitor($dir);
-
-		$this->assertEquals(array(), $monitor->getChangedFiles());
-
-		touch($subdir . 'test.txt');
-		$this->assertEquals(array($subdir . 'test.txt'), $monitor->getChangedFiles());
-		$this->assertEquals(array(), $monitor->getChangedFiles());
-
-		sleep(2);
-
-		touch($subdir . 'test.txt');
-		$this->assertEquals(array($subdir . 'test.txt'), $monitor->getChangedFiles());
+        touch($dir . 'test.txt');
+        $this->assertEquals(array($dir . 'test.txt'), $monitor->getChangedFiles());
 
 
 
-	}
+    }
 
-	function testMonitorDirectoryNotDeep() {
+    /**
+     * @group slow
+     */
+    function testMonitorDirectoryCatchChangedFileDeep() {
 
-		$dir = sys_get_temp_dir() . '/' . preg_replace('/[^a-z0-9-]/i', '-', __METHOD__) . '-' . time() . '/';
-		mkdir($dir);
+        $dir = sys_get_temp_dir() . '/' . preg_replace('/[^a-z0-9-]/i', '-', __METHOD__) . '-' . time() . '/';
+        mkdir($dir);
 
-		$subdir = $dir . 'subdir/';
-		mkdir($subdir);
+        $subdir = $dir . 'subdir/';
+        mkdir($subdir);
 
-		$monitor = new Octopus_Directory_Monitor();
-		$monitor->addDirectory($dir, false);
+        $monitor = new Octopus_Directory_Monitor($dir);
 
-		touch($subdir . 'test.txt');
-		$this->assertEquals(array(), $monitor->getChangedFiles());
+        $this->assertEquals(array(), $monitor->getChangedFiles());
 
-		touch($dir . 'test.txt');
-		$this->assertEquals(array($dir . 'test.txt'), $monitor->getChangedFiles());
+        touch($subdir . 'test.txt');
+        $this->assertEquals(array($subdir . 'test.txt'), $monitor->getChangedFiles());
+        $this->assertEquals(array(), $monitor->getChangedFiles());
 
-	}
+        sleep(2);
 
-	function testRegexFilter() {
+        touch($subdir . 'test.txt');
+        $this->assertEquals(array($subdir . 'test.txt'), $monitor->getChangedFiles());
 
-		$dir = sys_get_temp_dir() . '/' . preg_replace('/[^a-z0-9-]/i', '-', __METHOD__) . '-' . time() . '/';
-		mkdir($dir);
 
-		$monitor = new Octopus_Directory_Monitor($dir);
-		$monitor->addFilter('/foo/');
-		$this->assertEquals(array('/foo/'), $monitor->getFilters());
-		$monitor->removeFilter('blerg');
-		$this->assertEquals(array('/foo/'), $monitor->getFilters());
-		$monitor->removeFilter('/foo/');
-		$this->assertEquals(array(), $monitor->getFilters());
-		$monitor->addFilter('/foo/');
 
-		$this->assertEquals(array(), $monitor->getChangedFiles());
+    }
 
-		touch($dir . 'test.txt');
-		touch($dir . 'foo.txt');
+    function testMonitorDirectoryNotDeep() {
 
-		$this->assertEquals(array($dir . 'foo.txt'), $monitor->getChangedFiles());
-		$this->assertEquals(array(), $monitor->getChangedFiles());
+        $dir = sys_get_temp_dir() . '/' . preg_replace('/[^a-z0-9-]/i', '-', __METHOD__) . '-' . time() . '/';
+        mkdir($dir);
 
-		$monitor->reset();
-		$this->assertEquals(array($dir . 'foo.txt'), $monitor->getChangedFiles());
-		$this->assertEquals(array(), $monitor->getChangedFiles());
+        $subdir = $dir . 'subdir/';
+        mkdir($subdir);
 
-		$monitor->clearFilters();
+        $monitor = new Octopus_Directory_Monitor();
+        $monitor->addDirectory($dir, false);
 
-		$expected = array($dir . 'foo.txt', $dir . 'test.txt');
-		$actual = $monitor->getChangedFiles();
+        touch($subdir . 'test.txt');
+        $this->assertEquals(array(), $monitor->getChangedFiles());
 
-		sort($expected);
-		sort($actual);
+        touch($dir . 'test.txt');
+        $this->assertEquals(array($dir . 'test.txt'), $monitor->getChangedFiles());
 
-		$this->assertEquals($expected, $actual);
+    }
 
-	}
+    function testRegexFilter() {
+
+        $dir = sys_get_temp_dir() . '/' . preg_replace('/[^a-z0-9-]/i', '-', __METHOD__) . '-' . time() . '/';
+        mkdir($dir);
+
+        $monitor = new Octopus_Directory_Monitor($dir);
+        $monitor->addFilter('/foo/');
+        $this->assertEquals(array('/foo/'), $monitor->getFilters());
+        $monitor->removeFilter('blerg');
+        $this->assertEquals(array('/foo/'), $monitor->getFilters());
+        $monitor->removeFilter('/foo/');
+        $this->assertEquals(array(), $monitor->getFilters());
+        $monitor->addFilter('/foo/');
+
+        $this->assertEquals(array(), $monitor->getChangedFiles());
+
+        touch($dir . 'test.txt');
+        touch($dir . 'foo.txt');
+
+        $this->assertEquals(array($dir . 'foo.txt'), $monitor->getChangedFiles());
+        $this->assertEquals(array(), $monitor->getChangedFiles());
+
+        $monitor->reset();
+        $this->assertEquals(array($dir . 'foo.txt'), $monitor->getChangedFiles());
+        $this->assertEquals(array(), $monitor->getChangedFiles());
+
+        $monitor->clearFilters();
+
+        $expected = array($dir . 'foo.txt', $dir . 'test.txt');
+        $actual = $monitor->getChangedFiles();
+
+        sort($expected);
+        sort($actual);
+
+        $this->assertEquals($expected, $actual);
+
+    }
 
 }

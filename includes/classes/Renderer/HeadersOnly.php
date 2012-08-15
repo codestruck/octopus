@@ -8,15 +8,15 @@
  */
 class Octopus_Renderer_HeadersOnly extends Octopus_Renderer {
 
-	public function render(Octopus_Response $response, $return = true) {
+    public function render(Octopus_Response $response, $return = true) {
 
-		if ($return) {
-			return '';
-		}
+        if ($return) {
+            return '';
+        }
 
-		$this->outputHeaders($response);
-		return $this;
+        $this->outputHeaders($response);
+        return $this;
 
-	}
+    }
 
 }

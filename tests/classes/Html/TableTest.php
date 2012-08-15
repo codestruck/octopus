@@ -139,20 +139,20 @@ class TableTest extends Octopus_App_TestCase {
 
     function testGetFilterValues() {
 
-    	$table = new Octopus_Html_Table('getFilterValues');
+        $table = new Octopus_Html_Table('getFilterValues');
 
-    	$this->assertEquals(array(), $table->getFilterValues());
-    	$table->filter('foo', 'bar');
-    	$this->assertEquals(array(), $table->getFilterValues(), 'values for non-existant filters not returned');
+        $this->assertEquals(array(), $table->getFilterValues());
+        $table->filter('foo', 'bar');
+        $this->assertEquals(array(), $table->getFilterValues(), 'values for non-existant filters not returned');
 
-    	$table->addFilter('text', 'foo');
-    	$this->assertEquals(array('foo' => 'bar'), $table->getFilterValues(), 'value available after filter added');
+        $table->addFilter('text', 'foo');
+        $this->assertEquals(array('foo' => 'bar'), $table->getFilterValues(), 'value available after filter added');
 
-    	$table->filter('baz', 'bat');
-    	$this->assertEquals(array('foo' => 'bar'), $table->getFilterValues(), 'value for non-existant filter not returned even when there are filters');
+        $table->filter('baz', 'bat');
+        $this->assertEquals(array('foo' => 'bar'), $table->getFilterValues(), 'value for non-existant filter not returned even when there are filters');
 
-    	$table->unfilter();
-    	$this->assertEquals(array(), $table->getFilterValues());
+        $table->unfilter();
+        $this->assertEquals(array(), $table->getFilterValues());
 
     }
 
@@ -243,24 +243,24 @@ class TableTest extends Octopus_App_TestCase {
         $this->assertHtmlEquals(
             <<<END
 <table id="id" border="0" cellpadding="0" cellspacing="0">
-	<thead class="columns">
-		<tr>
-			<th class="name firstCell sortable">
-				<a href="?sort=name"><span class="sortMarker">Name</span></a>
-			</th>
-		</tr>
-	</thead>
-	<tbody>
-		<tr class="odd">
-			<td class="name firstCell">JOE BLOW</td>
-		</tr>
-		<tr class="even">
-			<td class="name firstCell">JANE BLOW</td>
-		</tr>
-		<tr class="odd">
-			<td class="name firstCell">JOHN SMITH</td>
-		</tr>
-	</tbody>
+    <thead class="columns">
+        <tr>
+            <th class="name firstCell sortable">
+                <a href="?sort=name"><span class="sortMarker">Name</span></a>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr class="odd">
+            <td class="name firstCell">JOE BLOW</td>
+        </tr>
+        <tr class="even">
+            <td class="name firstCell">JANE BLOW</td>
+        </tr>
+        <tr class="odd">
+            <td class="name firstCell">JOHN SMITH</td>
+        </tr>
+    </tbody>
 </table>
 END
             , $table->render(true)
@@ -315,7 +315,7 @@ END
 
     function testPostActions() {
 
-    	return $this->markTestSkipped("Need to merge pwaiter octopus branch");
+        return $this->markTestSkipped("Need to merge pwaiter octopus branch");
 
         $table = new Octopus_Html_Table('postActions');
         $table->addColumn('name');
@@ -375,7 +375,7 @@ END
 
         $table->sort('!age');
 
-		$key = 'octopus-table--selectFilter-sorting';
+        $key = 'octopus-table--selectFilter-sorting';
         $this->assertTrue(!empty($_SESSION[$key]), "session key ($key) empty");
         $this->assertEquals(array('age' => false), $_SESSION[$key]);
     }
@@ -411,8 +411,8 @@ END
         ");
 
         $_SESSION['octopus-table--filterFromSession-filters'] = array(
-        	'age' => '99'
-	    );
+            'age' => '99'
+        );
 
         $table = new Octopus_Html_Table('filterFromSession', array('pager' => false, 'redirectCallback' => false));
         $table->addColumn('name');
@@ -1267,9 +1267,9 @@ END;
     <tfoot>
         <tr>
             <td class="pager" colspan="2">
-            	<div class="pager">
-                	<div class="pagerLinks"><a href="?page=1" class="current" title="Page 1">1</a><a href="?page=2" title="Page 2">2</a><a href="?page=3" title="Page 3">3</a><a href="?page=4" title="Page 4">4</a><a href="?page=2" class="next" title="Page 2">Next</a><a href="?page=10" class="last-page" title="Page 10">Last</a></div>
-                	<div class="pagerLoc">Showing <span class="pagerRangeStart">1</span> to <span class="pagerRangeEnd">10</span> of <span class="pagerItemCount">100</span></div>
+                <div class="pager">
+                    <div class="pagerLinks"><a href="?page=1" class="current" title="Page 1">1</a><a href="?page=2" title="Page 2">2</a><a href="?page=3" title="Page 3">3</a><a href="?page=4" title="Page 4">4</a><a href="?page=2" class="next" title="Page 2">Next</a><a href="?page=10" class="last-page" title="Page 10">Last</a></div>
+                    <div class="pagerLoc">Showing <span class="pagerRangeStart">1</span> to <span class="pagerRangeEnd">10</span> of <span class="pagerItemCount">100</span></div>
                 </div>
             </td>
         </tr>
@@ -1319,9 +1319,9 @@ END;
     <tfoot>
         <tr>
             <td class="pager" colspan="2">
-            	<div class="pager">
-                	<div class="pagerLinks"><a href="?page=1" class="first-page" title="Page 1">First</a><a href="?page=1" class="prev" title="Page 1">Previous</a><a href="?page=1" title="Page 1">1</a><a href="?page=2" class="current" title="Page 2">2</a><a href="?page=3" title="Page 3">3</a><a href="?page=4" title="Page 4">4</a><a href="?page=3" class="next" title="Page 3">Next</a><a href="?page=10" class="last-page" title="Page 10">Last</a></div>
-                	<div class="pagerLoc">Showing <span class="pagerRangeStart">11</span> to <span class="pagerRangeEnd">20</span> of <span class="pagerItemCount">100</span></div>
+                <div class="pager">
+                    <div class="pagerLinks"><a href="?page=1" class="first-page" title="Page 1">First</a><a href="?page=1" class="prev" title="Page 1">Previous</a><a href="?page=1" title="Page 1">1</a><a href="?page=2" class="current" title="Page 2">2</a><a href="?page=3" title="Page 3">3</a><a href="?page=4" title="Page 4">4</a><a href="?page=3" class="next" title="Page 3">Next</a><a href="?page=10" class="last-page" title="Page 10">Last</a></div>
+                    <div class="pagerLoc">Showing <span class="pagerRangeStart">11</span> to <span class="pagerRangeEnd">20</span> of <span class="pagerItemCount">100</span></div>
                 </div>
             </td>
         </tr>
@@ -1350,8 +1350,8 @@ END;
             $table->render(true)
         );
 
-		$table->sort('name');
-		$this->assertEquals(1, $table->getPage(), 'page should be reset on sort');
+        $table->sort('name');
+        $this->assertEquals(1, $table->getPage(), 'page should be reset on sort');
 
         $expected = str_replace('th class="name firstCell sortable"', 'th class="name sorted firstCell sortable sortAsc"', $firstPage);
         $expected = str_replace('td class="name firstCell"', 'td class="name sorted firstCell"', $expected);

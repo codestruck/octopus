@@ -3,14 +3,14 @@
  * Default Behavior
  *
  * DEV
- * 	- The log level defaults to DEBUG, and all logs are written to one of these
- * 	  directories (in order of preference): LOG_DIR, OCTOPUS_PRIVATE_DIR,
- * 	  PRIVATE_DIR.
- * 	- Log messages of the level WARNING or higher cancel any subsequent
- * 	  redirects.
- * 	- Messages of the level INFO or higher are displayed in-browser.
- * 	- (For Octopus apps.) PHP errors are relayed as log events (notice = info,
- * 	warning = warn, etc).
+ *     - The log level defaults to DEBUG, and all logs are written to one of these
+ *       directories (in order of preference): LOG_DIR, OCTOPUS_PRIVATE_DIR,
+ *       PRIVATE_DIR.
+ *     - Log messages of the level WARNING or higher cancel any subsequent
+ *       redirects.
+ *     - Messages of the level INFO or higher are displayed in-browser.
+ *     - (For Octopus apps.) PHP errors are relayed as log events (notice = info,
+ *     warning = warn, etc).
  *
  * STAGING
  *  - The log level defaults to DEBUG, and all logs are written to the
@@ -43,96 +43,96 @@ class Octopus_Debug {
      */
     public static function configure($options = array(), $reset = true) {
 
-    	if (self::$configured && empty($options)) {
-    		return;
-    	}
+        if (self::$configured && empty($options)) {
+            return;
+        }
 
-    	if ($reset) self::reset();
-    	self::$configured = true;
+        if ($reset) self::reset();
+        self::$configured = true;
 
-    	$logDir = null;
-    	$fileListener = null;
+        $logDir = null;
+        $fileListener = null;
 
-    	if (isset($options['LOG_DIR'])) {
-    		$logDir = $options['LOG_DIR'];
-    	} else if (isset($options['PRIVATE_DIR'])) {
-    		$logDir = rtrim($options['PRIVATE_DIR'], '/') . '/log';
-    	} else if (isset($options['OCTOPUS_PRIVATE_DIR'])) {
-    		$logDir = rtrim($options['OCTOPUS_PRIVATE_DIR'], '/') . '/log';
-    	} else if (defined('LOG_DIR') && is_dir(LOG_DIR)) {
-    		$logDir = LOG_DIR;
-    	} else if (defined('PRIVATE_DIR') && is_dir(PRIVATE_DIR)) {
-    		$logDir = PRIVATE_DIR;
-    	} else if (defined('OCTOPUS_PRIVATE_DIR') && is_dir(OCTOPUS_PRIVATE_DIR)) {
-    		$logDir = OCTOPUS_PRIVATE_DIR;
-    	}
+        if (isset($options['LOG_DIR'])) {
+            $logDir = $options['LOG_DIR'];
+        } else if (isset($options['PRIVATE_DIR'])) {
+            $logDir = rtrim($options['PRIVATE_DIR'], '/') . '/log';
+        } else if (isset($options['OCTOPUS_PRIVATE_DIR'])) {
+            $logDir = rtrim($options['OCTOPUS_PRIVATE_DIR'], '/') . '/log';
+        } else if (defined('LOG_DIR') && is_dir(LOG_DIR)) {
+            $logDir = LOG_DIR;
+        } else if (defined('PRIVATE_DIR') && is_dir(PRIVATE_DIR)) {
+            $logDir = PRIVATE_DIR;
+        } else if (defined('OCTOPUS_PRIVATE_DIR') && is_dir(OCTOPUS_PRIVATE_DIR)) {
+            $logDir = OCTOPUS_PRIVATE_DIR;
+        }
 
-    	if ($logDir) {
-    		$fileListener = new Octopus_Log_Listener_File($logDir);
-    	}
+        if ($logDir) {
+            $fileListener = new Octopus_Log_Listener_File($logDir);
+        }
 
-    	if (self::isCommandLineEnvironment()) {
-    		$console = new Octopus_Log_Listener_Console();
-    		$console->stackTraceLines = -1;
-    		Octopus_Log::addListener('errors', $console);
-    		Octopus_Log::addListener('dump', $console);
-    	}
+        if (self::isCommandLineEnvironment()) {
+            $console = new Octopus_Log_Listener_Console();
+            $console->stackTraceLines = -1;
+            Octopus_Log::addListener('errors', $console);
+            Octopus_Log::addListener('dump', $console);
+        }
 
-		if (!empty($options['LIVE']) || self::isLiveEnvironment()) {
+        if (!empty($options['LIVE']) || self::isLiveEnvironment()) {
 
-			if ($fileListener) {
-				Octopus_Log::addListener(Octopus_Log::WARN, $fileListener);
-			}
+            if ($fileListener) {
+                Octopus_Log::addListener(Octopus_Log::WARN, $fileListener);
+            }
 
-		} else if (!empty($options['STAGING']) || self::isStagingEnvironment()) {
+        } else if (!empty($options['STAGING']) || self::isStagingEnvironment()) {
 
-			if ($fileListener) {
-				Octopus_Log::addListener(Octopus_Log::DEBUG, $fileListener);
-			}
+            if ($fileListener) {
+                Octopus_Log::addListener(Octopus_Log::DEBUG, $fileListener);
+            }
 
-		} else if (!empty($options['DEV']) || self::isDevEnvironment()) {
+        } else if (!empty($options['DEV']) || self::isDevEnvironment()) {
 
-			if ($fileListener) {
-				Octopus_Log::addListener(Octopus_Log::DEBUG, $fileListener);
-			}
+            if ($fileListener) {
+                Octopus_Log::addListener(Octopus_Log::DEBUG, $fileListener);
+            }
 
-			if (!self::isCommandLineEnvironment()) {
-				Octopus_Log::addListener(new Octopus_Log_Listener_Console());
-			}
+            if (!self::isCommandLineEnvironment()) {
+                Octopus_Log::addListener(new Octopus_Log_Listener_Console());
+            }
 
-			if (self::shouldUseHtmlLogging()) {
-				Octopus_Log::addListener(new Octopus_Log_Listener_Html());
-			}
-		}
+            if (self::shouldUseHtmlLogging()) {
+                Octopus_Log::addListener(new Octopus_Log_Listener_Html());
+            }
+        }
 
-		Octopus_Log::registerExceptionHandler();
-		Octopus_Log::registerErrorHandler();
+        Octopus_Log::registerExceptionHandler();
+        Octopus_Log::registerErrorHandler();
     }
 
-	/**
-	 * Writes a DEBUG-level message indicating a function has been deprecated.
-	 * Takes the previous frame from the call stack as its reference.
-	 */
-	public static function deprecated() {
+    /**
+     * Writes a DEBUG-level message indicating a function has been deprecated.
+     * Takes the previous frame from the call stack as its reference.
+     */
+    public static function deprecated() {
 
-		// TODO: As of 5.4, debug_backtrace supports a second argument which
-		// indicates the # of frames to return. We only need the previous frame
-		// here.
+        // TODO: As of 5.4, debug_backtrace supports a second argument which
+        // indicates the # of frames to return. We only need the previous frame
+        // here.
 
-		if (defined('DEBUG_BACKTRACE_IGNORE_ARGS')) {
-			$trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-		} else {
-			$trace = debug_backtrace(false);
-		}
+        if (defined('DEBUG_BACKTRACE_IGNORE_ARGS')) {
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+        } else {
+            $trace = debug_backtrace(false);
+        }
 
-		$line = $trace[1];
-		$class = isset($line['class']) ? $line['class'] : '';
-		$func = $line['function'];
+        $line = $trace[1];
+        $class = isset($line['class']) ? $line['class'] : '';
+        $func = $line['function'];
 
-		$func = $class . ($class ? '::' : '') . $func;
+        $func = $class . ($class ? '::' : '') . $func;
 
-		return Octopus_Log::write('debug', Octopus_Log::DEBUG, "$func is deprecated.");
-	}
+        return Octopus_Log::write('debug', Octopus_Log::DEBUG, "$func is deprecated.");
+    }
 
     /**
      * Writes all arguments passed to it as special debug messages. Only
@@ -143,41 +143,41 @@ class Octopus_Debug {
      */
     public static function dump($x) {
 
-    	if (!self::$dumpEnabled || !self::isDevEnvironment()) {
-    		return $x;
-    	}
+        if (!self::$dumpEnabled || !self::isDevEnvironment()) {
+            return $x;
+        }
 
-    	if (self::$inDump) {
-    		// Avoid infinite recursion when debugging
-    		return $x;
-    	}
+        if (self::$inDump) {
+            // Avoid infinite recursion when debugging
+            return $x;
+        }
 
-    	self::$inDump = true;
+        self::$inDump = true;
 
-    	// Ensure all log listeners are in place.
-    	self::configure();
+        // Ensure all log listeners are in place.
+        self::configure();
 
-    	// Send a special Octopus_Debug_DumpedVars object through the logging
-    	// infrastructure to the 'dump' log. This gets picked up by the file,
-    	// html, and stderr listeners and rendered appropriately.
+        // Send a special Octopus_Debug_DumpedVars object through the logging
+        // infrastructure to the 'dump' log. This gets picked up by the file,
+        // html, and stderr listeners and rendered appropriately.
 
-    	$args = func_get_args();
-    	$vars = new Octopus_Debug_DumpedVars($args);
-    	Octopus_Log::debug('dump', $vars);
+        $args = func_get_args();
+        $vars = new Octopus_Debug_DumpedVars($args);
+        Octopus_Log::debug('dump', $vars);
 
-    	self::$inDump = false;
+        self::$inDump = false;
 
-    	// This is kind of a hack. When we are calling dump_r from smarty
-    	// templates, we don't want to return the value because it will get
-    	// rendered.
-    	$lines = self::getMostRelevantTraceLines(1);
-    	$line = array_shift($lines);
+        // This is kind of a hack. When we are calling dump_r from smarty
+        // templates, we don't want to return the value because it will get
+        // rendered.
+        $lines = self::getMostRelevantTraceLines(1);
+        $line = array_shift($lines);
 
-    	if ($line && preg_match('/\.tpl\.php/', $line['file'])) {
-    		return;
-    	}
+        if ($line && preg_match('/\.tpl\.php/', $line['file'])) {
+            return;
+        }
 
-    	return $x;
+        return $x;
     }
 
     /**
@@ -185,15 +185,15 @@ class Octopus_Debug {
      */
     public static function dumpAndExit($x) {
 
-    	if (!self::$dumpEnabled || !self::isDevEnvironment()) {
-    		return $x;
-    	}
+        if (!self::$dumpEnabled || !self::isDevEnvironment()) {
+            return $x;
+        }
 
-		$args = func_get_args(); // PHP 5.2 craps out if you try to pass func_get_args() directly
-    	call_user_func_array(array('Octopus_Debug', 'dump'), $args);
-    	self::flushBufferedOctopusResponse();
+        $args = func_get_args(); // PHP 5.2 craps out if you try to pass func_get_args() directly
+        call_user_func_array(array('Octopus_Debug', 'dump'), $args);
+        self::flushBufferedOctopusResponse();
 
-    	exit(1337);
+        exit(1337);
     }
 
     /**
@@ -205,11 +205,11 @@ class Octopus_Debug {
      */
     public static function dumpToString($x, $format, $fancy = true) {
 
-    	if ($format === 'html') {
-    		$result = self::dumpToHtmlString($x, $fancy);
-    	} else {
-    		$result = self::dumpToPlainTextString($x, $fancy);
-    	}
+        if ($format === 'html') {
+            $result = self::dumpToHtmlString($x, $fancy);
+        } else {
+            $result = self::dumpToPlainTextString($x, $fancy);
+        }
 
         return self::sanitizeDebugOutput($result);
     }
@@ -220,14 +220,14 @@ class Octopus_Debug {
      * @param  boolean $enable Whether to enable or disable
      */
     public function enableDumping($enable = true) {
-    	self::$dumpEnabled = $enable;
+        self::$dumpEnabled = $enable;
     }
 
     /**
      * Alias for ::enableDumping(false)
      */
     public function disableDumping() {
-    	return self::enableDumping(false);
+        return self::enableDumping(false);
     }
 
     /**
@@ -289,41 +289,41 @@ class Octopus_Debug {
      */
     public static function getMostRelevantTraceLines($count, $trace = null, $filesToIgnore = array()) {
 
-    	if ($trace === null) {
-    		$trace = self::getNiceBacktrace();
-    	}
+        if ($trace === null) {
+            $trace = self::getNiceBacktrace();
+        }
 
-    	$result = array();
+        $result = array();
 
-		// Find the first line of the stack trace that is not in this file
-		// to display.
-		while(count($result) < $count && $traceLine = array_shift($trace)) {
+        // Find the first line of the stack trace that is not in this file
+        // to display.
+        while(count($result) < $count && $traceLine = array_shift($trace)) {
 
-			// Skip closures
-			if (empty($traceLine['file'])) {
-				continue;
-			}
+            // Skip closures
+            if (empty($traceLine['file'])) {
+                continue;
+            }
 
-			// Skip stuff in this file
-			if ($traceLine['file'] === __FILE__) {
-				continue;
-			}
+            // Skip stuff in this file
+            if ($traceLine['file'] === __FILE__) {
+                continue;
+            }
 
-			$bannedFilesRx = '#octopus/includes/(functions|classes)/([dD]ebug|Log)#';
-			if (preg_match($bannedFilesRx, $traceLine['file'])) {
-				continue;
-			}
+            $bannedFilesRx = '#octopus/includes/(functions|classes)/([dD]ebug|Log)#';
+            if (preg_match($bannedFilesRx, $traceLine['file'])) {
+                continue;
+            }
 
-			// The log call from Octopus_App::errorHandler is not relevant
-			if (preg_match('#octopus/includes/classes/App\.php#', $traceLine['file']) && isset($traceLine['function']) && $traceLine['function'] === 'errorHandler') {
-				continue;
-			}
+            // The log call from Octopus_App::errorHandler is not relevant
+            if (preg_match('#octopus/includes/classes/App\.php#', $traceLine['file']) && isset($traceLine['function']) && $traceLine['function'] === 'errorHandler') {
+                continue;
+            }
 
-			$result[] = $traceLine;
-		}
+            $result[] = $traceLine;
+        }
 
-		return $result;
-	}
+        return $result;
+    }
 
     /**
      * @param  Mixed $bt The backtrace to format. If not provided, a new
@@ -342,55 +342,55 @@ class Octopus_Debug {
         $rootDir = trim(self::getOption('ROOT_DIR'));
 
         if (!$rootDir) {
-        	$rootDir = dirname(dirname(dirname(dirname(__FILE__))));
+            $rootDir = dirname(dirname(dirname(dirname(__FILE__))));
         }
 
         if ($rootDir) {
-        	$rootDir = rtrim($rootDir, '/') . '/';
+            $rootDir = rtrim($rootDir, '/') . '/';
         }
 
         $rootDirLen = strlen($rootDir);
 
         $filtered = array();
         foreach($bt as $index => $item) {
-        	if (empty($item['class']) && !empty($item['function']) && preg_match('/^call_user_func(_array)?$/', $item['function'])) {
-        		// who cares about these?
-        		//continue;
-        	}
-        	$filtered[] = $item;
+            if (empty($item['class']) && !empty($item['function']) && preg_match('/^call_user_func(_array)?$/', $item['function'])) {
+                // who cares about these?
+                //continue;
+            }
+            $filtered[] = $item;
         }
         $bt = $filtered;
 
         $base = array(
-        	'function' => '',
-        	'file' => '',
-        	'line' => '',
-        	'type' => '',
-        	'octopus_type' => '',
-        	'class' => '',
-        	'scope_function' => '',
-        	'scope_class' => '',
+            'function' => '',
+            'file' => '',
+            'line' => '',
+            'type' => '',
+            'octopus_type' => '',
+            'class' => '',
+            'scope_function' => '',
+            'scope_class' => '',
         );
 
         foreach($bt as $index => $item) {
 
-        	$nextItem = ($index < (count($bt) - 1)) ? $bt[$index + 1] : $base;
-        	$niceItem = $base;
+            $nextItem = ($index < (count($bt) - 1)) ? $bt[$index + 1] : $base;
+            $niceItem = $base;
 
-        	foreach(array('function', 'file', 'line', 'class', 'type') as $key) {
-        		if (isset($item[$key])) {
-        			$niceItem[$key] = $item[$key];
-        		}
-        	}
+            foreach(array('function', 'file', 'line', 'class', 'type') as $key) {
+                if (isset($item[$key])) {
+                    $niceItem[$key] = $item[$key];
+                }
+            }
 
-        	if ($nextItem['function']) {
-        		if (isset($nextItem['class'])) {
-        			$niceItem['scope_function'] = $nextItem['class'] . '::' . $nextItem['function'];
-        			$niceItem['scope_class'] = $nextItem['class'];
-        		} else {
-        			$niceItem['scope_function'] = $nextItem['function'];
-        		}
-        	}
+            if ($nextItem['function']) {
+                if (isset($nextItem['class'])) {
+                    $niceItem['scope_function'] = $nextItem['class'] . '::' . $nextItem['function'];
+                    $niceItem['scope_class'] = $nextItem['class'];
+                } else {
+                    $niceItem['scope_function'] = $nextItem['function'];
+                }
+            }
 
             // Remove ROOT_DIR from beginning of file name if possible
             if ($rootDirLen && substr($niceItem['file'], 0, $rootDirLen) == $rootDir) {
@@ -407,11 +407,11 @@ class Octopus_Debug {
             $niceItem['nice_file'] = preg_replace('#.*/(octopus|PHPUnit/Framework|PHPUnit/TextUI)/#', '$1/', $niceItem['nice_file']);
 
             if (preg_match('~^octopus/~', $niceItem['nice_file'])) {
-            	// This is an octopus system file
-            	$niceItem['octopus_type'] = 'octopus';
+                // This is an octopus system file
+                $niceItem['octopus_type'] = 'octopus';
             } else if (preg_match('~^_?private/smarty/~', $niceItem['nice_file'])) {
-            	// This is a smarty temp file
-            	$niceItem['octopus_type'] = 'smarty';
+                // This is a smarty temp file
+                $niceItem['octopus_type'] = 'smarty';
             }
 
             $result[] = $niceItem;
@@ -421,24 +421,24 @@ class Octopus_Debug {
         $filtered = array();
         foreach($result as $index => $item) {
 
-        	if (!isset($result[$index + 1])) {
-        		$filtered[] = $item;
-        		break;
-        	}
+            if (!isset($result[$index + 1])) {
+                $filtered[] = $item;
+                break;
+            }
 
-        	$nextItem = $result[$index + 1];
-        	if ($item['scope_class'] === '' && ($item['scope_function'] === 'call_user_func' || $item['scope_function'] === 'call_user_func_array')) {
-        		// this is a bs call_user_func item, so merge with the next one
-        		unset($result[$index + 1]);
-        		$item['scope_function'] = '';
-        		foreach($item as $key => $value) {
-        			if ($value === '') {
-        				$item[$key] = $nextItem[$key];
-        			}
-        		}
-        	}
+            $nextItem = $result[$index + 1];
+            if ($item['scope_class'] === '' && ($item['scope_function'] === 'call_user_func' || $item['scope_function'] === 'call_user_func_array')) {
+                // this is a bs call_user_func item, so merge with the next one
+                unset($result[$index + 1]);
+                $item['scope_function'] = '';
+                foreach($item as $key => $value) {
+                    if ($value === '') {
+                        $item[$key] = $nextItem[$key];
+                    }
+                }
+            }
 
-        	$filtered[] = $item;
+            $filtered[] = $item;
 
         }
 
@@ -450,8 +450,8 @@ class Octopus_Debug {
      * @return boolean Whether we are currently running on the command line.
      */
     public static function isCommandLineEnvironment() {
-		return php_sapi_name() === 'cli' &&
-   		       empty($_SERVER['HTTP_USER_AGENT']);
+        return php_sapi_name() === 'cli' &&
+                  empty($_SERVER['HTTP_USER_AGENT']);
     }
 
     /**
@@ -459,51 +459,51 @@ class Octopus_Debug {
      */
     public static function isDevEnvironment() {
 
-    	if (self::$environment === 'DEV') {
-    		return true;
-    	}
+        if (self::$environment === 'DEV') {
+            return true;
+        }
 
-    	if (self::$environment !== null) {
-    		return false;
-    	}
+        if (self::$environment !== null) {
+            return false;
+        }
 
-    	$isDev = false;
+        $isDev = false;
 
-    	if (self::usingOctopus()) {
-    		$app = Octopus_App::singleton();
-    		$isDev = $app->isDevEnvironment();
-    	} else {
-    		$isDev = defined('DEV') && DEV;
-    	}
+        if (self::usingOctopus()) {
+            $app = Octopus_App::singleton();
+            $isDev = $app->isDevEnvironment();
+        } else {
+            $isDev = defined('DEV') && DEV;
+        }
 
-    	if ($isDev) {
-    		self::$environment = 'DEV';
-    	}
+        if ($isDev) {
+            self::$environment = 'DEV';
+        }
 
-    	return $isDev;
+        return $isDev;
     }
 
-	/**
+    /**
      * @return Boolean Whether the LIVE flag is set. This is the default mode
      * if none is specified.
      */
     public static function isLiveEnvironment() {
 
-    	if (self::$environment === 'LIVE') {
-    		return true;
-    	}
+        if (self::$environment === 'LIVE') {
+            return true;
+        }
 
-    	if (self::$environment !== null) {
-    		return false;
-    	}
+        if (self::$environment !== null) {
+            return false;
+        }
 
-    	$isLive = !(self::isDevEnvironment() || self::isStagingEnvironment());
+        $isLive = !(self::isDevEnvironment() || self::isStagingEnvironment());
 
-    	if ($isLive) {
-    		self::$environment = 'LIVE';
-    	}
+        if ($isLive) {
+            self::$environment = 'LIVE';
+        }
 
-    	return $isLive;
+        return $isLive;
     }
 
     /**
@@ -511,46 +511,46 @@ class Octopus_Debug {
      */
     public static function isStagingEnvironment() {
 
-    	if (self::$environment === 'STAGING') {
-    		return true;
-    	}
+        if (self::$environment === 'STAGING') {
+            return true;
+        }
 
-    	if (self::$environment !== null) {
-    		return false;
-    	}
+        if (self::$environment !== null) {
+            return false;
+        }
 
-    	$isStaging = false;
+        $isStaging = false;
 
-    	if (self::usingOctopus()) {
-    		$app = Octopus_App::singleton();
-    		$isStaging = $app->isStagingEnvironment();
-    	} else {
-    		$isStaging = defined('STAGING') && STAGING;
-    	}
+        if (self::usingOctopus()) {
+            $app = Octopus_App::singleton();
+            $isStaging = $app->isStagingEnvironment();
+        } else {
+            $isStaging = defined('STAGING') && STAGING;
+        }
 
-    	if ($isStaging) {
-    		self::$environment = 'STAGING';
-    	}
+        if ($isStaging) {
+            self::$environment = 'STAGING';
+        }
 
-    	return $isStaging;
-   	}
+        return $isStaging;
+       }
 
-   	/**
-   	 * Enables/disables redirects. When redirects are disabled, ::shouldRedirect
-   	 * will return false.
-   	 */
+       /**
+        * Enables/disables redirects. When redirects are disabled, ::shouldRedirect
+        * will return false.
+        */
     public static function enableRedirects($enable = true) {
-    	self::$redirectsEnabled = !!$enable;
+        self::$redirectsEnabled = !!$enable;
     }
 
     public static function disableRedirects() {
-    	return self::enableRedirects(false);
+        return self::enableRedirects(false);
     }
 
-   	/**
-   	 * Writes a slightly cleaned-up backtrace out to stderr.
-   	 */
-	public static function printBacktrace($limit, $file = 'php://stderr') {
+       /**
+        * Writes a slightly cleaned-up backtrace out to stderr.
+        */
+    public static function printBacktrace($limit, $file = 'php://stderr') {
 
         $bt = debug_backtrace(false);
 
@@ -560,7 +560,7 @@ class Octopus_Debug {
         $fp = fopen($file, 'w');
 
         if (!$fp) {
-        	return;
+            return;
         }
 
         fputs($fp, "\n");
@@ -580,51 +580,51 @@ class Octopus_Debug {
      * Resets logging and debugging state. Used mostly for testing.
      * @see Octopus_Log::reset()
      */
-	public static function reset() {
-   		self::$configured = false;
-   		self::$environment = null;
-   		self::$dumpEnabled = true;
-   		self::$redirectsEnabled = true;
-   		Octopus_Log::reset();
-   	}
+    public static function reset() {
+           self::$configured = false;
+           self::$environment = null;
+           self::$dumpEnabled = true;
+           self::$redirectsEnabled = true;
+           Octopus_Log::reset();
+       }
 
-   	/**
-   	 * @return Boolean Whether or not the app should redirect the user to
-   	 * $location.
-   	 * @param String $location Location the user is to be sent to.
-   	 */
-   	public static function shouldRedirect($location) {
+       /**
+        * @return Boolean Whether or not the app should redirect the user to
+        * $location.
+        * @param String $location Location the user is to be sent to.
+        */
+       public static function shouldRedirect($location) {
 
-   		if (self::$redirectsEnabled) {
-   			return true;
-   		}
+           if (self::$redirectsEnabled) {
+               return true;
+           }
 
-   		// Notify about cancelled redirect!
-   		Octopus_Log::debug('dump', "Cancelled redirect to $location");
-   		return false;
+           // Notify about cancelled redirect!
+           Octopus_Log::debug('dump', "Cancelled redirect to $location");
+           return false;
 
-   	}
+       }
 
-   	/**
-   	 * @return Boolean Whether or not HTML-formatted log messages should be
-   	 * sent to output. This is true for web requests that are NOT XHR requests.
-   	 */
-   	public static function shouldUseHtmlLogging() {
+       /**
+        * @return Boolean Whether or not HTML-formatted log messages should be
+        * sent to output. This is true for web requests that are NOT XHR requests.
+        */
+       public static function shouldUseHtmlLogging() {
 
-   		return
+           return
 
-   			!self::isCommandLineEnvironment() &&
+               !self::isCommandLineEnvironment() &&
 
-   			// Don't use for XHR requests
-   			empty($_SERVER['HTTP_X_REQUESTED_WITH']);
+               // Don't use for XHR requests
+               empty($_SERVER['HTTP_X_REQUESTED_WITH']);
 
-   	}
+       }
 
     /**
      * @return Whether we are currently operating in an Octopus environment.
      */
     public static function usingOctopus() {
-    	return class_exists('Octopus_App') && Octopus_App::isStarted();
+        return class_exists('Octopus_App') && Octopus_App::isStarted();
     }
 
     /**
@@ -633,19 +633,19 @@ class Octopus_Debug {
      */
     public static function usingBufferedOctopusResponse() {
 
-    	if (!self::usingOctopus()) {
-    		return false;
-    	}
+        if (!self::usingOctopus()) {
+            return false;
+        }
 
-    	$app = Octopus_App::singleton();
-    	$resp = $app->getCurrentResponse();
+        $app = Octopus_App::singleton();
+        $resp = $app->getCurrentResponse();
 
-    	if (!$resp) {
-    		return false;
-    	}
+        if (!$resp) {
+            return false;
+        }
 
-    	// TODO: make this ->isBuffered()
-    	return $resp->buffer();
+        // TODO: make this ->isBuffered()
+        return $resp->buffer();
     }
 
     /**
@@ -729,47 +729,47 @@ END;
      */
     private static function dumpExceptionToText(Exception $ex) {
 
-    	$result = '';
-		$filterTraceLocations = '#^(/usr/local/pear/|/usr/bin/phpunit$)#';
+        $result = '';
+        $filterTraceLocations = '#^(/usr/local/pear/|/usr/bin/phpunit$)#';
 
-    	do {
+        do {
 
-	        $class = get_class($ex);
-	        $message = $ex->getMessage();
-	        $trace = self::getNiceBacktrace($ex->getTrace());
+            $class = get_class($ex);
+            $message = $ex->getMessage();
+            $trace = self::getNiceBacktrace($ex->getTrace());
 
-	        $result .= <<<END
+            $result .= <<<END
 {$message}
 
 
 END;
 
-	        foreach($trace as $i) {
+            foreach($trace as $i) {
 
-	            if (preg_match($filterTraceLocations, $i['file'])) {
-	                continue;
-	            }
+                if (preg_match($filterTraceLocations, $i['file'])) {
+                    continue;
+                }
 
-	            if (empty($i['nice_file'])) {
-	            	continue;
-	            }
+                if (empty($i['nice_file'])) {
+                    continue;
+                }
 
-	            $result .= <<<END
-	  {$i['nice_file']}: {$i['line']}
+                $result .= <<<END
+      {$i['nice_file']}: {$i['line']}
 
 END;
-	        }
+            }
 
-	        $result .= "\n\n";
+            $result .= "\n\n";
 
-	        // NOTE: 5.2 doesn't support getPrevious
-	        if (method_exists($ex, 'getPrevious')) {
-    			$ex = $ex->getPrevious();
-    		} else {
-    			$ex = null;
-    		}
+            // NOTE: 5.2 doesn't support getPrevious
+            if (method_exists($ex, 'getPrevious')) {
+                $ex = $ex->getPrevious();
+            } else {
+                $ex = null;
+            }
 
-    	} while($ex);
+        } while($ex);
 
         return trim($result);
     }
@@ -786,7 +786,7 @@ END;
 <span class="octopusDebugNumberType">&nbsp;&mdash;&nbsp;$type</span>
 END;
 
-		// Catch potential timestamps
+        // Catch potential timestamps
         $minDate = strtotime('1990-1-1');
         $maxDate = strtotime('+10 years');
 
@@ -813,31 +813,31 @@ END;
 
     private static function dumpNumberToText($x) {
 
-    	$result = self::dumpToPlainTextString($x, false);
+        $result = self::dumpToPlainTextString($x, false);
 
-    	if ($x && is_int($x)) {
+        if ($x && is_int($x)) {
 
-    		$result .=
-    			"\n\t" .
-    			sprintf('octal:        0%o', $x) .
-    			"\n\t" .
-    			sprintf('hex:          0x%X', $x);
+            $result .=
+                "\n\t" .
+                sprintf('octal:        0%o', $x) .
+                "\n\t" .
+                sprintf('hex:          0x%X', $x);
 
-    	}
+        }
 
-    	if ($x && self::looksLikeTimestamp($x)) {
-    		$result .=
-    			"\n\t" .
-    			        "timestamp:    " . date('r', $x);
-    	}
+        if ($x && self::looksLikeTimestamp($x)) {
+            $result .=
+                "\n\t" .
+                        "timestamp:    " . date('r', $x);
+        }
 
-    	if ($x && self::looksLikeFilePermissions($x)) {
-    		$result .=
-    			"\n\t" .
-    					"permissions:  " . self::getNumberAsFilePermissions($x);
-    	}
+        if ($x && self::looksLikeFilePermissions($x)) {
+            $result .=
+                "\n\t" .
+                        "permissions:  " . self::getNumberAsFilePermissions($x);
+        }
 
-    	return $result;
+        return $result;
     }
 
     /**
@@ -865,20 +865,20 @@ END;
 "$str" ($length)
 END;
 
-		if (strlen($result) > 80) {
-			$result = <<<END
+        if (strlen($result) > 80) {
+            $result = <<<END
 "$str"
-	Length: $length
+    Length: $length
 END;
-		}
+        }
 
-		$time = @strtotime($str);
-		if ($time !== false && $time !== -1) {
-			$result .= <<<END
+        $time = @strtotime($str);
+        if ($time !== false && $time !== -1) {
+            $result .= <<<END
 
-	Timestamp: $time
+    Timestamp: $time
 END;
-		}
+        }
 
         if (strlen($str) > 1 && $str[0] === '/' && file_exists($str)) {
 
@@ -894,63 +894,63 @@ END;
             $perms = @fileperms($str);
 
             if ($perms) {
-            	$info[] = self::getNumberAsFilePermissions($perms);
+                $info[] = self::getNumberAsFilePermissions($perms);
             }
 
             if ($isDir) {
 
-            	$handle = @opendir($str);
+                $handle = @opendir($str);
 
-            	if ($handle) {
+                if ($handle) {
 
-            		$count = 0;
-            		while(($entry = readdir($handle)) !== false) {
-            			if ($entry != '.' && $entry != '..') {
-            				$count++;
-            			}
-            		}
-            		closedir($handle);
+                    $count = 0;
+                    while(($entry = readdir($handle)) !== false) {
+                        if ($entry != '.' && $entry != '..') {
+                            $count++;
+                        }
+                    }
+                    closedir($handle);
 
-            		$info[] = 'contains ' . number_format($count) . ' file' . ($count === 1 ? '' : 's');
-            	}
+                    $info[] = 'contains ' . number_format($count) . ' file' . ($count === 1 ? '' : 's');
+                }
 
             } else {
 
-            	$size = @filesize($str);
-            	if ($size !== false) {
+                $size = @filesize($str);
+                if ($size !== false) {
 
-            		$levels = array('G', 'M', 'K', 'B');
-            		$niceSize = '';
+                    $levels = array('G', 'M', 'K', 'B');
+                    $niceSize = '';
 
-            		foreach($levels as $index => $symbol) {
+                    foreach($levels as $index => $symbol) {
 
-            			$index = count($levels) - $index - 1;
-            			$threshold = ($index === 0 ? 0 : pow(1024, $index));
+                        $index = count($levels) - $index - 1;
+                        $threshold = ($index === 0 ? 0 : pow(1024, $index));
 
-            			if ($size >= $threshold) {
+                        if ($size >= $threshold) {
 
-            				$niceSize = $threshold ? $size / $threshold : $size;
-            				$niceSize =
-            					(floor($niceSize) === $niceSize ? '' : '~') .
-            					number_format($niceSize) .
-            					$symbol .
-            					($threshold > 0 ? ' (' . number_format($size) . ' bytes)' : '');
+                            $niceSize = $threshold ? $size / $threshold : $size;
+                            $niceSize =
+                                (floor($niceSize) === $niceSize ? '' : '~') .
+                                number_format($niceSize) .
+                                $symbol .
+                                ($threshold > 0 ? ' (' . number_format($size) . ' bytes)' : '');
 
-            					break;
-            			}
-            		}
+                                break;
+                        }
+                    }
 
-            		if ($niceSize) {
-            			$info[] = $niceSize;
-            		}
-            	}
+                    if ($niceSize) {
+                        $info[] = $niceSize;
+                    }
+                }
 
             }
 
             if ($info) {
-            	$info = ': ' . implode(', ', $info);
+                $info = ': ' . implode(', ', $info);
             } else {
-            	$info = '';
+                $info = '';
             }
 
             $result .= "\n\t$type{$info}";
@@ -963,7 +963,7 @@ END;
 
     private static function dumpToHtmlString($x, $fancy) {
 
-    	if ($fancy) {
+        if ($fancy) {
 
             if ($x === null) {
                 return '<span class="octopusDebugNull">NULL</span>';
@@ -984,31 +984,31 @@ END;
         }
 
         return
-        	'<pre class="octopusDebugRawVarDump">' .
-        	htmlspecialchars(self::dumpToPlainTextString($x, $fancy), ENT_QUOTES, 'UTF-8') .
-        	'</pre>';
+            '<pre class="octopusDebugRawVarDump">' .
+            htmlspecialchars(self::dumpToPlainTextString($x, $fancy), ENT_QUOTES, 'UTF-8') .
+            '</pre>';
     }
 
     private static function dumpToPlainTextString($x, $fancy) {
 
-    	if ($fancy) {
+        if ($fancy) {
 
-	        if ($x === null) {
-	            return 'NULL';
-	        } else if ($x === true || $x === false) {
-	            return $x ? 'TRUE' : 'FALSE';
-	        } else if (is_string($x)) {
-	            return self::dumpStringToText($x);
-	        } else if (is_numeric($x)) {
-	        	return self::dumpNumberToText($x);
-	        } else if (is_object($x) && $x instanceof Dumpable) {
-	            $result = $x->__dumpText();
-	            return ($result === null ? '' : $result);
-	        } else if ($x instanceof Exception) {
-	            return self::dumpExceptionToText($x);
-	        }
+            if ($x === null) {
+                return 'NULL';
+            } else if ($x === true || $x === false) {
+                return $x ? 'TRUE' : 'FALSE';
+            } else if (is_string($x)) {
+                return self::dumpStringToText($x);
+            } else if (is_numeric($x)) {
+                return self::dumpNumberToText($x);
+            } else if (is_object($x) && $x instanceof Dumpable) {
+                $result = $x->__dumpText();
+                return ($result === null ? '' : $result);
+            } else if ($x instanceof Exception) {
+                return self::dumpExceptionToText($x);
+            }
 
-	    }
+        }
 
         ob_start();
         // NOTE: var_export chokes on recursive references, and var_dump is
@@ -1020,13 +1020,13 @@ END;
 
     private static function flushBufferedOctopusResponse() {
 
-    	if (!self::usingBufferedOctopusResponse()) {
-    		return;
-    	}
+        if (!self::usingBufferedOctopusResponse()) {
+            return;
+        }
 
-    	$app = Octopus_App::singleton();
-    	$resp = $app->getCurrentResponse();
-    	$resp->flush();
+        $app = Octopus_App::singleton();
+        $resp = $app->getCurrentResponse();
+        $resp->flush();
 
     }
 
@@ -1041,10 +1041,10 @@ END;
 
         if (function_exists('mb_strlen')) {
 
-        	$mbLength = mb_strlen($str);
+            $mbLength = mb_strlen($str);
 
-        	if ($mbLength !== $length) {
-            	$niceLength .= " ($mbLength using mb_strlen)";
+            if ($mbLength !== $length) {
+                $niceLength .= " ($mbLength using mb_strlen)";
             }
         }
 
@@ -1112,35 +1112,35 @@ END;
      */
     private static function getOption($name) {
 
-    	if (self::usingOctopus()) {
-    		$app = Octopus_App::singleton();
-    		return $app->$name;
-    	}
+        if (self::usingOctopus()) {
+            $app = Octopus_App::singleton();
+            return $app->$name;
+        }
 
-    	if (defined($name)) {
-    		return constant($name);
-    	}
+        if (defined($name)) {
+            return constant($name);
+        }
 
     }
 
     private static function looksLikeFilePermissions($x) {
 
-    	if (!is_int($x) || $x < 0 || $x > 0777) {
-    		return false;
-    	}
+        if (!is_int($x) || $x < 0 || $x > 0777) {
+            return false;
+        }
 
-    	// basic sanity filter to avoid interpreting everything as
-    	// permissions
-    	$x = self::getNumberAsFilePermissions($x);
-    	return !preg_match('/(-w-)/', $x);
+        // basic sanity filter to avoid interpreting everything as
+        // permissions
+        $x = self::getNumberAsFilePermissions($x);
+        return !preg_match('/(-w-)/', $x);
 
     }
 
     private static function looksLikeTimestamp($x) {
 
-    	if (!is_int($x)) {
-    		return false;
-    	}
+        if (!is_int($x)) {
+            return false;
+        }
 
         $minDate = strtotime('-10 years');
         $maxDate = strtotime('+10 years');

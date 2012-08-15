@@ -8,102 +8,102 @@
  */
 abstract class Octopus_Renderer {
 
-	private static $registry = array(
+    private static $registry = array(
 
-		// JSON renderer
-		'Octopus_Renderer_Json' => array(
-			'application/json' => false,
-			'text/x-json' => false,
-			'application/javascript' => false,
-			'application/x-javascript' => false,
-			'text/javascript' => false,
-			'text/x-javascript' => false,
-		),
+        // JSON renderer
+        'Octopus_Renderer_Json' => array(
+            'application/json' => false,
+            'text/x-json' => false,
+            'application/javascript' => false,
+            'application/x-javascript' => false,
+            'text/javascript' => false,
+            'text/x-javascript' => false,
+        ),
 
-		// Everything else renderer
-		'Octopus_Renderer_Template' => true
+        // Everything else renderer
+        'Octopus_Renderer_Template' => true
 
-	);
+    );
 
-	/**
-	 * @return Octopus_Renderer an appropriate renderer for the given content
-	 * type.
-	 */
-	public static function getForContentType($type) {
+    /**
+     * @return Octopus_Renderer an appropriate renderer for the given content
+     * type.
+     */
+    public static function getForContentType($type) {
 
-		$type = strtolower($type);
+        $type = strtolower($type);
 
-		foreach(self::$registry as $class => &$contentTypes) {
+        foreach(self::$registry as $class => &$contentTypes) {
 
-			if ($contentTypes instanceof Octopus_Renderer) {
-				return $contentTypes;
-			} else if ($contentTypes === true) {
-				return (self::$registry[$class] = new $class());
-			}
+            if ($contentTypes instanceof Octopus_Renderer) {
+                return $contentTypes;
+            } else if ($contentTypes === true) {
+                return (self::$registry[$class] = new $class());
+            }
 
-			if (isset($contentTypes[$type])) {
+            if (isset($contentTypes[$type])) {
 
-				$r = $contentTypes[$type];
+                $r = $contentTypes[$type];
 
-				if ($r) {
-					return $r;
-				} else {
-					return ($contentTypes[$type] = new $class());
-				}
+                if ($r) {
+                    return $r;
+                } else {
+                    return ($contentTypes[$type] = new $class());
+                }
 
-			}
+            }
 
-		}
+        }
 
-	}
+    }
 
-	/**
-	 * Outputs/returns the rendered form of $response.
-	 * @param  Octopus_Response $response Response to render.
-	 * @param  boolean          $return   If true, the rendered content will
-	 * be returned (no headers will be written). If false, headers will be
-	 * written and the content will be echo'd to stdout.
-	 * @return String|Octopus_Renderer If $return is true, the rendered content.
-	 * Otherwise, returns $this.
-	 */
-	public function render(Octopus_Response $response, $return = true) {
+    /**
+     * Outputs/returns the rendered form of $response.
+     * @param  Octopus_Response $response Response to render.
+     * @param  boolean          $return   If true, the rendered content will
+     * be returned (no headers will be written). If false, headers will be
+     * written and the content will be echo'd to stdout.
+     * @return String|Octopus_Renderer If $return is true, the rendered content.
+     * Otherwise, returns $this.
+     */
+    public function render(Octopus_Response $response, $return = true) {
 
-		// NOTE: renderContent() can modify $response (e.g. set the status
-		// to 404 if a view is not found). So we have to do an internal
-		// buffered render, output headers, and then output/return.
-		$content = $this->renderContent($response);
+        // NOTE: renderContent() can modify $response (e.g. set the status
+        // to 404 if a view is not found). So we have to do an internal
+        // buffered render, output headers, and then output/return.
+        $content = $this->renderContent($response);
 
-		if ($return) {
-			return $content;
-		} else {
+        if ($return) {
+            return $content;
+        } else {
 
-			$this->outputHeaders($response);
-			echo $content;
+            $this->outputHeaders($response);
+            echo $content;
 
-			return $this;
-		}
+            return $this;
+        }
 
-	}
+    }
 
-	/**
-	 * Outputs the headers associated with $response.
-	 */
-	protected function outputHeaders(Octopus_Response $response) {
+    /**
+     * Outputs the headers associated with $response.
+     */
+    protected function outputHeaders(Octopus_Response $response) {
 
-		header($response->getStatusString());
+        header($response->getStatusString());
 
-		foreach($response->getHeaders() as $key => $value) {
-			header("$key: $value");
-		}
+        foreach($response->getHeaders() as $key => $value) {
+            header("$key: $value");
+        }
 
-	}
+    }
 
-	/**
-	 * @param Octopus_Response $response
-	 * @return String Content to output for $response.
-	 */
-	protected function renderContent(Octopus_Response $response) {
-		return '';
-	}
+    /**
+     * @param Octopus_Response $response
+     * @return String Content to output for $response.
+     */
+    protected function renderContent(Octopus_Response $response) {
+        return '';
+    }
 
 }

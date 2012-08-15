@@ -1,14 +1,17 @@
 <?php
-                                                                 $usage = <<<END
+/**
+ * @copyright (c) 2012 Codestruck, LLC.
+ * @license http://opensource.org/licenses/mit-license.php/
+ */
 
-octopus/test
+    $usage = <<<END
 
-	Runs tests either for the site you are building or the Octopus system
-	itself.
+    Runs tests either for the site you are building or the Octopus system
+    itself.
 
     Usage:
 
-    	octopus/test [site|sys] [--help] [--include-slow|--only-slow]
+        octopus/test [site|sys] [--help] [--include-slow|--only-slow]
                      [PHPUnit args]
 
     Options:
@@ -28,10 +31,6 @@ octopus/test
             Only run tests from group 'slow'
 
     Any other arguments are forwarded to PHPUnit.
-
-Copyright (c) 2012 Codestruck, LLC.
-Provided under the terms of the MIT license. See the LICENSE file for details.
-
 
 END;
 
@@ -148,4 +147,5 @@ END;
 
     echo "\n\nRunning PHPUnit: $phpUnit\n\n";
 
-    passthru($phpUnit);
+    passthru($phpUnit, $returnVal);
+    exit($returnVal);

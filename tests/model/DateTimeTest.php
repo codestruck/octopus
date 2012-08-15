@@ -122,21 +122,21 @@ class DateTimeTest extends Octopus_App_TestCase {
 
         foreach(array('>', '!=') as $op) {
 
-        	foreach(array(0, '0000-00-00 00:00:00') as $zeroValue) {
+            foreach(array(0, '0000-00-00 00:00:00') as $zeroValue) {
 
-	        	$models = DateTimeTestModel::find(array(
-	        		"lunchtime $op" => 0
-		        ));
+                $models = DateTimeTestModel::find(array(
+                    "lunchtime $op" => 0
+                ));
 
-		        $this->assertEquals(1, count($models), "$op $zeroValue");
-		        $this->assertTrue($something->eq($models->first()), "$op $zeroValue");
-		    }
+                $this->assertEquals(1, count($models), "$op $zeroValue");
+                $this->assertTrue($something->eq($models->first()), "$op $zeroValue");
+            }
         }
 
         $models = DateTimeTestModel::find(array(
-        	'lunchtime >=' => 0
-	    ));
-	    $this->assertEquals(2, count($models));
+            'lunchtime >=' => 0
+        ));
+        $this->assertEquals(2, count($models));
 
 
     }

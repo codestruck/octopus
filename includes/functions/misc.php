@@ -8,9 +8,9 @@
      * @param $options Mixed Array of local options that should override global ones.
      * @return Mixed If a constant is defined named $name, returns that. Otherwise checks w/
      * the running app instance.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
-	 */
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
+     */
     function get_option($name, $default = null, $options = null) {
 
         if (is_array($name)) {
@@ -43,8 +43,8 @@
      * Tries to provide some sort of default site name. By default, the
      * site.name setting uses this if it not set in the site's settings.yaml
      * file.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function guess_site_name() {
 
@@ -68,10 +68,10 @@
 
     }
 
-	/**
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
-	 */
+    /**
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
+     */
     function octopus_api_key($scope = '') {
 
         $sessionKey = 'OCTOPUS_API_KEY';
@@ -88,9 +88,9 @@
 
         /**
          * Define something only if it's not already
-		 * @copyright (c) 2012 Codestruck, LLC.
-		 * @license http://opensource.org/licenses/mit-license.php/
-		 */
+         * @copyright (c) 2012 Codestruck, LLC.
+         * @license http://opensource.org/licenses/mit-license.php/
+         */
         function define_unless($constant, $value) {
             if (!defined($constant)) {
                 define($constant, $value);
@@ -103,19 +103,19 @@
 
     /**
      * @see Octopus_Debug::isCommandLineEnvironment
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function is_command_line() {
-    	return Octopus_Debug::isCommandLineEnvironment();
+        return Octopus_Debug::isCommandLineEnvironment();
     }
 
     /**
      * Helper for reading $_GET.
      * @return mixed The value of $_GET[$arg] if present, $default otherwise,
      * or, if called w/o args, whether or not there's anything in $_GET.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function get($arg = null, $default = null) {
 
@@ -129,8 +129,8 @@
     /**
      * Helper for reading $_GET.
      * @return number Value of the given argument, if present and numeric. Otherwise false.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function get_numeric($arg) {
         if (isset($_GET[$arg])) {
@@ -140,10 +140,10 @@
         return false;
     }
 
-	/**
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
-	 */
+    /**
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
+     */
     function get_or_post($arg, $default = null) {
         if (isset($_POST[$arg])) {
             return $_POST[$arg];
@@ -154,10 +154,10 @@
         }
     }
 
-	/**
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
-	 */
+    /**
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
+     */
     function get_or_post_numeric($arg) {
         $value = get_or_post($arg, null);
         if (is_numeric($value)) return $value;
@@ -166,8 +166,8 @@
 
     /**
      * @return bool Whether $arr is an associative array.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function is_associative_array ($arr) {
 
@@ -188,8 +188,8 @@
 
     /**
      * @return true if $method is callable and public on $obj.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function is_callable_and_public($obj, $method) {
         return is_callable(array($obj, $method));
@@ -203,8 +203,8 @@
      * @param $live bool Flag for whether we are in a live environment
      * @param $staging bool Flag for whether we are in a staging environment.
      * @param $use_defines bool Whether or not to use defines.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function is_dev_environment($live = null, $staging = null, $use_defines = true, $hostname = null) {
 
@@ -262,8 +262,8 @@
      * @param $dev bool Flag for whether we are in a dev environment
      * @param $staging bool Flag for whether we are in a staging environment.
      * @param $use_defines bool Whether or not to use environment defines.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function is_live_environment($dev = null, $staging = null, $use_defines = true) {
 
@@ -290,8 +290,8 @@
      * @param $dev bool Flag for whether we are in a dev environment
      * @param $live bool Flag for whether we are in a live environment.
      * @param $use_defines bool Whether or not to use environment define.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function is_staging_environment($dev = null, $live = null, $use_defines = true, $hostname = null, $path = null) {
 
@@ -336,8 +336,8 @@
      * Helper for reading $_POST.
      * @return mixed The value of $_POST[$arg] if present, $default otherwise,
      * or, if called w/o args, whether or not there's anything in $_POST.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function post($arg = null, $default = null) {
 
@@ -350,8 +350,8 @@
 
     /**
      * Sets a flash message.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function set_flash($content, $type = 'success', $options = null) {
 
@@ -384,8 +384,8 @@
 
     /**
      * Removes any flash messages set.
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
      */
     function clear_flash($type = null) {
 
@@ -397,10 +397,10 @@
 
     }
 
-	/**
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
-	 */
+    /**
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
+     */
     function get_flash($type = 'success', $clear = true) {
 
         if (is_bool($type)) {
@@ -425,10 +425,10 @@
         return $result;
     }
 
-	/**
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
-	 */
+    /**
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
+     */
     function render_flash($type = null, $clear = true) {
 
         if (empty($_SESSION[OCTOPUS_FLASH_SESSION_KEY])) {
@@ -511,10 +511,10 @@ END;
 
     }
 
-	/**
-	 * @copyright (c) 2012 Codestruck, LLC.
-	 * @license http://opensource.org/licenses/mit-license.php/
-	 */
+    /**
+     * @copyright (c) 2012 Codestruck, LLC.
+     * @license http://opensource.org/licenses/mit-license.php/
+     */
     function make_csv($results, $fields) {
 
         $rows = array();

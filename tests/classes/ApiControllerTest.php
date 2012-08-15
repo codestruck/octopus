@@ -7,15 +7,15 @@
  */
 class ApiControllerTest extends Octopus_App_TestCase {
 
-	function createController($path = '/foo') {
+    function createController($path = '/foo') {
 
-		$app = $this->getApp();
-		$request = ($path instanceof Octopus_Request) ? $path : $app->createRequest($path);
-		$resp = new Octopus_Response($request);
+        $app = $this->getApp();
+        $request = ($path instanceof Octopus_Request) ? $path : $app->createRequest($path);
+        $resp = new Octopus_Response($request);
 
-		return new TestApiController($app, $request, $resp);
+        return new TestApiController($app, $request, $resp);
 
-	}
+    }
 
     function testSuccessfulCall() {
 
@@ -69,7 +69,7 @@ END
         );
 
         $resp = $app->getResponse('/api/1/test-non-array/test', true);
-		$this->assertEquals('application/json', $resp->contentType);
+        $this->assertEquals('application/json', $resp->contentType);
         $this->assertEquals('1', $resp->render(true));
 
     }

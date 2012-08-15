@@ -123,9 +123,9 @@ class Octopus_Html_Form_Field_Radio extends Octopus_Html_Form_Field {
             return;
         }
 
-    	if ($el->is('input') && $el->type == 'radio' && $el->name = $this->name) {
-    		if ($el->checked) $values = $el->value;
-    	}
+        if ($el->is('input') && $el->type == 'radio' && $el->name = $this->name) {
+            if ($el->checked) $values = $el->value;
+        }
 
         foreach($el->children() as $child) {
             $this->getSelectedValues($child, $values);
