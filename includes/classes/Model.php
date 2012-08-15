@@ -632,16 +632,21 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
     /**
      * @deprecated Octopus_Model implements ArrayAccess. Use that.
      */
-    public function toArray() {
+    public function toArray($recursive = true) {
 
-    	$ar = array();
+        $ar = array();
 
         foreach($this->getFields() as $name => $field) {
 
             $value = $this->$name;
 
             if ($value instanceof Octopus_Model) {
-            	$value = $value->toArray();
+
+                if ($recursive) {
+                   $value = $value->toArray();
+                } else {
+                    $value = $value->id;
+                }
             }
 
             $ar[$name] = $value;
