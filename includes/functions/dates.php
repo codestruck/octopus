@@ -8,9 +8,19 @@ if (!function_exists('fuzzy_time')) {
      * @copyright (c) 2012 Codestruck, LLC.
      * @license http://opensource.org/licenses/mit-license.php/
      */
-    function fuzzy_time($time = 0)
+    function fuzzy_time($time = 0, $timezone = null)
     {
-        if($time == 0)
+        if (is_numeric($time)) {
+            $time = '@' . $time;
+        }
+
+        $date = new DateTime($time);
+        $now = new DateTime(null);
+
+        $date->setTimezone($timezone);
+        $now->setTimezone($timezone);
+
+        if($time === 0)
         {
             return '-';
         }
@@ -24,44 +34,42 @@ if (!function_exists('fuzzy_time')) {
             $time = strtotime($time);
         }
 
-        $now = time();
-
         // sod = start of day
-        $sodTime = mktime(0, 0, 0, date("m", $time), date("d", $time), date("Y", $time));
-        $sodNow  = mktime(0, 0, 0, date("m", $now), date("d", $now), date("Y", $now));
+        $sodTime = mktime(0, 0, 0, $date->format("m"), $date->format("d"), $date->format("Y"));
+        $sodNow  = mktime(0, 0, 0, $now->format("m"), $now->format("d"), $now->format("Y"));
 
         $diff = abs($sodNow - $sodTime);
 
         // check 'today'
         if ($sodNow == $sodTime)
         {
-            return "Today at ".date("g:ia", $time);
+            return "Today at " . $date->format("g:ia");
         }
 
         // check 'yesterday'
         if ($diff <= FUZZY_ONE_DAY)
         {
             if ($sodTime > $sodNow) {
-                return "Tomorrow at ".date("g:ia", $time);
+                return "Tomorrow at " . $date->format("g:ia");
             } else {
-                return "Yesterday at ".date("g:ia", $time);
+                return "Yesterday at " . $date->format("g:ia");
             }
         }
 
         // give a day name if within the last 5 days
         if($diff <= (FUZZY_ONE_DAY * 5))
         {
-            return date("D \a\\t g:ia", $time);
+            return $date->format("D \a\\t g:ia");
         }
 
         // miss off the year if it's this year
-        if(date("Y", $now) == date("Y", $time))
+        if($now->format("Y") == $date->format("Y"))
         {
-            return date("M j \a\\t g:ia", $time);
+            return $date->format("M j \a\\t g:ia");
         }
 
         // return the date as normal
-        return date("M j, Y \a\\t g:ia", $time);
+        return $date->format("M j, Y \a\\t g:ia");
     }
 }
 
@@ -71,9 +79,9 @@ if (!function_exists('fuzzy_date')) {
      * @copyright (c) 2012 Codestruck, LLC.
      * @license http://opensource.org/licenses/mit-license.php/
      */
-    function fuzzy_date($time = 0)
+    function fuzzy_date($time = 0, $timezone = null)
     {
-        $text = fuzzy_time($time);
+        $text = fuzzy_time($time, $timezone);
 
         if(!$text)
         {
