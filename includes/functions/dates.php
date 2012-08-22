@@ -17,8 +17,10 @@ if (!function_exists('fuzzy_time')) {
         $date = new DateTime($time);
         $now = new DateTime(null);
 
-        $date->setTimezone($timezone);
-        $now->setTimezone($timezone);
+        if ($timezone) {
+            $date->setTimezone($timezone);
+            $now->setTimezone($timezone);
+        }
 
         if($time === 0)
         {
