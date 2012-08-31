@@ -122,8 +122,7 @@ class Octopus_DB extends Octopus_Base {
     function query($sql, $safe = false, $params = array()) {
 
         if (!$safe) {
-            $message = 'Unsafe SQL';
-            Octopus_Log::debug('db', compact('message', 'sql'));
+            Octopus_Log::debug('db', "Unsafe SQL: $sql");
         }
 
         $query = $this->driver->query($sql, $params);
