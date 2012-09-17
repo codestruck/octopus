@@ -12,6 +12,12 @@ class Octopus_Model_Exception extends Octopus_Exception {}
  */
 abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpable {
 
+	/**
+	 * Space-separated list of words that are removed from free text queries
+	 * before they're proccessed.
+	 */
+	const STOPWORDS = '';
+
     /**
      * Name of column that stores the primary key. If not set in a subclass,
      * it is inferred when you call getPrimaryKey(). This can be set to an
@@ -48,6 +54,7 @@ abstract class Octopus_Model implements ArrayAccess, Iterator, Countable, Dumpab
     private static $displayFields = array();
     private static $tableNames = array();
     private static $fieldHandles = array();
+    private static $searchFieldsByModel = array();
 
     protected $data = array();
 
@@ -879,6 +886,100 @@ END;
         }
 
         return $result;
+    }
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// Internal Public Methods
+//
+////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * @return Octopus_Model_FullTextMatcher The full text matcher to use for
+     * this class. Defaults to Octopus_Model_FullTextMatcher_PHP.
+     */
+    public static function __getFullTextMatcher() {
+
+        return new Octopus_Model_FullTextMatcher_PHP();
+
+    }
+
+    /**
+     * @internal
+     * @return Array An array where each item is an array with two keys:
+     *  - field (Octopus_Model_Field)
+     *  - weight (Number)
+     */
+    public static function __getSearchFields() {
+
+    	$class = self::getClassName();
+
+    	if (isset(self::$searchFieldsByModel[$class])) {
+    		return self::$searchFieldsByModel[$class];
+    	}
+
+    	// Build the index
+    	$dummy = new $class();
+    	$searchFields = array();
+
+    	$weightsByName = array();
+    	foreach($dummy->getFields() as $f) {
+
+    		$weight = $f->getOption('search');
+    		if (!$weight) continue;
+    		if (is_array($weight)) $weight = isset($weight['weight']) ? $weight['weight'] : 1;
+
+    		$searchFields[$f->getFieldName()] = array(
+    			'field' => $f,
+    			'weight' => (is_numeric($weight) ? $weight : 1),
+    		);
+
+    	}
+
+    	// Support the $search local var
+    	if (isset($dummy->search) && is_array($dummy->search)) {
+
+    		foreach($dummy->search as $fieldName => $options) {
+
+    			if (is_numeric($fieldName)) {
+    				$fieldName = $options;
+    				$options = true;
+    			}
+
+    			if ($options === false) {
+    				continue;
+    			}
+
+    			$weight = is_array($options) ? $options['weight'] : $options;
+    			$weight = is_numeric($weight) ? $weight: 1;
+
+                $field = $dummy->getField($fieldName);
+                if (!$field) {
+                    throw new Octopus_Model_Exception("Field $fieldName not found on model $class.");
+                }
+
+    			$searchFields[$fieldName] = array(
+    				'field' => $dummy->getField($fieldName),
+    				'weight' => $weight,
+    			);
+
+
+    		}
+
+    	}
+
+        if (count($searchFields) === 0) {
+
+            // By default, search display field
+            $searchFields[] = array(
+                'field' => $dummy->getDisplayField(),
+                'weight' => 1,
+            );
+
+        }
+
+    	return (self::$searchFieldsByModel[$class] = $searchFields);
+
     }
 
 ////////////////////////////////////////////////////////////////////////////////

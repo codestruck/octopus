@@ -489,8 +489,27 @@ abstract class Octopus_Model_Field {
         return true;
     }
 
-    public function restrictFreetext($model, $text) {
-        return new Octopus_Model_Restriction_Field($model, $this->getFieldname() . ' LIKE', wildcardify($text));
+    /**
+     * @param Octopus_Model $model
+     * @param Array|string $text
+     * @return Octopus_Model_Restriction
+     */
+    public function restrictFreeText(Octopus_Model $model, $text) {
+
+    	if (!is_array($text)) {
+    		$text = array($text);
+    	}
+
+    	$result = new Octopus_Model_Restriction_Composite('AND');
+    	foreach($text as $term) {
+
+    		$r = new Octopus_Model_Restriction_Field($model, $this->getFieldname() . ' LIKE', wildcardify($term));
+    		$result->add($r);
+
+    	}
+
+    	return $result;
+
     }
 
     protected function shouldAddToForm() {

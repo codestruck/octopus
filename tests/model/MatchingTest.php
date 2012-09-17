@@ -15,7 +15,7 @@ class MatchingTest extends Octopus_DB_TestCase {
     function testMatchingHasOneSql() {
 
         $matt = FindPost::all()->matching('Hinz');
-        $this->assertEquals('SELECT * FROM find_posts WHERE (`find_posts`.`title` LIKE ?) OR (`find_posts`.`author_id` IN (SELECT `find_author_id` FROM `find_authors` WHERE `find_authors`.`name` LIKE ?))', $matt->getSql());
+        $this->assertEquals('SELECT * FROM find_posts WHERE ((`find_posts`.`title` LIKE ?)) OR (((`find_posts`.`author_id` IN (SELECT `find_author_id` FROM `find_authors` WHERE `find_authors`.`name` LIKE ?))))', $matt->getSql());
 
     }
 

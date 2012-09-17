@@ -303,22 +303,34 @@ class Octopus_Model_Field_HasOne extends Octopus_Model_Field {
         return $class;
     }
 
-    public function restrictFreetext($model, $text) {
+    public function restrictFreeText(Octopus_Model $model, $text) {
+
         $class = $this->getItemClass($model);
 
         if (!$class) {
             return null;
         }
 
-        $obj = new $class();
-        $displayField = $obj->getDisplayField();
-        if (!$displayField) {
-            return null;
+        if (!is_array($text)) {
+            $text = array($text);
         }
 
-        $textField = $displayField->getFieldName();
+        $searchFields = call_user_func(array($class, '__getSearchFields'));
+        $result = new Octopus_Model_Restriction_Composite('AND');
 
-        return new Octopus_Model_Restriction_Field($model, $this->getFieldname() . '.' . $textField . ' LIKE', wildcardify($text));
+        foreach($text as $term) {
+
+            $or = new Octopus_Model_Restriction_Composite('OR');
+            foreach($searchFields as $f) {
+                $field = $f['field'];
+                $r = new Octopus_Model_Restriction_Field($model, $this->getFieldName() . '.' . $field->getFieldName() . ' LIKE', wildcardify($term));
+                $or->add($r);
+            }
+
+        	$result->add($or);
+        }
+
+        return $result;
     }
 
 

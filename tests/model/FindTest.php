@@ -15,6 +15,88 @@ class FindTest extends Octopus_DB_TestCase {
         parent::__construct('model/find-data.xml');
     }
 
+    /**
+     * Tests that you can sort a resultset using a callback function.
+     */
+    function testSortUsingFunction() {
+
+        $posts = FindPost::all()->sortUsing(array(__CLASS__, 'compareFindPostsForFoo'));
+
+        $this->assertEquals(
+            array(3, 4, 1, 2, 5, 6),
+            $posts->map('id')
+        );
+
+    }
+
+    function testFilterThenSortUsingFunction() {
+
+        $posts = FindPost::find(array('id !=' => 3))->sortUsing(array(__CLASS__, 'compareFindPostsForFoo'));
+
+        $this->assertEquals(
+            array(4, 1, 2, 5, 6),
+            $posts->map('id')
+        );
+
+    }
+
+    function testSortUsingFunctionThenFilter() {
+
+        $posts = FindPost::all()
+            ->sortUsing(array(__CLASS__, 'compareFindPostsForFoo'))
+            ->where(array('id !=' => 3));
+
+        $this->assertEquals(
+            array(4, 1, 2, 5, 6),
+            $posts->map('id')
+        );
+
+    }
+
+    function testSortUsingFunctionThenLimit() {
+
+        $posts = FindPost::all()->sortUsing(array(__CLASS__, 'compareFindPostsForFoo'));
+        $posts = $posts->limit(1, 2);
+
+        $this->assertEquals(
+            array(4, 1),
+            $posts->map('id')
+        );
+
+    }
+
+    /**
+     * @expectedException Octopus_Exception
+     */
+    function testThenOrderByAfterSortUsingFunctionThrowsException() {
+
+        // Subsorting using a function is not supported currently
+
+        $posts = FindPost::all()->sortUsing(array(__CLASS__, 'compareFindPostsForFoo'));
+        $posts->thenOrderBy('name');
+
+    }
+
+    function testOrderByAfterSortUsingFunction() {
+
+        $posts = FindPost::all()->sortUsing(array(__CLASS__), 'compareFindPostsForFoo')->orderBy('id desc');
+        $this->assertEquals(array(6, 5, 4, 3, 2, 1), $posts->map('id'));
+
+    }
+
+    public static function compareFindPostsForFoo($x, $y) {
+        $xHasFoo = stripos($x->title, "foo") !== false;
+        $yHasFoo = stripos($y->title, "foo") !== false;
+
+        if ($xHasFoo && !$yHasFoo) {
+            return -1;
+        } else if ($yHasFoo && !$xHasFoo) {
+            return 1;
+        } else {
+            return $x->id - $y->id;
+        }
+    }
+
     function testMapID() {
 
         $posts = FindPost::all();

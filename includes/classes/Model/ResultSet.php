@@ -16,13 +16,17 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpa
     private $_modelInstance = null;
 
     private $_criteria;
-    private $_orderBy;
+    private $_orderBy = null;
+    private $_comparatorFunction = null;
     private $_select;
     protected $query;
 
-    private $_currentQuery = null;
-    private $_current = null;
-    private $_arrayAccessResults = null;
+    private $_iteratorQuery = null;
+    private $_iteratorItems = null;
+    private $_iteratorIndex = 0;
+    private $_iteratorCurrentItem = null;
+
+    private $_itemArray = null;
 
     private $_offset = null;
     private $_maxRecords = null;
@@ -41,9 +45,9 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpa
 
     /**
      * Creates a new result set.
-     * @param $parentOrModelClass mixed Either another Octopus_Model_ResultSet
-     * to build upon or the name of a model class for which to create a new
-     * result set.
+     * @param $parentOrModelClass String|Octopus_Model_ResultSet Either another
+     * Octopus_Model_ResultSet to build upon or the name of a model class for
+     * which to create a new result set.
      * @param $criteria Mixed Criteria used to filter things in this result set.
      * @param $orderBy mixed Sorting to use for this result set.
      * @param $conjunction string If $parentOrModelClass is a result set,
@@ -66,7 +70,11 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpa
 
     }
 
-    // Public Methods {{{
+    ////////////////////////////////////////
+    //
+    // Public Methods
+    //
+    ////////////////////////////////////////
 
     /**
      * Appends the contents of another result set to this result set and
@@ -74,14 +82,6 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpa
      */
     public function add(/* Variable */) {
         return $this->derive(func_get_args(), 'OR');
-    }
-
-    /**
-     * Removes the contents of another result set from this result set and
-     * returns the result. Keeps the sorting of $this.
-     */
-    public function remove(/* Variable */) {
-        return $this->derive(func_get_args(), array('AND', 'NOT'));
     }
 
     /**
@@ -112,15 +112,29 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpa
     }
 
     /**
+     * ResultSet implements Countable, so this:
+     * 		count($resultSet)
+     * is equivalent to:
+     * 		$resultSet->count()
+     * @return Number The # of records in this ResultSet.
+     */
+    public function count() {
+        $s = $this->buildSelect(true, null, false, false);
+        return $s->numRows();
+    }
+
+    /**
      * Deletes all results
+     * @return Octopus_Model_ResultSet
      */
     public function delete() {
+
+    	// TODO: Do a batch DELETE?
 
         foreach ($this as $item) {
             $item->delete();
         }
 
-        $this->query = null;
         return $this;
     }
 
@@ -150,100 +164,12 @@ class Octopus_Model_ResultSet implements ArrayAccess, Countable, Iterator, Dumpa
         return $this;
     }
 
-
-    public function __dumpHtml() {
-
-        $class = $this->getModel();
-        $classPlural = pluralize(humanize($this->getModel()));
-        $count = count($this);
-
-        $html = <<<END
-<table class="octopusDebugResultSetData octopusDebugBordered" border="0" cellpadding="0" cellspacing="0">
-<thead>
-<tr>
-    <th colspan="1000">
-        <span class="octopusDebugResultSetClass">Result Set for $class - $count rows</span>
-    </th>
-</tr>
-END;
-
-
-        $dummy = new $class();
-        $fields = $dummy->getFields();
-
-        $html .= '<tr><th>' . $dummy->getPrimaryKey() . '</th>';
-
-        foreach($fields as $f) {
-            $html .= '<th>' . h($f->getFieldName()) . '</th>';
-        }
-
-        $html .= '</tr></thead><tbody>';
-
-        $index = 0;
-
-        foreach($this as $model) {
-
-            if ($index >= 20) {
-                $html .= <<<END
-<tr><td class="octopusDebugResultSetStop" colspan="1000">Stopping at $index</td></tr>
-END;
-                break;
-            }
-
-            $d = $model->toArray();
-
-            $class = $index % 2 ? 'octopusDebugOdd' : 'octopusDebugEven';
-            $html .= <<<END
-<tr class="$class">
-<td>{$model->id}</td>
-END;
-
-            foreach($fields as $f) {
-                $value = $d[$f->getFieldName()];
-                if (is_object($value)) {
-                    try {
-                        $value = trim($value->__toString());
-                    } catch (Exception $ex) {
-                        $value = "<Exception during __toString: $ex>";
-                    }
-                }
-                $html .=
-                    '<td>' .
-                    h($value).
-                    '</td>';
-
-            }
-
-            $html .= '</tr>';
-
-            $index++;
-        }
-
-        $html .= '</tbody></table>';
-
-
-        $html .=
-            '<h3>SQL</h3>' .
-            '<textarea class="octopusDebugResultSetSql">' .
-            h($this->__dumpText()) .
-            '</textarea>';
-
-
-        return $html;
-    }
-
-    public function __dumpText() {
-        $params = array();
-        $sql = $this->getSql($params);
-        return normalize_sql($sql, $params);
-    }
-
     /**
      * @return Mixed the first result matched, or false if none were matched.
      */
     public function first() {
 
-        $q = $this->query(true);
+        $q = $this->query();
         $row = $q->fetchRow();
         if (!$row) return false;
 
@@ -253,6 +179,7 @@ END;
     /**
      * For a hasOne relation on the model, returns a resultset that contains
      * the contents of that relation for all matched elements.
+     * @return Octopus_Model_ResultSet
      */
     public function followRelation($relation) {
 
@@ -277,23 +204,110 @@ END;
 
     }
 
-    /**
-     * Enables filtering the result set using literal SQL. If you are using
-     * this directly, maybe you shouldn't?
-     * @param $sql String The SQL to inject into the WHERE clause
-     * @param $params Array Any paramters referenced by $sql
-     */
-    public function whereSql($sql, $params = array()) {
 
-        if (!is_array($params)) {
-            $args = func_get_args();
-            array_shift($args);
-            $params = $args;
+    /**
+     * @return String The model class this result set holds.
+     */
+    public function getModel() {
+        return $this->_modelClass;
+    }
+
+    /**
+     * @internal
+     * @return Octopus_Model An instance of the model this result set contains.
+     * @todo Make field-related stuff on Octopus_Model static so we don't have
+     * to keep a dummy instance around.
+     */
+    public function getModelInstance() {
+
+        if (!$this->_modelInstance) {
+            $class = $this->getModel();
+            if (!class_exists($class)) {
+                throw new Octopus_Model_Exception("Model class not found: $class");
+            }
+            $this->_modelInstance = new $class();
         }
 
-        $result = $this->where(array($sql => $params));
+        return $this->_modelInstance;
+    }
 
-        return $result;
+    /**
+     * @return Octopus_Model_Field
+     */
+    public function getModelField($name) {
+        $mc = $this->_modelClass;
+        $obj = new $mc();
+        $field = $obj->getField($name);
+        return $field;
+    }
+
+    /**
+     * @param $params Array array into which to put the parameters.
+     * @return string The SQL for the current query.
+     */
+    public function getSql(&$params = null) {
+
+        $s = $this->buildSelect();
+        $sql = $s->getSql();
+
+        if ($params !== null) {
+            foreach($s->params as $p) {
+                $params[] = $p;
+            }
+        }
+
+        return $sql;
+    }
+
+    /**
+     * @uses normalize_sql
+     */
+    public function getNormalizedSql() {
+        $params = array();
+        $sql = $this->getSql($params);
+        return normalize_sql($sql, $params);
+    }
+
+    /**
+     * @param String $field
+     * @return Boolean Whether this result set can be sorted by the given
+     * field.
+     */
+    public function isSortable($field) {
+    	return !!$this->getModelField($field);
+    }
+
+    /**
+     * @param String $field
+     * @param Boolean $asc
+     * @param Number $index
+     * @return Boolean Whether this result set is sorted by $field. If
+     * true, $asc is set to whether the sorting is in ascending order or
+     * not and $index is set to the (zero-based) index in the sort order
+     * $field is.
+     */
+    public function isSortedBy($field, &$asc = null, &$index = 0) {
+
+    	if (!isset($this->_orderBy[$field])) {
+    		return false;
+    	}
+
+    	$index = 0;
+    	foreach($this->_orderBy as $k => $v) {
+    		if ($k == $field) {
+
+    			if (is_string($v) && strcasecmp($v, 'desc') === 0) {
+    				$v = false;
+    			}
+
+    			$asc = !!$v;
+
+    			return true;
+    		}
+    		$index++;
+    	}
+
+    	return false;
     }
 
     /**
@@ -329,68 +343,70 @@ END;
     }
 
     /**
-     * @return Octopus_Model_ResultSet A copy of this resultset with any limiting
-     * restrictions removed.
+     * returns an optionally keyed array from the result set
+     * @return array
      */
-    public function unlimit() {
+    public function map($key, $value = null) {
 
-        if ($this->_offset === null && $this->_maxRecords === null) {
-            return $this;
+        // Client-side sorting means we can't use DB_Select's map() stuff
+        if ($this->_comparatorFunction) {
+
+            $result = array();
+            foreach($this as $item) {
+
+                if ($value) {
+                    $result[$item->$key] = $item->$value;
+                } else {
+                    $result[] = $item->$key;
+                }
+
+            }
+
+            return $result;
+
         }
 
-        $result = $this->createChild(null, null, null);
-        $result->_offset = null;
-        $result->_maxRecords = null;
-
-        return $result;
-    }
-
-    /**
-     * @return String The model class this result set holds.
-     */
-    public function getModel() {
-        return $this->_modelClass;
-    }
-
-    /**
-     * @return Octopus_Model_Field
-     */
-    public function getModelField($name) {
-        $mc = $this->_modelClass;
-        $obj = new $mc();
-        $field = $obj->getField($name);
-        return $field;
-    }
-
-    /**
-     * @param $params Array array into which to put the parameters.
-     * @return string The SQL for the current query.
-     */
-    public function getSql(&$params = null) {
-
-        $s = $this->buildSelect();
-        $sql = $s->getSql();
-
-        if ($params !== null) {
-            foreach($s->params as $p) {
-                $params[] = $p;
+        if (is_array($key)) {
+            $fields = $key;
+        } else {
+            $fields = array($key);
+            if ($value) {
+                $fields[] = $value;
             }
         }
 
-        return $sql;
-    }
+        $select = $this->buildSelect(false, $fields);
 
-    public function getNormalizedSql() {
-        $params = array();
-        $sql = $this->getSql($params);
-        return normalize_sql($sql, $params);
+        if (is_array($key)) {
+            return $select->fetchAll();
+        } else if ($value) {
+            return $select->getMap();
+        } else {
+            return $select->getOneArray();
+        }
+
     }
 
     /**
      * Restricts via free-text search.
+     * @param String $query
+     * @param Octopus_Model_FullTextMatcher $matcher
+     * @return Octopus_Model_ResultSet
+     * @see Octopus_Model_FullTextMatcher
+     * @see Octopus_Model_FullTextMatcher_PHP
+     * @uses Octopus_Model::__getSearchFields
+     * @uses Octopus_Model::__getFullTextMatcher
      */
-    public function matching($text) {
-        return $this->where($this->createFreeTextCriteria($text));
+    public function matching($query, $matcher = null) {
+
+        $modelClass = $this->getModel();
+
+        if (!$matcher) {
+            $matcher = call_user_func(array($modelClass, '__getFullTextMatcher'));
+        }
+
+        return $matcher->filter($this, $query);
+
     }
 
     /**
@@ -414,15 +430,61 @@ END;
     public function orderBy(/* Variable */) {
 
         $child = $this->createChild(null, array(), null);
+        $child->_comparatorFunction = null;
+
         $args = func_get_args();
 
         return call_user_func_array(array($child, 'thenOrderBy'), $args);
     }
 
     /**
+     * @internal
+     * Executes the SQL query backing this result set and returns it.
+     * @return Octopus_DB_Result
+     */
+    public function query() {
+        $s = $this->buildSelect();
+        return $s->query();
+    }
+
+
+    /**
+     * Removes the contents of another result set from this result set and
+     * returns the result. Keeps the sorting of $this.
+     */
+    public function remove(/* Variable */) {
+        return $this->derive(func_get_args(), array('AND', 'NOT'));
+    }
+
+    /**
+     * Sorts the contents of this ResultSet using a callback comparator
+     * function. This will override any calls to
+     * Octopus_Model_ResultSet::orderBy().
+     * @param  Function $function A comparator function that accepts two
+     * arguments and returns < 0 if the first should be sorted first, > 0 if
+     * the second should, or 0 if they are equivalent.
+     * @return Octopus_Model_ResultSet
+     */
+    public function sortUsing($function) {
+
+        $child = $this->createChild(null, null, null);
+        $child->_orderBy = null;
+        $child->_comparatorFunction = $function;
+
+        return $child;
+
+    }
+
+    /**
      * Adds a subordering to this resultset.
+     * @throws Octopus_Exception If Octopus_Model_ResultSet::sortUsing() was
+     * called, thenOrderBy is not supported.
      */
     public function thenOrderBy(/* Variable */) {
+
+        if ($this->_comparatorFunction) {
+            throw new Octopus_Exception("thenOrderBy() is not supported after Octopus_Model_ResultSet::sortUsing() has been called.");
+        }
 
         $args = func_get_args();
         $newOrderBy = array();
@@ -445,6 +507,39 @@ END;
     }
 
     /**
+     * Undoes a call to ::filter or ::where.
+     * @return Octopus_Model_ResultSet
+     */
+    public function unfilter() {
+
+    	return new Octopus_Model_ResultSet(
+    		$this->_modelClass,
+    		null,
+    		$this->_orderBy
+	    );
+
+    }
+
+
+
+    /**
+     * @return Octopus_Model_ResultSet A copy of this resultset with any limiting
+     * restrictions removed.
+     */
+    public function unlimit() {
+
+        if ($this->_offset === null && $this->_maxRecords === null) {
+            return $this;
+        }
+
+        $result = $this->createChild(null, null, null);
+        $result->_offset = null;
+        $result->_maxRecords = null;
+
+        return $result;
+    }
+
+    /**
      * @return Octopus_Model_ResultSet A ResultSet derived from this one with
      * additional filters applied.
      */
@@ -454,35 +549,29 @@ END;
     }
 
     /**
-     * returns an optionally keyed array from the result set
-     * @return array
+     * Enables filtering the result set using literal SQL. If you are using
+     * this directly, maybe you shouldn't?
+     * @param $sql String The SQL to inject into the WHERE clause
+     * @param $params Array Any paramters referenced by $sql
      */
-    public function map($key, $value = null) {
+    public function whereSql($sql, $params = array()) {
 
-        if (is_array($key)) {
-            $fields = $key;
-        } else {
-            $fields = array($key);
-            if ($value) {
-                $fields[] = $value;
-            }
+        if (!is_array($params)) {
+            $args = func_get_args();
+            array_shift($args);
+            $params = $args;
         }
 
-        $select = $this->buildSelect(false, $fields);
+        $result = $this->where(array($sql => $params));
 
-        if (is_array($key)) {
-            return $select->fetchAll();
-        } else if ($value) {
-            return $select->getMap();
-        } else {
-            return $select->getOneArray();
-        }
-
+        return $result;
     }
 
-    // End Public Methods }}}
-
-    // Protected Methods {{{
+ 	////////////////////////////////////////
+ 	//
+ 	// Protected Methods
+ 	//
+ 	////////////////////////////////////////
 
     /**
      * Takes a big fat criteria array and generates a WHERE clause.
@@ -563,62 +652,9 @@ END;
 
         $child->_offset = $this->_offset;
         $child->_maxRecords = $this->_maxRecords;
-
+        $child->_comparatorFunction = $this->_comparatorFunction;
 
         return $child;
-    }
-
-    protected function createFreeTextCriteria($text) {
-
-        $class = $this->getModel();
-
-        $dummy = new $class();
-        $searchFields = null;
-        $text = trim($text);
-        if (!$text) return array();
-
-        if (isset($dummy->search)) {
-            $searchFields = is_array($dummy->search) ? $dummy->search : array($dummy->search);
-        }
-
-        if ($searchFields === null) {
-
-            $searchFields = array();
-
-            foreach($dummy->getFields() as $field) {
-
-                $type = $field->getOption('type', 'text');
-                $isText = ($type == 'string' || $type == 'hasOne');
-
-                if ($field->getOption('searchable', $isText)) {
-                    $searchFields[] = $field;
-                }
-            }
-
-        } else {
-
-            $fields = array();
-            foreach($searchFields as $name) {
-                $field = $dummy->getField($name);
-                if ($field) $fields[] = $field;
-            }
-            $searchFields = $fields;
-        }
-
-        $criteria = array();
-        foreach($searchFields as $field) {
-
-            $restrict = $field->restrictFreetext($dummy, $text);
-
-            if ($restrict) {
-                if (count($criteria)) $criteria[] = 'OR';
-                $criteria[] = $restrict;
-            }
-
-        }
-
-        return $criteria;
-
     }
 
     /**
@@ -682,21 +718,50 @@ END;
     }
 
     /**
-     * @return Octopus_Model An instance of the model this result set contains.
+     * This method supports ResultSet's (currently non-optimal) implementation
+     * of ArrayAccess as well as client-side sorting (::sortUsing()).
+     * @return Array Every single item returned as an array.
      */
-    protected function getModelInstance() {
+    protected function &getItemsAsArray() {
 
-        // TODO: Lots of these methods should be static on Octopus_Model.
-
-        if (!$this->_modelInstance) {
-            $class = $this->getModel();
-            if (!class_exists($class)) {
-                throw new Octopus_Model_Exception("Model class not found: $class");
-            }
-            $this->_modelInstance = new $class();
+        if ($this->_itemArray !== null) {
+            return $this->_itemArray;
         }
 
-        return $this->_modelInstance;
+        $this->_itemArray = array();
+        $q = $this->query();
+
+        while($row = $q->fetchRow()) {
+
+            $item = $this->createModelInstance($row);
+            $this->_itemArray[] = $item;
+
+        }
+
+        if ($this->_comparatorFunction) {
+
+            // Error suppression is because of
+            // https://bugs.php.net/bug.php?id=50688
+            @usort($this->_itemArray, $this->_comparatorFunction);
+
+        }
+
+        if ($this->_offset && $this->_maxRecords) {
+
+            $this->_itemArray = array_slice($this->_itemArray, $this->_offset, $this->_maxRecords);
+
+        } else if ($this->_maxRecords) {
+
+            $this->_itemArray = array_slice($this->_itemArray, 0, $this->_maxRecords);
+
+        } else if ($this->_offset) {
+
+            $this->_itemArray = array_slice($this->_itemArray, $this->_offset);
+
+        }
+
+        return $this->_itemArray;
+
     }
 
     protected function getModelPrimaryKey() {
@@ -709,9 +774,11 @@ END;
         return $instance->getTableName();
     }
 
-    // End Protected Methods }}}
-
-    // Private Methods {{{
+    ////////////////////////////////////////
+    //
+    // Private Methods
+    //
+    ////////////////////////////////////////
 
     private function applyOrderByClause(&$s, &$orderBy) {
 
@@ -784,7 +851,8 @@ END;
             $this->applyOrderByClause($s, $this->_orderBy);
         }
 
-        if ($limit && ($this->_offset !== null || $this->_maxRecords !== null)) {
+        // NOTE: if client-side sorting is being used, we can't limit in SQL
+        if ($limit && ($this->_offset !== null || $this->_maxRecords !== null) && !$this->_comparatorFunction) {
             $s->limit(($this->_offset === null ? 0 : $this->_offset), $this->_maxRecords);
         }
 
@@ -805,6 +873,39 @@ END;
             $this->_parent ? $this->_parent->getFullWhereClause($s, $params) : '',
             $this->buildWhereClause($this->_criteria, $s, $params)
         );
+    }
+
+    /**
+     * Combines two pieces of a where clause.
+     */
+    private static function joinSql($conj, $left, $right) {
+
+        $left = trim($left);
+        $right = trim($right);
+
+        $leftLen = strlen($left);
+        $rightLen = strlen($right);
+
+        if (!($leftLen || $rightLen)) {
+            return '';
+        } else if ($leftLen && !$rightLen) {
+            return $left;
+        } else if ($rightLen && !$leftLen) {
+            return $right;
+        }
+
+        if (!is_array($conj)) {
+            return '(' . $left . ') ' . $conj . ' (' . $right . ')';
+        }
+
+        $left = "($left) ";
+
+        foreach($conj as $c) {
+            $left .= "$c (";
+            $right .= ')';
+        }
+
+        return $left . $right;
     }
 
     /**
@@ -865,59 +966,6 @@ END;
         }
 
         return false;
-    }
-
-    /**
-     * Executes the SQL query backing this ResultSet.
-     * @return Octopus_DB_Result
-     */
-    protected function &query($new = false) {
-
-        if ($this->query && !$new) {
-            return $this->query;
-        }
-
-        $s = $this->buildSelect();
-        $this->query = $s->query();
-
-        return $this->query;
-    }
-
-    // End Private Methods }}}
-
-    // Static Methods {{{
-
-    /**
-     * Combines two pieces of a where clause.
-     */
-    private static function joinSql($conj, $left, $right) {
-
-        $left = trim($left);
-        $right = trim($right);
-
-        $leftLen = strlen($left);
-        $rightLen = strlen($right);
-
-        if (!($leftLen || $rightLen)) {
-            return '';
-        } else if ($leftLen && !$rightLen) {
-            return $left;
-        } else if ($rightLen && !$leftLen) {
-            return $right;
-        }
-
-        if (!is_array($conj)) {
-            return '(' . $left . ') ' . $conj . ' (' . $right . ')';
-        }
-
-        $left = "($left) ";
-
-        foreach($conj as $c) {
-            $left .= "$c (";
-            $right .= ')';
-        }
-
-        return $left . $right;
     }
 
     /**
@@ -1004,11 +1052,27 @@ END;
         return $result;
     }
 
-    // }}}
+    /**
+     * Handles the where____ magic method for boolean fields.
+     * @param $matches Array set of matched groups from the magic method pattern.
+     */
+    private function whereBoolean($matches) {
 
-    // Magic Methods {{{
+        $field = underscore($matches['field']);
+        $not = isset($matches['not']) ? (strcasecmp('not', $matches['not']) == 0) : false;
+
+        return $this->where(array($field => $not ? 0 : 1));
+    }
+
+    ////////////////////////////////////////
+    //
+    // Internal Public Methods
+    //
+    ////////////////////////////////////////
 
     /**
+     * @internal
+     * Supports "magic" methods, such as whereField (same as where(field, 1)).
      * @throws Octopus_Exception_MethodMissing Thrown if $name does not
      * resolve to an actual method.
      */
@@ -1024,85 +1088,160 @@ END;
     }
 
     /**
-     * Handles the where____ magic method for boolean fields.
-     * @param $matches Array set of matched groups from the magic method pattern.
+     * @internal
+     * @see Dumpable::__dumpHtml()
+     * @return String HTML debugging info for this result set.
      */
-    private function whereBoolean($matches) {
+    public function __dumpHtml() {
 
-        $field = underscore($matches['field']);
-        $not = isset($matches['not']) ? (strcasecmp('not', $matches['not']) == 0) : false;
+        $class = $this->getModel();
+        $classPlural = pluralize(humanize($this->getModel()));
+        $count = count($this);
 
-        return $this->where(array($field => $not ? 0 : 1));
-    }
+        $html = <<<END
+<table class="octopusDebugResultSetData octopusDebugBordered" border="0" cellpadding="0" cellspacing="0">
+<thead>
+<tr>
+    <th colspan="1000">
+        <span class="octopusDebugResultSetClass">Result Set for $class - $count rows</span>
+    </th>
+</tr>
+END;
 
-    // End Magic Methods }}}
 
-    // Iterator Implementation {{{
+        $dummy = new $class();
+        $fields = $dummy->getFields();
 
-    public function current() {
-        return $this->_current;
-    }
+        $html .= '<tr><th>' . $dummy->getPrimaryKey() . '</th>';
 
-    public function key() {
-        if (!$this->_current) {
-            return false;
-        }
-        return $this->_current->id;
-    }
-
-    public function next() {
-    }
-
-    public function rewind() {
-        $this->_currentQuery = $this->query(true);
-    }
-
-    public function valid() {
-
-        if (!$this->_currentQuery) {
-            $this->_current = null;
-            return false;
+        foreach($fields as $f) {
+            $html .= '<th>' . h($f->getFieldName()) . '</th>';
         }
 
-        $row = $this->_currentQuery->fetchRow();
-        if (!$row) {
-            $this->_current = null;
-            $this->_currentQuery = null;
-            return false;
+        $html .= '</tr></thead><tbody>';
+
+        $index = 0;
+
+        foreach($this as $model) {
+
+            if ($index >= 20) {
+                $html .= <<<END
+<tr><td class="octopusDebugResultSetStop" colspan="1000">Stopping at $index</td></tr>
+END;
+                break;
+            }
+
+            $d = $model->toArray();
+
+            $class = $index % 2 ? 'octopusDebugOdd' : 'octopusDebugEven';
+            $html .= <<<END
+<tr class="$class">
+<td>{$model->id}</td>
+END;
+
+            foreach($fields as $f) {
+                $value = $d[$f->getFieldName()];
+                if (is_object($value)) {
+                    try {
+                        $value = trim($value->__toString());
+                    } catch (Exception $ex) {
+                        $value = "<Exception during __toString: $ex>";
+                    }
+                }
+                $html .=
+                    '<td>' .
+                    h($value).
+                    '</td>';
+
+            }
+
+            $html .= '</tr>';
+
+            $index++;
         }
 
-        $this->_current = $this->createModelInstance($row);
-        return true;
+        $html .= '</tbody></table>';
+
+
+        $html .=
+            '<h3>SQL</h3>' .
+            '<textarea class="octopusDebugResultSetSql">' .
+            h($this->__dumpText()) .
+            '</textarea>';
+
+
+        return $html;
     }
 
     /**
-     * @return Number The # of records in this ResultSet.
+     * @internal
+     * @see Dumpable::__dumpText
+     * @return String SQL for this result set.
      */
-    public function count() {
-        $s = $this->buildSelect(true, null, false, false);
-        return $s->numRows();
-    }
+    public function __dumpText() {
 
-    // }}}
+        $params = array();
+        $sql = $this->getSql($params);
+        $sql = normalize_sql($sql, $params);
 
-    // ArrayAccess Implementation {{{
+        $class = get_class($this);
+        $model = $this->getModel();
+        $count = null;
 
-    private function getArrayAccessResult() {
-        if (!$this->_arrayAccessResults) {
-            $query = $this->query(true);
-            $this->_arrayAccessResults = $query->fetchAll();
+        try {
+        	$count = count($this);
+        } catch(Exception $ex) {
+        	$count = "<ERROR>";
         }
 
-        return $this->_arrayAccessResults;
+		return "$class<$model> (count: $count) $sql";
     }
 
+    /**
+     * @internal
+     * Supports Iterator implementation.
+     * @return Octopus_Model
+     */
+    public function current() {
+        return $this->_iteratorCurrentItem;
+    }
+
+    /**
+     * @internal
+     * Supports Octopus_DataSource implementation. Use ::where() instead.
+     * @return Octopus_Model_ResultSet
+     */
+    public function filter($field, $value) {
+        return $this->where($field, $value);
+    }
+
+    /**
+     * @internal
+     * Supports Iterator implementation.
+     * @return Number|Boolean
+     */
+    public function key() {
+
+        $current = $this->current();
+        return $current ? $current->id : false;
+
+    }
+
+    /**
+     * @internal
+     * Supports ArrayAccess implementation.
+     */
     public function offsetExists($offset) {
-        $all = $this->getArrayAccessResult();
+        $all = $this->getItemsAsArray();
         return isset($all[$offset]);
     }
 
+    /**
+     * @internal
+     * Supports ArrayAccess implementation.
+     */
     public function offsetGet($offset) {
-        $all = $this->getArrayAccessResult();
+        $all = $this->getItemsAsArray();
         if (isset($all[$offset])) {
             return $this->createModelInstance($all[$offset]);
         }
@@ -1110,30 +1249,90 @@ END;
         return null;
     }
 
+    /**
+     * @internal
+     * Supports ArrayAccess implementation.
+     * @throws Octopus_Model_Exception
+     */
     public function offsetSet($offset, $value) {
         // no, you can't do this
         throw new Octopus_Model_Exception('You cannot set this, that does not make sense.');
     }
 
+    /**
+     * @internal
+     * Supports ArrayAccess implementation.
+     * @throws Octopus_Model_Exception
+     */
     public function offsetUnset($offset) {
         // no, you can't do this
         throw new Octopus_Model_Exception('You cannot unset this, that does not make sense.');
     }
 
-    // }}}
+    /**
+     * @internal
+     * Supports Iterator implementation.
+     */
+    public function next() {
 
-    // Octopus_DataSource Implementation
+        if ($this->_iteratorQuery !== null) {
 
-    public function unfilter() {
+            $row = $this->_iteratorQuery->fetchRow();
+            $this->_iteratorCurrentItem = ($row ? $this->createModelInstance($row) : null);
 
-        return new Octopus_Model_ResultSet(
-            $this->_modelClass,
-            null,
-            $this->_orderBy
-        );
+        } else {
+
+            $this->_iteratorIndex++;
+
+            if ($this->_iteratorIndex < 0 || $this->_iteratorIndex >= count($this->_iteratorItems)) {
+                $this->_iteratorCurrentItem = null;
+            } else {
+                $this->_iteratorCurrentItem = $this->_iteratorItems[$this->_iteratorIndex];
+            }
+
+        }
 
     }
 
+    /**
+     * @internal
+     * Supports Iterator implementation.
+     */
+    public function rewind() {
+
+        $this->_iteratorQuery = null;
+        $this->_iteratorItems = null;
+        $this->_iteratorIndex = 0;
+        $this->_iteratorCurrentItem = null;
+
+        if ($this->_comparatorFunction) {
+
+            // We're using a client-side comparator function, so we have to
+            // load everything into an array and then sort things.
+            $this->_iteratorItems = $this->getItemsAsArray();
+            $this->_iteratorCurrentItem = $this->_iteratorItems ? $this->_iteratorItems[0] : null;
+
+        } else {
+
+            // No client-side sorting is happening, so we can safely
+            // traverse row-at-a-time
+            $this->_iteratorQuery = $this->query();
+
+            $row = $this->_iteratorQuery->fetchRow();
+            if ($row) {
+                $this->_iteratorCurrentItem = $this->createModelInstance($row);
+            }
+
+        }
+
+    }
+
+    /**
+     * @internal
+     * Supports Octopus_DataSource implementation.
+     * @see Octopus_DataSource
+     * @return Octopus_ResultSet
+     */
     public function sort($col, $asc = true, $replace = true) {
 
         if ($replace) {
@@ -1151,43 +1350,33 @@ END;
         }
     }
 
-    public function filter($field, $value) {
-        return $this->where($field, $value);
-    }
-
-    public function isSortable($field) {
-        return !!$this->getModelField($field);
-    }
-
-    public function isSortedBy($field, &$asc = null, &$index = 0) {
-
-        if (!isset($this->_orderBy[$field])) {
-            return false;
-        }
-
-        $index = 0;
-        foreach($this->_orderBy as $k => $v) {
-            if ($k == $field) {
-
-                if (is_string($v) && strcasecmp($v, 'desc') === 0) {
-                    $v = false;
-                }
-
-                $asc = !!$v;
-
-                return true;
-            }
-            $index++;
-        }
-
-        return false;
-    }
-
+    /**
+     * @internal
+     * Supports Octopus_DataSource implementation.
+     * @return Octopus_Result_Set
+     */
     public function unsort() {
-        return $this->orderBy();
+    	return $this->orderBy();
     }
 
+    /**
+     * @internal
+     * Supports Iterator implementation.
+     * @return Boolean
+     */
+    public function valid() {
 
-    // End Octopus_DataSource Implementation
+        if ($this->_iteratorQuery) {
+
+            return $this->_iteratorCurrentItem !== null;
+
+        } else {
+
+            return $this->_iteratorIndex >= 0 && $this->_iteratorIndex < count($this->_iteratorItems);
+
+        }
+
+    }
+
 
 }
