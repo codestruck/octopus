@@ -19,6 +19,12 @@ class Octopus_Model_FullTextMatcher_PHP {
     public $matchTermPoints = 1;
 
     /**
+     * Maximum # of search terms to process.
+     * @var integer
+     */
+    public $maxTerms = 8;
+
+    /**
      * # of points awarded for matching a complete term.
      * @var integer
      */
@@ -40,6 +46,8 @@ class Octopus_Model_FullTextMatcher_PHP {
             return $resultSet;
         }
 
+        $terms = array_slice($terms, 0, $this->maxTerms);
+
         // Step 2 -- Find everything that matches those terms, even a little
         $modelClass = $resultSet->getModel();
         $searchFields = call_user_func(array($modelClass, '__getSearchFields'));
@@ -59,16 +67,19 @@ class Octopus_Model_FullTextMatcher_PHP {
         $dummy = $resultSet->getModelInstance();
 
         $terms = array_unique($terms);
-        $terms = '*' . implode("*", $terms) . '*';
 
         $criteria = array();
         foreach($searchFields as $f) {
 
-            $restrict = $f['field']->restrictFreeText($dummy, $terms);
+            foreach($terms as $term) {
 
-            if ($restrict) {
-                if (count($criteria)) $criteria[] = 'OR';
-                $criteria[] = $restrict;
+                $restrict = $f['field']->restrictFreeText($dummy, $term);
+
+                if ($restrict) {
+                    if (count($criteria)) $criteria[] = 'OR';
+                    $criteria[] = $restrict;
+                }
+
             }
 
         }
@@ -104,6 +115,7 @@ class Octopus_Model_FullTextMatcher_PHP {
             "im" => 1,
             "ive" => 1,
             "me" => 1,
+            "my" => 1,
             "of" => 1,
             "that" => 1,
             "the" => 1,

@@ -193,7 +193,7 @@ END
 
 	function testBasicMatching() {
 
-		$messages = FullTextSearchMessage::all()->matching('permit my embarkation');
+		$messages = FullTextSearchMessage::all()->matching('consolation embarkation');
 		$this->assertEquals(1, count($messages), 'correct # of messages found');
 		$message = $messages->first();
 		$this->assertTrue(!!$message, 'message found');
