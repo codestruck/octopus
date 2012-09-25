@@ -96,6 +96,15 @@ class Octopus_Html_Form extends Octopus_Html_Element {
     }
 
     /**
+     * @return null|Octopus_Html_Element The &lt;ul&gt; that holds the errors
+     * for this form. This may not be available until after {@link ::validate()}
+     * is called.
+     */
+    public function getErrorList() {
+        return $this->errorList;
+    }
+
+    /**
      * @return String A hash used to verify that:
      *    1) This form was the one that was submitted
      *    2) (Optionally) The user submitting the form is the user the form

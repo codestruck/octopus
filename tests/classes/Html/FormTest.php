@@ -8,6 +8,21 @@
  */
 class FormTest extends Octopus_Html_TestCase {
 
+    function testGetErrorList() {
+
+        $form = new Octopus_Html_Form('getErrorList');
+        $list = $form->getErrorList();
+        $this->assertNull($list, 'no error list before validate (this is not important, just encoding current behavior in tests)');
+
+        $form->add('foo')->required();
+        $form->submit(array());
+        $this->assertFalse($form->validate(), 'validation fails as expected');
+
+        $list = $form->getErrorList();
+        $this->assertTrue($list instanceof Octopus_Html_Element, 'list exists after validate');
+
+    }
+
     function testAddElementAsButton() {
 
         $form = new Octopus_Html_Form('addElAsButton');
