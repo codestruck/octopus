@@ -24,6 +24,7 @@ class Octopus_Recaptcha {
 
     private static $privateKey = self::DEFAULT_PRIVATE_KEY;
     private static $publicKey = self::DEFAULT_PUBLIC_KEY;
+    private static $theme = 'red';
 
     private function __construct() { }
 
@@ -42,6 +43,13 @@ class Octopus_Recaptcha {
     }
 
     /**
+     * @return String The default Recaptcha theme to use. Defaults to 'red'.
+     */
+    public static function getTheme() {
+        return self::$theme;
+    }
+
+    /**
      * Sets the private recaptcha key to use.
      * @param String $key
      */
@@ -57,6 +65,14 @@ class Octopus_Recaptcha {
         self::$publicKey = $key;
     }
 
+    /**
+     * Sets the default Recaptcha theme to use.
+     * @param String $theme
+     */
+    public static function setTheme($theme) {
+        self::$theme = $theme;
+    }
+
 }
 
 /**
@@ -67,6 +83,8 @@ class Octopus_Recaptcha {
  *
  * A validation rule for the captcha is automatically added to the form.
  *
+ * @property  String $theme See getTheme() and setTheme()
+ *
  */
 class Octopus_Html_Form_Field_Recaptcha extends Octopus_Html_Form_Field {
 
@@ -75,6 +93,7 @@ class Octopus_Html_Form_Field_Recaptcha extends Octopus_Html_Form_Field {
     private $challenge = '';
     private $response = '';
     private $failureMessage = 'Please re-enter the captcha text.';
+    private $theme = null;
 
     public function __construct($type, $name, $label, $attributes) {
 
@@ -90,6 +109,8 @@ class Octopus_Html_Form_Field_Recaptcha extends Octopus_Html_Form_Field {
 
         if ($name === 'value') {
             return array('challenge' => $this->challenge, 'response' => $this->response);
+        } else if ($name === 'theme') {
+            return $this->getTheme();
         }
 
         return parent::getAttribute($name, $default);
@@ -133,6 +154,14 @@ class Octopus_Html_Form_Field_Recaptcha extends Octopus_Html_Form_Field {
         return $this->response;
     }
 
+    /**
+     * Gets the Recaptcha theme to use. (see {@link https://developers.google.com/recaptcha/docs/customization}).
+     * @return String Defaults to 'red'.
+     */
+    public function getTheme() {
+        return $this->theme === null ? Octopus_Recaptcha::getTheme() : $this->theme;
+    }
+
     public function loadValue(&$values) {
 
         $this->challenge = isset($values['recaptcha_challenge_field']) ? $values['recaptcha_challenge_field'] : '';
@@ -153,6 +182,8 @@ class Octopus_Html_Form_Field_Recaptcha extends Octopus_Html_Form_Field {
 
             return $this;
 
+        } else if ($name === 'theme') {
+            return $this->setTheme($value);
         }
 
         return parent::setAttribute($name, $value);
@@ -168,8 +199,48 @@ class Octopus_Html_Form_Field_Recaptcha extends Octopus_Html_Form_Field {
         return $this;
     }
 
+    /**
+     * Sets the Recaptcha theme to use (see {@link https://developers.google.com/recaptcha/docs/customization}).
+     * @param String $theme
+     * @return  Octopus_Form_Field_Recaptcha $this
+     */
+    public function setTheme($theme) {
+        $this->theme = $theme;
+        return $this;
+    }
+
+    /**
+     * Fluent accessor for getTheme() and setTheme()
+     * @param  String $theme
+     * @return String|Octopus_Html_Form_Field_Recaptcha If $theme is provided,
+     * returns $this for method chaining, otherwise returns the current
+     * theme.
+     */
+    public function theme($theme = null) {
+
+        switch(func_num_args()) {
+            case 0:
+                return $this->getTheme();
+            default:
+                return $this->setTheme($theme);
+        }
+
+    }
+
     public function renderContent($escape = Octopus_Html_Element::ESCAPE_ATTRIBUTES) {
-        return recaptcha_get_html($this->getPublicKey(), null, true);
+
+        $html = recaptcha_get_html($this->getPublicKey(), null, true);
+        $theme = json_encode($this->getTheme());
+
+        return <<<END
+<script>
+    var RecaptchaOptions = {
+        theme: $theme
+    };
+</script>
+$html
+END;
+
     }
 
     public function validateCaptcha($value) {
