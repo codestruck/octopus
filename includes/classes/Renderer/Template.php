@@ -131,6 +131,9 @@ class Octopus_Renderer_Template extends Octopus_Renderer {
             // Make sure we send a 404 status
             if ($response->active) $response->notFound();
 
+            // Ensure that the RESPONSE_STATUS var is maintained
+            $data['RESPONSE_STATUS'] = $response->getStatus();
+
             $file = $finder->find('404');
 
             if (!$file) {
@@ -462,6 +465,8 @@ class Octopus_Renderer_Template extends Octopus_Renderer {
         $result['DEV'] = $app->DEV;
         $result['LIVE'] = $app->LIVE;
         $result['STAGING'] = $app->STAGING;
+
+        $result['RESPONSE_STATUS'] = $response->getStatus();
 
         return $result;
     }
