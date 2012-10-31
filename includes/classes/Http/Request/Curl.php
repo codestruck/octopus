@@ -29,7 +29,7 @@ class Octopus_Http_Request_Curl extends Octopus_Http_Request_Base {
         $this->args = array_merge($this->defaults, $args);
         $args =& $this->args;
 
-        list($host, $port, $path, $secure, $protocol) = $this->parseUrl($url, $data);
+        list($host, $port, $path, $secure, $protocol, $user, $pass) = $this->parseUrl($url, $data);
         $url = $protocol . '://' . $host . $path;
 
         $handle = curl_init();
@@ -45,11 +45,15 @@ class Octopus_Http_Request_Curl extends Octopus_Http_Request_Base {
             curl_setopt($handle, CURLOPT_TIMEOUT, $args['timeout']);
         }
 
+        if ($user) {
+            curl_setopt($handle, CURLOPT_USERPWD, "$user:$pass");
+        }
+
         $method = strtoupper($args['method']);
 
         if ($method !== 'GET') {
 
-             if ($method === 'POST') {
+            if ($method === 'POST') {
                 curl_setopt($handle, CURLOPT_POST, true);
             } else {
                 curl_setopt($handle, CURLOPT_CUSTOMREQUEST, strtoupper($args['method']));
@@ -84,11 +88,15 @@ class Octopus_Http_Request_Curl extends Octopus_Http_Request_Base {
             curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, false);
         }
 
+        if (!empty($args['ssl_version'])) {
+            curl_setopt($handle, CURLOPT_SSLVERSION, 3);
+        }
+
         $request_headers = array();
 
         foreach($args as $opt => $value) {
             if (!in_array($opt, $this->reservedOpts)) {
-                $request_headers[$opt] = $value;
+                $request_headers[] = "$opt: $value";
             }
         }
 

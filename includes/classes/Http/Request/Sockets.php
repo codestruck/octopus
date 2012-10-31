@@ -14,7 +14,7 @@ class Octopus_Http_Request_Sockets extends Octopus_Http_Request_Base {
         $this->requestData = $data;
         $this->args = array_merge($this->defaults, $args);
 
-        list($host, $port, $path, $secure) = $this->parseUrl($url, $data);
+        list($host, $port, $path, $secure, $protocol, $user, $pass) = $this->parseUrl($url, $data);
 
         $ip = gethostbyname($host);
 
@@ -65,7 +65,9 @@ class Octopus_Http_Request_Sockets extends Octopus_Http_Request_Base {
 
         $request_body = '';
         if ($data) {
-            $request .= "Content-Type: application/x-www-form-urlencoded\r\n";
+            if (!isset($this->args['Content-Type'])) {
+                $request .= "Content-Type: application/x-www-form-urlencoded\r\n";
+            }
 
             if (is_array($data)) {
                 $request_body = octopus_http_build_query($data, '&', 'POST');
@@ -75,6 +77,11 @@ class Octopus_Http_Request_Sockets extends Octopus_Http_Request_Base {
 
             $request .= "Content-Length: " . strlen($request_body) . "\r\n";
 
+        }
+
+        if ($user) {
+            $auth = base64_encode("$user:$pass");
+            $request .= "Authorization: Basic $auth\r\n";
         }
 
         $request .= "Connection: close\r\n";
@@ -92,6 +99,10 @@ class Octopus_Http_Request_Sockets extends Octopus_Http_Request_Base {
 
         list($headers, $body) = $this->splitResponse($response);
         $this->headers = $headers;
+
+        if (isset($this->headers['Transfer-Encoding']) && $this->headers['Transfer-Encoding'] === 'chunked') {
+            $body = compat_http_chunked_decode($body);
+        }
 
         $body = $this->checkHeaders($body);
 

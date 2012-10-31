@@ -1,5 +1,34 @@
 <?php
 
+function compat_http_chunked_decode($chunk) {
+    $pos = 0;
+    $len = strlen($chunk);
+    $dechunk = null;
+
+    while(($pos < $len)
+        && ($chunkLenHex = substr($chunk,$pos, ($newlineAt = strpos($chunk,"\n",$pos+1))-$pos)))
+    {
+        if (! is_hex($chunkLenHex)) {
+            trigger_error('Value is not properly chunk encoded', E_USER_WARNING);
+            return $chunk;
+        }
+
+        $pos = $newlineAt + 1;
+        $chunkLen = hexdec(rtrim($chunkLenHex,"\r\n"));
+        $dechunk .= substr($chunk, $pos, $chunkLen);
+        $pos = strpos($chunk, "\n", $pos + $chunkLen) + 1;
+    }
+    return $dechunk;
+}
+
+function is_hex($hex) {
+    // regex is for weenies
+    $hex = strtolower(trim(ltrim($hex,"0")));
+    if (empty($hex)) { $hex = 0; };
+    $dec = hexdec($hex);
+    return ($hex == dechex($dec));
+}
+
 /**
  * @copyright (c) 2012 Codestruck, LLC.
  * @license http://opensource.org/licenses/mit-license.php/
@@ -26,6 +55,7 @@ class Octopus_Http_Request_Base {
         'http_version',
         'check_ssl',
         'timeout',
+        'ssl_version',
     );
 
     public function __construct() {
@@ -56,6 +86,9 @@ class Octopus_Http_Request_Base {
     protected function parseUrl($url, $queryArgs = '') {
 
         $urlInfo = parse_url($url);
+
+        $user = isset($urlInfo['user']) ? $urlInfo['user'] : null;
+        $pass = isset($urlInfo['pass']) ? $urlInfo['pass'] : null;
 
         if (!isset($urlInfo['scheme'])) $urlInfo['scheme'] = 'http';
         if (!isset($urlInfo['host'])) $urlInfo['host'] = '';
@@ -92,7 +125,7 @@ class Octopus_Http_Request_Base {
 
         }
 
-        return array($host, $port, $path, $secure, $urlInfo['scheme']);
+        return array($host, $port, $path, $secure, $urlInfo['scheme'], $user, $pass);
 
     }
 
