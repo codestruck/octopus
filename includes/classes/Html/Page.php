@@ -574,15 +574,14 @@ class Octopus_Html_Page implements ArrayAccess {
 
         $minifiers = $this->minifiers[$type];
 
-        // Ensure that $items is indexed by filename
-        $itemsByFile = array();
-        foreach($items as $item) {
-            $itemsByFile[$item['file']] = $item;
-        }
-        $items = $itemsByFile;
-
-
         foreach($minifiers as $m) {
+
+            // Ensure that $items is indexed by filename
+            $itemsByFile = array();
+            foreach($items as $item) {
+                $itemsByFile[$item['file']] = $item;
+            }
+            $items = $itemsByFile;
 
             // Pass minifier an array of distinct files
             $minified = $m->minify(array_keys($items));
@@ -639,6 +638,7 @@ class Octopus_Html_Page implements ArrayAccess {
             }
 
             usort($items, array(__CLASS__, 'compareWeights'));
+
         }
 
         return $items;

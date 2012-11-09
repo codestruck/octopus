@@ -197,4 +197,74 @@ END
 
     }
 
+    /**
+     * @group slow
+     */
+    function testSrcPlusCombine() {
+
+        $app = $this->startApp();
+
+        $siteDir = $this->getSiteDir();
+        mkdir($siteDir . 'script/');
+        mkdir($siteDir . 'cache/');
+
+        $srcFoo = $siteDir . 'script/foo_src.js';
+        $minFoo = $siteDir . 'script/foo.js';
+
+        $srcBar = $siteDir . 'script/bar_src.js';
+        $minBar = $siteDir . 'script/bar.js';
+
+        file_put_contents($minFoo, "MINIFIED-FOO");
+        file_put_contents($srcFoo, "ORIGINAL-FOO");
+        file_put_contents($minBar, "MINIFIED-BAR");
+        file_put_contents($srcBar, "ORIGINAL-BAR");
+
+        $page = new Octopus_Html_Page();
+        $page->addJavascriptMinifier('src');
+        $page->addJavascriptMinifier('combine');
+        $page->addJavascript($minFoo);
+        $page->addJavascript($minBar);
+
+        $toTouch = array(
+            array(
+                array($minFoo, $minBar),
+                array($minFoo, $minBar),
+            ),
+
+            array(
+                array($srcBar),
+                array($minFoo, $srcBar),
+            ),
+
+            array(
+                array($srcFoo),
+                array($srcFoo, $srcBar),
+            ),
+
+            array(
+                array($minBar),
+                array($srcFoo, $minBar)
+            ),
+        );
+
+        foreach($toTouch as $args) {
+
+            sleep(1);
+
+            list($touch, $expected) = $args;
+            foreach($touch as $file) {
+                touch($file);
+            }
+
+            $js = $page->getJavascriptFiles();
+            $this->assertEquals(1, count($js), "1 js file");
+            $js = array_shift($js);
+
+            $this->assertEquals(
+                $expected,
+                $js['unminified_files']
+            );
+        }
+
+    }
 }

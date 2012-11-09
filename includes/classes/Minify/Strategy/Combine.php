@@ -27,7 +27,9 @@ class Octopus_Minify_Strategy_Combine extends Octopus_Minify_Strategy {
 
             if (!$extension) {
                 $info = pathinfo($file);
-                $extension = ($info['extension'] ? '.' : '') . $info['extension'];
+                if (isset($info['extension'])) {
+                    $extension = '.' . $info['extension'];
+                }
             }
 
             $handledFiles[] = $file;
@@ -53,6 +55,7 @@ class Octopus_Minify_Strategy_Combine extends Octopus_Minify_Strategy {
             }
 
             $cacheFile = $this->saveCacheFile('combine', $uniqueHash, $deleteHash, $extension, $content);
+
         }
 
         if ($cacheFile) {
