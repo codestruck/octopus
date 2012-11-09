@@ -78,40 +78,32 @@ class Octopus_Mail {
 
         $to = implode(', ', $this->to);
 
-        $date = date('D, d M Y H:i:s O');
-        $output = str_repeat('=', 80);
+        $message = array(
+            "from" => $this->from,
+            "to" => implode(', ', $this->to),
+        );
 
-        $reply = '';
-        if ($this->replyTo != '') {
-            $reply = "Reply-To: {$this->replyTo}\n";
+       if ($this->replyTo) {
+            $message["reply-to"] = $this->replyTo;
         }
 
+        $message['subject'] = $this->subject;
 
-        $output .= <<<END
-
-TEST EMAIL OUTPUT ($date):
-To: $to
-From: {$this->from}
-{$reply}Subject: {$this->subject}
-
-END;
 
         if ($this->text != '') {
-            $output .= "Text Contents:\n\n{$this->text}\n\n";
+            $message['body_text'] = $this->text;
         }
 
         if ($this->html != '') {
-            $output .= "Html Contents:\n\n{$this->html}\n\n";
+            $message['body_html'] = $this->html;
         }
 
-        foreach ($this->files as $file) {
-            $output .= "Attached File: " . basename($file) . "\n";
-        }
+        $message['files'] = array_map('basename', $this->files);
 
         $dir = get_option('LOG_DIR');
         if (!$dir) $dir = get_option('OCTOPUS_PRIVATE_DIR');
         $log = new Octopus_Logger_File($dir . 'emails.log');
-        $log->log($output);
+        $log->log($message);
 
     }
 

@@ -22,6 +22,9 @@ octopus/tail
         --help
             Display this message.
 
+        --mail
+            Automatically open email send by Octopus in your default browser.
+
 Copyright (c) 2012 Codestruck, LLC.
 Provided under the terms of the MIT license. See the LICENSE file for details.
 
@@ -39,6 +42,7 @@ END;
     $monitor = new Octopus_Log_Monitor();
     $added = 0;
     $fullStackTraces = false;
+    $openMail = false;
     $watching = array();
 
     if (count($argv) > 0) {
@@ -56,6 +60,10 @@ END;
                 case '--help':
                     echo       $usage;
                     exit();
+                    break;
+
+                case '--mail':
+                    $openMail = true;
                     break;
 
                 default:
@@ -88,6 +96,11 @@ END;
         echo "\n\t$w";
     }
     echo "\n\n";
+
+    if ($openMail) {
+        echo "Watching for emails to open...";
+        echo "\n\n";
+    }
 
     $firstTime = true;
     $lastFailure = null;
@@ -130,7 +143,30 @@ END;
         if (!$firstTime) {
 
             foreach($items as $item) {
-                octopus_display_log_item($item);
+
+                $console = new Octopus_Log_Listener_Console(false);
+                $console->stackTraceLines = $fullStackTraces ? -1 : 1;
+                $console->renderInColor = true;
+
+                $text = $console->formatForDisplay(
+                    $item['message'],
+                    $item['log'],
+                    $item['level'],
+                    is_numeric($item['time']) ? $item['time'] : strtotime($item['time']),
+                    $item['trace'],
+                    true
+                );
+
+                $fp = fopen('php://stderr', 'w');
+                if ($fp) {
+                    fputs($fp, $text);
+                    fclose($fp);
+                }
+
+                if ($openMail && $item['log'] === 'emails.log') {
+                    octopus_open_mail($item['message']);
+                }
+
             }
 
         }
@@ -140,30 +176,59 @@ END;
     }
 
 
-    function octopus_display_log_item($item, $width = 80) {
+function octopus_open_mail($message) {
 
-        global $fullStackTraces;
-
-        $console = new Octopus_Log_Listener_Console(false);
-        $console->stackTraceLines = $fullStackTraces ? -1 : 1;
-        $console->renderInColor = true;
-
-        $text = $console->formatForDisplay(
-            $item['message'],
-            $item['log'],
-            $item['level'],
-            is_numeric($item['time']) ? $item['time'] : strtotime($item['time']),
-            $item['trace'],
-            true,
-            $width
-        );
-
-        $fp = fopen('php://stderr', 'w');
-        if ($fp) {
-            fputs($fp, $text);
-            fclose($fp);
-        }
-
+    if (!is_array($message)) {
+        return;
     }
 
+    $file = sys_get_temp_dir() . '/' . md5(serialize($message)) . '.html';
 
+    foreach($message as $key => $value) {
+        if ($key !== 'body_html') {
+            $message[$key] = h($value);
+        }
+    }
+
+    $replyTo = '';
+    if (!empty($message['reply-to'])) {
+        $replyTo = "(Reply to: {$message['reply-to']})";
+    }
+
+    $time = date('r');
+
+    $message['body_text'] = h($message['body_text']);
+
+    file_put_contents(
+        $file,
+        <<<END
+<div style="background: #e9e9e9; margin-bottom: 20px; padding: 20px;">
+    <div style="color: #333; font-family: monospace; font-size: 14px; margin: 0 auto; width: 600px;">
+        From: {$message['from']} $replyTo
+        <br />
+        To: {$message['to']}
+        <br />
+        Subject: {$message['subject']}
+        <br />
+        Sent: $time
+    </div>
+</div>
+
+{$message['body_html']}
+
+
+<div style="margin: 20px auto; padding: 20px; width: 600px; font-family: monospace;">
+    <div style="border-top: 1px solid #666; white-space: pre;">
+{$message['body_text']}
+    </div>
+</div>
+
+END
+    );
+
+    exec("open \"$file\"");
+
+
+
+
+}
