@@ -39,6 +39,8 @@ class Octopus_Log_Listener_Html {
             $html->add('Variable(s)', $niceMessage);
         } else if ($isException) {
             $html->add(get_class($message), new Octopus_Log_Listener_Html_Exception($message));
+        } else if (is_array($message) || is_object($message)) {
+            $html->add('Message', Octopus_Debug::dumpToString($message, 'html'));
         } else {
             $html->add('Message', $niceMessage);
         }

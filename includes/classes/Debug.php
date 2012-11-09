@@ -101,7 +101,9 @@ class Octopus_Debug {
             }
 
             if (self::shouldUseHtmlLogging()) {
-                Octopus_Log::addListener(new Octopus_Log_Listener_Html());
+                $html = new Octopus_Log_Listener_Html();
+                Octopus_Log::addListener('dump', $html);
+                Octopus_Log::addListener(Octopus_Log::WARN, $html);
             }
         }
 
