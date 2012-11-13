@@ -491,8 +491,8 @@ END;
 
             $expire = $remember ? time() + ($this->rememberDays * 24 * 60 * 60) : 0;
 
-              Octopus_Cookie::set($this->cookieName, $hash, $expire, $this->cookiePath, null, $this->cookieSsl);
-            Octopus_Cookie::set($this->insecureCookieName, self::INSECURE_COOKIE_VALUE, $expire, $this->cookiePath, null, false);
+            Octopus_Cookie::set($this->cookieName, $hash, $expire, $this->cookiePath, null, $this->cookieSsl);
+            Octopus_Cookie::set($this->insecureCookieName, self::INSECURE_COOKIE_VALUE, $expire, $this->cookiePath, null, false, false);
 
         } else {
 
