@@ -91,16 +91,15 @@ class Octopus_DB_Driver_Pdo {
     }
 
     function beginTransaction() {
-        $this->query('START TRANSACTION');
+        $this->handle->beginTransaction();
     }
 
     function commitTransaction() {
-        $this->query('COMMIT');
+        $this->handle->commit();
     }
 
     function rollbackTransaction() {
-        $this->query('ROLLBACK');
+        $this->handle->rollBack();
     }
+
 }
-
-

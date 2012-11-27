@@ -236,6 +236,15 @@ class TableTest extends Octopus_App_TestCase {
 
     function testModifierFunctionIsOnModel() {
 
+        $db = $this->resetDatabase();
+        $db->query("
+            INSERT INTO html_table_persons (`name`, `age`)
+                VALUES
+                    ('Joe Blow', 50),
+                    ('Jane Blow', 50),
+                    ('John Smith', 99)
+        ");
+
         $table = new Octopus_Html_Table('id', array('pager' => false));
         $table->setDataSource(HtmlTablePerson::all());
         $table->addColumn('name', 'Name', 'method_uppercase');

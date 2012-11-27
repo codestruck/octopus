@@ -14,6 +14,7 @@ require_once('PHPUnit/Extensions/Database/TestCase.php');
  */
 abstract class Octopus_DB_TestCase extends PHPUnit_Extensions_Database_TestCase {
     private static $pdo = null;
+    private static $database = null;
     private $conn = null;
     private $_xmlFile;
 
@@ -28,13 +29,15 @@ abstract class Octopus_DB_TestCase extends PHPUnit_Extensions_Database_TestCase 
 
     protected function getConnection()
     {
-        $db = Octopus_DB::singleton();
-
         if ($this->conn === null) {
+
             if (self::$pdo == null) {
-                self::$pdo = $db->driver->handle;
+                $pdo_driver = new Octopus_DB_Driver_Pdo();
+                $pdo_driver->connect();
+                self::$pdo = $pdo_driver->handle;
+                self::$database = $pdo_driver->database;
             }
-            $this->conn = $this->createDefaultDBConnection(self::$pdo, $db->driver->database);
+            $this->conn = $this->createDefaultDBConnection(self::$pdo, self::$database);
         }
 
         return $this->conn;

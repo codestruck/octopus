@@ -10,8 +10,11 @@ class Octopus_DB extends Octopus_Base {
 
     protected function __construct() {
 
+        
         if (class_exists('PDO') && !defined('NO_PDO')) {
             $this->driver = new Octopus_DB_Driver_Pdo();
+        } else if (function_exists('mysqli_connect')) {
+            $this->driver = new Octopus_DB_Driver_Mysqli();
         } else {
             $this->driver = new Octopus_DB_Driver_Mysql();
         }
