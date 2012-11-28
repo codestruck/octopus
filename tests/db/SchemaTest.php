@@ -71,7 +71,7 @@ class Octopus_DB_Schema_Test extends PHPUnit_Framework_TestCase
 
     function tableTypes() {
         return array(
-            array('', 'MyISAM'),
+            array('', 'InnoDB'),
             array('InnoDB', 'InnoDB'),
             array('MyISAM', 'MyISAM'),
         );

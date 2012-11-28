@@ -75,9 +75,14 @@ END
 
     function testDumpFloatToStdErr() {
 
+        $expect = 'float(3.14)';
+        if (function_exists('xdebug_var_dump')) {
+            $expect = 'double(3.14)';
+        }
+
         $this->assertValueDumpedToStdErr(
             3.14,
-            'float(3.14)'
+            $expect
         );
 
     }

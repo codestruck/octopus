@@ -63,11 +63,12 @@
      */
     function __octopus_init_system_tests() {
 
+        $db = Octopus_DB::singleton();
+        $db->query('SET storage_engine=INNODB', true);
+
         require_once('fixtures/model/models.php');
-           require_once('schema.php');
+        require_once('schema.php');
         run_drops();
         run_creates();
 
-        $db = Octopus_DB::singleton();
-        $db->query('SET storage_engine=MYISAM', true);
     }

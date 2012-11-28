@@ -5,7 +5,7 @@
  */
 class Octopus_DB_Schema_Writer {
 
-    const DEFAULT_ENGINE = 'MyISAM';
+    const DEFAULT_ENGINE = 'InnoDB';
     public $engine;
 
     function __construct($tableName, $db = null, $engine = '') {
