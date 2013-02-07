@@ -60,7 +60,7 @@ class Octopus_Log_Listener_Mail {
         $mail->subject($subject);
         $mail->text($body);
         $mail->html($htmlBody);
-        $mail->from(Octopus_Log::getLevelName($level));
+        $mail->from(Octopus_Log::getLevelName($level) . '@' . $_SERVER['HTTP_HOST']);
         $mail->send();
 
     }
