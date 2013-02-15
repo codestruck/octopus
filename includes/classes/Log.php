@@ -193,6 +193,7 @@ class Octopus_Log {
             return true;
         }
 
+
         if (!($errorReporting & $errno)) {
 
             // This error should not be shown -- either it is out of the range
@@ -201,6 +202,8 @@ class Octopus_Log {
         }
 
         $level = self::getLogLevelForPhpError($errno);
+
+
 
         if ($level === Octopus_Log::NONE) {
             // We can't appropriately log it, so let PHP take over.
@@ -563,6 +566,7 @@ class Octopus_Log {
 
             case E_ERROR:
             case E_USER_ERROR:
+            case E_RECOVERABLE_ERROR:
                 return Octopus_Log::ERROR;
 
             default:
