@@ -203,8 +203,6 @@ class Octopus_Log {
 
         $level = self::getLogLevelForPhpError($errno);
 
-
-
         if ($level === Octopus_Log::NONE) {
             // We can't appropriately log it, so let PHP take over.
             return false;
@@ -212,6 +210,11 @@ class Octopus_Log {
 
         // Write the message to the errors log
         self::write('errors', $level, $errstr);
+
+        if ($level === self::ERROR) {
+            // A better way to handle this would be to throw an ErrorException.
+            die();
+        }
 
         return true; // Suppress PHP's internal error handling logic
     }
