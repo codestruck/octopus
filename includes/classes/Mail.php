@@ -103,7 +103,7 @@ class Octopus_Mail {
         $dir = get_option('LOG_DIR');
         if (!$dir) $dir = get_option('OCTOPUS_PRIVATE_DIR');
         $log = new Octopus_Logger_File($dir . 'emails.log');
-        $log->log($message);
+        $log->log(print_r($message, 1));
 
     }
 
