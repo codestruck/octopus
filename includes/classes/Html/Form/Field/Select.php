@@ -115,7 +115,7 @@ class Octopus_Html_Form_Field_Select extends Octopus_Html_Form_Field {
                     foreach($opt->children() as $subopt) {
                         if ($subopt->is('option')) {
                             $value = ($subopt->value === null ? $subopt->text() : $subopt->value);
-                            $opts[] = $subopt;
+                            $opts[$value] = $subopt;
                         }
                     }
                 }
